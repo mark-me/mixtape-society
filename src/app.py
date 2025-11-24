@@ -629,69 +629,42 @@ def album_thumb(album_path):
 
 
 @app.route("/library_tree")
+@login_required
 def library_tree():
-    """Returns a JSON representation of the music library tree.
-
-    This endpoint scans the music directory and builds a nested tree structure of all folders and audio files.
-    """
+    """JSON voor jQuery File Tree (lazy loading via ?dir=param)."""
     root = Path(MUSIC_DIR)
-    result = []
+    dir_param = request.args.get("dir", "").strip("/")
+    current_path = root / dir_param if dir_param else root
 
-    def build_node(path: Path, relative=""):
-        """Recursively builds a node representing a file or directory in the music library tree.
+    if not current_path.exists() or not current_path.is_dir():
+        return jsonify({"directory": []})
 
-        This function returns a dictionary for each audio file or directory, including its name, path, and children if applicable.
+    directory = []
+    for item in sorted(current_path.iterdir(), key=lambda p: (p.is_file(), p.name.lower())):
+        if item.is_file() and item.suffix.lower() in {".mp3", ".flac", ".ogg", ".oga", ".m4a"}:
+            directory.append({"name": item.name, "type": "file"})
+        elif item.is_dir():
+            # Quick check voor lege dirs (optioneel)
+            has_content = any(child.is_file() and child.suffix.lower() in {".mp3", ".flac", ".ogg", ".oga", ".m4a"}
+                              for child in item.iterdir())
+            if has_content or True:  # Toon alle dirs, lazy filtert leeg
+                directory.append({"name": item.name, "type": "dir"})
 
-        Args:
-            path (Path): The file or directory to process.
-            relative (str, optional): Used to determine if the path should be relative. Defaults to "".
+    return jsonify({"directory": directory})
 
-        Returns:
-            dict or None: A dictionary representing the node, or None if the node should not be included.
-        """
-        if path.is_file():
-            if path.suffix.lower() in {".mp3", ".flac", ".ogg", ".oga", ".m4a"}:
-                return {
-                    "name": path.name,
-                    "path": str(path.relative_to(root)).replace("\\", "/"),
-                    "isFile": True,
-                }
-            return None
+@app.route("/thumbnails/<filename>")
+def thumbnails(filename):
+    """Serves thumbnail image files from the thumbnail cache directory.
 
-        node = {
-            "name": path.name,
-            "path": str(path.relative_to(root)).replace("\\", "/") if relative else "",
-            "isFile": False,
-            "children": [],
-        }
+    This endpoint returns the requested thumbnail image file for use in the UI or music library explorer.
 
-        for child in sorted(
-            path.iterdir(), key=lambda p: (p.is_file(), p.name.lower())
-        ):
-            child_node = build_node(child)
-            if child_node:
-                node["children"].append(child_node)
+    Args:
+        filename (str): The name of the thumbnail image file to serve.
 
-        # Only include folders that have audio files somewhere inside
-        if not node["children"] and not any(
-            p.is_file()
-            for p in path.rglob("*.*")
-            if p.suffix.lower() in {".mp3", ".flac", ".ogg", ".oga", ".m4a"}
-        ):
-            return None
-
-        return node
-
-    tree = {"name": "music", "isFile": False, "children": []}
-
-    for item in sorted(root.iterdir(), key=lambda p: p.name.lower()):
-        if item.is_dir():
-            node = build_node(item)
-            if node:
-                tree["children"].append(node)
-
-    return jsonify(tree["children"])
-
+    Returns:
+        Response: The requested image file as a Flask response.
+    """
+    return send_from_directory(THUMBNAIL_CACHE, filename)
 
 @app.route("/reorder_tracks/<title>", methods=["POST"])
 @login_required
