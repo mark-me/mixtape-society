@@ -52,14 +52,17 @@
                     {% endif %}
                 </p>
                 <div class="mt-auto">
-                    <div class="btn-group w-100" role="group">
+                    <div class="mt-auto btn-group w-100" role="group">
                         <a href="/mixtape/{{ m.title }}" class="btn btn-outline-primary btn-sm">
-                            <i class="bi bi-play-circle"></i> Bekijken
+                            <i class="bi bi-play-circle"></i> Afspelen
                         </a>
-                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#cloneModal{{ loop.index }}">
-                            <i class="bi bi-copy"></i> Clone
+                        <a href="/edit/{{ m.title }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-pencil-square"></i> Bewerken
+                        </a>
+                        <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#clone{{ loop.index }}">
+                            <i class="bi bi-copy"></i>
                         </button>
-                        <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal{{ loop.index }}">
+                        <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#delete{{ loop.index }}">
                             <i class="bi bi-trash"></i>
                         </button>
                     </div>
