@@ -1,4 +1,4 @@
-# Mixtape Revival
+# The Mixtape Society
 
 **Bringing mixtapes back — digitally.**
 A beautiful, modern web app to create, manage, and share your own digital mixtapes — just like the old days, but better.
@@ -76,3 +76,29 @@ mixtapes/
 ├── README.md
 └── uv.lock
 ```
+
+## Security & Production tips
+
+This project is designed as a **personal / hobby** application.
+For real-world use:
+
+* Change the hardcoded admin credentials (ADMIN_USERNAME / ADMIN_PASSWORD in app.py)
+* Replace the simple login with a proper user database + password hashing
+* Put behind a reverse proxy (Nginx, Caddy, Traefik) with HTTPS
+* Restrict direct access to the /music folder
+
+## Tech stack
+* Python + Flask
+* Bootstrap 5 + Bootstrap Icons
+* APlayer (beautiful audio player)
+* Sortable.js (drag & drop)
+* Mutagen (metadata extraction)
+* Docker & Docker Compose
+
+
+License
+MIT License – fork it, modify it, use it anywhere.
+
+Mixtapes are back. And they sound better than ever.
+Made with love and nostalgia
+© 2025 – Mixtape Revival
