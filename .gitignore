@@ -8,3 +8,8 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Index files
+music_index
+covers
+mixtapes
