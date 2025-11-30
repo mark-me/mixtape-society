@@ -2,7 +2,7 @@ import sqlite3
 import time
 from pathlib import Path
 from tinytag import TinyTag
-from whoosh.index import create_in, open_dir, exists_in
+from whoosh.index import create_in, open_dir, exists_in, FileIndex
 from whoosh.fields import Schema, TEXT, ID
 from whoosh.qparser import MultifieldParser, FuzzyTermPlugin
 from watchdog.observers import Observer
@@ -65,7 +65,7 @@ class MusicCollection:
             None
         """
         if not self.path_db.parent.exists():
-            self.path_db.parent.mkdir(parents=True)
+            self.path_db.parent.mkdir(parents=True, exist_ok=True)
         conn = self.get_db_connection()
         conn.execute(
             """
@@ -156,7 +156,7 @@ class MusicCollection:
         conn.execute("DELETE FROM tracks")
         return conn
 
-    def _index_tracks(self, writer, conn):
+    def _index_tracks(self, writer, conn: sqlite3.Connection):
         """Indexes all supported audio files in the music root directory.
 
         This method iterates through all files, extracts metadata, and adds entries to both the Whoosh and SQLite indexes using helper methods.
@@ -169,16 +169,18 @@ class MusicCollection:
             int: The total number of tracks indexed.
         """
         count = 0
-        count = 0
         # Only traverse files, not directories, and filter by supported extensions
-        for ext in self.SUPPORTED_EXTENSIONS:
-            for filepath in self.path_music.rglob(f"*{ext}"):
-                if filepath.is_file() and self._is_supported_file(filepath):
-                    self._index_single_track(writer, conn, filepath)
-                    count += 1
-                    if count % 2500 == 0:
-                        print(f"   {count} tracks verwerkt...")
-                        conn.commit()
+        for filepath in self.path_music.rglob("*"):
+            if (
+                filepath.is_file()
+                and filepath.suffix.lower() in self.SUPPORTED_EXTENSIONS
+                and self._is_supported_file(filepath)
+            ):
+                self._index_single_track(writer, conn, filepath)
+                count += 1
+                if count % 2500 == 0:
+                    print(f"   {count} tracks verwerkt...")
+                    conn.commit()
         return count
 
     def _index_single_track(self, writer, conn, filepath):
@@ -225,7 +227,7 @@ class MusicCollection:
         except Exception:
             return None
 
-    def _extract_metadata(self, tag, filepath):
+    def _extract_metadata(self, tag, path_file: Path):
         """Extracts artist, album, and title metadata from a tag object and file path.
 
         This method provides fallback values based on the file path if the tag is missing or incomplete.
@@ -238,10 +240,10 @@ class MusicCollection:
             tuple: A tuple containing artist, album, and title strings.
         """
         artist = (
-            tag.artist or tag.albumartist or filepath.parent.parent.name or "Unknown"
+            tag.artist or tag.albumartist or path_file.parent.parent.name or "Unknown"
         ).strip()
-        album = (tag.album or filepath.parent.name or "Unknown").strip()
-        title = (tag.title or filepath.stem).strip()
+        album = (tag.album or path_file.parent.name or "Unknown").strip()
+        title = (tag.title or path_file.stem).strip()
         return artist, album, title
 
     def _add_to_whoosh(self, writer, filepath, artist, album, title):
@@ -376,10 +378,25 @@ class MusicCollection:
                 "path": hit["path"],
             }
 
+    def start_observer(self, ix):
+        """Starts the watchdog observer for live monitoring of the music directory.
+
+        This method schedules the MusicWatcher and starts the observer thread.
+        """
+        self._observer = Observer()
+        self._observer.schedule(MusicWatcher(ix), str(self.path_music), recursive=True)
+        self._observer.start()
+
+    def stop_observer(self):
+        """Stops the watchdog observer if it is running."""
+        if hasattr(self, "_observer"):
+            self._observer.stop()
+            self._observer.join()
+
 
 # Watchdog handler (blijft hetzelfde, alleen netter)
 class MusicWatcher(FileSystemEventHandler):
-    def __init__(self, ix):
+    def __init__(self, ix: FileIndex):
         self.ix = ix
         self.supporter_extensions = {
             ".mp3",
@@ -392,7 +409,7 @@ class MusicWatcher(FileSystemEventHandler):
             ".wma",
         }
 
-    def process(self, path):
+    def process(self, path: Path):
         p = Path(path)
         if p.suffix.lower() not in self.supporter_extensions or not p.is_file():
             return
@@ -410,9 +427,7 @@ if __name__ == "__main__":
         print(f"   {r['artist']} — {r['album']} — {r['title']}")
 
     # Start live monitoring + interactieve zoekopdracht
-    observer = Observer()
-    observer.schedule(MusicWatcher(ix), str(MUSIC_ROOT), recursive=True)
-    observer.start()
+    collection.start_observer(ix)
     print("\nLive monitoring actief. Typ een zoekterm (quit om te stoppen):\n")
 
     try:
@@ -430,5 +445,4 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         pass
     finally:
-        observer.stop()
-        observer.join()
+        collection.stop_observer()
