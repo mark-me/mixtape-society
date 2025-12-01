@@ -1,74 +1,32 @@
+#!/usr/bin/env python3
 import sqlite3
 import time
 from pathlib import Path
 from tinytag import TinyTag
-from whoosh.index import create_in, open_dir, exists_in, FileIndex
-from whoosh.fields import Schema, TEXT, ID
-from whoosh.qparser import MultifieldParser, FuzzyTermPlugin
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-# ==================== CONFIG — WIJZIG ALLEEN DEZE ====================
-MUSIC_ROOT = Path("/home/mark/Music")  # ← ABSOLUTE pad naar je muziek!
-DB_PATH = Path(__file__).parent.parent / "collection-data"
-# =====================================================================
-
+# ==================== CONFIG ====================
+MUSIC_ROOT = Path("/home/mark/Music")
+DB_PATH = Path(__file__).parent.parent / "collection-data" / "music.db"
+# ===============================================
 
 class MusicCollection:
-    def __init__(self, path_music: Path, path_db: Path):
-        """Initializes the MusicCollection with paths and supported extensions.
+    def __init__(self, music_root: Path, db_path: Path):
+        self.music_root = music_root.resolve()
+        self.db_path = db_path.resolve()
+        self.supported = {".mp3", ".flac", ".ogg", ".oga", ".m4a", ".mp4", ".wav", ".wma"}
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        self._ensure_schema()
 
-        This constructor sets up the music directory, database path, supported file extensions, and the Whoosh schema for indexing.
-
-        Args:
-            path_music (Path): The path to the music directory.
-            path_db (Path): The path to the SQLite database file.
-        """
-        self.supporter_extensions = {
-            ".mp3",
-            ".flac",
-            ".ogg",
-            ".oga",
-            ".m4a",
-            ".mp4",
-            ".wav",
-            ".wma",
-        }
-        self.path_music = path_music
-        self.path_index = path_db / "music_index"
-        self.path_db = path_db / "music.db"
-        self.schema = Schema(
-            path=ID(stored=True, unique=True),
-            artist=TEXT(stored=True, phrase=False),
-            album=TEXT(stored=True, phrase=False),
-            title=TEXT(stored=True, phrase=False),
-        )
-
-    def get_db_connection(self):
-        """Returns a SQLite database connection for the music collection.
-
-        This method creates and returns a connection to the SQLite database, setting the row factory for dictionary-like access.
-
-        Returns:
-            sqlite3.Connection: The SQLite database connection.
-        """
-        conn = sqlite3.connect(self.path_db)
+    def get_conn(self):
+        conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
         return conn
 
-    def init_db(self):
-        """Initializes the SQLite database for the music collection.
-
-        This method creates the database directory if needed and ensures the tracks table exists.
-
-        Returns:
-            None
-        """
-        if not self.path_db.parent.exists():
-            self.path_db.parent.mkdir(parents=True, exist_ok=True)
-        conn = self.get_db_connection()
-        conn.execute(
-            """
+    def _ensure_schema(self):
+        with self.get_conn() as conn:
+            conn.execute("""
                 CREATE TABLE IF NOT EXISTS tracks (
                     path TEXT PRIMARY KEY,
                     filename TEXT,
@@ -78,371 +36,221 @@ class MusicCollection:
                     albumartist TEXT,
                     genre TEXT,
                     year INTEGER,
-                    duration REAL )"""
-        )
-        conn.commit()
-        conn.close()
-        print(f"Succes: SQLite database klaar op: {self.path_db.resolve()}")
+                    duration REAL
+                )
+            """)
+            for idx in [
+                "CREATE INDEX IF NOT EXISTS idx_artist ON tracks(artist COLLATE NOCASE)",
+                "CREATE INDEX IF NOT EXISTS idx_album  ON tracks(album  COLLATE NOCASE)",
+                "CREATE INDEX IF NOT EXISTS idx_title  ON tracks(title  COLLATE NOCASE)"
+            ]:
+                conn.execute(idx)
 
-    def count_tracks_in_db(self):
-        """Returns the number of tracks currently stored in the SQLite database.
+    def db_ready(self):
+        return self.db_path.exists() and self.count_tracks() > 0
 
-        This method queries the tracks table and returns the total count of track entries.
+    def count_tracks(self):
+        with self.get_conn() as conn:
+            return conn.execute("SELECT COUNT(*) FROM tracks").fetchone()[0]
 
-        Returns:
-            int: The number of tracks in the database.
-        """
-        conn = self.get_db_connection()
-        count = conn.execute("SELECT COUNT(*) FROM tracks").fetchone()[0]
-        conn.close()
-        return count
+    def rebuild(self):
+        print("Scanning and indexing your music collection...")
+        self._ensure_schema()
+        with self.get_conn() as conn:
+            conn.execute("DELETE FROM tracks")
+            count = 0
+            start = time.time()
+            for fp in self.music_root.rglob("*.*"):
+                if fp.is_file() and fp.suffix.lower() in self.supported:
+                    try:
+                        self._index_file(conn, fp)
+                    except Exception as e:
+                        print(f"Warning: Skipping {fp.name}: {e}")
+                    count += 1
+                    if count % 3000 == 0:
+                        print(f"   Processed {count:,} files...")
+            conn.commit()
+        print(f"Done! Indexed {count:,} files in {time.time()-start:.1f}s\n")
 
-    def build_indexes(self):
-        """Builds both the Whoosh and SQLite indexes for the music collection.
+    def _safe_int_year(self, value):
+        if not value: return None
+        if isinstance(value, int): return value
+        if isinstance(value, float): return int(value) if value == int(value) else None
+        s = str(value).strip().split('-', 1)[0].split('.', 1)[0]
+        return int(s) if s.isdigit() else None
 
-        This method resets the index directories, initializes the indexes, and processes all tracks using smaller helper methods.
-
-        Returns:
-            None
-        """
-        print("Start volledige herindexering (Whoosh + SQLite)...")
-        self._reset_indexes()
-        ix, writer = self._init_whoosh_index()
-        conn = self._init_sqlite_index()
-
-        count = self._index_tracks(writer, conn)
-
-        writer.commit()
-        conn.commit()
-        conn.close()
-        print(f"Succes: Voltooid! {count} tracks in beide indexen.")
-        print(f"   → Whoosh: {self.path_index.resolve()}")
-        print(
-            f"   → SQLite: {self.path_db.resolve()} ({self.count_tracks_in_db()} rijen)\n"
-        )
-
-    def _reset_indexes(self):
-        """Resets the Whoosh index directory by deleting and recreating it.
-
-        This method removes the existing index directory and creates a new, empty one for reindexing.
-        """
-        if self.path_index.exists():
-            import shutil
-
-            shutil.rmtree(self.path_index)
-        self.path_index.mkdir(parents=True)
-
-    def _init_whoosh_index(self):
-        """Initializes the Whoosh index for the music collection.
-
-        This method creates a new Whoosh index in the index directory and returns the index and writer objects.
-
-        Returns:
-            tuple: A tuple containing the Whoosh index and its writer.
-        """
-        ix = create_in(self.path_index, self.schema)
-        writer = ix.writer()
-        return ix, writer
-
-    def _init_sqlite_index(self):
-        """Initializes the SQLite index by clearing the tracks table.
-
-        This method returns a database connection after deleting all existing track entries.
-
-        Returns:
-            sqlite3.Connection: The SQLite database connection.
-        """
-        conn = self.get_db_connection()
-        conn.execute("DELETE FROM tracks")
-        return conn
-
-    def _index_tracks(self, writer, conn: sqlite3.Connection):
-        """Indexes all supported audio files in the music root directory.
-
-        This method iterates through all files, extracts metadata, and adds entries to both the Whoosh and SQLite indexes using helper methods.
-
-        Args:
-            writer: The Whoosh index writer.
-            conn: The SQLite database connection.
-
-        Returns:
-            int: The total number of tracks indexed.
-        """
-        count = 0
-        # Only traverse files, not directories, and filter by supported extensions
-        for filepath in self.path_music.rglob("*"):
-            if (
-                filepath.is_file()
-                and filepath.suffix.lower() in self.SUPPORTED_EXTENSIONS
-                and self._is_supported_file(filepath)
-            ):
-                self._index_single_track(writer, conn, filepath)
-                count += 1
-                if count % 2500 == 0:
-                    print(f"   {count} tracks verwerkt...")
-                    conn.commit()
-        return count
-
-    def _index_single_track(self, writer, conn, filepath):
-        """Indexes a single audio file in both Whoosh and SQLite indexes.
-
-        This method extracts metadata and adds the track to both indexes.
-
-        Args:
-            writer: The Whoosh index writer.
-            conn: The SQLite database connection.
-            filepath (Path): The path to the audio file.
-        """
-        tag = self._get_tag(filepath)
-        artist, album, title = self._extract_metadata(tag, filepath)
-        self._add_to_whoosh(writer, filepath, artist, album, title)
-        self._add_to_sqlite(conn, filepath, tag, artist, album, title)
-
-    def _is_supported_file(self, filepath):
-        """Checks if the given file is a supported audio file.
-
-        Args:
-            filepath (Path): The file path to check.
-
-        Returns:
-            bool: True if the file is supported and is a file, False otherwise.
-        """
-        return (
-            filepath.suffix.lower() in self.supporter_extensions and filepath.is_file()
-        )
-
-    def _get_tag(self, filepath):
-        """Retrieves tag metadata from an audio file using TinyTag.
-
-        This method attempts to extract tags and duration from the given file, returning None if extraction fails.
-
-        Args:
-            filepath (Path): The path to the audio file.
-
-        Returns:
-            TinyTag or None: The extracted tag object, or None if extraction fails.
-        """
+    def _index_file(self, conn, path: Path):
+        tag = None
         try:
-            return TinyTag.get(filepath, tags=True, duration=True)
-        except Exception:
-            return None
+            tag = TinyTag.get(path, tags=True, duration=True)
+        except:
+            pass
 
-    def _extract_metadata(self, tag, path_file: Path):
-        """Extracts artist, album, and title metadata from a tag object and file path.
+        artist = (getattr(tag, "artist", None) or getattr(tag, "albumartist", None) or
+                  path.parent.parent.name or "Unknown").strip()
+        album = (getattr(tag, "album", None) or path.parent.name or "Unknown").strip()
+        title = (getattr(tag, "title", None) or path.stem).strip()
 
-        This method provides fallback values based on the file path if the tag is missing or incomplete.
+        year = self._safe_int_year(getattr(tag, "year", None))
+        duration = None
+        if tag and getattr(tag, "duration", None):
+            try:
+                duration = float(tag.duration)
+            except:
+                pass
 
-        Args:
-            tag (TinyTag or None): The tag object containing metadata, or None.
-            filepath (Path): The path to the audio file.
+        conn.execute("""INSERT OR REPLACE INTO tracks
+            (path, filename, artist, album, title, albumartist, genre, year, duration)
+            VALUES (?,?,?,?,?,?,?,?,?)""", (
+            str(path), path.name, artist, album, title,
+            getattr(tag, "albumartist", None),
+            getattr(tag, "genre", None),
+            year, duration
+        ))
 
-        Returns:
-            tuple: A tuple containing artist, album, and title strings.
-        """
-        artist = (
-            tag.artist or tag.albumartist or path_file.parent.parent.name or "Unknown"
-        ).strip()
-        album = (tag.album or path_file.parent.name or "Unknown").strip()
-        title = (tag.title or path_file.stem).strip()
-        return artist, album, title
+    def search_grouped(self, query: str, limit: int = 20):
+        if not (q := query.strip()):
+            return {"artists": [], "albums": [], "tracks": []}
 
-    def _add_to_whoosh(self, writer, filepath, artist, album, title):
-        """Adds or updates a track entry in the Whoosh index.
+        like_pat = f"%{q}%"
+        starts_pat = f"{q}%"
 
-        This method inserts the track metadata for the given file into the Whoosh index.
+        with self.get_conn() as conn:
+            result = {"artists": [], "albums": [], "tracks": []}
 
-        Args:
-            writer: The Whoosh index writer.
-            filepath (Path): The path to the audio file.
-            artist (str): The artist name.
-            album (str): The album name.
-            title (str): The track title.
-        """
-        writer.add_document(
-            path=str(filepath),
-            artist=artist.lower(),
-            album=album.lower(),
-            title=title.lower(),
-        )
+            # 1. ARTISTS
+            cur = conn.execute("""
+                SELECT DISTINCT artist FROM tracks
+                WHERE artist LIKE ? COLLATE NOCASE
+                ORDER BY artist LIKE ? DESC, artist COLLATE NOCASE
+                LIMIT ?
+            """, (starts_pat, starts_pat, limit))
+            result["artists"] = [{"artist": r["artist"]} for r in cur]
 
-    def _add_to_sqlite(self, conn, filepath, tag, artist, album, title):
-        """Adds or updates a track entry in the SQLite database.
+            # 2. ALBUMS
+            skip = {a["artist"].lower() for a in result["artists"]}
+            if skip:
+                placeholders = ",".join("?" for _ in skip)
+                sql = f"""
+                    SELECT DISTINCT artist, album FROM tracks
+                    WHERE album LIKE ? COLLATE NOCASE
+                      AND lower(artist) NOT IN ({placeholders})
+                    ORDER BY album LIKE ? DESC, album COLLATE NOCASE
+                    LIMIT ?
+                """
+                # like, starts, *skip (strings), limit (int) → correct order!
+                cur = conn.execute(sql, (like_pat, starts_pat, *skip, limit))
+            else:
+                cur = conn.execute("""
+                    SELECT DISTINCT artist, album FROM tracks
+                    WHERE album LIKE ? COLLATE NOCASE
+                    ORDER BY album LIKE ? DESC, album COLLATE NOCASE
+                    LIMIT ?
+                """, (like_pat, starts_pat, limit))
+            result["albums"] = [{"artist": r["artist"], "album": r["album"]} for r in cur]
 
-        This method inserts or replaces the track metadata for the given file in the tracks table.
+            # 3. TRACKS
+            skip.update(a["artist"].lower() for a in result["albums"])
+            if skip:
+                placeholders = ",".join("?" for _ in skip)
+                sql = f"""
+                    SELECT artist, album, title AS track FROM tracks
+                    WHERE title LIKE ? COLLATE NOCASE
+                      AND lower(artist) NOT IN ({placeholders})
+                    ORDER BY title LIKE ? DESC, title COLLATE NOCASE
+                    LIMIT ?
+                """
+                cur = conn.execute(sql, (like_pat, starts_pat, *skip, limit))
+            else:
+                cur = conn.execute("""
+                    SELECT artist, album, title AS track FROM tracks
+                    WHERE title LIKE ? COLLATE NOCASE
+                    ORDER BY title LIKE ? DESC, title COLLATE NOCASE
+                    LIMIT ?
+                """, (like_pat, starts_pat, limit))
+            result["tracks"] = [{"artist": r["artist"], "album": r["album"], "track": r["track"]} for r in cur]
 
-        Args:
-            conn: The SQLite database connection.
-            filepath (Path): The path to the audio file.
-            tag (TinyTag or None): The tag object containing metadata, or None.
-            artist (str): The artist name.
-            album (str): The album name.
-            title (str): The track title.
-        """
-        conn.execute(
-            """INSERT OR REPLACE INTO tracks
-            (path,filename,artist,album,title,albumartist,genre,year,duration)
-            VALUES (?,?,?,?,?,?,?,?,?)""",
-            (
-                str(filepath),
-                filepath.name,
-                artist,
-                album,
-                title,
-                tag.albumartist if tag else None,
-                tag.genre if tag else None,
-                tag.year,
-                tag.duration,
-            ),
-        )
-
-    def get_index(self):
-        """Initializes and returns the Whoosh index for the music collection.
-
-        This method ensures the database and index directories exist, builds indexes if needed, and returns the Whoosh index object.
-
-        Returns:
-            whoosh.index.Index: The Whoosh index object for the music collection.
-        """
-        self.init_db()
-
-        self._print_paths()
-
-        if not self.path_music.exists():
-            print(f"FOUT: {self.path_music} bestaat niet! Pas het pad aan bovenaan het script.")
-            exit(1)
-
-        if not exists_in(self.path_index) or self.count_tracks_in_db() == 0:
-            print("Geen bestaande index gevonden → volledige scan gestart.\n")
-            self.build_indexes()
-        else:
-            print(
-                f"Bestaande index gevonden met {self.count_tracks_in_db()} tracks → klaar voor gebruik!\n"
-            )
-
-        return open_dir(self.path_index)
-
-    def _print_paths(self):
-        """Prints the paths for the music directory, index directory, and database file.
-
-        This helper method outputs the relevant paths for debugging and setup.
-        """
-        print(f"Zoek muziekmap      : {self.path_music.resolve()}")
-        print(f"Index map           : {self.path_index.resolve()}")
-        print(f"Database bestand    : {self.path_db.resolve()}")
-
-    def search(self, query: str, limit: int = 100):
-        """Searches the music collection for tracks matching the query string.
-
-        This method performs a fuzzy search across artist, album, and title fields, returning a list of matching tracks with their metadata.
-
-        Args:
-            query (str): The search query string.
-            limit (int, optional): The maximum number of results to return. Defaults to 100.
-
-        Returns:
-            list: A list of dictionaries containing artist, album, title, and path for each matching track.
-        """
-        ix = open_dir(self.path_index)
-        with ix.searcher() as searcher:
-            parser = MultifieldParser(["artist", "album", "title"], ix.schema)
-            parser.add_plugin(FuzzyTermPlugin())
-            q = parser.parse(f"{query.strip()}~1")
-            results = searcher.search(q, limit=limit)
-
-            conn = self.get_db_connection()
-            hits = [self._get_hit_metadata(conn, hit) for hit in results]
-            conn.close()
-            return hits
-
-    def _get_hit_metadata(self, conn, hit):
-        """Retrieves metadata for a search hit from the database, with fallback to index data.
-
-        Args:
-            conn: The SQLite database connection.
-            hit: The Whoosh search result hit.
-
-        Returns:
-            dict: A dictionary containing artist, album, title, and path for the track.
-        """
-        row = conn.execute(
-            "SELECT artist,album,title,path FROM tracks WHERE path = ?",
-            (hit["path"],),
-        ).fetchone()
-        if row:
-            return dict(row)
-        else:
-            return {
-                "artist": hit["artist"].title(),
-                "album": hit["album"].title(),
-                "title": hit["title"].title(),
-                "path": hit["path"],
-            }
-
-    def start_observer(self, ix):
-        """Starts the watchdog observer for live monitoring of the music directory.
-
-        This method schedules the MusicWatcher and starts the observer thread.
-        """
-        self._observer = Observer()
-        self._observer.schedule(MusicWatcher(ix), str(self.path_music), recursive=True)
-        self._observer.start()
-
-    def stop_observer(self):
-        """Stops the watchdog observer if it is running."""
-        if hasattr(self, "_observer"):
-            self._observer.stop()
-            self._observer.join()
+        return result
 
 
-# Watchdog handler (blijft hetzelfde, alleen netter)
 class MusicWatcher(FileSystemEventHandler):
-    def __init__(self, ix: FileIndex):
-        self.ix = ix
-        self.supporter_extensions = {
-            ".mp3",
-            ".flac",
-            ".ogg",
-            ".oga",
-            ".m4a",
-            ".mp4",
-            ".wav",
-            ".wma",
-        }
-
-    def process(self, path: Path):
-        p = Path(path)
-        if p.suffix.lower() not in self.supporter_extensions or not p.is_file():
-            return
+    def __init__(self, collection): self.collection = collection
+    def on_any_event(self, event):
+        if event.is_directory: return
+        path = Path(getattr(event, "src_path", None) or getattr(event, "dest_path", None) or "")
+        if not path.exists() or path.suffix.lower() not in self.collection.supported: return
+        with self.collection.get_conn() as conn:
+            if event.event_type == "deleted":
+                conn.execute("DELETE FROM tracks WHERE path = ?", (str(path),))
+            else:
+                try:
+                    self.collection._index_file(conn, path)
+                except:
+                    pass
+            conn.commit()
 
 
-# ==================== START ====================
+# ==================== MAIN ====================
 if __name__ == "__main__":
-    collection = MusicCollection(path_music=MUSIC_ROOT, path_db=DB_PATH)
-    ix = collection.get_index()
+    if not MUSIC_ROOT.exists():
+        print(f"ERROR: Music folder not found: {MUSIC_ROOT}")
+        exit(1)
 
-    # Test meteen of de database echt werkt
-    print("Test zoekopdracht op 'the':")
-    test = collection.search("the", limit=5)
-    for r in test:
-        print(f"   {r['artist']} — {r['album']} — {r['title']}")
+    collection = MusicCollection(MUSIC_ROOT, DB_PATH)
+    print(f"Music folder : {MUSIC_ROOT}")
+    print(f"Database     : {DB_PATH}\n")
 
-    # Start live monitoring + interactieve zoekopdracht
-    collection.start_observer(ix)
-    print("\nLive monitoring actief. Typ een zoekterm (quit om te stoppen):\n")
+    if not collection.db_ready():
+        collection.rebuild()
+    else:
+        print(f"Library ready — {collection.count_tracks():,} tracks loaded\n")
+
+    observer = Observer()
+    observer.schedule(MusicWatcher(collection), str(MUSIC_ROOT), recursive=True)
+    observer.start()
+    print("Live monitoring active — type to search (q to quit)\n")
 
     try:
         while True:
             q = input("> ").strip()
-            if q.lower() in {"quit", "q", "exit"}:
-                break
-            if not q:
-                continue
+            if q.lower() in {"q", "quit", "exit"}: break
+            if not q: continue
+
             t0 = time.time()
-            results = collection.search(q)
-            print(f"\n{len(results)} resultaten in {time.time() - t0:.3f}s\n")
-            for r in results[:50]:
-                print(f"{r['artist']} — {r['album']} — {r['title']}")
+            result = collection.search_grouped(q, limit=20)
+            t = time.time() - t0
+
+            print(f"\nResults in {t:.3f}s\n")
+
+            if result["artists"]:
+                print("ARTISTS:")
+                for a in result["artists"][:10]:
+                    print(f"  • {a['artist']}")
+                if len(result["artists"]) > 10:
+                    print(f"  ... +{len(result['artists'])-10} more")
+
+            if result["albums"]:
+                print("\nALBUMS:")
+                for a in result["albums"][:10]:
+                    print(f"  • {a['artist']} — {a['album']}")
+                if len(result["albums"]) > 10:
+                    print(f"  ... +{len(result['albums'])-10} more")
+
+            if result["tracks"]:
+                print("\nTRACKS:")
+                for t in result["tracks"][:15]:
+                    print(f"  • {t['artist']} — {t['album']} — {t['track']}")
+                if len(result["tracks"]) > 15:
+                    print(f"  ... +{len(result['tracks'])-15} more")
+
+            if not any(result.values()):
+                print("  No results found.")
+
+            print("\n" + "─" * 50)
+
     except KeyboardInterrupt:
-        pass
+        print("\nStopping...")
     finally:
-        collection.stop_observer()
+        observer.stop()
+        observer.join()
+        print("Bye!")
