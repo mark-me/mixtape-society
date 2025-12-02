@@ -103,7 +103,7 @@ class MusicCollection:
             conn.execute("DELETE FROM tracks")
             count = 0
             start = time.time()
-            for fp in self.music_root.rglob("*.*"):
+            for fp in self.music_root.rglob("*"):
                 if fp.is_file() and fp.suffix.lower() in self.supported:
                     try:
                         self._index_file(conn, fp)
@@ -177,12 +177,14 @@ class MusicCollection:
         Returns:
             str: The extracted artist name.
         """
-        artist = getattr(tag, "artist", None)
+        artist = getattr(tag, "artist", None) or getattr(tag, "albumartist", None)
         if not artist:
-            artist = getattr(tag, "albumartist", None)
-        if not artist:
-            parent_dir = path.parent.parent.name
-            artist = parent_dir if parent_dir else "Unknown"
+            # Check if the path is nested at least two levels deep
+            if len(path.parents) >= 3:
+                parent_dir = path.parent.parent.name
+                artist = parent_dir or "Unknown"
+            else:
+                artist = "Unknown"
         return artist.strip() if artist else "Unknown"
 
     def _extract_album(self, tag, path: Path) -> str:
@@ -200,7 +202,14 @@ class MusicCollection:
         album = getattr(tag, "album", None)
         if not album:
             parent_dir = path.parent.name
-            album = parent_dir or "Unknown"
+            # Validate parent_dir: avoid generic or root directory names
+            invalid_album_names = {"", ".", "..", "Music", "music", "Unknown"}
+            if parent_dir in invalid_album_names:
+                # Try grandparent directory as a fallback
+                grandparent_dir = path.parent.parent.name
+                album = grandparent_dir if grandparent_dir not in invalid_album_names else "Unknown"
+            else:
+                album = parent_dir
         return album.strip() if album else "Unknown"
 
     def _extract_title(self, tag, path: Path) -> str:
