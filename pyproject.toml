@@ -15,5 +15,4 @@ dependencies = [
     "tinytag>=2.1.2",
     "tqdm>=4.67.1",
     "watchdog>=6.0.0",
-    "whoosh>=2.7.4",
 ]
