@@ -17,6 +17,7 @@ MUSIC_ROOT = Path("/home/mark/Music")
 DB_PATH = Path(__file__).parent.parent / "collection-data" / "music.db"
 # ===============================================
 
+
 class MusicCollection:
     def __init__(self, music_root: Path, db_path: Path):
         """Initializes a MusicCollection instance for managing a music library.
@@ -29,7 +30,16 @@ class MusicCollection:
         """
         self.music_root = music_root.resolve()
         self.db_path = db_path.resolve()
-        self.supported = {".mp3", ".flac", ".ogg", ".oga", ".m4a", ".mp4", ".wav", ".wma"}
+        self.supported = {
+            ".mp3",
+            ".flac",
+            ".ogg",
+            ".oga",
+            ".m4a",
+            ".mp4",
+            ".wav",
+            ".wma",
+        }
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._ensure_schema()
 
@@ -70,7 +80,7 @@ class MusicCollection:
             for idx in [
                 "CREATE INDEX IF NOT EXISTS idx_artist ON tracks(artist COLLATE NOCASE)",
                 "CREATE INDEX IF NOT EXISTS idx_album  ON tracks(album  COLLATE NOCASE)",
-                "CREATE INDEX IF NOT EXISTS idx_title  ON tracks(title  COLLATE NOCASE)"
+                "CREATE INDEX IF NOT EXISTS idx_title  ON tracks(title  COLLATE NOCASE)",
             ]:
                 conn.execute(idx)
 
@@ -119,7 +129,7 @@ class MusicCollection:
                     if count % 3000 == 0:
                         logger.info(f"Processed {count:,} files...")
             conn.commit()
-        logger.info(f"Done! Indexed {count:,} files in {time.time()-start:.1f}s\n")
+        logger.info(f"Done! Indexed {count:,} files in {time.time() - start:.1f}s\n")
 
     def _safe_int_year(self, value):
         """Converts a value to an integer year if possible.
@@ -132,10 +142,13 @@ class MusicCollection:
         Returns:
             int or None: The extracted year as an integer, or None if conversion is not possible.
         """
-        if not value: return None
-        if isinstance(value, int): return value
-        if isinstance(value, float): return int(value) if value == int(value) else None
-        s = str(value).strip().split('-', 1)[0].split('.', 1)[0]
+        if not value:
+            return None
+        if isinstance(value, int):
+            return value
+        if isinstance(value, float):
+            return int(value) if value == int(value) else None
+        s = str(value).strip().split("-", 1)[0].split(".", 1)[0]
         return int(s) if s.isdigit() else None
 
     def _index_file(self, conn: sqlite3.Connection, path: Path):
@@ -159,14 +172,22 @@ class MusicCollection:
         year = self._safe_int_year(getattr(tag, "year", None))
         duration = self._extract_duration(tag)
 
-        conn.execute("""INSERT OR REPLACE INTO tracks
+        conn.execute(
+            """INSERT OR REPLACE INTO tracks
             (path, filename, artist, album, title, albumartist, genre, year, duration)
-            VALUES (?,?,?,?,?,?,?,?,?)""", (
-            str(path), path.name, artist, album, title,
-            getattr(tag, "albumartist", None),
-            getattr(tag, "genre", None),
-            year, duration
-        ))
+            VALUES (?,?,?,?,?,?,?,?,?)""",
+            (
+                str(path),
+                path.name,
+                artist,
+                album,
+                title,
+                getattr(tag, "albumartist", None),
+                getattr(tag, "genre", None),
+                year,
+                duration,
+            ),
+        )
 
     def _extract_artist(self, tag, path: Path) -> str:
         """Extracts the artist name from tag or path.
@@ -210,7 +231,11 @@ class MusicCollection:
             if parent_dir in invalid_album_names:
                 # Try grandparent directory as a fallback
                 grandparent_dir = path.parent.parent.name
-                album = grandparent_dir if grandparent_dir not in invalid_album_names else "Unknown"
+                album = (
+                    grandparent_dir
+                    if grandparent_dir not in invalid_album_names
+                    else "Unknown"
+                )
             else:
                 album = parent_dir
         return album.strip() if album else "Unknown"
@@ -271,13 +296,19 @@ class MusicCollection:
                 "tracks": [],
                 "artists": self._search_artists(conn, starts_pat, limit),
             }
-            result["albums"] = self._search_albums(conn, like_pat, starts_pat, limit, result["artists"])
-            result["tracks"] = self._search_tracks(conn, like_pat, starts_pat, limit, result["artists"], result["albums"])
+            result["albums"] = self._search_albums(
+                conn, like_pat, starts_pat, limit, result["artists"]
+            )
+            result["tracks"] = self._search_tracks(
+                conn, like_pat, starts_pat, limit, result["artists"], result["albums"]
+            )
         return result
 
     from typing import Any, Dict, List
 
-    def _search_artists(self, conn: sqlite3.Connection, starts_pat: str, limit: int) -> List[Dict[str, Any]]:
+    def _search_artists(
+        self, conn: sqlite3.Connection, starts_pat: str, limit: int
+    ) -> List[Dict[str, Any]]:
         """Searches for artists whose names match the given pattern.
 
         Returns a list of artist dictionaries matching the search criteria. The search is case-insensitive and limited to the specified number of results.
@@ -290,12 +321,15 @@ class MusicCollection:
         Returns:
             List[dict]: A list of dictionaries, each containing an artist name.
         """
-        cur = conn.execute("""
+        cur = conn.execute(
+            """
             SELECT DISTINCT artist FROM tracks
             WHERE artist LIKE ? COLLATE NOCASE
             ORDER BY artist LIKE ? DESC, artist COLLATE NOCASE
             LIMIT ?
-        """, (starts_pat, starts_pat, limit))
+        """,
+            (starts_pat, starts_pat, limit),
+        )
         return [{"artist": r["artist"]} for r in cur]
 
     def _search_albums(
@@ -304,7 +338,7 @@ class MusicCollection:
         like_pat: str,
         starts_pat: str,
         limit: int,
-        artists: List[Dict[str, Any]]
+        artists: List[Dict[str, Any]],
     ) -> List[Dict[str, Any]]:
         """Searches for albums whose names match the given pattern.
 
@@ -331,12 +365,15 @@ class MusicCollection:
             """
             cur = conn.execute(sql, (like_pat, starts_pat, *skip, limit))
         else:
-            cur = conn.execute("""
+            cur = conn.execute(
+                """
                 SELECT DISTINCT artist, album FROM tracks
                 WHERE album LIKE ? COLLATE NOCASE
                 ORDER BY album LIKE ? DESC, album COLLATE NOCASE
                 LIMIT ?
-            """, (like_pat, starts_pat, limit))
+            """,
+                (like_pat, starts_pat, limit),
+            )
         return [{"artist": r["artist"], "album": r["album"]} for r in cur]
 
     def _search_tracks(
@@ -346,7 +383,7 @@ class MusicCollection:
         starts_pat: str,
         limit: int,
         artists: List[Dict[str, Any]],
-        albums: List[Dict[str, Any]]
+        albums: List[Dict[str, Any]],
     ) -> List[Dict[str, Any]]:
         """Searches for tracks whose titles match the given pattern.
 
@@ -376,21 +413,33 @@ class MusicCollection:
             """
             cur = conn.execute(sql, (like_pat, starts_pat, *skip, limit))
         else:
-            cur = conn.execute("""
+            cur = conn.execute(
+                """
                 SELECT artist, album, title AS track FROM tracks
                 WHERE title LIKE ? COLLATE NOCASE
                 ORDER BY title LIKE ? DESC, title COLLATE NOCASE
                 LIMIT ?
-            """, (like_pat, starts_pat, limit))
-        return [{"artist": r["artist"], "album": r["album"], "track": r["track"]} for r in cur]
+            """,
+                (like_pat, starts_pat, limit),
+            )
+        return [
+            {"artist": r["artist"], "album": r["album"], "track": r["track"]}
+            for r in cur
+        ]
 
 
 class MusicWatcher(FileSystemEventHandler):
-    def __init__(self, collection): self.collection = collection
+    def __init__(self, collection):
+        self.collection = collection
+
     def on_any_event(self, event):
-        if event.is_directory: return
-        path = Path(getattr(event, "src_path", None) or getattr(event, "dest_path", None) or "")
-        if not path.exists() or path.suffix.lower() not in self.collection.supported: return
+        if event.is_directory:
+            return
+        path = Path(
+            getattr(event, "src_path", None) or getattr(event, "dest_path", None) or ""
+        )
+        if not path.exists() or path.suffix.lower() not in self.collection.supported:
+            return
         with self.collection.get_conn() as conn:
             if event.event_type == "deleted":
                 conn.execute("DELETE FROM tracks WHERE path = ?", (str(path),))
@@ -439,21 +488,21 @@ if __name__ == "__main__":
                 for a in result["artists"][:10]:
                     print(f"  • {a['artist']}")
                 if len(result["artists"]) > 10:
-                    print(f"  ... +{len(result['artists'])-10} more")
+                    print(f"  ... +{len(result['artists']) - 10} more")
 
             if result["albums"]:
                 print("\nALBUMS:")
                 for a in result["albums"][:10]:
                     print(f"  • {a['artist']} — {a['album']}")
                 if len(result["albums"]) > 10:
-                    print(f"  ... +{len(result['albums'])-10} more")
+                    print(f"  ... +{len(result['albums']) - 10} more")
 
             if result["tracks"]:
                 print("\nTRACKS:")
                 for t in result["tracks"][:15]:
                     print(f"  • {t['artist']} — {t['album']} — {t['track']}")
                 if len(result["tracks"]) > 15:
-                    print(f"  ... +{len(result['tracks'])-15} more")
+                    print(f"  ... +{len(result['tracks']) - 15} more")
 
             if not any(result.values()):
                 print("  No results found.")
