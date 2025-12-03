@@ -5,7 +5,7 @@ import time
 from pathlib import Path
 
 from tinytag import TinyTag
-from watchdog.events import FileSystemEventHandler
+from watchdog.events import FileSystemEventHandler, FileSystemEvent
 from watchdog.observers import Observer
 
 from logtools import get_logger
@@ -429,10 +429,31 @@ class MusicCollection:
 
 
 class MusicWatcher(FileSystemEventHandler):
-    def __init__(self, collection):
+    """Watches for file system events in a music collection and updates the database.
+
+    Monitors the specified music directory for changes and ensures the music database stays in sync with file additions, deletions, and modifications.
+    """
+    def __init__(self, collection: MusicCollection):
+        """Initializes a MusicWatcher to monitor file system events for a music collection.
+
+        Associates the watcher with a MusicCollection instance to keep the database in sync with file changes.
+
+        Args:
+            collection: The MusicCollection instance to monitor and update.
+        """
         self.collection = collection
 
-    def on_any_event(self, event):
+    def on_any_event(self, event: FileSystemEvent):
+        """Handles any file system event for the music collection.
+
+        Responds to file creation, modification, movement, or deletion events by updating the music database accordingly. Skips directories and unsupported file types.
+
+        Args:
+            event: The file system event to handle.
+
+        Returns:
+            None
+        """
         if event.is_directory:
             return
         path = Path(
