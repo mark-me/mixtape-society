@@ -360,12 +360,15 @@ class MusicCollection:
 
     def _search_album_tracks(self, conn: sqlite3.Connection, artist: str, album: str):
         sql = """
-            SELECT DISTINCT path, filename, title FROM tracks
+            SELECT DISTINCT title as track, path, filename
+            FROM tracks
             WHERE artist = ? AND album = ?
             ORDER BY album;
             """
         cur = conn.execute(sql, (artist, album))
-        tracks = [{"track": r} for r in cur]
+        tracks = [
+            {"track": r["track"], "filename": r["filename"], "path": r["path"]} for r in cur
+        ]
         return tracks
 
     def _search_albums(
@@ -409,7 +412,16 @@ class MusicCollection:
             """
             params = (like_pat, starts_pat, limit)
         cur = conn.execute(sql, params)
-        return [{"artist": r["artist"], "album": r["album"]} for r in cur]
+        albums = [{"artist": r["artist"], "album": r["album"]} for r in cur]
+        for album in albums:
+            album.update(
+                {
+                    "tracks": self._search_album_tracks(
+                        conn=conn, artist=album["artist"], album=album["album"]
+                    )
+                }
+            )
+        return albums
 
     def _search_tracks(
         self,
@@ -440,7 +452,8 @@ class MusicCollection:
         if skip:
             placeholders = ",".join("?" for _ in skip)
             sql = f"""
-                SELECT artist, album, title AS track FROM tracks
+                SELECT artist, album, title AS track, path as file
+                FROM tracks
                 WHERE title LIKE ? COLLATE NOCASE
                     AND lower(artist) NOT IN ({placeholders})
                 ORDER BY title LIKE ? DESC, title COLLATE NOCASE
@@ -450,7 +463,8 @@ class MusicCollection:
         else:
             cur = conn.execute(
                 """
-                SELECT artist, album, title AS track FROM tracks
+                SELECT artist, album, title AS track, path as file
+                FROM tracks
                 WHERE title LIKE ? COLLATE NOCASE
                 ORDER BY title LIKE ? DESC, title COLLATE NOCASE
                 LIMIT ?
