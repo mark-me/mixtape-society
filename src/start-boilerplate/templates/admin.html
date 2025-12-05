@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Admin - Mixtapes{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Mixtape Beheer</h1>
+
+<!-- Sorteer dropdown -->
+<div class="mb-4">
+    <form method="get" class="d-inline">
+        <label>Sorteren op:</label>
+        <select name="sort" onchange="this.form.submit()" class="form-select d-inline-block w-auto ms-2">
+            <option value="alpha" {% if sort_by == 'alpha' %}selected{% endif %}>Alfabetisch</option>
+            <option value="created" {% if sort_by == 'created' %}selected{% endif %}>Aanmaakdatum</option>
+            <option value="modified" {% if sort_by == 'modified' %}selected{% endif %}>Laatst gewijzigd</option>
+        </select>
+    </form>
+</div>
+
+<!-- Nieuwe mixtape aanmaken -->
+<div class="card mb-4">
+    <div class="card-header">Nieuwe mixtape</div>
+    <div class="card-body">
+        <form action="/create_mixtape" method="post" class="row g-3">
+            <div class="col-auto">
+                <input type="text" name="title" class="form-control" placeholder="Titel" required>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-success">Aanmaken</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Lijst van mixtapes -->
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    {% for m in mixtapes %}
+    <div class="col">
+        <div class="card h-100 shadow-sm">
+            {% if m.cover %}
+            <img src="/covers/{{ m.title }}.jpg" class="card-img-top" style="height:200px; object-fit:cover;">
+            {% else %}
+            <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height:200px;">
+                <h4>No cover</h4>
+            </div>
+            {% endif %}
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title">{{ m.title }}</h5>
+                <p class="card-text text-muted small">
+                    Aangemaakt: {{ m.created[:10] }}<br>
+                    {% if m.modified != m.created %}
+                    Gewijzigd: {{ m.modified[:10] }}
+                    {% endif %}
+                </p>
+                <div class="mt-auto">
+                    <div class="mt-auto btn-group w-100" role="group">
+                        <a href="/mixtape/{{ m.title }}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-play-circle"></i> Afspelen
+                        </a>
+                        <a href="/edit/{{ m.title }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-pencil-square"></i> Bewerken
+                        </a>
+                        <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#clone{{ loop.index }}">
+                            <i class="bi bi-copy"></i>
+                        </button>
+                        <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#delete{{ loop.index }}">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clone Modal -->
+    <div class="modal fade" id="cloneModal{{ loop.index }}" tabindex="-1">
+        <div class="modal-dialog">
+            <form action="/clone_mixtape/{{ m.title }}" method="post">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Mixtape klonen</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        Weet je zeker dat je "{{ m.title }}" wilt klonen?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuleren</button>
+                        <button type="submit" class="btn btn-primary">Klonen</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Modal -->
+    <div class="modal fade" id="deleteModal{{ loop.index }}" tabindex="-1">
+        <div class="modal-dialog">
+            <form action="/delete_mixtape/{{ m.title }}" method="post">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title text-danger">Verwijderen</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        Weet je zeker dat je "{{ m.title }}" permanent wilt verwijderen?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuleren</button>
+                        <button type="submit" class="btn btn-danger">Verwijderen</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
