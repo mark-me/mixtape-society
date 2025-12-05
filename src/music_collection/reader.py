@@ -32,6 +32,14 @@ class MusicCollection:
             db_path=Path(db_path) if db_path else None,
         )
 
+        track_count = self._extractor.count_tracks()
+        if track_count == 0:
+            # Brand new database — force full indexing
+            print("No tracks in database — performing initial scan...")
+            self._extractor.rebuild()
+        elif not self._extractor.is_synced_with_filesystem():
+            print("Database out of sync — repairing...")
+            self._extractor.resync()
         # Start background monitoring (will stop on __del__ or close())
         self._extractor.start_monitoring()
 
