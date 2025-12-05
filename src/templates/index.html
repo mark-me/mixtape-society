@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% block title %}Mixtape Revival{% endblock %}
+{% block title %}The Mixtape Society{% endblock %}
 
 {% block content %}
 <div class="text-center py-5">
-    <h1 class="display-4 fw-bold">Mixtape Revival</h1>
-    <p class="lead text-muted mb-5">
-        Digitale mixtapes — met liefde gemaakt, met liefde gedeeld.
-    </p>
+    <h1 class="display-4 fw-bold">Mixtape Society</h1>
+    <div class="text-center">
+        <img src="images\welcome.png" class="rounded" alt="Mixtapes — Made with love, shared with love.">
+    </div>
 
     {% if current_user.is_authenticated %}
     <a href="/admin" class="btn btn-primary btn-lg mb-5">
@@ -14,7 +14,7 @@
     </a>
     {% else %}
     <p class="mb-5">
-        <a href="/login" class="btn btn-outline-secondary">Inloggen als admin</a>
+        <a href="/login" class="btn btn-outline-secondary">login ass admin</a>
     </p>
     {% endif %}
 </div>
@@ -22,9 +22,9 @@
 {% if mixtapes %}
 <h2 class="mb-4">
     {% if mixtapes|length == 1 %}
-        Er is {{ mixtapes|length }} mixtape beschikbaar
+        There is one mixtape available
     {% else %}
-        {{ mixtapes|length }} mixtapes beschikbaar
+        {{ mixtapes|length }} mixtapes available
     {% endif %}
 </h2>
 
@@ -55,8 +55,8 @@
 {% else %}
 <div class="text-center py-5">
     <i class="bi bi-cassette display-1 text-muted"></i>
-    <h3 class="mt-4 text-muted">Nog geen mixtapes...</h3>
-    <p>Log in als admin en maak de eerste aan!</p>
+    <h3 class="mt-4 text-muted">No mixtapes yet...</h3>
+    <p>Login as admin share your first mixtape!</p>
 </div>
 {% endif %}
 {% endblock %}
