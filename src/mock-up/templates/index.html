@@ -12,10 +12,6 @@
     <!-- Sortable.js voor drag & drop -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
 
-    <audio id="global-audio-player" controls preload="none">
-        Je browser ondersteunt geen audio.
-    </audio>
-
     <style>
         body {
             background: var(--bs-body-bg);
@@ -55,7 +51,7 @@
         }
     </style>
 </head>
-<body class="pb-5">
+<body class="d-flex flex-column" style="min-height: 100vh;">
 
 <div class="container py-4">
 
@@ -123,7 +119,7 @@
                     <div class="text-center mb-4">
                         <div class="position-relative d-inline-block">
                             <img id="playlist-cover" src="https://via.placeholder.com/300x300/333333/FFFFFF?text=Playlist"
-                                class="rounded shadow" style="width: 200px; height: 200px; object-fit: cover;">
+                                class="rounded shadow" style="max-width: 250px; width: 60vw; height: auto;">
                             <label class="btn btn-primary btn-sm position-absolute bottom-0 end-0 mb-2 me-2 rounded-circle"
                                 style="width: 40px; height: 40px; padding: 0;">
                                 <i class="bi bi-camera-fill"></i>
@@ -303,7 +299,8 @@ function addToPlaylist(item) {
     playlist.push(item);
     renderPlaylist();
 }
-
+</script>
+<script>
 function renderPlaylist() {
     playlistOl.innerHTML = playlist.map((item, idx) => `
         <li class="d-flex align-items-center rounded p-3 mb-2 shadow-sm playlist-item
@@ -312,20 +309,16 @@ function renderPlaylist() {
 
             <!-- Play knop -->
             <button class="btn btn-success btn-sm me-2 play-track-btn"
-                    data-path="${encodeURIComponent(item.path)}"
-                    title="Afspelen">
-                <i class="bi bi-play-fill"></i>
+                    data-path="${encodeURIComponent(item.path || '')}"
+                    ${!item.path ? 'disabled title="Geen bestand"' : ''}>
+                <i class="bi ${item.path ? 'bi-play-fill' : 'bi-ban'}"></i>
             </button>
 
             <div class="flex-grow-1">
                 <strong>${escapeHtml(item.title)}</strong><br>
-                <small class="text-muted">
-                    ${escapeHtml(item.artist)} • ${escapeHtml(item.album)}
-                </small>
+                <small class="text-muted">${escapeHtml(item.artist)} • ${escapeHtml(item.album)}</small>
             </div>
-
             <span class="text-muted me-3">${item.duration || "?:??"}</span>
-
             <button class="btn btn-danger btn-sm remove-btn" data-index="${idx}">
                 <i class="bi bi-x-lg"></i>
             </button>
@@ -334,32 +327,30 @@ function renderPlaylist() {
 
     playlistCount.textContent = `(${playlist.length})`;
 
-    // === Play knoppen functionaliteit ===
+    // === PLAY BUTTONS (alleen de vaste player onderaan gebruiken) ===
     document.querySelectorAll('.play-track-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.onclick = function () {
             const path = this.dataset.path;
-            const audioUrl = `/play/${path}`;
+            if (!path) return;
 
-            // Maak een tijdelijke audio player onderaan
-            let player = document.getElementById('global-audio-player');
-            if (!player) {
-                player = document.createElement('audio');
-                player.id = 'global-audio-player';
-                player.controls = true;
-                player.className = 'w-100 mt-3';
-                player.style.maxWidth = '600px';
-                document.querySelector('.container').appendChild(player);
-            }
+            const player = document.getElementById('global-audio-player');
+            const container = document.getElementById('audio-player-container');
 
-            // Highlight huidige track
-            document.querySelectorAll('.playlist-item').forEach(el => el.classList.remove('bg-primary', 'text-white'));
+            player.src = `/play/${path}`;
+            player.play().catch(e => console.error("Afspelen mislukt:", e));
+
+            container.style.display = 'block';
+
+            // Update titel + highlight
+            const item = playlist[this.closest('.playlist-item').dataset.index];
+            document.getElementById('now-playing-title').textContent = item.title;
+            document.getElementById('now-playing-artist').textContent = `${item.artist} • ${item.album}`;
+
+            document.querySelectorAll('.playlist-item').forEach(el =>
+                el.classList.remove('bg-primary', 'text-white')
+            );
             this.closest('.playlist-item').classList.add('bg-primary', 'text-white');
-
-            player.src = audioUrl;
-            player.play().catch(e => {
-                alert("Kan niet afspelen: " + e.message);
-            });
-        });
+        };
     });
 
     // Verwijderknoppen
@@ -369,8 +360,6 @@ function renderPlaylist() {
             renderPlaylist();
         };
     });
-
-    updatePlaylistCover(); // uit vorige antwoord
 }
 
 // Drag & drop
@@ -500,15 +489,6 @@ renderPlaylist = function() {
 // Toon player als er iets afgespeeld wordt
 document.getElementById('global-audio-player')?.addEventListener('play', () => {
     document.getElementById('audio-player-container').style.display = 'block';
-});
-
-// Update titel
-document.querySelectorAll('.play-track-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        const item = playlist[this.closest('.playlist-item').dataset.index];
-        document.getElementById('now-playing-title').textContent = item.title;
-        document.getElementById('now-playing-artist').textContent = `${item.artist} • ${item.album}`;
-    });
 });
 
 document.getElementById('close-player')?.addEventListener('click', () => {
