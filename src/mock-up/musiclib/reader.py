@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 from pathlib import Path
 from sqlite3 import Connection
 from typing import Iterator, Dict, Any
@@ -393,10 +394,8 @@ class MusicCollection:
 
     def __del__(self):
         # Best effort to stop observer
-        try:
+        with contextlib.suppress(Exception):
             self._extractor.stop_monitoring()
-        except:
-            pass
 
     def __enter__(self):
         return self
