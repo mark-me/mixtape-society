@@ -1,7 +1,7 @@
 [project]
-name = "mixtape"
+name = "mixtape-society"
 version = "0.1.0"
-description = "Add your description here"
+description = "Creating and sharing mixtapes"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [

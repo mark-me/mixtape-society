@@ -1,5 +1,5 @@
 from pathlib import Path
-from music_collection import MusicCollection
+from musiclib import MusicCollection
 
 
 MUSIC_ROOT = Path("/home/mark/Music")

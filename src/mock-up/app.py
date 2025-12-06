@@ -1,31 +1,15 @@
-from flask import Flask, render_template, request, jsonify
-import json
+from pathlib import Path
+
+from flask import Flask, jsonify, render_template, request
+
+from musiclib import MusicCollection
 
 app = Flask(__name__)
 
-# Dummy muziekbibliotheek (in een echte app komt dit uit een DB)
-LIBRARY = [
-    {"artist": "Daft Punk", "album": "Random Access Memories", "tracks": [
-        {"title": "Get Lucky", "duration": "4:08"},
-        {"title": "Lose Yourself to Dance", "duration": "5:53"},
-        {"title": "Instant Crush", "duration": "5:37"}
-    ]},
-    {"artist": "Daft Punk", "album": "Discovery", "tracks": [
-        {"title": "One More Time", "duration": "5:20"},
-        {"title": "Harder, Better, Faster, Stronger", "duration": "3:45"},
-        {"title": "Digital Love", "duration": "4:58"}
-    ]},
-    {"artist": "The Weeknd", "album": "After Hours", "tracks": [
-        {"title": "Blinding Lights", "duration": "3:20"},
-        {"title": "Save Your Tears", "duration": "3:35"},
-        {"title": "In Your Eyes", "duration": "3:57"}
-    ]},
-    {"artist": "Arctic Monkeys", "album": "AM", "tracks": [
-        {"title": "Do I Wanna Know?", "duration": "4:32"},
-        {"title": "R U Mine?", "duration": "3:21"},
-        {"title": "Why'd You Only Call Me When You're High?", "duration": "2:41"}
-    ]}
-]
+MUSIC_ROOT = Path("/home/mark/Music")
+DB_PATH = Path(__file__).parent.parent / "collection-data" / "music.db"
+
+collection = MusicCollection(music_root=MUSIC_ROOT, db_path=DB_PATH)
 
 @app.route("/")
 def index():
@@ -34,54 +18,126 @@ def index():
 @app.route("/search")
 def search():
     query = request.args.get("q", "").lower().strip()
-    if not query:
+    if len(query) < 2:
         return jsonify([])
 
+    query_lower = query.lower()
+
     results = []
-    for entry in LIBRARY:
-        artist_lower = entry["artist"].lower()
-        album_lower = entry["album"].lower()
 
-        artist_match = query in artist_lower
-        album_match = query in album_lower
+    data = collection.search_grouped(query, limit=30)
 
-        track_matches = []
-        track_partial = []
-        for track in entry["tracks"]:
-            track_lower = track["title"].lower()
-            if query in track_lower:
-                track_matches.append(track)
-                # Zoek de exacte positie voor highlighting
-                pos = track_lower.find(query)
-                before = track["title"][:pos]
-                match = track["title"][pos:pos+len(query)]
-                after = track["title"][pos+len(query):]
-                track_partial.append({
-                    "original": track,
+# ==== Artiesten die matchen ====
+    for artist_entry in data["artists"]:
+        artist = artist_entry["artist"]
+
+        reasons = [{"type": "artist", "text": artist}]
+
+        # Alle albums van deze artiest (met hun tracks)
+        displayed_tracks = []
+        highlighted_tracks = []
+
+        for album_entry in artist_entry.get("albums", []):
+            album = album_entry["album"]
+            if query_lower in album.lower():
+                reasons.append({"type": "album", "text": album})
+
+            for track in album_entry.get("tracks", []):
+                title = track["track"]
+                duration = track.get("duration")
+                if not duration:  # fallback als tinytag geen duur kon lezen
+                    duration = "?:??"
+
+                displayed_tracks.append({
+                    "title": title,
+                    "duration": duration
+                })
+
+                # Highlighting van track-titel
+                if query_lower in title.lower():
+                    pos = title.lower().lower().find(query_lower)
+                    before = title[:pos]
+                    match = title[pos:pos+len(query)]
+                    after = title[pos+len(query):]
+                    highlighted_tracks.append({
+                        "original": {"title": title, "duration": duration},
+                        "highlighted": f"{before}<mark>{match}</mark>{after}",
+                        "match_type": "track"
+                    })
+                    if {"type": "track", "text": f"{len(highlighted_tracks)} nummer(s)"} not in reasons:
+                        reasons.append({"type": "track", "text": f"{len(highlighted_tracks)} nummer(s)"})
+
+        if reasons:
+            results.append({
+                "artist": artist,
+                "album": "Meerdere albums",   # we tonen geen enkel album want het zijn er meerdere
+                "reasons": reasons,
+                "tracks": displayed_tracks,
+                "highlighted_tracks": highlighted_tracks or None
+            })
+
+    # ==== Albums die matchen (maar artiest nog niet getoond) ====
+    for album_entry in data["albums"]:
+        artist = album_entry["artist"]
+        album = album_entry["album"]
+
+        reasons = []
+        if query_lower in artist.lower():
+            reasons.append({"type": "artist", "text": artist})
+        if query_lower in album.lower():
+            reasons.append({"type": "album", "text": album})
+
+        displayed_tracks = []
+        highlighted_tracks = []
+
+        for track in album_entry.get("tracks", []):
+            title = track["track"]
+            duration = track.get("duration", "?:??")
+            displayed_tracks.append({"title": title, "duration": duration})
+
+            if query_lower in title.lower():
+                pos = title.lower().find(query_lower)
+                before = title[:pos]
+                match = title[pos:pos + len(query)]
+                after = title[pos + len(query):]
+                highlighted_tracks.append({
+                    "original": {"title": title, "duration": duration},
                     "highlighted": f"{before}<mark>{match}</mark>{after}",
                     "match_type": "track"
                 })
 
-        # Bepaal waarom dit resultaat getoond wordt
-        reasons = []
-        if artist_match:
-            reasons.append({"type": "artist", "text": entry["artist"]})
-        if album_match:
-            reasons.append({"type": "album", "text": entry["album"]})
-        if track_matches:
-            reasons.append({"type": "track", "text": f"{len(track_matches)} nummer(s)"})
+        if highlighted_tracks:
+            reasons.append({"type": "track", "text": f"{len(highlighted_tracks)} nummer(s)"})
 
-        if reasons:
-            # Toon alle tracks als er een artiest- of albummatch is
-            displayed_tracks = entry["tracks"] if (artist_match or album_match) else [t["original"] for t in track_partial]
+        results.append({
+            "artist": artist,
+            "album": album,
+            "reasons": reasons,
+            "tracks": displayed_tracks,
+            "highlighted_tracks": highlighted_tracks or None
+        })
 
-            results.append({
-                "artist": entry["artist"],
-                "album": entry["album"],
-                "reasons": reasons,
-                "tracks": displayed_tracks,
-                "highlighted_tracks": track_partial if track_partial else None
-            })
+    # ==== Losse tracks (artiest/albums nog niet getoond) ====
+    for track_entry in data["tracks"]:
+        artist = track_entry["artist"]
+        album = track_entry["album"]
+        title = track_entry["track"]
+
+        reasons = [{"type": "track", "text": title}]
+
+        # We maken een enkele track tonen
+        duration = track_entry.get("duration", "?:??")
+        results.append({
+            "artist": artist,
+            "album": album,
+            "reasons": reasons,
+            "tracks": [{"title": title, "duration": duration}],
+            "highlighted_tracks": [{
+                "original": {"title": title, "duration": duration},
+                "highlighted": title.lower().replace(query_lower, f"<mark>{query}</mark>"),
+                "match_type": "track"
+            }]
+        })
 
     return jsonify(results)
 

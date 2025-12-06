@@ -13,6 +13,7 @@ from flask_login import (
     logout_user,
 )
 from .routes import manager, editor
+from musiclib import MusicCollection
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"  # Verander dit in productie!
