@@ -358,7 +358,7 @@ class MusicCollection:
         if skip:
             placeholders = ",".join("?" for _ in skip)
             sql = f"""
-                SELECT artist, album, title AS track, path as file
+                SELECT artist, album, title AS track, path, filename, duration
                 FROM tracks
                 WHERE title LIKE ? COLLATE NOCASE
                     AND lower(artist) NOT IN ({placeholders})
@@ -369,7 +369,7 @@ class MusicCollection:
         else:
             cur = conn.execute(
                 """
-                SELECT artist, album, title AS track, path as file
+                SELECT artist, album, title AS track, path, filename, duration
                 FROM tracks
                 WHERE title LIKE ? COLLATE NOCASE
                 ORDER BY title LIKE ? DESC, title COLLATE NOCASE
@@ -378,7 +378,14 @@ class MusicCollection:
                 (like_pat, starts_pat, limit),
             )
         return [
-            {"artist": r["artist"], "album": r["album"], "track": r["track"]}
+            {
+                "artist": r["artist"],
+                "album": r["album"],
+                "track": r["track"],
+                "filename": r["filename"],
+                "path": r["path"],
+                "duration": self._format_duration(r["duration"]),
+            }
             for r in cur
         ]
 
