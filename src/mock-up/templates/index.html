@@ -145,6 +145,11 @@
 
     </div>
 </div>
+<div class="text-center mt-4">
+    <a href="/mixtapes" class="btn btn-outline-primary">
+        <i class="bi bi-collection-play"></i> Bekijk al je mixtapes
+    </a>
+</div>
 
 <script>
 /* ==== THEME HANDLING ==== */
@@ -414,21 +419,19 @@ function updatePlaylistCover() {
 }
 
 // Opslaan als JSON
-saveButton.addEventListener('click', () => {
+// Opslaan via server
+saveButton.addEventListener('click', async () => {
     if (playlist.length === 0) {
         alert("Je playlist is leeg!");
         return;
     }
 
     const title = playlistTitleInput.value.trim() || "Onbenoemde Playlist";
-    const sanitizedTitle = title.replace(/[^a-zA-Z0-9æøåÆØÅ\-_\s]/g, "_");
-    const filename = `${sanitizedTitle}.json`;
 
     const playlistData = {
         title: title,
         created_at: new Date().toISOString(),
-        cover: coverDataUrl, // null als geen custom cover
-        track_count: playlist.length,
+        cover: coverDataUrl,  // base64, of null
         tracks: playlist.map(t => ({
             artist: t.artist,
             album: t.album,
@@ -439,27 +442,36 @@ saveButton.addEventListener('click', () => {
         }))
     };
 
-    // Maak downloadbaar
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(playlistData, null, 2));
-    const downloadAnchor = document.createElement('a');
-    downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", filename);
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
+    try {
+        const response = await fetch('/save_mixtape', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(playlistData)
+        });
+        const data = await response.json();
+        if (data.success) {
+            // Toon toast
+            const toast = document.createElement('div');
+            toast.className = "toast align-items-center text-bg-success border-0 position-fixed bottom-0 end-0 m-4";
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        Playlist opgeslagen als <strong>${data.title}</strong>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>`;
+            document.body.appendChild(toast);
+            new bootstrap.Toast(toast).show();
 
-    // Optioneel: toon toast
-    const toast = document.createElement('div');
-    toast.className = "toast align-items-center text-bg-success border-0 position-fixed bottom-0 end-0 m-4";
-    toast.innerHTML = `
-        <div class="d-flex">
-            <div class="toast-body">
-                Playlist opgeslagen als <strong>${filename}</strong>
-            </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-        </div>`;
-    document.body.appendChild(toast);
-    new bootstrap.Toast(toast).show();
+            // Optioneel: leeg playlist na save?
+            // playlist = [];
+            // renderPlaylist();
+        } else {
+            alert("Fout bij opslaan: " + data.error);
+        }
+    } catch (e) {
+        alert("Netwerkfout: " + e.message);
+    }
 });
 
 // Update cover als playlist wijzigt

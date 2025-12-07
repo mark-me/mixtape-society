@@ -1,3 +1,4 @@
 from .reader import MusicCollection
+from .mixtape_manager import MixtapeManager
 
-__all__ = ["MusicCollection"]
+__all__ = ["MusicCollection", "MixtapeManager"]
