@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}{{ mixtape.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row g-5">
+        <div class="col-lg-4 text-center">
+            {% if mixtape.cover %}
+            <img src="/mixtapes/files/{{ mixtape.cover }}" class="img-fluid rounded shadow mb-4" style="max-height: 400px;">
+            {% endif %}
+            <h1 class="display-6">{{ mixtape.title }}</h1>
+            <p class="text-muted">{{ mixtape.tracks|length }} tracks</p>
+            <a href="/mixtapes" class="btn btn-outline-secondary">Terug naar overzicht</a>
+        </div>
+
+        <div class="col-lg-8">
+            <h3>Hele mixtape afspelen</h3>
+            <audio controls class="w-100 mb-5" preload="none">
+                {% for t in mixtape.tracks %}
+                <source src="/play/{{ t.path }}" type="audio/mpeg">
+                {% endfor %}
+                Je browser ondersteunt geen audio.
+            </audio>
+
+            <h4 class="mt-4">Tracklist</h4>
+            <ol class="list-group list-group-numbered">
+                {% for t in mixtape.tracks %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>{{ t.title }}</strong><br>
+                        <small class="text-muted">{{ t.artist }} • {{ t.album }}</small>
+                    </div>
+                    <audio controls preload="none">
+                        <source src="/play/{{ t.path }}" type="audio/mpeg">
+                    </audio>
+                </li>
+                {% endfor %}
+            </ol>
+        </div>
+    </div>
+</div>
+{% endblock %}

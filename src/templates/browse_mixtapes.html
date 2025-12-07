@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Mixtapes{% endblock %}
+
+{% block extra_css %}
+    <style>
+        .hover-shadow:hover { box-shadow: 0 10px 20px rgba(0,0,0,0.2) !important; transition: all 0.3s; }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="display-5 fw-bold text-center mb-5">Mixtape Society</h1>
+
+    {% if mixtapes %}
+    <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
+        {% for m in mixtapes %}
+        <div class="col">
+            <div class="card h-100 shadow hover-shadow">
+                {% if m.cover %}
+                <img src="/mixtapes/files/{{ m.cover }}" class="card-img-top" style="height: 250px; object-fit: cover;">
+                {% else %}
+                <div class="bg-dark d-flex align-items-center justify-content-center text-white" style="height: 250px;">
+                    <i class="bi bi-music-note-beamed" style="font-size: 4rem;"></i>
+                </div>
+                {% endif %}
+
+                <div class="card-body text-center">
+                    <h5 class="card-title">{{ m.title }}</h5>
+                    <p class="text-muted small">
+                        {{ m.tracks|length }} tracks
+                        {% if m.saved_at %}• {{ m.saved_at[:10] }}{% endif %}
+                    </p>
+                </div>
+
+                <div class="card-footer bg-white d-flex justify-content-around border-0 pt-3">
+                    <a href="/edit/{{ m.slug }}" class="btn btn-outline-primary btn-sm">
+                        Bewerken
+                    </a>
+                    <a href="/mixtapes/play/{{ m.slug }}" class="btn btn-success btn-sm">
+                        Afspelen
+                    </a>
+                    <a href="/mixtapes/play/{{ m.slug }}" target="_blank" class="btn btn-outline-info btn-sm">
+                        Delen
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-cassette display-1"></i>
+        <h3 class="mt-4">Nog geen mixtapes...</h3>
+        <p>Maak er eerst één aan in de <a href="/">playlist maker</a></p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

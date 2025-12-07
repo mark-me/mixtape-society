@@ -6,7 +6,8 @@ browser = Blueprint("browse_mixtapes", __name__, template_folder="../templates")
 
 @browser.route("/mixtapes")
 def index():
-    mixtapes = MixtapeManager.list_all()
+    mixtape_manager = MixtapeManager()
+    mixtapes = mixtape_manager.list_all()
     return render_template("browse_mixtapes.html", mixtapes=mixtapes)
 
 

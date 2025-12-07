@@ -1,8 +1,9 @@
-from flask import Blueprint, render_template, request
-from musiclib import MusicCollection, MUSIC_ROOT
+from flask import Blueprint, render_template
+from musiclib import MusicCollection
 import os
 
 play = Blueprint('play', __name__, template_folder='templates')
+MUSIC_ROOT = "/home/mark/Music"
 
 @play.route('/<title>')
 def play_mixtape(title):

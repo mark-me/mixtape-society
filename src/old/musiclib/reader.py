@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import contextlib
 from pathlib import Path
 from sqlite3 import Connection
 from typing import Iterator, Dict, Any
@@ -358,7 +357,7 @@ class MusicCollection:
         if skip:
             placeholders = ",".join("?" for _ in skip)
             sql = f"""
-                SELECT artist, album, title AS track, path, filename, duration
+                SELECT artist, album, title AS track, path as file
                 FROM tracks
                 WHERE title LIKE ? COLLATE NOCASE
                     AND lower(artist) NOT IN ({placeholders})
@@ -369,7 +368,7 @@ class MusicCollection:
         else:
             cur = conn.execute(
                 """
-                SELECT artist, album, title AS track, path, filename, duration
+                SELECT artist, album, title AS track, path as file
                 FROM tracks
                 WHERE title LIKE ? COLLATE NOCASE
                 ORDER BY title LIKE ? DESC, title COLLATE NOCASE
@@ -378,14 +377,7 @@ class MusicCollection:
                 (like_pat, starts_pat, limit),
             )
         return [
-            {
-                "artist": r["artist"],
-                "album": r["album"],
-                "track": r["track"],
-                "filename": r["filename"],
-                "path": r["path"],
-                "duration": self._format_duration(r["duration"]),
-            }
+            {"artist": r["artist"], "album": r["album"], "track": r["track"]}
             for r in cur
         ]
 
@@ -401,8 +393,10 @@ class MusicCollection:
 
     def __del__(self):
         # Best effort to stop observer
-        with contextlib.suppress(Exception):
+        try:
             self._extractor.stop_monitoring()
+        except:
+            pass
 
     def __enter__(self):
         return self
