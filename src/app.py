@@ -24,8 +24,8 @@ app.register_blueprint(play)
 
 MUSIC_ROOT = Path("/home/mark/Music")
 DB_PATH = Path(__file__).parent.parent / "collection-data" / "music.db"
-MIXTAPE_DIR = Path(__file__).parent / "mixtapes"
-COVER_DIR = MIXTAPE_DIR / "covers"
+MIXTAPE_DIR = Path(__file__).parent.parent / "mixtapes"
+COVER_DIR = MIXTAPE_DIR.parent.parent / "covers"
 MIXTAPE_DIR.mkdir(exist_ok=True)
 COVER_DIR.mkdir(exist_ok=True)
 
@@ -180,8 +180,10 @@ def _search_album_results(albums, query_lower):
         list: A list of formatted album result dictionaries.
     """
     results = []
-    for album_entry in albums:
-        results.append(_format_album_result(album_entry, query_lower))
+    results.extend(
+        _format_album_result(album_entry, query_lower)
+        for album_entry in albums
+    )
     return results
 
 def _format_album_result(album_entry, query_lower):
