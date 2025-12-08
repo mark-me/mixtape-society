@@ -16,6 +16,9 @@ from flask import (
 
 from musiclib import MusicCollection
 from routes import browser, play
+from logtools import get_logger
+
+logger = get_logger(name=__name__)
 
 app = Flask(__name__)
 app.register_blueprint(browser)
@@ -38,31 +41,53 @@ mimetypes.add_type("audio/ogg", ".ogg")
 
 @app.route("/")
 def index():
+    """
+    Renders the main index page of the application.
+
+    Returns the index.html template for the root route.
+
+    Returns:
+        Response: A rendered index.html template.
+    """
     return render_template("index.html")
 
 
 @app.route("/search")
 def search():
+    """
+    Searches the music collection for tracks matching the query.
+
+    Retrieves search results with highlighting and returns them as a JSON response.
+
+    Returns:
+        Response: A JSON response containing the search results.
+    """
     query = request.args.get("q", "").strip()
     if len(query) < 2:
         return jsonify([])
 
-    # 1. Haal ruwe resultaten op (geen highlighting nog)
     raw_results = collection.search_highlighting(query, limit=30)
-
-    # 2. Voeg alleen <mark> tags toe waar nodig (dit blijft in Flask)
-    def finalize_highlight(item: dict) -> dict:
-        # highlighted_tracks krijgen al een kant-en-klare string,
-        # maar we zorgen er nog even voor dat alles netjes is
-        if item.get("highlighted_tracks"):
-            for ht in item["highlighted_tracks"]:
-                if "highlighted" in ht:
-                    # eventueel nog extra highlighting op artist/album naam
-                    pass
-        return item
-
-    results = [finalize_highlight(r) for r in raw_results]
+    results = [_finalize_highlight(r) for r in raw_results]
     return jsonify(results)
+
+
+def _finalize_highlight(item: dict) -> dict:
+    """
+    Finalizes highlighting for search result items.
+
+    Ensures highlighted tracks are properly formatted for display.
+
+    Args:
+        item: A dictionary representing a search result item.
+
+    Returns:
+        dict: The processed search result item.
+    """
+    if item.get("highlighted_tracks"):
+        for ht in item["highlighted_tracks"]:
+            if "highlighted" in ht:
+                pass
+    return item
 
 
 @app.route("/play/<path:file_path>")
