@@ -2,40 +2,66 @@
 {% block title %}{{ mixtape.title }}{% endblock %}
 
 {% block content %}
-{% if not public %}
-<a href="/mixtapes" class="btn btn-outline-secondary btn-sm mb-3">
-    ← Terug naar overzicht
-</a>
-{% endif %}
 <div class="container py-5">
+    {% if not public %}
+    <a href="/mixtapes" class="btn btn-outline-secondary btn-sm mb-4">
+        ← Terug naar overzicht
+    </a>
+    {% endif %}
+
     <div class="row g-5">
+        <!-- Cover + titel + metadata -->
         <div class="col-lg-4 text-center">
             {% if mixtape.cover %}
-            <img src="/mixtapes/files/{{ mixtape.cover }}" class="img-fluid rounded shadow mb-4" style="max-height: 400px;">
+            <img src="/mixtapes/files/{{ mixtape.cover }}"
+                 class="img-fluid rounded shadow mb-4"
+                 style="max-height: 400px; object-fit: cover;">
             {% endif %}
-            <h1 class="display-6">{{ mixtape.title }}</h1>
-            <p class="text-muted">{{ mixtape.tracks|length }} tracks</p>
-            <a href="/mixtapes" class="btn btn-outline-secondary">Terug naar overzicht</a>
+
+            <h1 class="display-6 mb-1">{{ mixtape.title }}</h1>
+            <p class="text-muted small mb-3">
+                {{ mixtape.tracks|length }} tracks
+            </p>
+
+            <!-- NIEUW: data onder titel -->
+            <div class="text-muted small mb-4">
+                {% if mixtape.created_at %}
+                <div><i class="bi bi-calendar-plus"></i> Aangemaakt: {{ mixtape.created_at[:10] }}</div>
+                {% endif %}
+                {% if mixtape.saved_at %}
+                <div><i class="bi bi-save"></i> Opgeslagen: {{ mixtape.saved_at[:10] }}{% if mixtape.saved_at[11:] %} om {{ mixtape.saved_at[11:16] }}{% endif %}</div>
+                {% endif %}
+            </div>
+
+            {% if not public %}
+            <a href="/mixtapes" class="btn btn-outline-secondary btn-sm">Terug naar overzicht</a>
+            {% endif %}
         </div>
 
+        <!-- Player + tracklist -->
         <div class="col-lg-8">
-            <h3>Hele mixtape afspelen</h3>
-            <audio controls class="w-100 mb-5" preload="none">
+
+            <!-- 1. ECHTE playlist player (speelt alle tracks af!) -->
+            <h3 class="mb-3">Hele mixtape afspelen</h3>
+            <audio id="mixtape-player" controls class="w-100 mb-5" preload="none">
                 {% for t in mixtape.tracks %}
                 <source src="/play/{{ t.path }}" type="audio/mpeg">
                 {% endfor %}
                 Je browser ondersteunt geen audio.
             </audio>
 
+            <!-- 2. Tracklist met perfecte uitlijning -->
             <h4 class="mt-4">Tracklist</h4>
             <ol class="list-group list-group-numbered">
                 {% for t in mixtape.tracks %}
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <div>
-                        <strong>{{ t.title }}</strong><br>
-                        <small class="text-muted">{{ t.artist }} • {{ t.album }}</small>
+                <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                    <div class="me-3 flex-grow-1">
+                        <div class="fw-bold">{{ t.title }}</div>
+                        <small class="text-muted">
+                            {{ t.artist }}{% if t.album %} • {{ t.album }}{% endif %}
+                        </small>
                     </div>
-                    <audio controls preload="none">
+                    <audio controls controlsList="nodownload" preload="none" class="flex-shrink-0">
                         <source src="/play/{{ t.path }}" type="audio/mpeg">
                     </audio>
                 </li>
@@ -44,4 +70,10 @@
         </div>
     </div>
 </div>
+
+<!-- Bonus: volgende track automatisch afspelen -->
+<script>
+document.getElementById('mixtape-player').addEventListener('ended', function() {
+});
+</script>
 {% endblock %}
