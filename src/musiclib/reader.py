@@ -58,7 +58,7 @@ class MusicCollection:
             print("Database out of sync with filesystem — repairing...")
             self._extractor.resync()
 
-    def search_for_ui(self, query: str, limit: int = 30) -> list:
+    def search_highlighting(self, query: str, limit: int = 30) -> list:
         """
         Searches for artists, albums, and tracks for UI display based on a query.
 
@@ -140,7 +140,7 @@ class MusicCollection:
                 displayed.append(self._track_display_dict(track))
 
                 if query_lower in track["track"].lower():
-                    highlighted.append(self._highlighted_track_dict(track, query_lower))
+                    highlighted.append(self._track_highlighted_dict(track, query_lower))
 
         if highlighted:
             reasons.append({"type": "track", "text": f"{len(highlighted)} nummer(s)"})
@@ -190,7 +190,7 @@ class MusicCollection:
         for track in album.get("tracks", []):
             displayed.append(self._track_display_dict(track))
             if query_lower in track["track"].lower():
-                highlighted.append(self._highlighted_track_dict(track, query_lower))
+                highlighted.append(self._track_highlighted_dict(track, query_lower))
 
         return {"displayed_tracks": displayed, "highlighted": highlighted}
 
@@ -202,7 +202,7 @@ class MusicCollection:
                 "album": t["album"],
                 "reasons": [{"type": "track", "text": t["track"]}],
                 "tracks": [self._track_display_dict(t)],
-                "highlighted_tracks": [self._highlighted_track_dict(t, query_lower)],
+                "highlighted_tracks": [self._track_highlighted_dict(t, query_lower)],
             }
             for t in tracks
         ]
@@ -216,7 +216,7 @@ class MusicCollection:
             "filename": self._safe_filename(track["track"], track["path"]),
         }
 
-    def _highlighted_track_dict(self, track: dict, query_lower: str) -> dict:
+    def _track_highlighted_dict(self, track: dict, query_lower: str) -> dict:
         title = track["track"]
         duration = track.get("duration") or "?:??"
         highlighted_title = self.highlight_text(title, query_lower)

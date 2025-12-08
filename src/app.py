@@ -1,6 +1,5 @@
 import json
 import mimetypes
-import re
 from base64 import b64decode
 from datetime import datetime, timezone
 from pathlib import Path
@@ -49,7 +48,7 @@ def search():
         return jsonify([])
 
     # 1. Haal ruwe resultaten op (geen highlighting nog)
-    raw_results = collection.search_for_ui(query, limit=30)
+    raw_results = collection.search_highlighting(query, limit=30)
 
     # 2. Voeg alleen <mark> tags toe waar nodig (dit blijft in Flask)
     def finalize_highlight(item: dict) -> dict:

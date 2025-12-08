@@ -5,10 +5,10 @@ from base64 import b64decode
 
 
 class MixtapeManager:
-    def __init__(self):
-        self.path_mixtape = Path(__file__).parent.parent / "mixtapes"
-        self.path_cover = self.path_mixtape / "covers"
-        self.path_mixtape.mkdir(exist_ok=True)
+    def __init__(self, path_mixtapes: Path):
+        self.path_mixtapes = path_mixtapes
+        self.path_cover = path_mixtapes / "covers"
+        self.path_mixtapes.mkdir(exist_ok=True)
         self.path_cover.mkdir(exist_ok=True)
 
     def save(self, mixtape_data: dict):
@@ -16,7 +16,7 @@ class MixtapeManager:
         sanitized_title = "".join(
             c if c.isalnum() or c in "-_ " else "_" for c in title
         )
-        json_path = self.path_mixtape / f"{sanitized_title}.json"
+        json_path = self.path_mixtapes / f"{sanitized_title}.json"
 
         # Cover opslaan als bestand (van base64)
         if cover_base64 := mixtape_data.get("cover"):
@@ -37,7 +37,7 @@ class MixtapeManager:
 
     def list_all(self) -> list[dict]:
         mixtapes = []
-        for file in self.path_mixtape.glob("*.json"):
+        for file in self.path_mixtapes.glob("*.json"):
             with open(file, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 data["title"] = file.stem.replace("_", " ")  # Herstel titel
@@ -49,7 +49,7 @@ class MixtapeManager:
         sanitized_title = "".join(
             c if c.isalnum() or c in "-_ " else "_" for c in title
         )
-        path = self.path_mixtape / f"{sanitized_title}.json"
+        path = self.path_mixtapes / f"{sanitized_title}.json"
         if not path.exists():
             return None
         with open(path, "r", encoding="utf-8") as f:
