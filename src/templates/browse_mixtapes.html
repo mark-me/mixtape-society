@@ -1,72 +1,139 @@
 {% extends "base.html" %}
-
 {% block title %}Mixtapes{% endblock %}
 
 {% block extra_css %}
-    <style>
-        .hover-shadow:hover { box-shadow: 0 10px 20px rgba(0,0,0,0.2) !important; transition: all 0.3s; }
-    </style>
+<style>
+    .mixtape-item {
+        background: #1e1e1e;
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+    .mixtape-item:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+    }
+    .mixtape-cover {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+    .mixtape-info {
+        flex-grow: 1;
+        padding: 1rem 1.5rem;
+    }
+    .mixtape-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin: 0 0 0.5rem 0;
+        color: white;
+    }
+    .mixtape-meta {
+        color: #aaa;
+        font-size: 0.9rem;
+        margin: 0;
+    }
+    .action-buttons {
+        display: flex;
+        gap: 0.75rem;
+        padding-right: 1rem;
+    }
+    .action-btn {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        border: none;
+        color: white;
+        transition: all 0.2s;
+    }
+    .btn-edit   { background: #0d6efd; }
+    .btn-play   { background: #198754; }
+    .btn-share  { background: #0dcaf0; }
+    .action-btn:hover {
+        transform: scale(1.1);
+    }
+    .no-mixtapes {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #888;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container py-5">
-    <h1 class="display-5 fw-bold text-center mb-5">Mixtape Society</h1>
 
+    <!-- Header + werkende knop -->
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <h1 class="display-5 fw-bold mb-0">Mijn Mixtapes</h1>
+        <button type="button" class="btn btn-success btn-lg shadow" onclick="window.location.href='/'">
+            <i class="bi bi-plus-circle-fill me-2"></i>Nieuwe Mixtape
+        </button>
+    </div>
+
+    <!-- Mixtapes lijst (1 kolom, landscape) -->
     {% if mixtapes %}
-    <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
         {% for m in mixtapes %}
-        <div class="col">
-            <div class="card h-100 shadow hover-shadow">
-                {% if m.cover %}
-                <img src="/mixtapes/files/{{ m.cover }}" class="card-img-top" style="height: 250px; object-fit: cover;">
-                {% else %}
-                <div class="bg-dark d-flex align-items-center justify-content-center text-white" style="height: 250px;">
-                    <i class="bi bi-music-note-beamed" style="font-size: 4rem;"></i>
-                </div>
-                {% endif %}
+        <div class="mixtape-item">
+            <!-- Cover -->
+            {% if m.cover %}
+            <img src="/mixtapes/files/{{ m.cover }}" class="mixtape-cover" alt="{{ m.title }}">
+            {% else %}
+            <div class="mixtape-cover d-flex align-items-center justify-content-center bg-dark">
+                <i class="bi bi-music-note-beamed text-white" style="font-size: 3rem; opacity: 0.3;"></i>
+            </div>
+            {% endif %}
 
-                <div class="card-body text-center">
-                    <h5 class="card-title">{{ m.title }}</h5>
-                    <p class="text-muted small">
-                        {{ m.tracks|length }} tracks
-                        {% if m.saved_at %}• {{ m.saved_at[:10] }}{% endif %}
-                    </p>
-                </div>
+            <!-- Info -->
+            <div class="mixtape-info">
+                <h3 class="mixtape-title">{{ m.title }}</h3>
+                <p class="mixtape-meta">
+                    {{ m.tracks|length }} tracks
+                    {% if m.saved_at %} • {{ m.saved_at[:10] }}{% endif %}
+                </p>
+            </div>
 
-                <div class="card-footer bg-white d-flex justify-content-around border-0 pt-3">
-                    <a href="/edit/{{ m.slug }}" class="btn btn-outline-primary btn-sm">
-                        Bewerken
-                    </a>
-                    <a href="/mixtapes/play/{{ m.slug }}" class="btn btn-success btn-sm">
-                        Afspelen
-                    </a>
-                    <button
-                        class="btn btn-outline-info btn-sm copy-link"
-                        data-url="{{ url_for('browse_mixtapes.play', slug=m.slug, _external=True) }}"
-                        title="Link kopiëren">
-                        <i class="bi bi-link-45deg"></i> Delen
-                    </button>
-                </div>
+            <!-- Actieknoppen (alleen iconen) -->
+            <div class="action-buttons">
+                <a href="/edit/{{ m.slug }}" class="action-btn btn-edit" title="Bewerken">
+                    <i class="bi bi-pencil-fill"></i>
+                </a>
+                <a href="/mixtapes/play/{{ m.slug }}" class="action-btn btn-play" title="Afspelen">
+                    <i class="bi bi-play-fill"></i>
+                </a>
+                <button class="action-btn btn-share copy-btn"
+                        data-url="{{ url_for('public_play', slug=m.slug, _external=True) }}"
+                        title="Openbare link kopiëren">
+                    <i class="bi bi-share-fill"></i>
+                </button>
             </div>
         </div>
         {% endfor %}
-    </div>
+
     {% else %}
-    <div class="text-center py-5 text-muted">
-        <i class="bi bi-cassette display-1"></i>
-        <h3 class="mt-4">Nog geen mixtapes...</h3>
-        <p>Maak er eerst één aan in de <a href="/">playlist maker</a></p>
+    <div class="no-mixtapes">
+        <i class="bi bi-cassette display-1 mb-4 text-muted"></i>
+        <h3>Nog geen mixtapes...</h3>
+        <p class="text-muted">Maar dat komt snel! Maak er nu direct één aan</p>
     </div>
     {% endif %}
 </div>
-{% endblock %}
 
-<!-- Toast container (eenmalig in base.html is genoeg) -->
-<div aria-live="polite" aria-atomic="true" class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080">
-    <div id="copyToast" class="toast align-items-center text-bg-success border-0" role="alert">
+<!-- Toast voor kopiëren -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080">
+    <div id="copyToast" class="toast align-items-center text-bg-success border-0 shadow" role="alert">
         <div class="d-flex">
             <div class="toast-body">
-                <i class="bi bi-check2"></i> Link gekopieerd naar klembord!
+                <i class="bi bi-check2-circle"></i> Openbare link gekopieerd!
             </div>
             <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
         </div>
@@ -75,39 +142,25 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const toastEl = document.getElementById('copyToast');
-    const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+    const toast = new bootstrap.Toast(document.getElementById('copyToast'));
 
-    document.querySelectorAll('.copy-link').forEach(button => {
-        button.addEventListener('click', async function () {
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
             const url = this.getAttribute('data-url');
-
-            try {
-                await navigator.clipboard.writeText(url);
+            navigator.clipboard.writeText(url).then(() => {
                 toast.show();
-                const normal = button.querySelector('.normal');
-                const copied = button.querySelector('.copied');
-                if (normal && copied) {
-                    normal.classList.add('d-none');
-                    copied.classList.remove('d-none');
-                    setTimeout(() => {
-                        normal.classList.remove('d-none');
-                        copied.classList.add('d-none');
-                    }, 2000);
-                }
-            } catch (err) {
-                // Fallback voor oudere browsers
-                const textArea = document.createElement('textarea');
-                textArea.value = url;
-                textArea.style.position = 'fixed';
-                textArea.style.opacity = '0';
-                document.body.appendChild(textArea);
-                textArea.select();
+            }).catch(() => {
+                // Fallback voor Firefox / oude browsers
+                const el = document.createElement('textarea');
+                el.value = url;
+                document.body.appendChild(el);
+                el.select();
                 document.execCommand('copy');
-                document.body.removeChild(textArea);
+                document.body.removeChild(el);
                 toast.show();
-            }
+            });
         });
     });
 });
 </script>
+{% endblock %}
