@@ -163,11 +163,11 @@ class MusicCollection:
                 reasons.append({"type": "artist", "text": artist})
             if query_lower in album_name.lower():
                 reasons.append({"type": "album", "text": album_name})
-            if processed["highlighted"]:
+            if processed["highlighted_tracks"]:
                 reasons.append(
                     {
                         "type": "track",
-                        "text": f"{len(processed['highlighted'])} nummer(s)",
+                        "text": f"{len(processed['highlighted_tracks'])} nummer(s)",
                     }
                 )
 
@@ -192,7 +192,7 @@ class MusicCollection:
             if query_lower in track["track"].lower():
                 highlighted.append(self._track_highlighted_dict(track, query_lower))
 
-        return {"displayed_tracks": displayed, "highlighted": highlighted}
+        return {"displayed_tracks": displayed, "highlighted_tracks": highlighted}
 
     def _format_track_results(self, tracks: list[dict], query_lower: str) -> list[dict]:
         out = [
@@ -378,9 +378,6 @@ class MusicCollection:
         Returns:
             str: The relative path from the music root directory.
         """
-        return str(Path(path).relative_to(self.path_music))
-
-    def _format_relative_path(self, path: str) -> str:
         return str(Path(path).relative_to(self.music_root))
 
     def _format_duration(self, seconds: float) -> str:
