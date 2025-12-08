@@ -42,7 +42,6 @@ class MixtapeManager:
                 data = json.load(f)
 
             slug = file.stem # Sanitized title = slug (bestandsnaam zonder .json)
-            data["title"] = slug.replace("_", " ")
             data["slug"] = slug
             mixtapes.append(data)
 
@@ -57,6 +56,5 @@ class MixtapeManager:
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
 
-        data["title"] = slug.replace("_", " ")
         data["slug"] = slug
         return data
