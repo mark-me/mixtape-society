@@ -40,19 +40,23 @@ class MixtapeManager:
         for file in self.path_mixtapes.glob("*.json"):
             with open(file, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                data["title"] = file.stem.replace("_", " ")  # Herstel titel
-                mixtapes.append(data)
+
+            slug = file.stem # Sanitized title = slug (bestandsnaam zonder .json)
+            data["title"] = slug.replace("_", " ")
+            data["slug"] = slug
+            mixtapes.append(data)
+
         mixtapes.sort(key=lambda x: x.get("saved_at", ""), reverse=True)
         return mixtapes
 
-    def get(self, title: str) -> dict | None:
-        sanitized_title = "".join(
-            c if c.isalnum() or c in "-_ " else "_" for c in title
-        )
-        path = self.path_mixtapes / f"{sanitized_title}.json"
+    def get(self, slug: str) -> dict | None:
+        path = self.path_mixtapes / f"{slug}.json"
         if not path.exists():
             return None
+
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
-            data["title"] = sanitized_title.replace("_", " ")  # Herstel titel
-            return data
+
+        data["title"] = slug.replace("_", " ")
+        data["slug"] = slug
+        return data

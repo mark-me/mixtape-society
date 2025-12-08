@@ -15,10 +15,11 @@ def index():
     return render_template("browse_mixtapes.html", mixtapes=mixtapes)
 
 
-@browser.route("/mixtapes/play/<title>")
-def play(title):
-    if mixtape := MixtapeManager.get(title):
-        return render_template("play_mixtape.html", mixtape=mixtape, title=title)
+@browser.route("/mixtapes/play/<slug>")
+def play(slug):
+    mixtape_manager = MixtapeManager(path_mixtapes=MIXTAPE_PATH)
+    if mixtape := mixtape_manager.get(slug):
+        return render_template("play_mixtape.html", mixtape=mixtape)
     else:
         abort(404)
 
