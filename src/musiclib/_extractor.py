@@ -333,7 +333,7 @@ class Watcher(FileSystemEventHandler):
         if path.suffix.lower() not in self.extractor.SUPPORTED_EXTS:
             return
 
-        with self.get_conn() as conn:
+        with self.extractor.get_conn() as conn:
             if event.event_type in ("deleted", "moved") and hasattr(event, "src_path"):
                 conn.execute("DELETE FROM tracks WHERE path = ?", (event.src_path,))
             elif path.exists():

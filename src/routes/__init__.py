@@ -1,4 +1,4 @@
-from .manager import manager
-from .editor import editor
+from .browse_mixtapes import browser
+from .play import play
 
-__all__ = ["manager", "editor"]
+__all__ = ["browser", "play"]

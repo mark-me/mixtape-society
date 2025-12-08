@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% block title %}{{ mixtape.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+    {% if not public %}
+    <a href="/mixtapes" class="btn btn-outline-secondary btn-sm mb-4">
+        ← Terug naar overzicht
+    </a>
+    {% endif %}
+
+    <div class="row g-5">
+        <!-- Cover + titel -->
+        <div class="col-lg-4 text-center">
+            {% if mixtape.cover %}
+            <img src="/mixtapes/files/{{ mixtape.cover }}"
+                 class="img-fluid rounded shadow mb-4"
+                 style="max-height: 400px; object-fit: cover;">
+            {% endif %}
+
+            <h1 class="display-6 mb-2">{{ mixtape.title }}</h1>
+            <p class="text-muted small mb-3">{{ mixtape.tracks|length }} tracks</p>
+
+            <div class="text-muted small">
+                {% if mixtape.created_at %}
+                <div><i class="bi bi-calendar-plus"></i> Aangemaakt: {{ mixtape.created_at[:10] }}</div>
+                {% endif %}
+                {% if mixtape.saved_at %}
+                <div><i class="bi bi-save"></i> Laatst opgeslagen: {{ mixtape.saved_at[:10] }} om {{ mixtape.saved_at[11:16] }}</div>
+                {% endif %}
+            </div>
+
+            {% if not public %}
+            <a href="/mixtapes" class="btn btn-outline-secondary btn-sm mt-4">Terug naar overzicht</a>
+            {% endif %}
+        </div>
+
+        <!-- Player + tracklist -->
+        <div class="col-lg-8">
+
+            <!-- Zwarte player balk met skip knoppen -->
+            <h3 class="mb-3 text-white">Hele mixtape afspelen</h3>
+            <div class="d-flex align-items-center gap-3 bg-black p-3 rounded mb-4 shadow">
+                <button id="prev-btn" class="btn btn-outline-light" title="Vorige">
+                    <i class="bi bi-skip-backward-fill"></i>
+                </button>
+                <audio id="main-player" controls class="flex-grow-1" style="height: 46px;"></audio>
+                <button id="next-btn" class="btn btn-outline-light" title="Volgende">
+                    <i class="bi bi-skip-forward-fill"></i>
+                </button>
+            </div>
+
+            <!-- Huidige track – slank en mooi -->
+            <div id="now-playing" class="bg-dark text-white p-3 rounded mb-4 shadow-sm" style="display: none;">
+                <div class="fw-bold fs-5" id="now-title">–</div>
+                <div class="opacity-75 small" id="now-artist-album">–</div>
+            </div>
+
+            <!-- Tracklist – slanker en strakker -->
+            <h4 class="mb-3 text-white">Tracklist</h4>
+            <div class="list-group list-group-numbered">
+                {% for t in mixtape.tracks %}
+                <li class="list-group-item track-item py-4 d-flex align-items-center"
+                     data-index="{{ loop.index0 }}"
+                     data-path="/play/{{ t.path }}"
+                     data-title="{{ t.title }}"
+                     data-artist="{{ t.artist }}"
+                     data-album="{{ t.album|default('Onbekend album') }}">
+
+                    <div class="flex-grow-1 pe-3">
+                        <div class="fw-bold">{{ t.title }}</div>
+                        <div class="small opacity-75">
+                            {{ t.artist }}{% if t.album %} • {{ t.album }}{% endif %}
+                        </div>
+                    </div>
+
+                    <button class="btn btn-light rounded-circle play-this-track" style="width: 40px; height: 40px;">
+                        <i class="bi bi-play-fill"></i>
+                    </button>
+                </li>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript (zelfde als voorheen, werkt perfect) -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const player = document.getElementById('main-player');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const trackItems = document.querySelectorAll('.track-item');
+    const nowPlaying = document.getElementById('now-playing');
+    const nowTitle = document.getElementById('now-title');
+    const nowArtistAlbum = document.getElementById('now-artist-album');
+    let currentIndex = -1;
+
+    function playTrack(index) {
+        if (index < 0 || index >= trackItems.length) {
+            player.pause();
+            player.src = '';
+            nowPlaying.style.display = 'none';
+            trackItems.forEach(t => t.classList.remove('active-track'));
+            currentIndex = -1;
+            return;
+        }
+
+        const track = trackItems[index];
+        player.src = track.dataset.path;
+        nowTitle.textContent = track.dataset.title;
+        nowArtistAlbum.textContent = `${track.dataset.artist} • ${track.dataset.album}`;
+        nowPlaying.style.display = 'block';
+
+        trackItems.forEach(t => t.classList.remove('active-track'));
+        track.classList.add('active-track');
+
+        currentIndex = index;
+        player.play().catch(() => {});
+    }
+
+    prevBtn.addEventListener('click', () => playTrack(currentIndex - 1));
+    nextBtn.addEventListener('click', () => playTrack(currentIndex + 1));
+    player.addEventListener('ended', () => playTrack(currentIndex + 1));
+
+    player.addEventListener('play', function () {
+        if (currentIndex === -1 && trackItems.length > 0) playTrack(0);
+    });
+
+    trackItems.forEach((item, i) => {
+        item.addEventListener('click', () => playTrack(i));
+        item.querySelector('.play-this-track').addEventListener('click', (e) => {
+            e.stopPropagation();
+            playTrack(i);
+        });
+    });
+});
+</script>
+
+<!-- Stijl: strak, slank en professioneel -->
+<style>
+    body { background-color: #000; color: #eee; }
+
+    /* Player balk */
+    #main-player { background: #000; }
+    #main-player::-webkit-media-controls-panel { background-color: #000; }
+
+    /* Track items – slanker */
+    .track-item {
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .track-item:hover {
+        background-color: #1a1a1a !important;
+    }
+    .track-item.active-track {
+        background: #0d6efd !important;
+    }
+    .track-item.active-track .text-white,
+    .track-item.active-track .opacity-75 { color: white !important; opacity: 1 !important; }
+
+    /* Play knop rond */
+    .play-this-track {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+{% endblock %}
