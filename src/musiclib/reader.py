@@ -1,9 +1,8 @@
-from __future__ import annotations
-
+import re
 import contextlib
 from pathlib import Path
 from sqlite3 import Connection
-from typing import Iterator, Dict, Any
+from typing import Any
 
 from ._extractor import CollectionExtractor  # internal implementation
 
@@ -26,7 +25,7 @@ class MusicCollection:
     def __init__(
         self,
         music_root: Path | str,
-        db_path: Path | str | None = None,
+        db_path: Path | str,
     ):
         """
         Initializes a MusicCollection instance for managing a music library.
@@ -41,6 +40,7 @@ class MusicCollection:
             music_root=Path(music_root),
             db_path=Path(db_path) if db_path else None,
         )
+        self.music_root = Path(music_root)
 
         track_count = self._extractor.count_tracks()
         if track_count == 0:
@@ -58,87 +58,183 @@ class MusicCollection:
             print("Database out of sync with filesystem — repairing...")
             self._extractor.resync()
 
-    # ====================== Query API ======================
+    def search_for_ui(self, query: str, limit: int = 30) -> list:
+        """
+        Searches for artists, albums, and tracks for UI display based on a query.
+
+        Returns a combined list of formatted search results for artists, albums, and tracks, suitable for user interface presentation.
+
+        Args:
+            query: The search string to match against the music library.
+            limit: The maximum number of results to return for each category.
+
+        Returns:
+            list: A list of formatted search result dictionaries for UI display.
+        """
+        if not (q := query.strip()):
+            return []
+
+        data = self.search_grouped(q, limit=limit)
+
+        results = []
+        results.extend(self._format_artist_results(data["artists"], q.lower()))
+        results.extend(self._format_album_results(data["albums"], q.lower()))
+        results.extend(self._format_track_results(data["tracks"], q.lower()))
+
+        return results
+
+    @staticmethod
+    def highlight_text(text: str, query_lower: str) -> str:
+        """Case-insensitive highlight van alle voorkomens van query_lower."""
+        if not query_lower:
+            return text
+
+        def repl(match: re.Match) -> str:
+            return f"<mark>{match[0]}</mark>"
+
+        return re.sub(re.escape(query_lower), repl, text, flags=re.IGNORECASE)
+
+    def _format_artist_results(
+        self, artists: list[dict], query_lower: str
+    ) -> list[dict]:
+        """
+        Formats artist search results for UI display.
+
+        Processes a list of artist entries and returns formatted dictionaries including reasons, tracks, and highlighted tracks for each artist.
+
+        Args:
+            artists: A list of artist dictionaries to format.
+            query_lower: The lowercase search query for highlighting matches.
+
+        Returns:
+            list[dict]: A list of formatted artist result dictionaries for UI display.
+        """
+        out = []
+        for entry in artists:
+            artist = entry["artist"]
+            processed = self._process_artist_albums(entry, query_lower)
+
+            out.append(
+                {
+                    "type": "artist",
+                    "artist": artist,
+                    "album": "Meerdere albums",
+                    "reasons": processed["reasons"],
+                    "tracks": processed["displayed_tracks"],
+                    "highlighted_tracks": processed["highlighted_tracks"] or None,
+                }
+            )
+        return out
+
+    def _process_artist_albums(self, entry: dict, query_lower: str) -> dict:
+        displayed = []
+        highlighted = []
+        reasons = [{"type": "artist", "text": entry["artist"]}]
+
+        for album_entry in entry.get("albums", []):
+            album_name = album_entry["album"]
+            if query_lower in album_name.lower():
+                reasons.append({"type": "album", "text": album_name})
+
+            for track in album_entry.get("tracks", []):
+                displayed.append(self._track_display_dict(track))
+
+                if query_lower in track["track"].lower():
+                    highlighted.append(self._highlighted_track_dict(track, query_lower))
+
+        if highlighted:
+            reasons.append({"type": "track", "text": f"{len(highlighted)} nummer(s)"})
+
+        return {
+            "reasons": reasons,
+            "displayed_tracks": displayed,
+            "highlighted_tracks": highlighted,
+        }
+
+    def _format_album_results(self, albums: list[dict], query_lower: str) -> list[dict]:
+        out = []
+        for album in albums:
+            artist = album["artist"]
+            album_name = album["album"]
+            processed = self._process_album_tracks(album, query_lower)
+
+            reasons = []
+            if query_lower in artist.lower():
+                reasons.append({"type": "artist", "text": artist})
+            if query_lower in album_name.lower():
+                reasons.append({"type": "album", "text": album_name})
+            if processed["highlighted"]:
+                reasons.append(
+                    {
+                        "type": "track",
+                        "text": f"{len(processed['highlighted'])} nummer(s)",
+                    }
+                )
+
+            out.append(
+                {
+                    "type": "album",
+                    "artist": artist,
+                    "album": album_name,
+                    "reasons": reasons,
+                    "tracks": processed["displayed_tracks"],
+                    "highlighted_tracks": processed["highlighted_tracks"] or None,
+                }
+            )
+        return out
+
+    def _process_album_tracks(self, album: dict, query_lower: str) -> dict:
+        displayed = []
+        highlighted = []
+
+        for track in album.get("tracks", []):
+            displayed.append(self._track_display_dict(track))
+            if query_lower in track["track"].lower():
+                highlighted.append(self._highlighted_track_dict(track, query_lower))
+
+        return {"displayed_tracks": displayed, "highlighted": highlighted}
+
+    def _format_track_results(self, tracks: list[dict], query_lower: str) -> list[dict]:
+        out = [
+            {
+                "type": "track",
+                "artist": t["artist"],
+                "album": t["album"],
+                "reasons": [{"type": "track", "text": t["track"]}],
+                "tracks": [self._track_display_dict(t)],
+                "highlighted_tracks": [self._highlighted_track_dict(t, query_lower)],
+            }
+            for t in tracks
+        ]
+        return out
+
+    def _track_display_dict(self, track: dict) -> dict:
+        return {
+            "title": track["track"],
+            "duration": track.get("duration") or "?:??",
+            "path": track["path"],
+            "filename": self._safe_filename(track["track"], track["path"]),
+        }
+
+    def _highlighted_track_dict(self, track: dict, query_lower: str) -> dict:
+        title = track["track"]
+        duration = track.get("duration") or "?:??"
+        highlighted_title = self.highlight_text(title, query_lower)
+
+        return {
+            "original": {"title": title, "duration": duration},
+            "highlighted": highlighted_title,
+            "match_type": "track",
+        }
+
+    def _safe_filename(self, title: str, path: str) -> str:
+        ext = Path(path).suffix or ""
+        safe = "".join(c for c in title if c.isalnum() or c in " _-").strip()
+        return f"{safe}{ext}"
 
     def count(self) -> int:
         """Return total number of tracks."""
         return self._extractor.count_tracks()
-
-    def search(
-        self,
-        artist: str | None = None,
-        album: str | None = None,
-        title: str | None = None,
-        genre: str | None = None,
-        year: int | None = None,
-    ) -> Iterator[dict[str, Any]]:
-        """Searches for tracks matching the given criteria.
-
-        Returns an iterator of track metadata dictionaries that match the specified artist, album, title, genre, and year filters.
-
-        Args:
-            artist: Optional artist name to filter tracks.
-            album: Optional album name to filter tracks.
-            title: Optional track title to filter tracks.
-            genre: Optional genre to filter tracks.
-            year: Optional year to filter tracks.
-
-        Returns:
-            Iterator[dict]: An iterator of track metadata dictionaries matching the criteria.
-        """
-        query = "SELECT * FROM tracks WHERE 1=1"
-        params: list[Any] = []
-
-        if artist:
-            query += " AND artist LIKE ?"
-            params.append(f"%{artist}%")
-        if album:
-            query += " AND album LIKE ?"
-            params.append(f"%{album}%")
-        if title:
-            query += " AND title LIKE ?"
-            params.append(f"%{title}%")
-        if genre:
-            query += " AND genre LIKE ?"
-            params.append(f"%{genre}%")
-        if year:
-            query += " AND year = ?"
-            params.append(year)
-
-        query += " ORDER BY artist COLLATE NOCASE, year, album, title"
-
-        with self._extractor.get_conn() as conn:
-            for row in conn.execute(query, params):
-                yield dict(row)
-
-    def all_tracks(self) -> Iterator[Dict[str, Any]]:
-        """Returns an iterator over all tracks in the music collection.
-
-        Yields each track's metadata as a dictionary, ordered by file path.
-
-        Returns:
-            Iterator[dict]: An iterator of track metadata dictionaries.
-        """
-        with self._extractor.get_conn() as conn:
-            for row in conn.execute("SELECT * FROM tracks ORDER BY path"):
-                yield dict(row)
-
-    def get_by_path(self, path: str | Path) -> Dict[str, Any] | None:
-        """Retrieves a track's metadata by its file path.
-
-        Returns the track's metadata as a dictionary if found, otherwise returns None.
-
-        Args:
-            path: The file path of the track to retrieve.
-
-        Returns:
-            dict or None: The track's metadata dictionary, or None if not found.
-        """
-        with self._extractor.get_conn() as conn:
-            row = conn.execute(
-                "SELECT * FROM tracks WHERE path = ?", (str(path),)
-            ).fetchone()
-            return dict(row) if row else None
 
     def search_grouped(self, query: str, limit: int = 20):
         """Searches for artists, albums, and tracks matching the given query.
@@ -160,9 +256,9 @@ class MusicCollection:
 
         with self._extractor.get_conn() as conn:
             result = {
+                "artists": self._search_artists(conn, starts_pat, limit),
                 "albums": [],
                 "tracks": [],
-                "artists": self._search_artists(conn, starts_pat, limit),
             }
             result["albums"] = self._search_albums(
                 conn, like_pat, starts_pat, limit, result["artists"]
@@ -263,14 +359,42 @@ class MusicCollection:
             {
                 "track": r["track"],
                 "filename": r["filename"],
-                "path": r["path"],
+                "path": self._format_relative_path(r["path"]),
                 "duration": self._format_duration(r["duration"]),
             }
             for r in cur
         ]
         return tracks
 
-    def _format_duration(self, seconds: float | None) -> str:
+    def _format_relative_path(self, path: str) -> str:
+        """
+        Returns the relative path of a music file with respect to the music root directory.
+
+        Converts an absolute or full path to a path relative to the music collection's root directory.
+
+        Args:
+            path: The absolute or full path to the music file.
+
+        Returns:
+            str: The relative path from the music root directory.
+        """
+        return str(Path(path).relative_to(self.path_music))
+
+    def _format_relative_path(self, path: str) -> str:
+        return str(Path(path).relative_to(self.music_root))
+
+    def _format_duration(self, seconds: float) -> str:
+        """
+        Converts a duration in seconds to a MM:SS string format.
+
+        Returns a string representing the duration in minutes and seconds, or "?:??" if the input is invalid.
+
+        Args:
+            seconds: The duration in seconds.
+
+        Returns:
+            str: The formatted duration as MM:SS, or "?:??" if seconds is not provided.
+        """
         if not seconds:
             return "?:??"
         m = int(seconds // 60)
@@ -383,7 +507,7 @@ class MusicCollection:
                 "album": r["album"],
                 "track": r["track"],
                 "filename": r["filename"],
-                "path": r["path"],
+                "path": self._format_relative_path(r["path"]),
                 "duration": self._format_duration(r["duration"]),
             }
             for r in cur
