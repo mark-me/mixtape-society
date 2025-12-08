@@ -1,5 +1,6 @@
 import json
 import mimetypes
+import secrets
 from base64 import b64decode
 from datetime import datetime, timezone
 from pathlib import Path
@@ -14,9 +15,9 @@ from flask import (
     send_from_directory,
 )
 
+from logtools import get_logger
 from musiclib import MusicCollection
 from routes import browser, play
-from logtools import get_logger
 
 logger = get_logger(name=__name__)
 
@@ -27,7 +28,7 @@ app.register_blueprint(play)
 MUSIC_ROOT = Path("/home/mark/Music")
 DB_PATH = Path(__file__).parent.parent / "collection-data" / "music.db"
 MIXTAPE_DIR = Path(__file__).parent.parent / "mixtapes"
-COVER_DIR = MIXTAPE_DIR.parent.parent / "covers"
+COVER_DIR = MIXTAPE_DIR / "covers"
 MIXTAPE_DIR.mkdir(exist_ok=True)
 COVER_DIR.mkdir(exist_ok=True)
 
@@ -343,67 +344,57 @@ def save_mixtape():
     """
     Saves a mixtape sent via POST request to the server.
 
-    Validates the mixtape data, processes the cover image if present, adds metadata, and stores the mixtape as a JSON file. Returns a success response or an error message if saving fails.
+    Validates the mixtape data, generates a unique slug, processes the cover image if present, adds metadata, and stores the mixtape as a JSON file.
+    Returns a success response with the mixtape's details or an error message if saving fails.
 
     Returns:
-        Response: A JSON response indicating success or failure, including the mixtape title and filename on success.
+        Response: A JSON response indicating success or failure, including the mixtape title, slug, and edit URL on success.
     """
     try:
         data = request.get_json()
         if not data or not data.get("tracks"):
-            return jsonify({"error": "Lege of ongeldige playlist"}), 400
+            return jsonify({"error": "Lege playlist"}), 400
 
-        title = _get_mixtape_title(data)
-        safe_title = _sanitize_title(title)
-        json_path = MIXTAPE_DIR / f"{safe_title}.json"
+        original_title = data.get("title", "Onbenoemde Playlist").strip() or "Onbenoemde Playlist"
 
-        data["cover"] = _process_cover(data.get("cover"), safe_title)
+        # ALTIJD UNIEK — geen overschrijven meer!
+        slug = _generate_slug(original_title)           # ← dit is nieuw en veilig
+        json_path = MIXTAPE_DIR / f"{slug}.json"
+
+        # Cover opslaan (ook met unieke naam)
+        data["cover"] = _process_cover(data.get("cover"), slug)
+
+        # Metadata
+        data["title"] = original_title
+        data["slug"] = slug
         data["saved_at"] = datetime.now().isoformat()
-        data["original_title"] = title  # mooie titel behouden
 
         _save_mixtape_json(json_path, data)
 
-        return jsonify({"success": True, "title": title, "filename": safe_title})
+        return jsonify({
+            "success": True,
+            "title": original_title,
+            "slug": slug,
+            "url": f"/edit/{slug}"   # handige directe link
+        })
 
     except Exception as e:
-        print("Fout bij opslaan mixtape:", e)  # zie console
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Fout bij opslaan mixtape")
+        return jsonify({"error": "Serverfout bij opslaan"}), 500
 
 
-def _get_mixtape_title(data):
-    """
-    Returns the mixtape title from the provided data, or a default if missing.
-
-    Strips whitespace from the title and falls back to 'Onbenoemde Playlist' if the title is empty or not provided.
-
-    Args:
-        data: The dictionary containing mixtape data.
-
-    Returns:
-        str: The sanitized mixtape title.
-    """
-    title = data.get("title", "Onbenoemde Playlist").strip()
-    if not title:
-        title = "Onbenoemde Playlist"
-    return title
+def _generate_slug(title: str) -> str:
+    """Maakt een veilige, unieke slug + random token zodat nooit overschreven wordt"""
+    safe = "".join(c if c.isalnum() or c in " -_" else "_" for c in title.strip())
+    safe = safe.strip("_- ")
+    if not safe:
+        safe = "mixtape"
+    token = secrets.token_urlsafe(8)
+    timestamp = datetime.now().strftime("%Y%m%d")
+    return f"{safe}_{timestamp}_{token}"
 
 
-def _sanitize_title(title):
-    """
-    Sanitizes the mixtape title for safe use as a filename.
-
-    Replaces any character not alphanumeric or in " -_()" with an underscore.
-
-    Args:
-        title: The mixtape title to sanitize.
-
-    Returns:
-        str: The sanitized title safe for filesystem use.
-    """
-    return "".join(c if c.isalnum() or c in " -_()" else "_" for c in title)
-
-
-def _process_cover(cover_data, safe_title):
+def _process_cover(cover_data, slug: str):
     """
     Processes the cover image data and saves it as a JPEG file.
 
@@ -411,20 +402,41 @@ def _process_cover(cover_data, safe_title):
 
     Args:
         cover_data: The base64-encoded image data string.
-        safe_title: The sanitized title used for the filename.
+        slug: The sanitized title or slug used for the filename.
 
     Returns:
         str or None: The relative path to the saved cover image, or None if not applicable.
     """
-    if cover_data and cover_data.startswith("data:image"):
+    if not cover_data or not cover_data.startswith("data:image"):
+        return None
+
+    try:
         header, b64data = cover_data.split(",", 1)
         img_data = b64decode(b64data)
-        cover_path = COVER_DIR / f"{safe_title}.jpg"
+
+        cover_path = COVER_DIR / f"{slug}.jpg"
         with open(cover_path, "wb") as f:
             f.write(img_data)
-        return f"covers/{safe_title}.jpg"  # relatief pad voor later gebruik
-    return None
 
+        return f"covers/{slug}.jpg"
+    except Exception as e:
+        logger.error(f"Cover opslaan mislukt voor {slug}: {e}")
+        return None
+
+@app.route("/covers/<filename>")
+def serve_cover(filename):
+    """
+    Serves a cover image file from the covers directory.
+
+    Returns the requested cover image as a Flask response for download or display.
+
+    Args:
+        filename: The name of the cover image file to serve.
+
+    Returns:
+        Response: A Flask response serving the requested cover image file.
+    """
+    return send_from_directory(COVER_DIR, filename)
 
 def _save_mixtape_json(json_path, data):
     """

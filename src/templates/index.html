@@ -260,6 +260,7 @@ function addToPlaylist(item) {
     playlist.push(item);
     renderPlaylist();
 }
+
 </script>
 <script>
 function renderPlaylist() {
@@ -386,7 +387,7 @@ saveButton.addEventListener('click', async () => {
     const playlistData = {
         title: title,
         created_at: new Date().toISOString(),
-        cover: coverDataUrl,  // base64, of null
+        cover: coverDataUrl,
         tracks: playlist.map(t => ({
             artist: t.artist,
             album: t.album,
@@ -404,27 +405,31 @@ saveButton.addEventListener('click', async () => {
             body: JSON.stringify(playlistData)
         });
         const data = await response.json();
+
         if (data.success) {
-            // Toon toast
+            // Toast met link
             const toast = document.createElement('div');
             toast.className = "toast align-items-center text-bg-success border-0 position-fixed bottom-0 end-0 m-4";
             toast.innerHTML = `
                 <div class="d-flex">
                     <div class="toast-body">
-                        Playlist opgeslagen als <strong>${data.title}</strong>
+                        Playlist opgeslagen als <strong>${escapeHtml(data.title)}</strong><br>
+                        <a href="/edit/${data.slug}" class="text-white text-decoration-underline">Openen →</a>
                     </div>
                     <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
                 </div>`;
             document.body.appendChild(toast);
             new bootstrap.Toast(toast).show();
 
-            // Optioneel: leeg playlist na save?
-            // playlist = [];
-            // renderPlaylist();
+            // BONUS: URL direct updaten → je bent meteen op de juiste edit-pagina
+            window.history.replaceState({}, '', `/edit/${data.slug}`);
+            document.title = `${data.title} • Mixtape Society`;
+
         } else {
-            alert("Fout bij opslaan: " + data.error);
+            alert("Fout bij opslaan: " + (data.error || "Onbekende fout"));
         }
     } catch (e) {
+        console.error(e);
         alert("Netwerkfout: " + e.message);
     }
 });
