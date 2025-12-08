@@ -2,6 +2,11 @@
 {% block title %}{{ mixtape.title }}{% endblock %}
 
 {% block content %}
+{% if not public %}
+<a href="/mixtapes" class="btn btn-outline-secondary btn-sm mb-3">
+    ← Terug naar overzicht
+</a>
+{% endif %}
 <div class="container py-5">
     <div class="row g-5">
         <div class="col-lg-4 text-center">

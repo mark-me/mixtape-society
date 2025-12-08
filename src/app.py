@@ -8,22 +8,23 @@ from pathlib import Path
 from flask import (
     Flask,
     abort,
+    flash,
     jsonify,
+    redirect,
     render_template,
     request,
     send_file,
     send_from_directory,
+    session,
 )
 
 from logtools import get_logger
+from mixtape_manager import MixtapeManager
 from musiclib import MusicCollection
+from auth import check_auth, require_auth
 from routes import browser, play
 
 logger = get_logger(name=__name__)
-
-app = Flask(__name__)
-app.register_blueprint(browser)
-app.register_blueprint(play)
 
 MUSIC_ROOT = Path("/home/mark/Music")
 DB_PATH = Path(__file__).parent.parent / "collection-data" / "music.db"
@@ -31,6 +32,10 @@ MIXTAPE_DIR = Path(__file__).parent.parent / "mixtapes"
 COVER_DIR = MIXTAPE_DIR / "covers"
 MIXTAPE_DIR.mkdir(exist_ok=True)
 COVER_DIR.mkdir(exist_ok=True)
+PASSWORD = "password"  # Change this to a secure value or use env var
+
+app = Flask(__name__)
+app.secret_key = PASSWORD
 
 collection = MusicCollection(music_root=MUSIC_ROOT, db_path=DB_PATH)
 
@@ -41,16 +46,49 @@ mimetypes.add_type("audio/ogg", ".ogg")
 
 
 @app.route("/")
-def index():
+def landing():
     """
-    Renders the main index page of the application.
+    Renders the landing page or redirects authenticated users.
 
-    Returns the index.html template for the root route.
+    If the user is authenticated, redirects to the mixtapes page; otherwise, renders the landing.html template.
 
     Returns:
-        Response: A rendered index.html template.
+        Response: A redirect to the mixtapes page or a rendered landing.html template.
     """
-    return render_template("index.html")
+    if check_auth():
+        return redirect("/mixtapes")
+    return render_template("landing.html")
+
+
+@app.route("/login", methods=["POST"])
+def login():
+    """
+    Authenticates the user based on the submitted password.
+
+    If the password is correct, sets the session as authenticated and redirects to the mixtapes page. Otherwise, flashes an error message and redirects to the home page.
+
+    Returns:
+        Response: A redirect to the mixtapes page on success, or to the home page with an error message on failure.
+    """
+    if request.form.get("password") == PASSWORD:
+        session["authenticated"] = True
+        return redirect("/mixtapes")
+    flash("Verkeerd wachtwoord")
+    return redirect("/")
+
+
+@app.route("/logout")
+def logout():
+    """
+    Logs out the current user by removing authentication from the session.
+
+    Clears the 'authenticated' flag from the session and redirects to the home page.
+
+    Returns:
+        Response: A redirect to the home page.
+    """
+    session.pop("authenticated", None)
+    return redirect("/")
 
 
 @app.route("/search")
@@ -92,7 +130,7 @@ def _finalize_highlight(item: dict) -> dict:
 
 
 @app.route("/play/<path:file_path>")
-def play(file_path):
+def stream_audio(file_path):
     """
     Handles requests to play a music file from the collection.
 
@@ -301,6 +339,7 @@ def inject_now():
 
 
 @app.route("/edit/<slug>")
+@require_auth
 def edit_mixtape(slug):
     """
     Loads a mixtape by its slug and renders the index page with its data.
@@ -318,8 +357,6 @@ def edit_mixtape(slug):
         abort(404)
     with open(json_path, "r", encoding="utf-8") as f:
         mixtape = json.load(f)
-
-    # Render index.html maar met data voor JavaScript
     return render_template("index.html", preload_mixtape=mixtape)
 
 
@@ -355,10 +392,12 @@ def save_mixtape():
         if not data or not data.get("tracks"):
             return jsonify({"error": "Lege playlist"}), 400
 
-        original_title = data.get("title", "Onbenoemde Playlist").strip() or "Onbenoemde Playlist"
+        original_title = (
+            data.get("title", "Onbenoemde Playlist").strip() or "Onbenoemde Playlist"
+        )
 
         # ALTIJD UNIEK — geen overschrijven meer!
-        slug = _generate_slug(original_title)           # ← dit is nieuw en veilig
+        slug = _generate_slug(original_title)  # ← dit is nieuw en veilig
         json_path = MIXTAPE_DIR / f"{slug}.json"
 
         # Cover opslaan (ook met unieke naam)
@@ -371,12 +410,14 @@ def save_mixtape():
 
         _save_mixtape_json(json_path, data)
 
-        return jsonify({
-            "success": True,
-            "title": original_title,
-            "slug": slug,
-            "url": f"/edit/{slug}"   # handige directe link
-        })
+        return jsonify(
+            {
+                "success": True,
+                "title": original_title,
+                "slug": slug,
+                "url": f"/edit/{slug}",  # handige directe link
+            }
+        )
 
     except Exception as e:
         logger.exception("Fout bij opslaan mixtape")
@@ -384,11 +425,19 @@ def save_mixtape():
 
 
 def _generate_slug(title: str) -> str:
-    """Maakt een veilige, unieke slug + random token zodat nooit overschreven wordt"""
+    """
+    Generates a unique slug for a mixtape based on its title.
+
+    Sanitizes the title for safe use, appends a timestamp and a random token to ensure uniqueness.
+
+    Args:
+        title: The mixtape title to base the slug on.
+
+    Returns:
+        str: A unique, sanitized slug for the mixtape.
+    """
     safe = "".join(c if c.isalnum() or c in " -_" else "_" for c in title.strip())
-    safe = safe.strip("_- ")
-    if not safe:
-        safe = "mixtape"
+    safe = safe.strip("_- ") or "mixtape"
     token = secrets.token_urlsafe(8)
     timestamp = datetime.now().strftime("%Y%m%d")
     return f"{safe}_{timestamp}_{token}"
@@ -423,6 +472,7 @@ def _process_cover(cover_data, slug: str):
         logger.error(f"Cover opslaan mislukt voor {slug}: {e}")
         return None
 
+
 @app.route("/covers/<filename>")
 def serve_cover(filename):
     """
@@ -437,6 +487,7 @@ def serve_cover(filename):
         Response: A Flask response serving the requested cover image file.
     """
     return send_from_directory(COVER_DIR, filename)
+
 
 def _save_mixtape_json(json_path, data):
     """
@@ -453,6 +504,21 @@ def _save_mixtape_json(json_path, data):
     """
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
+
+
+# === Publieke share route (NIEUW!) ===
+@app.route("/share/<slug>")
+def public_play(slug):
+    mixtape_manager = MixtapeManager(path_mixtapes=MIXTAPE_DIR)
+    mixtape = mixtape_manager.get(slug)
+    if not mixtape:
+        abort(404)
+    return render_template("play_mixtape.html", mixtape=mixtape, public=True)
+
+
+# === Register blueprints ===
+app.register_blueprint(browser)
+app.register_blueprint(play)
 
 
 if __name__ == "__main__":
