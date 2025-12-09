@@ -75,7 +75,7 @@
                             </label>
                         </div>
                         <input type="text" id="playlist-title" class="form-control form-control-lg text-center mt-3"
-                               placeholder="Geef je playlist een naam..." value="Mijn Playlist">
+                               placeholder="Name your Mixtape..." value="My Mixtape">
                     </div>
 
                     <ol id="playlist" class="list-unstyled mb-3 flex-grow-1 overflow-auto" style="max-height: 400px;"></ol>
@@ -159,7 +159,7 @@ searchInput.addEventListener('input', () => {
             document.getElementById('loading').classList.add('visually-hidden');
             return;
         }
-        fetch(`/search?q=${encodeURIComponent(q)}`)
+        fetch(`/editor/search?q=${encodeURIComponent(q)}`)
             .then(r => r.json())
             .then(data => {
                 document.getElementById('loading').classList.add('visually-hidden');

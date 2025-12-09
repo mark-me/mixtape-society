@@ -264,10 +264,10 @@ def inject_now():
     """
     return {"now": datetime.now(timezone.utc)}
 
-# Blueprints registreren
+# Blueprints
 app.register_blueprint(browser)
-app.register_blueprint(play)
-app.register_blueprint(editor)  # ← nieuwe editor blueprint
+# app.register_blueprint(play)
+app.register_blueprint(editor)
 
 def serve():
     app.run(debug=True, host="0.0.0.0", port=5000)
