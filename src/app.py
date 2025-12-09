@@ -268,3 +268,6 @@ def inject_now():
 app.register_blueprint(browser)
 app.register_blueprint(play)
 app.register_blueprint(editor)  # ← nieuwe editor blueprint
+
+def serve():
+    app.run(debug=True, host="0.0.0.0", port=5000)

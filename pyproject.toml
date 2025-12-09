@@ -17,8 +17,17 @@ dependencies = [
     "watchdog>=6.0.0",
 ]
 
+
 [project.optional-dependencies]
 dev = [
     "mkdocs",
     "mkdocs-material"
 ]
+
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]  # Include alles in src/ (je app.py, routes/, etc.)
+sources = { "src" = "src" }  # Map src/ naar zichzelf in de wheel
+
+[project.scripts]
+mixtape = "src.app:serve"

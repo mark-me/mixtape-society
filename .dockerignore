@@ -1,0 +1,11 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.env
+.venv
+collection-data/
+mixtapes/
+.git
+site/
+docs/

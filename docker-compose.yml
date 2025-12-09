@@ -1,13 +1,22 @@
-version: '3'
 services:
-  web:
+  mixtape:
     build: .
+    container_name: mixtape-society
+    restart: unless-stopped
     ports:
-      - "5000:5000"
+      - "5000:5000"                 # http://localhost:5000
     volumes:
-      - ./mixtapes:/app/mixtapes
-      - ./music:/app/music  # Monteer je muziek directory
-      - ./covers:/app/covers
+      # Your music collection (read-only)
+      - /home/mark/Music:/home/mark/Music:ro
+
+      # Mixtapes + covers
+      - mixtapes_data:/app/mixtapes
+
+      # Collection database
+      - collection_data:/app/collection-data
     environment:
-      - FLASK_APP=app.py
-      - FLASK_DEBUG=1
+      # Verander dit in een sterk wachtwoord!
+      - PASSWORD=supergeheim123
+
+      # Optioneel: logging level
+      - FLASK_ENV=production
