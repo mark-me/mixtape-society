@@ -16,3 +16,9 @@ dependencies = [
     "tqdm>=4.67.1",
     "watchdog>=6.0.0",
 ]
+
+[project.optional-dependencies]
+dev = [
+    "mkdocs",
+    "mkdocs-material"
+]
