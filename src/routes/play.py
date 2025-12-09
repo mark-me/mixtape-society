@@ -19,7 +19,7 @@ def play_mixtape(title):
     Returns:
         Response: The rendered playback page or a 404 error if not found.
     """
-    music_collection = MusicCollection()
+    music_collection = MusicCollection(music_root=Config.MUSIC_ROOT, db_path=Config.DB_PATH)
     mixtapes = music_collection.load_mixtapes()
     mixtape = next((m for m in mixtapes if m['title'] == title), None)
     if not mixtape:
