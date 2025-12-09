@@ -268,7 +268,3 @@ def inject_now():
 app.register_blueprint(browser)
 app.register_blueprint(play)
 app.register_blueprint(editor)  # ← nieuwe editor blueprint
-
-
-if __name__ == "__main__":
-    app.run(debug=True)
