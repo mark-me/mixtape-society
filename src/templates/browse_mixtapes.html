@@ -75,8 +75,8 @@
     <!-- Header + werkende knop -->
     <div class="d-flex justify-content-between align-items-center mb-5">
         <h1 class="display-5 fw-bold mb-0">Mijn Mixtapes</h1>
-        <button type="button" class="btn btn-success btn-lg shadow" onclick="window.location.href='/'">
-            <i class="bi bi-plus-circle-fill me-2"></i>Nieuwe Mixtape
+        <button type="button" class="btn btn-success btn-lg shadow" onclick="window.location.href='/editor'">
+            Nieuwe Mixtape
         </button>
     </div>
 
@@ -104,8 +104,8 @@
 
             <!-- Actieknoppen (alleen iconen) -->
             <div class="action-buttons">
-                <a href="/edit/{{ m.slug }}" class="action-btn btn-edit" title="Bewerken">
-                    <i class="bi bi-pencil-fill"></i>
+                <a href="/editor/{{ m.slug }}" class="action-btn btn-edit" title="Bewerken">
+                    (pencil icon)
                 </a>
                 <a href="/mixtapes/play/{{ m.slug }}" class="action-btn btn-play" title="Afspelen">
                     <i class="bi bi-play-fill"></i>

@@ -399,7 +399,7 @@ saveButton.addEventListener('click', async () => {
     };
 
     try {
-        const response = await fetch('/save_mixtape', {
+        const response = await fetch('/editor/save', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(playlistData)
@@ -414,7 +414,7 @@ saveButton.addEventListener('click', async () => {
                 <div class="d-flex">
                     <div class="toast-body">
                         Playlist opgeslagen als <strong>${escapeHtml(data.title)}</strong><br>
-                        <a href="/edit/${data.slug}" class="text-white text-decoration-underline">Openen →</a>
+                        <a href="/editor/${data.slug}" class="text-white text-decoration-underline">Openen →</a>
                     </div>
                     <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
                 </div>`;
@@ -422,7 +422,7 @@ saveButton.addEventListener('click', async () => {
             new bootstrap.Toast(toast).show();
 
             // BONUS: URL direct updaten → je bent meteen op de juiste edit-pagina
-            window.history.replaceState({}, '', `/edit/${data.slug}`);
+            window.history.replaceState({}, '', `/editor/${data.slug}`);
             document.title = `${data.title} • Mixtape Society`;
 
         } else {
