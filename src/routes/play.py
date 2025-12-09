@@ -1,13 +1,10 @@
-from pathlib import Path
-
 from flask import Blueprint, render_template
 
+from config import BaseConfig as Config
 from musiclib import MusicCollection
 
 play = Blueprint('play', __name__, template_folder='templates')
 
-MUSIC_ROOT = Path("/home/mark/Music")
-DB_PATH = Path(__file__).parent.parent.parent / "collection-data" / "music.db"
 
 @play.route('/<title>')
 def play_mixtape(title):
@@ -19,6 +16,6 @@ def play_mixtape(title):
 
     # Voeg full paths toe voor streaming
     for track in mixtape['tracks']:
-        track['full_path'] = MUSIC_ROOT / track['path']
+        track['full_path'] = Config.MUSIC_ROOT / track['path']
 
     return render_template('play.html', mixtape=mixtape)

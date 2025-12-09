@@ -1,23 +1,22 @@
-from pathlib import Path
 import json
 import secrets
 import shutil
 from base64 import b64decode
 from datetime import datetime
+from pathlib import Path
 
-from flask import Blueprint, render_template, abort, request, jsonify
+from flask import Blueprint, abort, jsonify, render_template, request
+
 from auth import require_auth
-from musiclib import MusicCollection
+from config import BaseConfig as Config
 from logtools import get_logger
+from musiclib import MusicCollection
 
 logger = get_logger(__name__)
 
-MUSIC_ROOT = Path("/home/mark/Music")
-DB_PATH = Path(__file__).parent.parent / "collection-data" / "music.db"
-MIXTAPE_DIR = Path(__file__).parent.parent / "mixtapes"
-COVER_DIR = MIXTAPE_DIR / "covers"
 
-collection = MusicCollection(music_root=MUSIC_ROOT, db_path=DB_PATH)
+
+collection = MusicCollection(music_root=Config.MUSIC_ROOT, db_path=Config.DB_PATH)
 
 editor = Blueprint(
     "editor", __name__, template_folder="templates", url_prefix="/editor"
@@ -52,7 +51,7 @@ def edit_mixtape(slug: str) -> str:
     Returns:
         str: De gerenderde HTML-pagina voor het bewerken van de mixtape.
     """
-    json_path = MIXTAPE_DIR / f"{slug}.json"
+    json_path = Config.MIXTAPE_DIR / f"{slug}.json"
     if not json_path.exists():
         abort(404)
     with open(json_path, "r", encoding="utf-8") as f:
@@ -113,7 +112,7 @@ def save_mixtape() -> object:
 
         original_title = data.get("title", "Onbenoemde Playlist").strip() or "Onbenoemde Playlist"
         slug = _generate_slug(original_title)
-        json_path = MIXTAPE_DIR / f"{slug}.json"
+        json_path = Config.MIXTAPE_DIR / f"{slug}.json"
 
         # Cover verwerken
         data["cover"] = _process_cover(data.get("cover"), slug)
@@ -137,7 +136,7 @@ def save_mixtape() -> object:
         })
 
     except Exception as e:
-        logger.exception("Fout bij opslaan mixtape")
+        logger.exception(f"Fout bij opslaan mixtape: {e}")
         return jsonify({"error": "Serverfout bij opslaan"}), 500
 
 
@@ -178,7 +177,7 @@ def _process_cover(cover_data: str, slug: str) -> str | None:
     try:
         header, b64data = cover_data.split(",", 1)
         img_data = b64decode(b64data)
-        cover_path = COVER_DIR / f"{slug}.jpg"
+        cover_path = Config.COVER_DIR / f"{slug}.jpg"
         with open(cover_path, "wb") as f:
             f.write(img_data)
         return f"covers/{slug}.jpg"
@@ -200,13 +199,13 @@ def _get_default_cover(track_path: str, slug: str) -> str | None:
     Returns:
         str | None: Het relatieve pad naar de gevonden cover of None als er geen cover is.
     """
-    full_track_path = MUSIC_ROOT / track_path
+    full_track_path = Config.MUSIC_ROOT / track_path
     album_dir = full_track_path.parent
     possible = ["cover.jpg", "folder.jpg", "album.jpg", "front.jpg", "Cover.jpg", "Folder.jpg"]
     for name in possible:
         src = album_dir / name
         if src.exists():
-            dest = COVER_DIR / f"{slug}.jpg"
+            dest = Config.COVER_DIR / f"{slug}.jpg"
             shutil.copy(src, dest)
             return f"covers/{slug}.jpg"
     return None

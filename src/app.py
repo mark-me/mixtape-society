@@ -1,38 +1,43 @@
 import mimetypes
+import os
 from pathlib import Path
 
 from flask import (
     Flask,
+    Response,
     abort,
     flash,
     redirect,
     render_template,
     request,
-    Response,
     send_file,
     send_from_directory,
     session,
 )
 
+from config import DevelopmentConfig, ProductionConfig, TestConfig
 from logtools import get_logger
 from mixtape_manager import MixtapeManager
 from musiclib import MusicCollection
-from routes import browser, play, editor  # ← editor toegevoegd
+from routes import browser, editor, play
 
 logger = get_logger(name=__name__)
 
-MUSIC_ROOT = Path("/home/mark/Music")
-DB_PATH = Path(__file__).parent.parent / "collection-data" / "music.db"
-MIXTAPE_DIR = Path(__file__).parent.parent / "mixtapes"
-COVER_DIR = MIXTAPE_DIR / "covers"
-MIXTAPE_DIR.mkdir(exist_ok=True)
-COVER_DIR.mkdir(exist_ok=True)
-PASSWORD = "password"  # Verander dit naar iets veiligs of gebruik een env-var
+ENV = os.getenv("APP_ENV", "development")
+
+CONFIG_MAP = {
+    "development": DevelopmentConfig,
+    "test": TestConfig,
+    "production": ProductionConfig
+}
+
+config = CONFIG_MAP.get(ENV, DevelopmentConfig)
+config.ensure_dirs()
 
 app = Flask(__name__)
-app.secret_key = PASSWORD
+app.secret_key = config.PASSWORD
 
-collection = MusicCollection(music_root=MUSIC_ROOT, db_path=DB_PATH)
+collection = MusicCollection(music_root=config.MUSIC_ROOT, db_path=config.DB_PATH)
 
 mimetypes.add_type("audio/flac", ".flac")
 mimetypes.add_type("audio/mp4", ".m4a")
@@ -63,7 +68,7 @@ def login() -> Response:
     Returns:
         Response: The Flask response object for the appropriate redirect.
     """
-    if request.form.get("password") == PASSWORD:
+    if request.form.get("password") == config.PASSWORD:
         session["authenticated"] = True
         return redirect("/mixtapes")
     flash("Verkeerd wachtwoord")
@@ -122,9 +127,9 @@ def _resolve_and_validate_path(file_path: str) -> Path:
         403: If the file is outside the music root directory.
         404: If the file does not exist.
     """
-    full_path = (MUSIC_ROOT / file_path).resolve()
+    full_path = (config.MUSIC_ROOT / file_path).resolve()
     try:
-        full_path.relative_to(MUSIC_ROOT)
+        full_path.relative_to(config.MUSIC_ROOT)
     except ValueError:
         abort(403)
     if not full_path.is_file():
@@ -208,7 +213,7 @@ def mixtape_files(filename: str) -> Response:
     Returns:
         Response: The Flask response object containing the requested file.
     """
-    return send_from_directory(MIXTAPE_DIR, filename)
+    return send_from_directory(config.MIXTAPE_DIR, filename)
 
 
 @app.route("/covers/<filename>")
@@ -224,7 +229,7 @@ def serve_cover(filename: str) -> Response:
     Returns:
         Response: The Flask response object containing the requested file.
     """
-    return send_from_directory(COVER_DIR, filename)
+    return send_from_directory(config.COVER_DIR, filename)
 
 
 @app.route("/share/<slug>")
@@ -240,7 +245,7 @@ def public_play(slug: str) -> Response:
     Returns:
         Response: The Flask response object containing the rendered mixtape playback page.
     """
-    mixtape_manager = MixtapeManager(path_mixtapes=MIXTAPE_DIR)
+    mixtape_manager = MixtapeManager(path_mixtapes=config.MIXTAPE_DIR)
     mixtape = mixtape_manager.get(slug)
     if not mixtape:
         abort(404)
