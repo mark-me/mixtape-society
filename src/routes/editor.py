@@ -41,15 +41,15 @@ def new_mixtape() -> str:
 @require_auth
 def edit_mixtape(slug: str) -> str:
     """
-    Render de pagina voor het bewerken van een bestaande mixtape.
+    Loads and renders the page for editing an existing mixtape.
 
-    Laadt de mixtape op basis van de slug en geeft het HTML-template terug met de vooringeladen mixtape-data. Geeft een 404 als de mixtape niet bestaat.
+    Retrieves the mixtape data from a JSON file and returns the HTML template with the mixtape preloaded.
 
     Args:
-        slug: De unieke slug van de mixtape.
+        slug: The unique identifier for the mixtape.
 
     Returns:
-        str: De gerenderde HTML-pagina voor het bewerken van de mixtape.
+        str: The rendered HTML page for editing the mixtape.
     """
     json_path = Config.MIXTAPE_DIR / f"{slug}.json"
     if not json_path.exists():
@@ -63,12 +63,12 @@ def edit_mixtape(slug: str) -> str:
 @require_auth
 def search() -> object:
     """
-    Voert een zoekopdracht uit in de muziekcollectie en geeft de resultaten terug als JSON.
+    Searches the music collection and returns the results.
 
-    Zoekt naar artiesten, albums en tracks op basis van de query en highlight relevante matches. Geeft een lege lijst terug als de query te kort is.
+    Receives a search query, searches the collection, and returns the results as JSON.
 
     Returns:
-        Response: Een JSON-response met de zoekresultaten.
+        Response: A JSON response containing the search results.
     """
     query = request.args.get("q", "").strip()
     if len(query) < 2:
@@ -80,15 +80,15 @@ def search() -> object:
 
 def _finalize_highlight(item: dict) -> dict:
     """
-    Finaliseert het highlighten van zoekresultaten.
+    Finalizes the formatting of a highlighted search result item.
 
-    Kan uitgebreid worden om extra highlight-logica toe te voegen.
+    Returns the item dictionary, potentially modified for display.
 
     Args:
-        item: Het zoekresultaat-item als dictionary.
+        item: The search result item as a dictionary.
 
     Returns:
-        dict: Het (mogelijk aangepaste) zoekresultaat-item.
+        dict: The finalized item dictionary.
     """
     return item
 
@@ -97,13 +97,13 @@ def _finalize_highlight(item: dict) -> dict:
 @require_auth
 def save_mixtape() -> object:
     """
-    Slaat een mixtape op basis van de ontvangen JSON-data op.
+    Saves a mixtape and its metadata to disk.
 
-    Valideert de data, verwerkt de cover, vult metadata aan en slaat de mixtape op als JSON-bestand.
-    Geeft een succesbericht of foutmelding als JSON-response terug.
+    Receives mixtape data from a POST request, processes cover images, generates metadata, and writes the mixtape to a JSON file.
+    Returns a JSON response indicating success or failure.
 
     Returns:
-        Response: Een JSON-response met succes of foutmelding.
+        Response: A JSON response with the result of the save operation.
     """
     try:
         data = request.get_json()
@@ -142,15 +142,15 @@ def save_mixtape() -> object:
 
 def _generate_slug(title: str) -> str:
     """
-    Genereert een unieke slug voor een mixtape op basis van de titel.
+    Generates a unique slug for a mixtape based on its title.
 
-    De slug bevat alleen veilige tekens, een datum en een random token.
+    Creates a safe, URL-friendly string using the title, current date, and a random token.
 
     Args:
-        title: De titel van de mixtape.
+        title: The title of the mixtape.
 
     Returns:
-        str: De gegenereerde slug.
+        str: The generated slug.
     """
     safe = "".join(c if c.isalnum() or c in " -_" else "_" for c in title.strip())
     safe = safe.strip("_- ") or "mixtape"
@@ -161,16 +161,16 @@ def _generate_slug(title: str) -> str:
 
 def _process_cover(cover_data: str, slug: str) -> str | None:
     """
-    Verwerkt en slaat de cover-afbeelding op als deze aanwezig is.
+    Processes and saves a mixtape cover image from base64 data.
 
-    Decodeert de base64-afbeelding en slaat deze op als jpg-bestand. Geeft het pad naar de opgeslagen cover terug of None bij een fout.
+    Decodes the image data, saves it to the covers directory, and returns the relative path to the saved image. Returns None if the data is invalid or saving fails.
 
     Args:
-        cover_data: De base64-gecodeerde afbeelding als string.
-        slug: De slug van de mixtape.
+        cover_data: The base64-encoded image data as a string.
+        slug: The unique identifier for the mixtape.
 
     Returns:
-        str | None: Het relatieve pad naar de opgeslagen cover of None bij een fout.
+        str | None: The relative path to the saved cover image, or None if saving fails.
     """
     if not cover_data or not cover_data.startswith("data:image"):
         return None
@@ -188,16 +188,16 @@ def _process_cover(cover_data: str, slug: str) -> str | None:
 
 def _get_default_cover(track_path: str, slug: str) -> str | None:
     """
-    Probeert een standaard cover-afbeelding te vinden in de album-map van het eerste nummer.
+    Attempts to find and copy a default cover image from the track's album directory.
 
-    Kopieert de gevonden afbeelding naar de covers-directory en retourneert het pad, of None als er geen cover gevonden is.
+    Searches for common cover image filenames and copies the first found image to the covers directory. Returns the relative path to the copied image, or None if no cover is found.
 
     Args:
-        track_path: Het pad naar het eerste nummer van de mixtape.
-        slug: De slug van de mixtape.
+        track_path: The path to the track file.
+        slug: The unique identifier for the mixtape.
 
     Returns:
-        str | None: Het relatieve pad naar de gevonden cover of None als er geen cover is.
+        str | None: The relative path to the copied cover image, or None if no cover is found.
     """
     full_track_path = Config.MUSIC_ROOT / track_path
     album_dir = full_track_path.parent
@@ -213,13 +213,13 @@ def _get_default_cover(track_path: str, slug: str) -> str | None:
 
 def _save_mixtape_json(json_path: Path, data: dict) -> None:
     """
-    Slaat de mixtape-data op als JSON-bestand.
+    Saves mixtape data to a JSON file.
 
-    Schrijft de data naar het opgegeven pad in UTF-8 encoding.
+    Writes the provided mixtape data dictionary to the specified file path in JSON format.
 
     Args:
-        json_path: Het pad waar het JSON-bestand opgeslagen moet worden.
-        data: De mixtape-data als dictionary.
+        json_path: The path where the JSON file will be saved.
+        data: The mixtape data to be saved.
 
     Returns:
         None

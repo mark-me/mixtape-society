@@ -72,15 +72,15 @@
 {% block content %}
 <div class="container py-5">
 
-    <!-- Header + werkende knop -->
+    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-5">
-        <h1 class="display-5 fw-bold mb-0">Mijn Mixtapes</h1>
+        <h1 class="display-5 fw-bold mb-0">My Mixtapes</h1>
         <button type="button" class="btn btn-success btn-lg shadow" onclick="window.location.href='/editor'">
-            Nieuwe Mixtape
+            <i class="bi bi-plus-circle-fill"></i> New Mixtape
         </button>
     </div>
 
-    <!-- Mixtapes lijst (1 kolom, landscape) -->
+    <!-- Mixtapes list -->
     {% if mixtapes %}
         {% for m in mixtapes %}
         <div class="mixtape-item">
@@ -102,10 +102,10 @@
                 </p>
             </div>
 
-            <!-- Actieknoppen (alleen iconen) -->
+            <!-- Action buttons -->
             <div class="action-buttons">
                 <a href="/editor/{{ m.slug }}" class="action-btn btn-edit" title="Bewerken">
-                    (pencil icon)
+                    <i class="bi bi-pencil-fill"></i>
                 </a>
                 <a href="/mixtapes/play/{{ m.slug }}" class="action-btn btn-play" title="Afspelen">
                     <i class="bi bi-play-fill"></i>
@@ -122,18 +122,18 @@
     {% else %}
     <div class="no-mixtapes">
         <i class="bi bi-cassette display-1 mb-4 text-muted"></i>
-        <h3>Nog geen mixtapes...</h3>
-        <p class="text-muted">Maar dat komt snel! Maak er nu direct één aan</p>
+        <h3>No mixtapes yet...</h3>
+        <p class="text-muted">But that’s coming soon! Create one right now.</p>
     </div>
     {% endif %}
 </div>
 
-<!-- Toast voor kopiëren -->
+<!-- Toast for copy link -->
 <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080">
     <div id="copyToast" class="toast align-items-center text-bg-success border-0 shadow" role="alert">
         <div class="d-flex">
             <div class="toast-body">
-                <i class="bi bi-check2-circle"></i> Openbare link gekopieerd!
+                <i class="bi bi-check2-circle"></i>Public link copied!
             </div>
             <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
         </div>

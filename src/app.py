@@ -1,5 +1,6 @@
 import mimetypes
 import os
+from datetime import datetime, timezone
 from pathlib import Path
 
 from flask import (
@@ -251,6 +252,17 @@ def public_play(slug: str) -> Response:
         abort(404)
     return render_template("play_mixtape.html", mixtape=mixtape, public=True)
 
+@app.context_processor
+def inject_now():
+    """
+    Injects the current UTC datetime into the template context.
+
+    This allows templates to access the current time using the 'now' variable.
+
+    Returns:
+        dict: A dictionary with the current UTC datetime under the key 'now'.
+    """
+    return {"now": datetime.now(timezone.utc)}
 
 # Blueprints registreren
 app.register_blueprint(browser)
