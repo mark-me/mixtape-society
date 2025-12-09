@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Playlist Maker{% endblock %}
+{% block title %}Create Mixtape{% endblock %}
 
 {% block extra_css %}
 
@@ -24,14 +24,14 @@
 {% block content %}
 <div class="container py-4">
 
-    <h1 class="mb-4">Muziek Playlist Maker</h1>
+    <h1 class="mb-4">Create Mixtape</h1>
 
     <!-- Zoekbalk -->
     <div class="row mb-4">
         <div class="col">
             <div class="position-relative">
                 <input type="text" id="searchInput" class="form-control form-control-lg rounded-pill ps-5 pe-5"
-                       placeholder="Zoek op artiest, album of nummer..." autocomplete="off">
+                       placeholder="Search by artist, album, or song..." autocomplete="off">
                 <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-4 text-muted"></i>
                 <div id="loading" class="position-absolute top-50 end-0 translate-middle-y me-4 visually-hidden">
                     <span class="spinner-border spinner-border-sm text-muted" role="status" aria-hidden="true"></span>
@@ -41,14 +41,14 @@
     </div>
 
     <div class="row g-4">
-        <!-- Bibliotheek -->
+        <!-- Library -->
         <div class="col-lg-7">
             <div class="card shadow-sm h-100">
                 <div class="card-header bg-success text-white">
-                    <h2 class="h5 mb-0">Bibliotheek</h2>
+                    <h2 class="h5 mb-0">Library</h2>
                 </div>
                 <div class="card-body" id="results">
-                    <p class="text-muted text-center my-5">Typ minimaal 2 tekens om te zoeken…</p>
+                    <p class="text-muted text-center my-5">Type at least 2 characters to search…</p>
                 </div>
             </div>
         </div>
@@ -58,10 +58,10 @@
             <div class="card shadow-sm h-100">
                 <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
                     <h2 class="h5 mb-0">
-                        Mijn Playlist <span id="playlist-count">(0)</span>
+                        My Mixtape <span id="playlist-count">(0)</span>
                     </h2>
                     <button id="save-playlist" class="btn btn-light btn-sm" title="Playlist opslaan">
-                        Opslaan
+                        Save
                     </button>
                 </div>
                 <div class="card-body d-flex flex-column">
@@ -70,8 +70,7 @@
                             <img id="playlist-cover" src="https://via.placeholder.com/300x300/333333/FFFFFF?text=Playlist"
                                  class="rounded shadow" style="max-width: 250px; width: 60vw; height: auto;">
                             <label class="btn btn-primary btn-sm position-absolute bottom-0 end-0 mb-2 me-2 rounded-circle"
-                                   style="width: 40px; height: 40px; padding: 0;">
-                                Camera
+                                   style="width: 40px; height: 40px; padding: 0;"><i class="bi bi-file-earmark-plus"></i>
                                 <input type="file" id="cover-upload" accept="image/*" class="d-none">
                             </label>
                         </div>
@@ -83,7 +82,7 @@
 
                     <div class="mt-auto">
                         <button id="clear-playlist" class="btn btn-outline-danger w-100 mb-2">
-                            Playlist leegmaken
+                            Empty mixtape
                         </button>
                     </div>
                 </div>
@@ -93,12 +92,12 @@
 
     <div class="text-center my-5">
         <a href="/mixtapes" class="btn btn-outline-primary btn-lg">
-            Bekijk al je mixtapes
+            Preview your mixtape
         </a>
     </div>
 </div>
 
-<!-- Audio player onderaan (blijft fixed) -->
+<!-- Audio player on bottom -->
 <div class="fixed-bottom bg-dark text-white p-3 shadow-lg" id="audio-player-container" style="display:none;">
     <div class="container">
         <div class="d-flex align-items-center">
@@ -121,14 +120,14 @@
 
 <script>
 
-/* ==== ZOEKEN & RESULTATEN ==== */
+/* ==== SEARCH AND RESULTS ==== */
 const searchInput = document.getElementById('searchInput');
 const resultsDiv = document.getElementById('results');
 const playlistOl = document.getElementById('playlist');
 const playlistCount = document.getElementById('playlist-count');
 let playlist = [];
 
-// Preload bij bewerken
+// Preload
 document.addEventListener("DOMContentLoaded", () => {
     {% if preload_mixtape %}
     const mixtape = {{ preload_mixtape | tojson }};
@@ -148,7 +147,7 @@ document.addEventListener("DOMContentLoaded", () => {
     {% endif %}
 });
 
-// Zoekfunctionaliteit
+// Search
 let timeout;
 searchInput.addEventListener('input', () => {
     clearTimeout(timeout);
@@ -192,7 +191,7 @@ function renderResults(data) {
     }
 
     resultsDiv.innerHTML = data.map(entry => {
-        // badges met redenen
+        // badges with reason hit
         const badges = entry.reasons.map(r => {
             const icons = { artist: 'bi-person-fill', album: 'bi-disc-fill', track: 'bi-music-note' };
             const colors = { artist: 'success', album: 'warning', track: 'primary' };
@@ -232,7 +231,7 @@ function renderResults(data) {
             </div>`;
     }).join('');
 
-    // add-to-playlist knoppen
+    // add-to-playlist buttons
     document.querySelectorAll('.add-btn').forEach(btn => {
         btn.addEventListener('click', function () {
             const item = {
@@ -250,7 +249,7 @@ function renderResults(data) {
 
 /* ==== PLAYLIST ==== */
 function addToPlaylist(item) {
-    // Voorkom duplicaten
+    // Preventing duplicates
     if (playlist.some(t =>
         t.artist === item.artist &&
         t.album === item.album &&
@@ -289,7 +288,7 @@ function renderPlaylist() {
 
     playlistCount.textContent = `(${playlist.length})`;
 
-    // === PLAY BUTTONS (alleen de vaste player onderaan gebruiken) ===
+    // === PLAY BUTTONS ===
     document.querySelectorAll('.play-track-btn').forEach(btn => {
         btn.onclick = function () {
             const path = this.dataset.path;
@@ -315,7 +314,7 @@ function renderPlaylist() {
         };
     });
 
-    // Verwijderknoppen
+    // Delete buttons
     document.querySelectorAll('.remove-btn').forEach(btn => {
         btn.onclick = () => {
             playlist.splice(btn.dataset.index, 1);
@@ -336,20 +335,20 @@ new Sortable(playlistOl, {
     }
 });
 
-// Playlist leegmaken
+// Empty playlist
 document.getElementById('clear-playlist').addEventListener('click', () => {
     playlist = [];
     renderPlaylist();
 });
 </script>
 <script>
-// === PLAYLIST OPSLAAN MET TITEL & COVER ===
+// === SAVE PLAYLIST WITH TITLE & COVER ===
 const playlistTitleInput = document.getElementById('playlist-title');
 const playlistCoverImg = document.getElementById('playlist-cover');
 const coverUpload = document.getElementById('cover-upload');
 const saveButton = document.getElementById('save-playlist');
 
-let coverDataUrl = null; // base64 van de gekozen afbeelding
+let coverDataUrl = null; // base64 of cover image
 
 // Cover uploaden
 coverUpload.addEventListener('change', (e) => {
@@ -364,25 +363,25 @@ coverUpload.addEventListener('change', (e) => {
     reader.readAsDataURL(file);
 });
 
-// Automatisch eerste albumcover als fallback (optioneel, maar mooi)
+// TODO: Default cover by first playlist item
 function updatePlaylistCover() {
-    if (coverDataUrl) return; // gebruiker heeft al gekozen
+    if (coverDataUrl) return; // User already chosen
 
     const firstItem = playlist[0];
     if (firstItem) {
-        // Je kunt later een endpoint maken die albumart retourneert, maar voor nu placeholder
+        // Placeholder for getting first track cover
         // playlistCoverImg.src = `/albumart?artist=${encodeURIComponent(firstItem.artist)}&album=${encodeURIComponent(firstItem.album)}`;
     }
 }
 
-// Opslaan als JSON via server
+// Save as JSON on server
 saveButton.addEventListener('click', async () => {
     if (playlist.length === 0) {
-        alert("Je playlist is leeg!");
+        alert("Your mixtape is empty!");
         return;
     }
 
-    const title = playlistTitleInput.value.trim() || "Onbenoemde Playlist";
+    const title = playlistTitleInput.value.trim() || "Unnamed Mixtape";
 
     const playlistData = {
         title: title,
@@ -399,7 +398,7 @@ saveButton.addEventListener('click', async () => {
     };
 
     try {
-        const response = await fetch('/save_mixtape', {
+        const response = await fetch('/editor/save', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(playlistData)
@@ -407,22 +406,21 @@ saveButton.addEventListener('click', async () => {
         const data = await response.json();
 
         if (data.success) {
-            // Toast met link
+            // Toast with link
             const toast = document.createElement('div');
             toast.className = "toast align-items-center text-bg-success border-0 position-fixed bottom-0 end-0 m-4";
             toast.innerHTML = `
                 <div class="d-flex">
                     <div class="toast-body">
                         Playlist opgeslagen als <strong>${escapeHtml(data.title)}</strong><br>
-                        <a href="/edit/${data.slug}" class="text-white text-decoration-underline">Openen →</a>
+                        <a href="/editor/${data.slug}" class="text-white text-decoration-underline">Openen →</a>
                     </div>
                     <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
                 </div>`;
             document.body.appendChild(toast);
             new bootstrap.Toast(toast).show();
 
-            // BONUS: URL direct updaten → je bent meteen op de juiste edit-pagina
-            window.history.replaceState({}, '', `/edit/${data.slug}`);
+            window.history.replaceState({}, '', `/editor/${data.slug}`);
             document.title = `${data.title} • Mixtape Society`;
 
         } else {
@@ -434,7 +432,7 @@ saveButton.addEventListener('click', async () => {
     }
 });
 
-// Update cover als playlist wijzigt
+// Update cover when playlist changes
 const originalRenderPlaylist = renderPlaylist;
 renderPlaylist = function() {
     originalRenderPlaylist();
@@ -456,7 +454,7 @@ renderPlaylist = function() {
 </div>
 
 <script>
-// Toon player als er iets afgespeeld wordt
+// Show player when something is played
 document.getElementById('global-audio-player')?.addEventListener('play', () => {
     document.getElementById('audio-player-container').style.display = 'block';
 });

@@ -5,6 +5,11 @@ from base64 import b64decode
 
 
 class MixtapeManager:
+    """
+    Manages the storage and retrieval of mixtapes and their cover images.
+
+    Handles saving, listing, and loading mixtape data from disk, including cover image processing and metadata management.
+    """
     def __init__(self, path_mixtapes: Path):
         self.path_mixtapes = path_mixtapes
         self.path_cover = path_mixtapes / "covers"
@@ -12,6 +17,17 @@ class MixtapeManager:
         self.path_cover.mkdir(exist_ok=True)
 
     def save(self, mixtape_data: dict):
+        """
+        Saves a mixtape and its cover image to disk.
+
+        Stores the mixtape data as a JSON file and saves the cover image if provided. Returns the sanitized title used as the slug.
+
+        Args:
+            mixtape_data: The dictionary containing mixtape information.
+
+        Returns:
+            str: The sanitized title used as the slug for the mixtape.
+        """
         title = mixtape_data["title"]
         sanitized_title = "".join(
             c if c.isalnum() or c in "-_ " else "_" for c in title
@@ -36,6 +52,14 @@ class MixtapeManager:
         return sanitized_title
 
     def list_all(self) -> list[dict]:
+        """
+        Lists all saved mixtapes with their metadata.
+
+        Reads all mixtape JSON files, adds their slug, and returns a sorted list of mixtape dictionaries.
+
+        Returns:
+            list[dict]: A list of dictionaries containing mixtape data.
+        """
         mixtapes = []
         for file in self.path_mixtapes.glob("*.json"):
             with open(file, "r", encoding="utf-8") as f:
@@ -49,6 +73,17 @@ class MixtapeManager:
         return mixtapes
 
     def get(self, slug: str) -> dict | None:
+        """
+        Retrieves a mixtape by its slug.
+
+        Loads the mixtape data from disk if it exists and returns it as a dictionary, or None if not found.
+
+        Args:
+            slug: The unique identifier for the mixtape.
+
+        Returns:
+            dict | None: The mixtape data dictionary, or None if the mixtape does not exist.
+        """
         path = self.path_mixtapes / f"{slug}.json"
         if not path.exists():
             return None

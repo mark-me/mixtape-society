@@ -6,12 +6,12 @@
 
     {% if not public %}
     <a href="/mixtapes" class="btn btn-outline-secondary btn-sm mb-4">
-        ← Terug naar overzicht
+        ← Back to mixtape browser
     </a>
     {% endif %}
 
     <div class="row g-5">
-        <!-- Cover + titel -->
+        <!-- Cover + title -->
         <div class="col-lg-4 text-center">
             {% if mixtape.cover %}
             <img src="/mixtapes/files/{{ mixtape.cover }}"
@@ -24,23 +24,23 @@
 
             <div class="text-muted small">
                 {% if mixtape.created_at %}
-                <div><i class="bi bi-calendar-plus"></i> Aangemaakt: {{ mixtape.created_at[:10] }}</div>
+                <div><i class="bi bi-calendar-plus"></i> Created: {{ mixtape.created_at[:10] }}</div>
                 {% endif %}
                 {% if mixtape.saved_at %}
-                <div><i class="bi bi-save"></i> Laatst opgeslagen: {{ mixtape.saved_at[:10] }} om {{ mixtape.saved_at[11:16] }}</div>
+                <div><i class="bi bi-save"></i> Last changes: {{ mixtape.saved_at[:10] }} om {{ mixtape.saved_at[11:16] }}</div>
                 {% endif %}
             </div>
 
             {% if not public %}
-            <a href="/mixtapes" class="btn btn-outline-secondary btn-sm mt-4">Terug naar overzicht</a>
+            <a href="/mixtapes" class="btn btn-outline-secondary btn-sm mt-4">Back to mixtape browser</a>
             {% endif %}
         </div>
 
         <!-- Player + tracklist -->
         <div class="col-lg-8">
 
-            <!-- Zwarte player balk met skip knoppen -->
-            <h3 class="mb-3 text-white">Hele mixtape afspelen</h3>
+            <!-- Player -->
+            <h3 class="mb-3 text-white">Play mixtape</h3>
             <div class="d-flex align-items-center gap-3 bg-black p-3 rounded mb-4 shadow">
                 <button id="prev-btn" class="btn btn-outline-light" title="Vorige">
                     <i class="bi bi-skip-backward-fill"></i>
@@ -51,13 +51,13 @@
                 </button>
             </div>
 
-            <!-- Huidige track – slank en mooi -->
+            <!-- Current track -->
             <div id="now-playing" class="bg-dark text-white p-3 rounded mb-4 shadow-sm" style="display: none;">
                 <div class="fw-bold fs-5" id="now-title">–</div>
                 <div class="opacity-75 small" id="now-artist-album">–</div>
             </div>
 
-            <!-- Tracklist – slanker en strakker -->
+            <!-- Tracklist -->
             <h4 class="mb-3 text-white">Tracklist</h4>
             <div class="list-group list-group-numbered">
                 {% for t in mixtape.tracks %}
@@ -85,7 +85,6 @@
     </div>
 </div>
 
-<!-- JavaScript (zelfde als voorheen, werkt perfect) -->
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const player = document.getElementById('main-player');
@@ -138,7 +137,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 
-<!-- Stijl: strak, slank en professioneel -->
+
 <style>
     body { background-color: #000; color: #eee; }
 
@@ -160,7 +159,6 @@ document.addEventListener('DOMContentLoaded', function () {
     .track-item.active-track .text-white,
     .track-item.active-track .opacity-75 { color: white !important; opacity: 1 !important; }
 
-    /* Play knop rond */
     .play-this-track {
         display: flex;
         align-items: center;

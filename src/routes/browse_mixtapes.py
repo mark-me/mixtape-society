@@ -1,20 +1,17 @@
-from pathlib import Path
-
 from flask import (
     Blueprint,
     redirect,
-    request,
     render_template,
+    request,
     send_from_directory,
     url_for,
 )
 
 from auth import check_auth, require_auth
+from config import BaseConfig as Config
 from mixtape_manager import MixtapeManager
 
 browser = Blueprint("browse_mixtapes", __name__, template_folder="../templates")
-
-MIXTAPE_DIR = Path(__file__).parent.parent.parent / "mixtapes"
 
 
 @browser.route("/mixtapes")
@@ -28,7 +25,7 @@ def browse():
     Returns:
         Response: A rendered template displaying the list of mixtapes.
     """
-    mixtape_manager = MixtapeManager(path_mixtapes=MIXTAPE_DIR)
+    mixtape_manager = MixtapeManager(path_mixtapes=Config.MIXTAPE_DIR)
     mixtapes = mixtape_manager.list_all()
     return render_template("browse_mixtapes.html", mixtapes=mixtapes)
 
@@ -63,10 +60,10 @@ def files(filename):
     Returns:
         Response: A Flask response serving the requested file.
     """
-    return send_from_directory(MIXTAPE_DIR, filename)
+    return send_from_directory(Config.MIXTAPE_DIR, filename)
+
 
 @browser.before_request
 def blueprint_require_auth():
-    if request.endpoint in ['browse_mixtapes.browse', 'browse_mixtapes.play']:
-        if not check_auth():
-            return redirect(url_for("landing"))
+    if request.endpoint in ["browse_mixtapes.browse", "browse_mixtapes.play"] and not check_auth():
+        return redirect(url_for("landing"))
