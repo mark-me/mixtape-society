@@ -1,104 +1,136 @@
-# The Mixtape Society
+# Mixtape Society
 
-**Bringing mixtapes back — digitally.**
-A beautiful, modern web app to create, manage, and share your own digital mixtapes — just like the old days, but better.
+A beautiful, private, self-hosted web app to create, edit, share and play music mixtapes from your personal library.
 
-![Mixtape Revival](https://i.imgur.com/2rF9kP8.png)
-*(Homepage in dark mode)*
+![Mixtape Society screenshot](docs/images/screenshot-browse.png)
 
 ## Features
 
-- Clean, responsive UI with **Bootstrap 5**
-- Light / **dark mode** (auto + manual toggle)
-- Full **admin panel** (login required)
-- Create, clone, edit, and delete mixtapes
-- **Drag-and-drop** track reordering
-- Add tracks from your own music library (MP3, FLAC, Ogg Vorbis)
-- Automatic **metadata** reading (artist, title, album) via Mutagen
-- Per-mixtape **cover art** upload
-- Gorgeous **APlayer** with progress bar, artwork, and playlist view
-- Unique shareable link for every mixtape
-- Live **search** in the admin area
-- Zero database – everything stored as tidy JSON files
-- Fully containerized with **Docker & Docker Compose**
+- Clean, modern UI (Bootstrap 5 + vanilla JS)
+- Drag-and-drop mixtape editor
+- Live search with highlighting
+- Automatic or manual cover art
+- Public shareable links (no login needed to play)
+- Full seeking support for FLAC, MP3, M4A, etc.
+- Simple single-password protection
+- Background filesystem monitoring – always up-to-date
+- Zero runtime external dependencies
 
-## Screenshots
+## Quick Start
 
-| Home (light)        | APlayer             | Admin Editor         |
-|---------------------|---------------------|----------------------|
-| ![Home](https://i.imgur.com/Wx8vN1m.png) | ![Player](https://i.imgur.com/8YvR9pL.png) | ![Editor](https://i.imgur.com/kP3mXvZ.png) |
+### Option 1: Local Development (uv + pyproject.toml – recommended)
 
-## Quick Start with Docker (recommended)
+This project uses `uv` for fast dependency management, with `pyproject.toml` for declarative builds and `.python-version` for tool versioning.
 
 ```bash
-# 1. Clone the repo
-git clone https://github.com/your-username/mixtape-revival.git
-cd mixtape-revival
+git clone https://github.com/mark-me/mixtape-society.git
+cd mixtape-society
 
-# 2. Create folders and add your music
-mkdir music covers mixtapes
-# Copy your MP3/FLAC/Ogg files into the music folder
+# Install uv if needed: curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# 3. Launch
-docker-compose up -d --build
+# uv handles venv, sync, and activation automatically
+uv sync
 
-# 4. Open your browser
-http://localhost:5000
+# Copy and edit env
+cp .env.example .env
+# Edit .env → set MUSIC_ROOT and a strong password
 
-Default admin login:
-Username: admin
-Password: password
-Change these immediately in production!
-
-## Run without Docker
-
-```bash
-git clone https://github.com/your-username/mixtape-revival.git
-cd mixtape-revival
-
-uv run app.py
+# Run the app (first run indexes your library)
+uv run python app.py
 ```
 
-## Directory structure
+Your browser opens at [http://localhost:5000](http://localhost:5000)
+Default dev password: `password`
+
+### Option 2: Docker (production-ready)
+
+Pre-built images are available on [GitHub Packages](https://github.com/mark-me/mixtape-society/pkgs/container/mixtape-society).
+
+#### Quick Docker Run
 
 ```bash
-mixtapes/
-├── music/          ← Put all your music files here
-├── covers/         ← Auto-filled when you upload covers
-├── mixtapes/       ← One JSON file per mixtape
-├── src/
-|    ├──templates/      ← HTML templates (Bootstrap)
-|    └── app.py         ← Main Flask application
-├── .python-version
-├── Dockerfile
-├── docker-compose.yml
-├── pyproject.toml
-├── README.md
-└── uv.lock
+# Pull the latest image
+docker pull ghcr.io/mark-me/mixtape-society:latest
+
+# Run with volume mounts for music and data
+docker run -d \
+  --name mixtape-society \
+  -p 5000:5000 \
+  -v /path/to/your/Music:/music:ro \
+  -v ./mixtapes:/app/mixtapes \
+  -v ./collection-data:/app/collection-data \
+  -e MUSIC_ROOT=/music \
+  -e APP_PASSWORD=YourStrongPassword123! \
+  ghcr.io/mark-me/mixtape-society:latest
 ```
 
-## Security & Production tips
+#### With Docker Compose (recommended for persistence)
 
-This project is designed as a **personal / hobby** application.
-For real-world use:
+Copy docker-compose.yml (included in repo) and edit volumes/paths:
 
-* Change the hardcoded admin credentials (ADMIN_USERNAME / ADMIN_PASSWORD in app.py)
-* Replace the simple login with a proper user database + password hashing
-* Put behind a reverse proxy (Nginx, Caddy, Traefik) with HTTPS
-* Restrict direct access to the /music folder
+```bash
+services:
+  mixtape:
+    build: .
+    container_name: mixtape-society
+    restart: unless-stopped
+    ports:
+      - "5000:5000"                 # http://localhost:5000
+    volumes:
+      # Your music collection (read-only)
+      - /home/mark/Music:/home/mark/Music:ro
 
-## Tech stack
-* Python + Flask
-* Bootstrap 5 + Bootstrap Icons
-* APlayer (beautiful audio player)
-* Sortable.js (drag & drop)
-* Mutagen (metadata extraction)
-* Docker & Docker Compose
+      # Mixtapes + covers
+      - mixtapes_data:/app/mixtapes
 
+      # Collection database
+      - collection_data:/app/collection-data
+    environment:
+      # Verander dit in een sterk wachtwoord!
+      - PASSWORD=supergeheim123
 
-License
-MIT License – fork it, modify it, use it anywhere.
+      # Optioneel: logging level
+      - FLASK_ENV=production
+```
 
-Mixtapes are back. And they sound better than ever.
-Made with love and nostalgia
-© 2025 – Mixtape Revival
+Then:
+
+```bash
+docker compose up -d
+```
+
+Access at [http://localhost:5000](http://localhost:5000). The image includes everything – no build needed.
+
+## More information
+
+[Github pages](https://mark-me.github.io/mixtape-society/)
+
+## Environment Variables (.env)
+
+| Variable    | Description                    | Example    |
+| ----------- | --------------------------------| ---------- |
+|APP_ENV      | "development, production, test" | production |
+|MUSIC_ROOT   | Path to your music collection (absolute)|/mnt/music|
+|DB_PATH      | SQLite database location        | /var/lib/mixtape-society/music.db |
+|APP_PASSWORD | Login password (strongly recommended) | MySuperSecret123!
+|MIXTAPE_DIR  | Mixtapes storage                | ./mixtapes
+
+Load via .env file or Docker env vars.
+
+## Supported Formats
+
+MP3 • FLAC • M4A (AAC/ALAC) • OGG • WAV • WMA – powered by TinyTag.
+
+## Tech Stack
+
+* Backend: Flask + uv + pyproject.toml
+* Metadata: TinyTag + SQLite + Watchdog
+* Frontend: Bootstrap 5 + Sortable.js
+* Deployment: Docker (multi-arch support)
+
+## License
+
+MIT – use it, hack it, share it.
+
+Made with love for real mixtapes in a digital world.
+© 2025 Mark Zwart
