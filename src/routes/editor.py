@@ -162,7 +162,7 @@ def save_mixtape() -> object:
         })
 
     except Exception as e:
-        logger.exception("Error saving mixtape")
+        logger.exception(f"Error saving mixtape: {e}")
         return jsonify({"error": "Server error"}), 500
 
 
