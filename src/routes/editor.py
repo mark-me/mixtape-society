@@ -34,7 +34,7 @@ def new_mixtape() -> str:
     Returns:
         str: De gerenderde HTML-pagina voor het aanmaken van een nieuwe mixtape.
     """
-    return render_template("index.html")
+    return render_template("editor.html")
 
 
 @editor.route("/<slug>")
@@ -56,7 +56,7 @@ def edit_mixtape(slug: str) -> str:
         abort(404)
     with open(json_path, "r", encoding="utf-8") as f:
         mixtape = json.load(f)
-    return render_template("index.html", preload_mixtape=mixtape, editing_slug=slug)
+    return render_template("editor.html", preload_mixtape=mixtape, editing_slug=slug)
 
 
 @editor.route("/search")
