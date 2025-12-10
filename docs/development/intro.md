@@ -3,15 +3,55 @@
 ## Project Structure
 
 ```bash
-pyproject.toml      → Dependencies + build config (uv-native)
-.python-version     → Python version pinning
-app.py              → Main Flask entrypoint
-config.py           → Env/config classes
-musiclib/           → Music indexing (TinyTag + SQLite)
-mixtape_manager.py  → Mixtape persistence
-templates/          → Jinja2 views
-docker/             → Dockerfile + docker-compose.yml
-Dockerfile          → Multi-stage build for prod
+mixtape-society
+├── docker-compose.yml
+├── Dockerfile
+├── .dockerignore       → Ignoring files for Docker builds
+├── docs                → This documentation
+├── .github             → Github Actions workflows
+│   └── workflows
+│       ├── docker-image.yml
+│       └── docs.yml
+├── .gitignore      → Ignored files for git
+├── LICENCE         → Licence file
+├── mkdocs.yml      → Docs site config
+├── pyproject.toml  → Project config + dependencies
+├── .python-version → Python version pinning
+├── README.md       → Project README
+├── src             → Source code
+│   ├── app.py      → Main Flask entrypoint
+│   ├── auth.py     → Auth handling
+│   ├── config.py   → Env/config classes
+│   ├── logtools                → Logging utilities
+│   │   ├── color_formatter.py
+│   │   ├── __init__.py
+│   │   ├── issue_tracking.py
+│   │   ├── log_config.py
+│   │   ├── log_manager.py
+│   │   └── tqdm_logging.py
+│   ├── mixtape_manager         → Mixtape persistence
+│   │   ├── __init__.py
+│   │   └── mixtape_manager.py
+│   ├── musiclib                → Music indexing (TinyTag + SQLite)
+│   │   ├── _extractor.py
+│   │   ├── __init__.py
+│   │   └── reader.py
+│   ├── routes                  → Flask route handlers
+│   │   ├── browse_mixtapes.py
+│   │   ├── editor.py
+│   │   ├── __init__.py
+│   │   └── play.py
+│   ├── static                  → Static assets
+│   │   ├── css
+│   │   │   └── style.css
+│   │   └── favicon.png
+│   └── templates               → Jinja2 views
+│       ├── base.html
+│       ├── browse_mixtapes.html
+│       ├── editor.html
+│       ├── landing.html
+│       └── play_mixtape.html
+└── uv.lock             → uv-managed dependency lockfile
 ```
 
 ## Local Dev Workflow (uv)
