@@ -13,6 +13,7 @@ from flask import (
     send_from_directory,
     session,
 )
+from flask_cors import CORS
 
 from config import DevelopmentConfig, ProductionConfig, TestConfig
 from logtools import get_logger
@@ -35,6 +36,8 @@ config.ensure_dirs()
 
 app = Flask(__name__)
 app.secret_key = config.PASSWORD
+
+CORS(app)  # This adds Access-Control-Allow-Origin: * to ALL responses
 
 collection = MusicCollection(music_root=config.MUSIC_ROOT, db_path=config.DB_PATH)
 
@@ -155,7 +158,7 @@ def inject_now() -> dict:
 
 # Blueprints
 app.register_blueprint(browser)
-app.register_blueprint(play)
+app.register_blueprint(play, url_prefix="/play")
 app.register_blueprint(editor)
 
 

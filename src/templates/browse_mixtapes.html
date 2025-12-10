@@ -107,7 +107,10 @@
                 <a href="/editor/{{ m.slug }}" class="action-btn btn-edit" title="Bewerken">
                     <i class="bi bi-pencil-fill"></i>
                 </a>
-                <a href="/mixtapes/play/{{ m.slug }}" class="action-btn btn-play" title="Afspelen">
+                <a href="{{ url_for('public_play', slug=m.slug) }}"
+                    class="action-btn btn-play"
+                    title="Afspelen"
+                    onclick="event.preventDefault(); window.location.href=this.href+'#play'; setTimeout(() => document.dispatchEvent(new Event('startPlayback')), 400);">
                     <i class="bi bi-play-fill"></i>
                 </a>
                 <button class="action-btn btn-share copy-btn"

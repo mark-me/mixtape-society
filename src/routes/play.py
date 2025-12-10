@@ -23,12 +23,19 @@ def stream_audio(file_path: str) -> Response:
     """
     full_path = _resolve_and_validate_path(file_path)
     mime_type = _guess_mime_type(full_path)
+    file_size = full_path.stat().st_size
 
-    if range_header := request.headers.get("Range"):
-        return _handle_range_request(full_path, mime_type, range_header)
+    range_header = request.headers.get("Range")
 
-    return send_file(full_path, mimetype=mime_type, download_name=full_path.name)
+    if range_header:
+        return _handle_range_request(full_path, mime_type, range_header, file_size)
 
+    # Full file request
+    response = send_file(full_path, mimetype=mime_type, download_name=full_path.name)
+    response.headers["Accept-Ranges"] = "bytes"
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Cache-Control"] = "no-cache"
+    return response
 
 def _resolve_and_validate_path(file_path: str) -> Path:
     """
@@ -80,43 +87,33 @@ def _guess_mime_type(full_path: Path) -> str:
     return mime_type
 
 
-def _handle_range_request(
-    full_path: Path, mime_type: str, range_header: str
-) -> Response:
-    """
-    Handles HTTP range requests for partial audio file streaming.
+def _handle_range_request(full_path: Path, mime_type: str, range_header: str, file_size: int) -> Response:
+    try:
+        range_match = range_header.replace("bytes=", "")
+        byte1_str, byte2_str = (range_match.split("-") + [""])[:2]
+        byte1 = int(byte1_str) if byte1_str else 0
+        byte2 = int(byte2_str) if byte2_str else file_size - 1
 
-    Reads and returns the requested byte range of the file, setting appropriate headers for partial content responses.
+        if byte1 >= file_size or byte2 >= file_size or byte1 < 0:
+            return Response("Range Not Satisfiable", 416)
 
-    Args:
-        full_path: The Path object representing the audio file.
-        mime_type: The MIME type string for the file.
-        range_header: The value of the HTTP Range header from the request.
+        length = byte2 - byte1 + 1
 
-    Returns:
-        Response: The Flask response object containing the requested byte range.
-    """
-    # Range support (voor seeking)
-    byte1, byte2 = 0, None
-    m = range_header.replace("bytes=", "")
-    if "-" in m:
-        byte1, byte2 = m.split("-")
-        byte1 = int(byte1)
-        byte2 = int(byte2) if byte2 else full_path.stat().st_size - 1
-    else:
-        byte1 = int(m)
+        with open(full_path, "rb") as f:
+            f.seek(byte1)
+            data = f.read(length)
 
-    length = byte2 - byte1 + 1 if byte2 else full_path.stat().st_size - byte1
-    with open(full_path, "rb") as f:
-        f.seek(byte1)
-        data = f.read(length)
-
-    rv = Response(data, 206, mimetype=mime_type, direct_passthrough=True)
-    rv.headers.add(
-        "Content-Range",
-        f"bytes {byte1}-{byte1 + length - 1}/{full_path.stat().st_size}",
-    )
-    return rv
+        rv = Response(data, 206, mimetype=mime_type, direct_passthrough=True)
+        rv.headers.update({
+            "Content-Range": f"bytes {byte1}-{byte2}/{file_size}",
+            "Accept-Ranges": "bytes",
+            "Content-Length": str(length),
+            "Access-Control-Allow-Origin": "*",
+            "Cache-Control": "no-cache",
+        })
+        return rv
+    except Exception as e:
+        abort(500)
 
 
 # @play.route("/<title>")

@@ -18,6 +18,17 @@
     .playlist-ghost { opacity: 0.4; background: var(--bs-primary-bg-subtle); border: 2px dashed var(--bs-primary); }
     #searchInput { height: 58px; padding-left: 52px !important; padding-right: 52px !important; }
     .bi-search { font-size: 1.25rem; pointer-events: none; }
+
+    #cover-upload-btn:hover span {
+        background-color: #0d6efd !important;
+        border-color: #0d6efd !important;
+        transform: scale(1.1);
+        transition: all 0.2s ease;
+    }
+
+    #playlist-cover {
+        transition: opacity 0.3s ease;
+    }
 </style>
 {% endblock %}
 
@@ -61,21 +72,35 @@
                         My Mixtape <span id="playlist-count">(0)</span>
                     </h2>
                     <button id="save-playlist" class="btn btn-light btn-sm" title="Playlist opslaan">
-                        Save
+                        <span id="save-text">Save</span>
                     </button>
+
+                    <!-- Hidden input to know if we're editing -->
+                    <input type="hidden" id="editing-slug" value="{{ editing_slug|default('') }}">
                 </div>
                 <div class="card-body d-flex flex-column">
                     <div class="text-center mb-4">
                         <div class="position-relative d-inline-block">
-                            <img id="playlist-cover" src="https://via.placeholder.com/300x300/333333/FFFFFF?text=Playlist"
-                                 class="rounded shadow" style="max-width: 250px; width: 60vw; height: auto;">
-                            <label class="btn btn-primary btn-sm position-absolute bottom-0 end-0 mb-2 me-2 rounded-circle"
-                                   style="width: 40px; height: 40px; padding: 0;"><i class="bi bi-file-earmark-plus"></i>
+                            <img id="playlist-cover"
+                                src="https://via.placeholder.com/300x300/333333/FFFFFF?text=Playlist"
+                                class="rounded shadow-sm img-fluid"
+                                style="max-width: 260px; aspect-ratio: 1; object-fit: cover; border: 3px solid rgba(255,255,255,0.1);">
+
+                            <!-- New beautiful overlay button -->
+                            <label id="cover-upload-btn" class="position-absolute bottom-0 end-0 mb-3 me-3 cursor-pointer">
                                 <input type="file" id="cover-upload" accept="image/*" class="d-none">
+                                <span class="btn btn-dark btn-sm rounded-circle shadow-lg d-flex align-items-center justify-content justify-content-center"
+                                    style="width: 48px; height: 48px; border: 3px solid rgba(255,255,255,0.2);">
+                                    <i class="bi bi-camera-fill text-white" style="font-size: 1.3rem;"></i>
+                                </span>
                             </label>
                         </div>
-                        <input type="text" id="playlist-title" class="form-control form-control-lg text-center mt-3"
-                               placeholder="Name your Mixtape..." value="My Mixtape">
+
+                        <input type="text" id="playlist-title"
+                            class="form-control form-control-lg text-center mt-4 bg-transparent border-0 text-white fw-light"
+                            style="font-size: 1.8rem;"
+                            placeholder="Name your mixtape..."
+                            value="My Mixtape">
                     </div>
 
                     <ol id="playlist" class="list-unstyled mb-3 flex-grow-1 overflow-auto" style="max-height: 400px;"></ol>
@@ -347,14 +372,19 @@ const playlistTitleInput = document.getElementById('playlist-title');
 const playlistCoverImg = document.getElementById('playlist-cover');
 const coverUpload = document.getElementById('cover-upload');
 const saveButton = document.getElementById('save-playlist');
+const saveText = document.getElementById('save-text');
+const editingSlug = document.getElementById('editing-slug').value;
 
-let coverDataUrl = null; // base64 of cover image
+let coverDataUrl = null;
+
+if (editingSlug) {
+    saveText.textContent = "Save changes";
+}
 
 // Cover uploaden
 coverUpload.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = (ev) => {
         coverDataUrl = ev.target.result;
@@ -363,18 +393,7 @@ coverUpload.addEventListener('change', (e) => {
     reader.readAsDataURL(file);
 });
 
-// TODO: Default cover by first playlist item
-function updatePlaylistCover() {
-    if (coverDataUrl) return; // User already chosen
-
-    const firstItem = playlist[0];
-    if (firstItem) {
-        // Placeholder for getting first track cover
-        // playlistCoverImg.src = `/albumart?artist=${encodeURIComponent(firstItem.artist)}&album=${encodeURIComponent(firstItem.album)}`;
-    }
-}
-
-// Save as JSON on server
+// Save (with overwrite confirmation)
 saveButton.addEventListener('click', async () => {
     if (playlist.length === 0) {
         alert("Your mixtape is empty!");
@@ -397,38 +416,53 @@ saveButton.addEventListener('click', async () => {
         }))
     };
 
+    // If we're editing → ask to overwrite
+    if (editingSlug) {
+        const confirmOverwrite = confirm(`Overwrite "${title}"?`);
+        if (!confirmOverwrite) return;
+
+        playlistData.slug = editingSlug;  // Tell backend to overwrite this slug
+    }
+
     try {
         const response = await fetch('/editor/save', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(playlistData)
         });
         const data = await response.json();
 
         if (data.success) {
-            // Toast with link
+            const finalSlug = data.slug || editingSlug;
+
+            // Success toast
             const toast = document.createElement('div');
             toast.className = "toast align-items-center text-bg-success border-0 position-fixed bottom-0 end-0 m-4";
+            toast.style.zIndex = '1090';
             toast.innerHTML = `
                 <div class="d-flex">
                     <div class="toast-body">
-                        Playlist opgeslagen als <strong>${escapeHtml(data.title)}</strong><br>
-                        <a href="/editor/${data.slug}" class="text-white text-decoration-underline">Openen →</a>
+                        Mixtape ${editingSlug ? 'updated' : 'saved'} as <strong>${escapeHtml(data.title)}</strong><br>
+                        <a href="/share/${finalSlug}" class="text-white text-decoration-underline" target="_blank">Open public link →</a>
                     </div>
                     <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
                 </div>`;
             document.body.appendChild(toast);
             new bootstrap.Toast(toast).show();
 
-            window.history.replaceState({}, '', `/editor/${data.slug}`);
-            document.title = `${data.title} • Mixtape Society`;
+            // Update URL without reload
+            if (!editingSlug) {
+                window.history.replaceState({}, '', `/editor/${data.slug}`);
+                document.getElementById('editing-slug').value = data.slug;
+                saveText.textContent = "Save changes";
+            }
 
         } else {
-            alert("Fout bij opslaan: " + (data.error || "Onbekende fout"));
+            alert("Error saving: " + (data.error || "Unknown error"));
         }
     } catch (e) {
         console.error(e);
-        alert("Netwerkfout: " + e.message);
+        alert("Network error: " + e.message);
     }
 });
 

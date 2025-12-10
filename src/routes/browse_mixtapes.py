@@ -3,11 +3,12 @@ from flask import (
     redirect,
     render_template,
     request,
+    Response,
     send_from_directory,
     url_for,
 )
 
-from auth import check_auth, require_auth, Response
+from auth import check_auth, require_auth
 from config import BaseConfig as Config
 from mixtape_manager import MixtapeManager
 

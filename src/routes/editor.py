@@ -56,7 +56,7 @@ def edit_mixtape(slug: str) -> str:
         abort(404)
     with open(json_path, "r", encoding="utf-8") as f:
         mixtape = json.load(f)
-    return render_template("index.html", preload_mixtape=mixtape)
+    return render_template("index.html", preload_mixtape=mixtape, editing_slug=slug)
 
 
 @editor.route("/search")
@@ -108,24 +108,50 @@ def save_mixtape() -> object:
     try:
         data = request.get_json()
         if not data or not data.get("tracks"):
-            return jsonify({"error": "Lege playlist"}), 400
+            return jsonify({"error": "Empty mixtape"}), 400
 
-        original_title = data.get("title", "Onbenoemde Playlist").strip() or "Onbenoemde Playlist"
-        slug = _generate_slug(original_title)
-        json_path = Config.MIXTAPE_DIR / f"{slug}.json"
+        original_title = data.get("title", "Unnamed mixtape").strip() or "Unnamed mixtape"
 
-        # Cover verwerken
-        data["cover"] = _process_cover(data.get("cover"), slug)
+        # === OVERWRITE MODE ===
+        slug = data.get("slug")                     # sent from frontend when editing
+        if slug:
+            json_path = Config.MIXTAPE_DIR / f"{slug}.json"
+            if not json_path.exists():
+                return jsonify({"error": "Mixtape not found"}), 404
 
-        # Automatische fallback cover als er nog geen is
-        if not data["cover"] and data["tracks"]:
+            # Load existing mixtape so we can keep created_at and existing cover
+            with open(json_path, "r", encoding="utf-8") as f:
+                existing = json.load(f)
+
+            # Keep the original creation date
+            data.setdefault("created_at", existing.get("created_at"))
+
+            # Only overwrite cover if the user actually uploaded a new one
+            if data.get("cover") and data["cover"].startswith("data:image"):
+                data["cover"] = _process_cover(data["cover"], slug)
+            else:
+                data["cover"] = existing.get("cover")  # keep old cover
+        else:
+            # === NEW MIXTAPE ===
+            slug = _generate_slug(original_title)
+            json_path = Config.MIXTAPE_DIR / f"{slug}.json"
+
+            # Process new cover (if any)
+            if data.get("cover") and data["cover"].startswith("data:image"):
+                data["cover"] = _process_cover(data["cover"], slug)
+            else:
+                data["cover"] = None
+
+        # Fallback: use first track’s album cover if we still have no cover
+        if not data.get("cover") and data["tracks"]:
             data["cover"] = _get_default_cover(data["tracks"][0]["path"], slug)
 
-        # Metadata
+        # Final metadata
         data["title"] = original_title
         data["slug"] = slug
         data["saved_at"] = datetime.now().isoformat()
 
+        # Write file (overwrite or create)
         _save_mixtape_json(json_path, data)
 
         return jsonify({
@@ -136,8 +162,8 @@ def save_mixtape() -> object:
         })
 
     except Exception as e:
-        logger.exception(f"Fout bij opslaan mixtape: {e}")
-        return jsonify({"error": "Serverfout bij opslaan"}), 500
+        logger.exception("Error saving mixtape")
+        return jsonify({"error": "Server error"}), 500
 
 
 def _generate_slug(title: str) -> str:

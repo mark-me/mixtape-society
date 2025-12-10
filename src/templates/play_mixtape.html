@@ -41,6 +41,31 @@
 
             <!-- Player -->
             <h3 class="mb-3 text-white">Play mixtape</h3>
+            <div class="text-center mb-4">
+                <button id="big-play-btn" class="btn btn-outline-light btn-lg rounded-pill px-5 py-3 shadow-sm subtle-play-btn">
+                    <i class="bi bi-play-fill me-2" style="font-size: 1.4rem; position:relative; top:1px;"></i>
+                    Play mixtape
+                </button>
+            </div>
+            <style>
+            .subtle-play-btn {
+                font-size: 1.1rem;
+                font-weight: 500;
+                border-width: 2px;
+                transition: all 0.3s ease;
+            }
+
+            .subtle-play-btn:hover {
+                background: rgba(255,255,255,0.1);
+                border-color: #fff;
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+            }
+
+            .subtle-play-btn:active {
+                transform: translateY(0);
+            }
+            </style>
             <div class="d-flex align-items-center gap-3 bg-black p-3 rounded mb-4 shadow">
                 <button id="prev-btn" class="btn btn-outline-light" title="Vorige">
                     <i class="bi bi-skip-backward-fill"></i>
@@ -63,7 +88,7 @@
                 {% for t in mixtape.tracks %}
                 <li class="list-group-item track-item py-4 d-flex align-items-center"
                      data-index="{{ loop.index0 }}"
-                     data-path="/play/{{ t.path }}"
+                     data-path="{{ url_for('play.stream_audio', file_path=t.path) }}"
                      data-title="{{ t.title }}"
                      data-artist="{{ t.artist }}"
                      data-album="{{ t.album|default('Onbekend album') }}">
@@ -95,6 +120,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const nowTitle = document.getElementById('now-title');
     const nowArtistAlbum = document.getElementById('now-artist-album');
     let currentIndex = -1;
+
+    document.getElementById('big-play-btn')?.addEventListener('click', () => {
+        if (trackItems.length > 0 && currentIndex === -1) {
+            playTrack(0);
+        }
+    });
 
     function playTrack(index) {
         if (index < 0 || index >= trackItems.length) {
@@ -134,6 +165,33 @@ document.addEventListener('DOMContentLoaded', function () {
             playTrack(i);
         });
     });
+
+    function tryAutoPlay() {
+        if (trackItems.length === 0) return;
+
+        if (sessionStorage.getItem('startPlaybackNow')) {
+            sessionStorage.removeItem('startPlaybackNow');
+            playTrack(0);
+            return;
+        }
+
+        if (window.location.hash === '#play') {
+            const tryPlay = () => {
+                if (currentIndex === -1) {
+                    player.play().catch(() => {
+                        document.body.addEventListener('click', () => playTrack(0), { once: true });
+                    });
+                }
+            };
+            setTimeout(tryPlay, 300);
+        }
+    }
+
+    document.addEventListener('startPlayback', () => {
+        sessionStorage.setItem('startPlaybackNow', '1');
+    });
+
+    tryAutoPlay();
 });
 </script>
 
