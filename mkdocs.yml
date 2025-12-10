@@ -48,7 +48,14 @@ nav:
 plugins:
   - search
   - offline
-  - mkdocstrings
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_bases: true
+            show_root_heading: true
+            show_symbol_type_toc: true
+            summary: true
   - panzoom:
       full_screen: true
 
