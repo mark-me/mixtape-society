@@ -57,8 +57,8 @@ mixtape-society
 ## Local Dev Workflow (uv)
 
 ```bash
-uv sync                    # Install deps
-uv run pytest             # Run tests
+uv sync                   # Install deps
+uv sync --extra dev       # Install dev deps
 uv run python app.py      # Dev server
 uv add flask              # Add new dep (updates pyproject.toml)
 ```
