@@ -7,6 +7,7 @@ from config import BaseConfig as Config
 
 play = Blueprint("play", __name__, template_folder="templates")
 
+
 @play.route("/<path:file_path>")
 def stream_audio(file_path: str) -> Response:
     """
@@ -27,7 +28,6 @@ def stream_audio(file_path: str) -> Response:
         return _handle_range_request(full_path, mime_type, range_header)
 
     return send_file(full_path, mimetype=mime_type, download_name=full_path.name)
-
 
 
 def _resolve_and_validate_path(file_path: str) -> Path:
@@ -54,7 +54,6 @@ def _resolve_and_validate_path(file_path: str) -> Path:
     if not full_path.is_file():
         abort(404)
     return full_path
-
 
 
 def _guess_mime_type(full_path: Path) -> str:

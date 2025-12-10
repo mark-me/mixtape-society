@@ -141,7 +141,7 @@ def public_play(slug: str) -> Response:
 
 
 @app.context_processor
-def inject_now():
+def inject_now() -> dict:
     """
     Injects the current UTC datetime into the template context.
 

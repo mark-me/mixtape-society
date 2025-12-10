@@ -36,7 +36,14 @@ nav:
   - Editor: editor.md
   - Sharing: sharing.md
   - Docker Deployment: docker.md
-  - Development: development.md
+  - Development:
+    - Intro: development/intro.md
+    - Routes:
+      - App: development/app.md
+      - Browser: development/browse_mixtapes.md
+      - Editor: development/editor.md
+      - Playback: development/playback.md
+    - Musiclib: development/musiclib.md
 
 plugins:
   - search

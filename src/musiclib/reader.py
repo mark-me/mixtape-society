@@ -236,7 +236,7 @@ class MusicCollection:
         """Return total number of tracks."""
         return self._extractor.count_tracks()
 
-    def search_grouped(self, query: str, limit: int = 20):
+    def search_grouped(self, query: str, limit: int = 20) -> dict:
         """Searches for artists, albums, and tracks matching the given query.
 
         Returns a dictionary grouping the search results into artists, albums, and tracks. The number of results in each group is limited by the specified limit.

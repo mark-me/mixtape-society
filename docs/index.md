@@ -1,5 +1,7 @@
 # Mixtape Society
 
+![Mixtape Society](images/favicon.png){ align=right width="90" }
+
 A private, self-hosted web app to create and share beautiful music mixtapes from your own library.
 
 ![Mixtape Society](images/screenshot-browse.png)

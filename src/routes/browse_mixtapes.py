@@ -7,7 +7,7 @@ from flask import (
     url_for,
 )
 
-from auth import check_auth, require_auth
+from auth import check_auth, require_auth, Response
 from config import BaseConfig as Config
 from mixtape_manager import MixtapeManager
 
@@ -16,7 +16,7 @@ browser = Blueprint("browse_mixtapes", __name__, template_folder="../templates")
 
 @browser.route("/mixtapes")
 @require_auth
-def browse():
+def browse() -> Response:
     """
     Renders the browse mixtapes page with a list of all available mixtapes.
 
@@ -32,7 +32,7 @@ def browse():
 
 @browser.route("/mixtapes/play/<slug>")
 @require_auth
-def play(slug):
+def play(slug: str) -> Response:
     """
     Redirects to the public play page for a given mixtape slug.
 
@@ -48,7 +48,8 @@ def play(slug):
 
 
 @browser.route("/mixtapes/files/<path:filename>")
-def files(filename):
+@require_auth
+def files(filename: str) -> Response:
     """
     Serves a mixtape file from the mixtape directory.
 
@@ -64,6 +65,6 @@ def files(filename):
 
 
 @browser.before_request
-def blueprint_require_auth():
+def blueprint_require_auth() -> Response:
     if request.endpoint in ["browse_mixtapes.browse", "browse_mixtapes.play"] and not check_auth():
         return redirect(url_for("landing"))

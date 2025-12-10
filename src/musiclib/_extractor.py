@@ -6,7 +6,7 @@ from pathlib import Path
 from threading import Event
 
 from tinytag import TinyTag
-from watchdog.events import FileSystemEventHandler
+from watchdog.events import FileSystemEventHandler, FileSystemEvent
 from watchdog.observers import Observer
 
 from logtools import get_logger
@@ -115,7 +115,7 @@ class CollectionExtractor:
                     return False
         return True
 
-    def resync(self):
+    def resync(self) -> None:
         """Synchronizes the database with the current state of the file system.
 
         Compares the database records with the files present in the music directory, adding new files and removing records for deleted files.
@@ -223,7 +223,7 @@ class CollectionExtractor:
             mtime,
         ))
 
-    def _safe_int_year(self, value):
+    def _safe_int_year(self, value) -> int | None:
         """Converts a value to an integer year if possible.
 
         Attempts to extract and return a valid integer year from the input value. Returns None if the value cannot be interpreted as a year.
@@ -271,7 +271,7 @@ class CollectionExtractor:
 
     # ==================== Monitoring ====================
 
-    def start_monitoring(self):
+    def start_monitoring(self) -> None:
         """Starts live monitoring of the music directory for file system changes.
 
         Sets up a file system observer to watch for changes in the music collection and updates the database in real time.
@@ -287,7 +287,7 @@ class CollectionExtractor:
         self._observer.start()
         logger.info("Live filesystem monitoring started")
 
-    def stop_monitoring(self):
+    def stop_monitoring(self) -> None:
         """Stops live monitoring of the music directory for file system changes.
 
         Shuts down the file system observer and releases associated resources if monitoring is active.
@@ -306,7 +306,7 @@ class Watcher(FileSystemEventHandler):
 
     Monitors file changes in the music directory and synchronizes the music database by adding, updating, or removing track records as needed.
     """
-    def __init__(self, extractor):
+    def __init__(self, extractor: CollectionExtractor):
         """Initializes a Watcher to handle file system events for a music collection.
 
         Associates the watcher with a CollectionExtractor instance to synchronize the database with file changes.
@@ -316,7 +316,7 @@ class Watcher(FileSystemEventHandler):
         """
         self.extractor = extractor
 
-    def on_any_event(self, event):
+    def on_any_event(self, event: FileSystemEvent) -> None:
         """Handles any file system event for the music collection.
 
         Responds to file creation, modification, movement, or deletion events by updating the music database accordingly. Skips directories and unsupported file types.
