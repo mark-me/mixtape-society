@@ -3,6 +3,8 @@ site_url: https://mixtape-society.org/  # Update if you have a site
 repo_url: https://github.com/mark-me/mixtape-society
 theme:
   name: material
+  favicon: images/favicon.png
+  logo: images/favicon.png
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
@@ -22,6 +24,7 @@ theme:
     - navigation.tabs
     - navigation.top
     - content.code.copy
+    - content.code.select
   icon:
     repo: fontawesome/brands/github
 
@@ -36,7 +39,10 @@ nav:
 
 plugins:
   - search
+  - offline
   - mkdocstrings
+  - panzoom:
+      full_screen: true
 
 markdown_extensions:
   - attr_list
@@ -47,3 +53,9 @@ markdown_extensions:
       alternate_style: true
   - pymdownx.tasklist:
       custom_checkbox: true
+  - pymdownx.extra:
+        pymdownx.superfences:
+          custom_fences:
+            - name: mermaid
+              class: mermaid
+              format: !!python/name:pymdownx.superfences.fence_code_format
