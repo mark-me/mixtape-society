@@ -13,66 +13,28 @@
         align-items: center;
         box-shadow: 0 4px 15px rgba(0,0,0,0.3);
     }
-    .mixtape-item:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 30px rgba(0,0,0,0.5);
-    }
-    .mixtape-cover {
-        width: 120px;
-        height: 120px;
-        object-fit: cover;
-        flex-shrink: 0;
-    }
-    .mixtape-info {
-        flex-grow: 1;
-        padding: 1rem 1.5rem;
-    }
-    .mixtape-title {
-        font-size: 1.3rem;
-        font-weight: 600;
-        margin: 0 0 0.5rem 0;
-        color: white;
-    }
-    .mixtape-meta {
-        color: #aaa;
-        font-size: 0.9rem;
-        margin: 0;
-    }
-    .action-buttons {
-        display: flex;
-        gap: 0.75rem;
-        padding-right: 1rem;
-    }
+    .mixtape-item:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.5); }
+    .mixtape-cover { width: 120px; height: 120px; object-fit: cover; flex-shrink: 0; }
+    .mixtape-info { flex-grow: 1; padding: 1rem 1.5rem; }
+    .mixtape-title { font-size: 1.3rem; font-weight: 600; margin: 0 0 0.5rem 0; color: white; }
+    .mixtape-meta { color: #aaa; font-size: 0.9rem; margin: 0; }
+    .action-buttons { display: flex; gap: 0.75rem; padding-right: 1rem; }
     .action-btn {
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.2rem;
-        border: none;
-        color: white;
-        transition: all 0.2s;
+        width: 48px; height: 48px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.2rem; border: none; color: white; transition: all 0.2s;
     }
     .btn-edit   { background: #0d6efd; }
     .btn-play   { background: #198754; }
     .btn-share  { background: #0dcaf0; }
-    .action-btn:hover {
-        transform: scale(1.1);
-    }
-    .no-mixtapes {
-        text-align: center;
-        padding: 4rem 2rem;
-        color: #888;
-    }
+    .btn-delete { background: #dc3545; }
+    .action-btn:hover { transform: scale(1.1); }
+    .no-mixtapes { text-align: center; padding: 4rem 2rem; color: #888; }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container py-5">
-
-    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-5">
         <h1 class="display-5 fw-bold mb-0">My Mixtapes</h1>
         <button type="button" class="btn btn-success btn-lg shadow" onclick="window.location.href='/editor'">
@@ -80,17 +42,16 @@
         </button>
     </div>
 
-    <!-- Mixtapes list -->
     {% if mixtapes %}
         {% for m in mixtapes %}
         <div class="mixtape-item">
             <!-- Cover -->
             {% if m.cover %}
-            <img src="/mixtapes/files/{{ m.cover }}" class="mixtape-cover" alt="{{ m.title }}">
+                <img src="/mixtapes/files/{{ m.cover }}" class="mixtape-cover" alt="{{ m.title }}">
             {% else %}
-            <div class="mixtape-cover d-flex align-items-center justify-content-center bg-dark">
-                <i class="bi bi-music-note-beamed text-white" style="font-size: 3rem; opacity: 0.3;"></i>
-            </div>
+                <div class="mixtape-cover d-flex align-items-center justify-content-center bg-dark">
+                    <i class="bi bi-music-note-beamed text-white" style="font-size: 3rem; opacity: 0.3;"></i>
+                </div>
             {% endif %}
 
             <!-- Info -->
@@ -98,72 +59,85 @@
                 <h3 class="mixtape-title">{{ m.title }}</h3>
                 <p class="mixtape-meta">
                     {{ m.tracks|length }} tracks
-                    {% if m.saved_at %} • {{ m.saved_at[:10] }}{% endif %}
+                    {% if m.saved_at %}
+                        • Modified {{ m.saved_at[:10] }} at {{ m.saved_at[11:16] }}
+                    {% endif %}
                 </p>
             </div>
 
-            <!-- Action buttons -->
+            <!-- Actions -->
             <div class="action-buttons">
-                <a href="/editor/{{ m.slug }}" class="action-btn btn-edit" title="Bewerken">
+                <a href="/editor/{{ m.slug }}" class="action-btn btn-edit" title="Edit">
                     <i class="bi bi-pencil-fill"></i>
                 </a>
-                <a href="{{ url_for('public_play', slug=m.slug) }}"
-                    class="action-btn btn-play"
-                    title="Afspelen"
-                    onclick="event.preventDefault(); window.location.href=this.href+'#play'; setTimeout(() => document.dispatchEvent(new Event('startPlayback')), 400);">
+                <a href="{{ url_for('public_play', slug=m.slug) }}#play"
+                class="action-btn btn-play" title="Play">
                     <i class="bi bi-play-fill"></i>
                 </a>
                 <button class="action-btn btn-share copy-btn"
                         data-url="{{ url_for('public_play', slug=m.slug, _external=True) }}"
-                        title="Openbare link kopiëren">
+                        title="Copy public link">
                     <i class="bi bi-share-fill"></i>
+                </button>
+                <button class="action-btn btn-delete" title="Delete"
+                        onclick="confirmDelete('{{ m.slug }}', {{ m.title|tojson }})">
+                    <i class="bi bi-trash-fill"></i>
                 </button>
             </div>
         </div>
         {% endfor %}
-
     {% else %}
-    <div class="no-mixtapes">
-        <i class="bi bi-cassette display-1 mb-4 text-muted"></i>
-        <h3>No mixtapes yet...</h3>
-        <p class="text-muted">But that’s coming soon! Create one right now.</p>
-    </div>
+        <div class="no-mixtapes">
+            <i class="bi bi-cassette display-1 mb-4 text-muted"></i>
+            <h3>No mixtapes yet...</h3>
+            <p class="text-muted">But that’s coming soon! Create one right now.</p>
+        </div>
     {% endif %}
 </div>
 
-<!-- Toast for copy link -->
+<!-- Copy toast -->
 <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080">
     <div id="copyToast" class="toast align-items-center text-bg-success border-0 shadow" role="alert">
         <div class="d-flex">
-            <div class="toast-body">
-                <i class="bi bi-check2-circle"></i>Public link copied!
-            </div>
+            <div class="toast-body"><i class="bi bi-check2-circle"></i> Public link copied!</div>
             <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
         </div>
     </div>
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', () => {
     const toast = new bootstrap.Toast(document.getElementById('copyToast'));
-
     document.querySelectorAll('.copy-btn').forEach(btn => {
-        btn.addEventListener('click', function () {
-            const url = this.getAttribute('data-url');
-            navigator.clipboard.writeText(url).then(() => {
-                toast.show();
-            }).catch(() => {
-                // Fallback voor Firefox / oude browsers
-                const el = document.createElement('textarea');
-                el.value = url;
-                document.body.appendChild(el);
-                el.select();
-                document.execCommand('copy');
-                document.body.removeChild(el);
-                toast.show();
-            });
+        btn.addEventListener('click', () => {
+            navigator.clipboard.writeText(btn.dataset.url).then(() => toast.show());
         });
     });
 });
+
+function confirmDelete(slug, title) {
+    if (confirm(`Permanently delete "${title}"?`)) {
+        console.log('Starting delete for slug: ' + slug);
+        fetch(`/mixtapes/delete/${slug}`, {
+            method: 'POST',
+            credentials: 'include'
+        })
+        .then(r => {
+            console.log('Response status: ' + r.status);
+            if (r.ok) {
+                console.log('Delete successful - reloading page');
+                location.reload();
+            } else {
+                throw new Error('Delete failed: ' + r.status);
+            }
+        })
+        .catch(err => {
+            console.error('Fetch error:', err);
+            alert(err.message);
+        });
+    } else {
+        console.log('Delete cancelled by user');
+    }
+}
 </script>
 {% endblock %}

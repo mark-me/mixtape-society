@@ -51,6 +51,17 @@ class MixtapeManager:
 
         return sanitized_title
 
+    def delete(self) -> None:
+        """
+        Deletes a mixtape and its associated cover image from disk.
+
+        Removes the mixtape JSON file and cover image if they exist.
+
+        Returns:
+            None
+        """
+        pass  # TODO: Implementation would go here
+
     def list_all(self) -> list[dict]:
         """
         Lists all saved mixtapes with their metadata.
