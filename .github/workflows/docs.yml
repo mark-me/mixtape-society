@@ -3,7 +3,7 @@ name: Deploy Docs
 on:
   push:
     branches:
-      - main
+      - master
 
 permissions:
   contents: write
@@ -21,7 +21,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install uv
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+        run: astral-sh/setup-uv@v3
 
       - name: Install dev dependencies
         run: uv sync --extra dev
