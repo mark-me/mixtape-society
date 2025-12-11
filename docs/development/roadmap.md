@@ -1,5 +1,12 @@
 # Roadmap
 
+## What NOT to add (to keep the soul of the project)
+
+- No accounts on a central server
+- No Spotify/Apple Music integration
+- No social features (likes, comments, following)
+- No ads, analytics, telemetry by default
+
 ## 1. Progressive Web App (PWA) + Offline Playback
 
 - Add manifest.json + service worker → installable on phone/home screen
@@ -43,20 +50,20 @@
 - Support multiple MUSIC_ROOT paths (e.g., “Main” + “Vinyl Rips” + “Live Bootlegs”)
 - User roles: admin + read-only “family” accounts
 
-### 9. Backup & Portability
+## 9. Backup & Portability
 
 - One-click export of all mixtapes + cover art as .zip
 - M3U export of mixtapes for use in other players
 - Import from M3U playlists to create mixtapes
 
-### 10. Developer/Deployment Experience
+## 10. Developer/Deployment Experience
 
 - Add Traefik/Caddy reverse-proxy example with HTTPS (Let’s Encrypt)
 - Add healthcheck endpoint for Docker/Kubernetes
 - Support for Podman as well as Docker
 - Optional Redis cache for very large libraries (>50k tracks)
 
-### 11. Tiny but Delightful Details
+## 11. Tiny but Delightful Details
 
 - Keyboard shortcuts (J/K for next/prev, space to play/pause, etc.)
 - Click on album art in player → enlarge lightbox
@@ -64,13 +71,6 @@
 - “Sleep timer” in player
 - Random mixtape button on home page
 
-### 12. Optional Companion Mobile App (future)
+## 12. Optional Companion Mobile App (future)
 
 A super-light Flutter or Tauri app that just points to your self-hosted instance (basically a webview + native controls + background playback). Many users would love this.
-
-### What NOT to add (to keep the soul of the project)
-
-- No accounts on a central server
-- No Spotify/Apple Music integration
-- No social features (likes, comments, following)
-- No ads, analytics, telemetry by default
