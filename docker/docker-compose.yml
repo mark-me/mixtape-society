@@ -1,7 +1,7 @@
 services:
   mixtape:
     build:
-      context: ..
+      context: .
       dockerfile: docker/Dockerfile
     container_name: mixtape-society
     restart: unless-stopped
