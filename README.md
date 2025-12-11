@@ -90,13 +90,13 @@ uv run python app.py
 
 ## Environment Variables (.env)
 
-| Variable    | Description                    | Example    |
-| ----------- | --------------------------------| ---------- |
-|APP_ENV      | "development, production, test" | production |
-|MUSIC_ROOT   | Path to your music collection (absolute)|/mnt/music|
-|DB_PATH      | SQLite database location        | /var/lib/mixtape-society/music.db |
-|APP_PASSWORD | Login password (strongly recommended) | MySuperSecret123!
-|MIXTAPE_DIR  | Mixtapes storage                | ./mixtapes
+| Variable     | Description                                         | Example                           |
+| ------------ | ----------------------------------------------------| --------------------------------- |
+| APP_ENV      | "development, production, test"                     | production                        |
+| MUSIC_ROOT   | Path to your music collection (absolute)            | /mnt/music                        |
+| DB_PATH      | Location where your SQLite database will be stored  | /var/lib/mixtape-society/music.db |
+| APP_PASSWORD | Login password (strongly recommended)               | MySuperSecret123!                 |
+| MIXTAPE_DIR  | Mixtapes storage                                    | ./mixtapes                        |
 
 Load via .env file or Docker env vars.
 
