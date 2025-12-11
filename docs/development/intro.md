@@ -8,12 +8,12 @@
 mixtape-society
 ├── docker                      → Dockerfiles and compose configs
 ├── docs                        → This documentation
-├── .github                     → Github Actions workflows
+├── .github                     → GitHub Actions workflows
 │   └── workflows
 │       ├── docker-image.yml    → Building Docker images on ghcr
 │       └── docs.yml            → Building github pages
 ├── .gitignore                  → Ignored files for git
-├── LICENCE                     → Licence file
+├── LICENSE                     → License file
 ├── mkdocs.yml                  → Docs site config
 ├── pyproject.toml              → Project config + dependencies
 ├── .python-version             → Python version pinning
