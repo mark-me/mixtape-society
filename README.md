@@ -84,10 +84,9 @@ uv run python app.py
 
 ## Project docs
 
-- **[Changelog](https://mark-me.github.io/mixtape-society/changelog/)** – What’s new in every release
-- **[Development Setup & Contributing](https://mark-me.github.io/mixtape-society/development/intro.html)**
--
-[Github pages](https://mark-me.github.io/mixtape-society/)
+- **[Changelog](https://mark-me.github.io/mixtape-society/changelog.html)** – What’s new in every release
+- **[Development](https://mark-me.github.io/mixtape-society/development/intro.html)**
+- **[Roadmap](https://mark-me.github.io/mixtape-society/development/roadmap.html)** – Planned features and ideas
 
 ## Environment Variables (.env)
 
