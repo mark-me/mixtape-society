@@ -12,15 +12,14 @@ WORKDIR /app
 # Now we can copy from the context (project root)
 COPY pyproject.toml uv.lock ./
 
-# Install dependencies
-RUN uv sync --frozen --no-cache
-
 # Copy source
 COPY src ./src
 
+# Install dependencies
+RUN uv sync --frozen --no-cache
+
 EXPOSE 5000
 
-ENV FLASK_APP=src/app.py
-ENV FLASK_ENV=production
+ENV PYTHONPATH=/app/src
 
-CMD ["uv", "run", "gunicorn", "--bind", "0.0.0.0:5000", "src.app:app"]
+CMD ["uv", "run", "-m", "gunicorn", "--bind", "0.0.0.0:5000", "src.app:app"]

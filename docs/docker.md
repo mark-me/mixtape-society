@@ -59,7 +59,7 @@ Run: `docker compose -f docker/docker-compose.yml up --build` (use `--env-file .
 
 ```bash
 # From Dockerfile in repo
-docker build -f docker/Dockerfile -t my-mixtape:latest src/
+docker build -f docker/Dockerfile -t mixtape-society .
 
 # Multi-arch (ARM/x86)
 docker buildx build --platform linux/amd64,linux/arm64 -f docker/Dockerfile -t my-mixtape:latest /src

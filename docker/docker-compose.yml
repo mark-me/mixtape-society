@@ -1,8 +1,9 @@
 services:
   mixtape:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
+    image: mixtape-society:latest
+    # build:
+    #   context: .
+    #   dockerfile: docker/Dockerfile
     container_name: mixtape-society
     restart: unless-stopped
     ports:
@@ -12,10 +13,10 @@ services:
       - /home/mark/Music:/home/mark/Music:ro
 
       # Mixtapes + covers
-      - ./mixtapes:/app/mixtapes
+      - ../mixtapes:/app/mixtapes
 
       # Collection database
-      - ./collection-data:/app/collection-data
+      - ../collection-data:/app/collection-data
     environment:
       # Change this to a strong password!
       - PASSWORD=supergeheim123
