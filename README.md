@@ -128,6 +128,23 @@ MP3 • FLAC • M4A (AAC/ALAC) • OGG • WAV • WMA – powered by TinyTag.
 * Frontend: Bootstrap 5 + Sortable.js
 * Deployment: Docker (multi-arch support)
 
+## Copyright & Media Use
+
+This project provides a Flask-based web application for managing and sharing metadata related to personal music libraries and mixtapes. The application is distributed as open-source software under the MIT License, and Docker images are provided for convenience.
+
+No copyrighted music, cover art, or other media are included with this project or its Docker images.
+Users are expected to supply their own legally obtained audio files.
+
+By using this software, you agree that:
+
+You are responsible for ensuring that any media files you import, host, or share comply with applicable copyright laws.
+
+The maintainers of this project do not endorse or support the unauthorized distribution of copyrighted material.
+
+The maintainer(s) are not liable for any misuse of this software, including illegal sharing of media files.
+
+This project is a tool for organizing and interacting with your own music library.
+
 ## License
 
 MIT – use it, hack it, share it.
