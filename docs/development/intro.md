@@ -1,6 +1,6 @@
 # Development
 
-![Development](images/development.png){ align=right width="90" }
+![Development](../images/development.png){ align=right width="90" }
 
 ## Project Structure
 
