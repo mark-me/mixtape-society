@@ -1,5 +1,7 @@
 # Mixtape playback
 
+![Mixtape playback](../images/player.png){ align=right width="90" }
+
 The file `routes/play.py`  is central to the application's audio streaming functionality, ensuring secure, standards-compliant delivery of music files to clients. Its primary responsibilities are:
 
 * Validating and resolving requested file paths to prevent unauthorized access.
