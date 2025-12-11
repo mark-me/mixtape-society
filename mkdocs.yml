@@ -31,14 +31,15 @@ theme:
 
 nav:
   - Home: index.md
-  - Getting Started: getting-started.md
-  - Configuration: configuration.md
+  - Getting Started:
+    - Intro: getting-started.md
+    - Docker Deployment: docker.md
   - Changelog: changelog.md
   - Editor: editor.md
   - Sharing: sharing.md
-  - Docker Deployment: docker.md
   - Development:
     - Intro: development/intro.md
+    - Docker: development/docker.md
     - Roadmap: development/roadmap.md
     - Routes:
       - App: development/app.md
@@ -46,6 +47,7 @@ nav:
       - Editor: development/editor.md
       - Playback: development/playback.md
     - Musiclib: development/musiclib.md
+    - Configuration: configuration.md
 
 plugins:
   - search

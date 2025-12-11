@@ -8,55 +8,69 @@
 - uv (install: `curl -LsSf https://astral.sh/uv/install.sh | sh`)
 - Docker (for containerized runs)
 
-## Option 1: Local Development (uv + pyproject.toml)
+### Option 1 – Docker (recommended for production)
 
 ```bash
-git clone https://github.com/mark-me/mixtape-society.git
-cd mixtape-society
-
-# Sync dependencies (creates .venv, installs from pyproject.toml)
-uv sync
-
-# Configure
-cp .env.example .env
-# Edit .env: set MUSIC_ROOT=/absolute/path/to/your/Music
-# Optional: APP_PASSWORD=SomethingVeryStrong123!
-
-# First launch (indexes library – be patient for large collections)
-uv run python app.py
-```
-
-**Pro Tip**: uv sync respects .python-version for exact Python version pinning. No manual venv activation needed!
-
-Open [http://localhost:5000](http://localhost:5000) and log in (dev default: password).
-
-## Option 2: Docker (easiest for production/testing)
-
-Images are hosted on [GitHub Container Registry](https://github.com/mark-me/mixtape-society/pkgs/container/mixtape-society) (latest tag always available).
-
-### Single Container
-
-```bash
-docker pull ghcr.io/mark-me/mixtape-society:latest
-
 docker run -d \
   --name mixtape-society \
+  --restart unless-stopped \
   -p 5000:5000 \
-  -v /path/to/Music:/music:ro \  # Your music lib (read-only)
-  -v ./mixtapes:/app/mixtapes \  # Persistent mixtapes
-  -v ./collection-data:/app/collection-data \  # DB + index
+  -v /path/to/your/music:/music:ro \
+  -v mixtape_data:/app/mixtapes \
+  -v collection_data:/app/collection-data \
   -e MUSIC_ROOT=/music \
   -e APP_PASSWORD=YourStrongPassword123! \
   ghcr.io/mark-me/mixtape-society:latest
 ```
 
-### Docker Compose
+Open [http://localhost:5000](http://localhost:5000) – Done!
 
-The repo includes docker-compose.yml. Customize volumes and run:
+### Option 2 – Docker Compose (best for long-term)
+
+```yaml
+# docker-compose.yml
+services:
+  mixtape:
+    image: ghcr.io/mark-me/mixtape-society:latest
+    container_name: mixtape-society
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    volumes:
+      - /home/you/Music:/music:ro          # ← change this
+      - mixtapes:/app/mixtapes
+      - db:/app/collection-data
+    environment:
+      - MUSIC_ROOT=/music
+      - APP_PASSWORD=changeme-right-now-please!
+      - FLASK_ENV=production
+
+volumes:
+  mixtapes:
+  db:
+
+```
+
+Then run:
 
 ```bash
 docker compose up -d
 ```
+
+### Option 3: Local Development (uv)
+
+```bash
+git clone https://github.com/mark-me/mixtape-society.git
+cd mixtape-society
+uv sync                    # creates venv + installs deps
+cp .env.example .env
+# ← Edit MUSIC_ROOT and APP_PASSWORD
+uv run python app.py
+```
+
+→ opens at [http://localhost:5000](http://localhost:5000) (Default dev password: `password`)
+
+**Pro Tip**: uv sync respects .python-version for exact Python version pinning. No manual venv activation needed!
 
 First run auto-indexes your library. Access at [http://localhost:5000](http://localhost:5000).
 
