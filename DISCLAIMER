@@ -1,0 +1,20 @@
+DISCLAIMER
+
+This software provides a Flask-based web application designed to organize,
+browse, and share metadata for a user's personal music library and mixtapes.
+When distributed as a Docker image, the application runs with user-provided
+content mounted into the container (e.g., via bind mounts or volumes).
+
+No copyrighted audio files, album artwork, or other protected media are included
+in this repository, in its releases, or in its Docker images. The maintainers do
+not endorse or encourage the sharing, serving, streaming, or distribution of
+copyrighted content without proper authorization.
+
+Users are solely responsible for the media files they provide to the
+application—whether stored locally, mounted into containers, or accessed through
+the web interface. It is each user's responsibility to ensure that their use of
+this software complies with all applicable copyright laws and licensing terms.
+
+This software is provided "as is," without any warranty of any kind, including
+fitness for any particular purpose or implications regarding lawful use for
+sharing media files.

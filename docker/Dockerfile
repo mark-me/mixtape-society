@@ -8,14 +8,14 @@ FROM ghcr.io/astral-sh/uv:0.9.16-python3.11-trixie
 WORKDIR /app
 
 # Copy dependency files
-COPY pyproject.toml ./
-COPY uv.lock ./
+COPY ../pyproject.toml ./
+COPY ../uv.lock ./
 
 # Install python dependencies
 RUN uv sync --frozen --no-cache
 
 # Copy source code
-COPY src ./src
+COPY ../src ./src
 
 # Install system packages for audio/metadata (ffmpeg + libtag)
 RUN apt-get update && \
@@ -29,7 +29,7 @@ RUN apt-get update && \
 
 EXPOSE 5000
 
-# Ser environment
+# Set environment
 ENV FLASK_APP=src/app.py
 ENV FLASK_ENV=production
 

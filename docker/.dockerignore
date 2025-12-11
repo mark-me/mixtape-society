@@ -1,0 +1,20 @@
+# Ignore Python cache from project root
+../**/__pycache__/
+../**/*.pyc
+../**/*.pyo
+../**/*.pyd
+
+# Ignore virtual environments in project root
+../.env
+../.venv
+
+# Ignore local data directories in project root
+../collection-data/
+../mixtapes/
+
+# Ignore git repo from project root
+../.git
+
+# Ignore documentation and build artifacts in project root
+../site/
+../docs/
