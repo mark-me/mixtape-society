@@ -84,6 +84,9 @@ uv run python app.py
 
 ## Project docs
 
+- **[Changelog](https://mark-me.github.io/mixtape-society/changelog/)** – What’s new in every release
+- **[Development Setup & Contributing](https://mark-me.github.io/mixtape-society/development/intro.html)**
+-
 [Github pages](https://mark-me.github.io/mixtape-society/)
 
 ## Environment Variables (.env)
@@ -97,17 +100,6 @@ uv run python app.py
 |MIXTAPE_DIR  | Mixtapes storage                | ./mixtapes
 
 Load via .env file or Docker env vars.
-
-## Supported Formats
-
-MP3 • FLAC • M4A (AAC/ALAC) • OGG • WAV • WMA – powered by TinyTag.
-
-## Tech Stack
-
-* Backend: Flask + uv + pyproject.toml
-* Metadata: TinyTag + SQLite + Watchdog
-* Frontend: Bootstrap 5 + Sortable.js
-* Deployment: Docker (multi-arch support)
 
 ## Legal & Copyright Notice
 
