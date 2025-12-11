@@ -1,6 +1,8 @@
 # Mixtape Society
 
-A beautiful, private, self-hosted web app to create, edit, share and play music mixtapes from your personal library.
+**A beautiful, private, self-hosted web app to create, edit, share and play music mixtapes from your personal library.**
+
+No accounts, no telemetry, no Spotify – just your music, your server, your rules.
 
 ![Mixtape Society screenshot](docs/images/screenshot-browse.png)
 
@@ -18,90 +20,69 @@ A beautiful, private, self-hosted web app to create, edit, share and play music 
 
 ## Quick Start
 
-### Option 1: Local Development (uv + pyproject.toml – recommended)
-
-This project uses `uv` for fast dependency management, with `pyproject.toml` for declarative builds and `.python-version` for tool versioning.
+### Option 1 – Docker (recommended for production)
 
 ```bash
-git clone https://github.com/mark-me/mixtape-society.git
-cd mixtape-society
-
-# Install uv if needed: curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# uv handles venv, sync, and activation automatically
-uv sync
-
-# Copy and edit env
-cp .env.example .env
-# Edit .env → set MUSIC_ROOT and a strong password
-
-# Run the app (first run indexes your library)
-uv run python app.py
-```
-
-Your browser opens at [http://localhost:5000](http://localhost:5000)
-Default dev password: `password`
-
-### Option 2: Docker (production-ready)
-
-Pre-built images are available on [GitHub Packages](https://github.com/mark-me/mixtape-society/pkgs/container/mixtape-society).
-
-#### Quick Docker Run
-
-```bash
-# Pull the latest image
-docker pull ghcr.io/mark-me/mixtape-society:latest
-
-# Run with volume mounts for music and data
 docker run -d \
   --name mixtape-society \
+  --restart unless-stopped \
   -p 5000:5000 \
-  -v /path/to/your/Music:/music:ro \
-  -v ./mixtapes:/app/mixtapes \
-  -v ./collection-data:/app/collection-data \
+  -v /path/to/your/music:/music:ro \
+  -v mixtape_data:/app/mixtapes \
+  -v collection_data:/app/collection-data \
   -e MUSIC_ROOT=/music \
   -e APP_PASSWORD=YourStrongPassword123! \
   ghcr.io/mark-me/mixtape-society:latest
 ```
 
-#### With Docker Compose (recommended for persistence)
+Open [http://localhost:5000](http://localhost:5000) – Done!
 
-Copy docker-compose.yml (included in repo) and edit volumes/paths:
+### Option 2 – Docker Compose (best for long-term)
 
-```bash
+```yaml
+# docker-compose.yml
 services:
   mixtape:
-    build: .
+    image: ghcr.io/mark-me/mixtape-society:latest
     container_name: mixtape-society
     restart: unless-stopped
     ports:
-      - "5000:5000"                 # http://localhost:5000
+      - "5000:5000"
     volumes:
-      # Your music collection (read-only)
-      - /home/mark/Music:/home/mark/Music:ro
-
-      # Mixtapes + covers
-      - mixtapes_data:/app/mixtapes
-
-      # Collection database
-      - collection_data:/app/collection-data
+      - /home/you/Music:/music:ro          # ← change this
+      - mixtapes:/app/mixtapes
+      - db:/app/collection-data
     environment:
-      # Verander dit in een sterk wachtwoord!
-      - PASSWORD=supergeheim123
-
-      # Optioneel: logging level
+      - MUSIC_ROOT=/music
+      - APP_PASSWORD=changeme-right-now-please!
       - FLASK_ENV=production
+
+volumes:
+  mixtapes:
+  db:
+
 ```
 
-Then:
+Then run:
 
 ```bash
 docker compose up -d
 ```
 
-Access at [http://localhost:5000](http://localhost:5000). The image includes everything – no build needed.
+### Option 3: Local Development (uv)
 
-## More information
+```bash
+git clone https://github.com/mark-me/mixtape-society.git
+cd mixtape-society
+uv sync                    # creates venv + installs deps
+cp .env.example .env
+# ← Edit MUSIC_ROOT and APP_PASSWORD
+uv run python app.py
+```
+
+→ opens at [http://localhost:5000](http://localhost:5000) (Default dev password: `password`)
+
+## Project docs
 
 [Github pages](https://mark-me.github.io/mixtape-society/)
 
@@ -128,28 +109,15 @@ MP3 • FLAC • M4A (AAC/ALAC) • OGG • WAV • WMA – powered by TinyTag.
 * Frontend: Bootstrap 5 + Sortable.js
 * Deployment: Docker (multi-arch support)
 
-## Copyright & Media Use
+## Legal & Copyright Notice
 
-This project provides a Flask-based web application for managing and sharing metadata related to personal music libraries and mixtapes. The application is distributed as open-source software under the MIT License, and Docker images are provided for convenience.
+This software is a tool for personal, non-commercial use with legally owned music files.
 
-No copyrighted music, cover art, or other media are included with this project or its Docker images.
-Users are expected to supply their own legally obtained audio files.
+No copyrighted music or artwork is included
+You are solely responsible for the media you host and share
+Public links should only be shared with people you trust or protected with a password
 
-By using this software, you agree that:
-
-You are responsible for ensuring that any media files you import, host, or share comply with applicable copyright laws.
-
-The maintainers of this project do not endorse or support the unauthorized distribution of copyrighted material.
-
-The maintainer(s) are not liable for any misuse of this software, including illegal sharing of media files.
-
-This project is a tool for organizing and interacting with your own music library.
-
-## License
-
-MIT – use it, hack it, share it.
-
-See the [DISCLAIMER](./DISCLAIMER) for important legal information.
+See [DISCLAIMER](./DISCLAIMER) for full text.
 
 Made with love for real mixtapes in a digital world.
 © 2025 Mark Zwart
