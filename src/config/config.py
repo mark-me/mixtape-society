@@ -1,54 +1,55 @@
+# src/config/config.py
 from pathlib import Path
 import os
+from dotenv import load_dotenv
 
-BASE_DIR = Path(__file__).parent.parent
+# Load .env from project root only in development (not in Docker)
+if os.getenv("APP_ENV", "development") != "production":
+    project_root = Path(__file__).parent.parent.parent  # src/config → project root
+    load_dotenv(project_root / ".env")
+
+BASE_DIR = Path(__file__).parent.parent  # src/
 
 class BaseConfig:
-    """
-    Base configuration class for the application.
-
-    Defines default paths and settings for music, database, mixtapes, covers, and password.
-    Provides a method to ensure required directories exist.
-    """
+    # 1. Music library location
     MUSIC_ROOT = Path(os.getenv("MUSIC_ROOT", "/home/mark/Music"))
-    DB_PATH = Path(os.getenv("DB_PATH", BASE_DIR / "collection-data" / "music.db"))
-    MIXTAPE_DIR = Path(os.getenv("MIXTAPE_DIR", BASE_DIR / "mixtapes"))
+
+    # 2. NEW: Single data root for everything the app writes
+    DATA_ROOT = Path(
+        os.getenv(
+            "DATA_ROOT",
+            # Fallback only used in local dev if no .env and no env var
+            BASE_DIR.parent / "collection-data"
+        )
+    )
+
+    # Derived paths — never override these directly
+    DB_PATH = DATA_ROOT / "collection.db"
+    MIXTAPE_DIR = DATA_ROOT / "mixtapes"
     COVER_DIR = MIXTAPE_DIR / "covers"
-    PASSWORD = "password"#os.getenv("APP_PASSWORD", "dev-password")
+
+    # Keep password handling clean
+    PASSWORD = os.getenv("PASSWORD", "dev-password")
 
     @classmethod
     def ensure_dirs(cls):
-        """
-        Ensures that the mixtape and cover directories exist.
-
-        Creates the directories if they do not already exist.
-        """
-        cls.MIXTAPE_DIR.mkdir(exist_ok=True)
-        cls.COVER_DIR.mkdir(exist_ok=True)
+        cls.DATA_ROOT.mkdir(parents=True, exist_ok=True)
+        cls.MIXTAPE_DIR.mkdir(parents=True, exist_ok=True)
+        cls.COVER_DIR.mkdir(parents=True, exist_ok=True)
 
 
 class DevelopmentConfig(BaseConfig):
-    """
-    Configuration class for development environment.
-
-    Inherits from BaseConfig and enables debug mode.
-    """
     DEBUG = True
+    PASSWORD = os.getenv("PASSWORD", "dev-password")
 
 
 class TestConfig(BaseConfig):
-    """
-    Configuration class for running tests.
-
-    Inherits from BaseConfig and sets a test-specific password.
-    """
     PASSWORD = "test-password"
+    DATA_ROOT = Path("/tmp/mixtape-test-data")  # isolated for tests
+    MUSIC_ROOT = Path("/tmp/test-music")
 
 
 class ProductionConfig(BaseConfig):
-    """
-    Configuration class for production deployment.
-
-    Inherits from BaseConfig and disables debug mode.
-    """
     DEBUG = False
+    # In production we trust only environment variables (set via docker-compose)
+    PASSWORD = os.getenv("PASSWORD")

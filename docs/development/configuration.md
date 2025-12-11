@@ -4,19 +4,17 @@
 
 Configuration is via environment variables (or `.env` file for local runs). Docker images support all vars via `-e` flags.
 
-| Variable        | Description                                          | Default / Example                   |
-|-----------------|------------------------------------------------------|-------------------------------------|
-| `APP_ENV`       | Environment: `development`, `production`, `test`     | `development`                       |
-| `MUSIC_ROOT`    | Absolute path to music folder (critical!)            | `/home/mark/Music` (local) / `/music` (Docker) |
-| `DB_PATH`       | SQLite index location                                | `./collection-data/music.db`        |
-| `APP_PASSWORD`  | Login password (override hard-coded default)         | `password` (dev) / Set your own!    |
-| `MIXTAPE_DIR`   | Mixtapes + covers storage                            | `./mixtapes`                        |
+|Scenario   |MUSIC_ROOT |DATA_ROOT / DB / mixtapes / covers | How it's set |
+| ---       | ---       | ---                       | ---          |
+| Local dev (no .env)| /home/mark/Music | ../collection-data (next to project) | config default |
+| Local dev + .env | whatever you want | whatever you want |.env overrides |
+| Docker production | /music (mounted) | /app/collection-data (mounted) | env vars from docker-compose |
+| Tests | /tmp/test-music|/tmp/mixtape-test-data|TestConfig override |
 
 ## Docker Volumes
 
-- `/music`:ro → Your music library
-- `/app/mixtapes` → Saved mixtapes (persistent)
-- `/app/collection-data` → SQLite DB (persistent)
+- `/music` `:ro` → Your music library (read-only)
+- `/app/collection-data` → SQLite DB (persistent) + Saved mixtapes (persistent)
 
 Example `docker-compose.yml` mounts these for you.
 
