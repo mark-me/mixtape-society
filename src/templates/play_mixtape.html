@@ -39,49 +39,44 @@
         <!-- Player + tracklist -->
         <div class="col-lg-8">
 
-            <!-- Player -->
-            <h3 class="mb-3 text-white">Play mixtape</h3>
-            <div class="text-center mb-4">
-                <button id="big-play-btn" class="btn btn-outline-light btn-lg rounded-pill px-5 py-3 shadow-sm subtle-play-btn">
-                    <i class="bi bi-play-fill me-2" style="font-size: 1.4rem; position:relative; top:1px;"></i>
-                    Play mixtape
-                </button>
+        <!-- Music player -->
+        <div class="fixed-bottom" id="bottom-player-container" style="display:none; z-index: 1000;">
+            <div class="bg-dark text-white shadow-lg border-top border-secondary" style="backdrop-filter: blur(10px);">
+                <div class="container py-2">
+                    <div class="d-flex align-items-center">
+                        <!-- Close button -->
+                        <button id="close-bottom-player" class="btn btn-sm btn-outline-light me-3 fs-4 lh-1" style="width:40px; height:40px;">
+                            ×
+                        </button>
+
+                        <!-- Current track info -->
+                        <div class="me-4 flex-shrink-0">
+                            <div class="fw-bold" id="bottom-now-title">–</div>
+                            <div class="small opacity-75" id="bottom-now-artist-album">–</div>
+                        </div>
+
+                        <!-- Audio player controls (full width) -->
+                        <audio id="main-player" controls class="flex-grow-1" style="height: 42px;"></audio>
+
+                        <!-- Optional: Prev/Next buttons inside player (feels more premium) -->
+                        <button id="prev-btn-bottom" class="btn btn-outline-light ms-3" title="Vorige">
+                            <i class="bi bi-skip-backward-fill"></i>
+                        </button>
+                        <button id="next-btn-bottom" class="btn btn-outline-light ms-2" title="Volgende">
+                            <i class="bi bi-skip-forward-fill"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
-            <style>
-            .subtle-play-btn {
-                font-size: 1.1rem;
-                font-weight: 500;
-                border-width: 2px;
-                transition: all 0.3s ease;
-            }
+        </div>
 
-            .subtle-play-btn:hover {
-                background: rgba(255,255,255,0.1);
-                border-color: #fff;
-                transform: translateY(-2px);
-                box-shadow: 0 8px 25px rgba(0,0,0,0.4);
-            }
-
-            .subtle-play-btn:active {
-                transform: translateY(0);
-            }
-            </style>
-            <div class="d-flex align-items-center gap-3 bg-black p-3 rounded mb-4 shadow">
-                <button id="prev-btn" class="btn btn-outline-light" title="Vorige">
-                    <i class="bi bi-skip-backward-fill"></i>
-                </button>
-                <audio id="main-player" controls class="flex-grow-1" style="height: 46px;"></audio>
-                <button id="next-btn" class="btn btn-outline-light" title="Volgende">
-                    <i class="bi bi-skip-forward-fill"></i>
-                </button>
-            </div>
-
-            <!-- Current track -->
-            <div id="now-playing" class="bg-dark text-white p-3 rounded mb-4 shadow-sm" style="display: none;">
-                <div class="fw-bold fs-5" id="now-title">–</div>
-                <div class="opacity-75 small" id="now-artist-album">–</div>
-            </div>
-
+        <!-- Keep the big play button at the top -->
+        <div class="text-center my-5">
+            <button id="big-play-btn" class="btn btn-outline-light btn-lg rounded-pill px-5 py-3 shadow subtle-play-btn">
+                <i class="bi bi-play-fill me-2" style="font-size: 1.6rem; position:relative; top:2px;"></i>
+                Play mixtape
+            </button>
+        </div>
             <!-- Tracklist -->
             <h4 class="mb-3 text-white">Tracklist</h4>
             <div class="list-group list-group-numbered">
@@ -113,17 +108,21 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const player = document.getElementById('main-player');
-    const prevBtn = document.getElementById('prev-btn');
-    const nextBtn = document.getElementById('next-btn');
+    const container = document.getElementById('bottom-player-container');
+    const closeBtn = document.getElementById('close-bottom-player');
+    const prevBtn = document.getElementById('prev-btn-bottom');
+    const nextBtn = document.getElementById('next-btn-bottom');
     const trackItems = document.querySelectorAll('.track-item');
-    const nowPlaying = document.getElementById('now-playing');
-    const nowTitle = document.getElementById('now-title');
-    const nowArtistAlbum = document.getElementById('now-artist-album');
+    const bottomTitle = document.getElementById('bottom-now-title');
+    const bottomArtistAlbum = document.getElementById('bottom-now-artist-album');
     let currentIndex = -1;
 
+    // Big play button starts playback
     document.getElementById('big-play-btn')?.addEventListener('click', () => {
         if (trackItems.length > 0 && currentIndex === -1) {
             playTrack(0);
+        } else if (currentIndex >= 0) {
+            player.play();
         }
     });
 
@@ -131,7 +130,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (index < 0 || index >= trackItems.length) {
             player.pause();
             player.src = '';
-            nowPlaying.style.display = 'none';
+            container.style.display = 'none';
             trackItems.forEach(t => t.classList.remove('active-track'));
             currentIndex = -1;
             return;
@@ -139,62 +138,58 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const track = trackItems[index];
         player.src = track.dataset.path;
-        nowTitle.textContent = track.dataset.title;
-        nowArtistAlbum.textContent = `${track.dataset.artist} • ${track.dataset.album}`;
-        nowPlaying.style.display = 'block';
 
+        // Update bottom player info
+        bottomTitle.textContent = track.dataset.title;
+        bottomArtistAlbum.textContent = `${track.dataset.artist} • ${track.dataset.album}`;
+
+        // Show player
+        container.style.display = 'block';
+
+        // Highlight active track
         trackItems.forEach(t => t.classList.remove('active-track'));
         track.classList.add('active-track');
 
         currentIndex = index;
-        player.play().catch(() => {});
+
+        // Auto-play
+        player.play().catch(e => {
+            console.log("Autoplay prevented:", e);
+        });
     }
 
+    // Navigation
     prevBtn.addEventListener('click', () => playTrack(currentIndex - 1));
     nextBtn.addEventListener('click', () => playTrack(currentIndex + 1));
     player.addEventListener('ended', () => playTrack(currentIndex + 1));
 
-    player.addEventListener('play', function () {
-        if (currentIndex === -1 && trackItems.length > 0) playTrack(0);
-    });
-
+    // Click track in list
     trackItems.forEach((item, i) => {
         item.addEventListener('click', () => playTrack(i));
-        item.querySelector('.play-this-track').addEventListener('click', (e) => {
+        item.querySelector('.play-this-track')?.addEventListener('click', (e) => {
             e.stopPropagation();
             playTrack(i);
         });
     });
 
-    function tryAutoPlay() {
-        if (trackItems.length === 0) return;
-
-        if (sessionStorage.getItem('startPlaybackNow')) {
-            sessionStorage.removeItem('startPlaybackNow');
-            playTrack(0);
-            return;
-        }
-
-        if (window.location.hash === '#play') {
-            const tryPlay = () => {
-                if (currentIndex === -1) {
-                    player.play().catch(() => {
-                        document.body.addEventListener('click', () => playTrack(0), { once: true });
-                    });
-                }
-            };
-            setTimeout(tryPlay, 300);
-        }
-    }
-
-    document.addEventListener('startPlayback', () => {
-        sessionStorage.setItem('startPlaybackNow', '1');
+    // Close player
+    closeBtn.addEventListener('click', () => {
+        player.pause();
+        container.style.display = 'none';
     });
 
-    tryAutoPlay();
+    // Optional: Auto-start with #play
+    if (window.location.hash === '#play' && trackItems.length > 0) {
+        setTimeout(() => playTrack(0), 500);
+    }
+
+    // Resume playback if coming from editor with sessionStorage flag
+    if (sessionStorage.getItem('startPlaybackNow') && trackItems.length > 0) {
+        sessionStorage.removeItem('startPlaybackNow');
+        playTrack(0);
+    }
 });
 </script>
-
 
 <style>
     body { background-color: #000; color: #eee; }
