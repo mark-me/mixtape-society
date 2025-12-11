@@ -33,11 +33,13 @@ nav:
   - Home: index.md
   - Getting Started: getting-started.md
   - Configuration: configuration.md
+  - Changelog: changelog.md
   - Editor: editor.md
   - Sharing: sharing.md
   - Docker Deployment: docker.md
   - Development:
     - Intro: development/intro.md
+    - Roadmap: development/roadmap.md
     - Routes:
       - App: development/app.md
       - Browser: development/browse_mixtapes.md
