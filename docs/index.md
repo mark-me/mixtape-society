@@ -8,7 +8,7 @@ Create your own mixtapes from your music collection and share them with friends 
 
 Creating a mixtape is as simple as dragging and dropping songs into a playlist. Customize the look and feel with themes and cover art, then share the link with anyone.
 
-![Editing a Mixtape](images/screenshot-edit.png)
+![Editing a Mixtape](images/screenshot-create.png)
 
 Manage your mixtape library that's stored locally on your device. Browse, search, share and organize your mixtape collection with ease.
 
