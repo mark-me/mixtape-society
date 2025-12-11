@@ -1,7 +1,7 @@
 services:
   mixtape:
     build:
-      context: docker
+      context: ..
       dockerfile: docker/Dockerfile
     container_name: mixtape-society
     restart: unless-stopped
@@ -12,13 +12,13 @@ services:
       - /home/mark/Music:/home/mark/Music:ro
 
       # Mixtapes + covers
-      - mixtapes_data:/app/mixtapes
+      - ./mixtapes:/app/mixtapes
 
       # Collection database
-      - collection_data:/app/collection-data
+      - ./collection-data:/app/collection-data
     environment:
-      # Verander dit in een sterk wachtwoord!
+      # Change this to a strong password!
       - PASSWORD=supergeheim123
 
-      # Optioneel: logging level
+      # Optional: logging level
       - FLASK_ENV=production

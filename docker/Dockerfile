@@ -1,37 +1,26 @@
-# ================================
-# Mixtape Society – Dockerfile
-# ================================
+# docker/Dockerfile  (or just Dockerfile in root)
+FROM ghcr.io/astral-sh/uv:0.9.16-python3.13-trixie
 
-# Official uv-image (bevat al uv + pip + Python)
-FROM ghcr.io/astral-sh/uv:0.9.16-python3.11-trixie
+# System packages
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        ffmpeg libtag1-dev gcc libffi-dev libssl-dev && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Copy dependency files
-COPY ../pyproject.toml ./
-COPY ../uv.lock ./
+# Now we can copy from the context (project root)
+COPY pyproject.toml uv.lock ./
 
-# Install python dependencies
+# Install dependencies
 RUN uv sync --frozen --no-cache
 
-# Copy source code
-COPY ../src ./src
-
-# Install system packages for audio/metadata (ffmpeg + libtag)
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        ffmpeg \
-        libtag1-dev \
-        gcc \
-        libffi-dev \
-        libssl-dev \
-    && rm -rf /var/lib/apt/lists/*
+# Copy source
+COPY src ./src
 
 EXPOSE 5000
 
-# Set environment
 ENV FLASK_APP=src/app.py
 ENV FLASK_ENV=production
 
-# Start commando
 CMD ["uv", "run", "gunicorn", "--bind", "0.0.0.0:5000", "src.app:app"]
