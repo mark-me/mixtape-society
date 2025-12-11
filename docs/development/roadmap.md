@@ -1,5 +1,7 @@
 # Roadmap
 
+![Roadmap](../images/roadmap.png){ align=right width="90" }
+
 ## What NOT to add (to keep the soul of the project)
 
 - No accounts on a central server

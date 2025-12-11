@@ -1,5 +1,7 @@
 # The Mixtape Editor
 
+![Mixtape editor](images/mixtape.png){ align=right width="90" }
+
 ## Features
 
 - Live search with result highlighting

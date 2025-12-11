@@ -1,5 +1,7 @@
 # Docker Deployment
 
+![Container](../images/container.png){ align=right width="90" }
+
 ## Why Docker?
 
 - Zero setup: No Python/uv install needed

@@ -1,5 +1,7 @@
 # Sharing Mixtapes
 
+![Sharing](images/share.png){ align=right width="90" }
+
 Every saved mixtape gets a permanent public URL:
 
 [https://mixtape.yourdomain.com/share/like-a-prayer_20251209_ab12cd34](https://mixtape.yourdomain.com/share/like-a-prayer_20251209_ab12cd34)

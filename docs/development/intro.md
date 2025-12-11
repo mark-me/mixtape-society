@@ -1,5 +1,7 @@
 # Development
 
+![Development](images/development.png){ align=right width="90" }
+
 ## Project Structure
 
 ```bash

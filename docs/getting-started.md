@@ -1,5 +1,7 @@
 # Getting Started
 
+![Started](images/rocket.png){ align=right width="90" }
+
 ## Prerequisites
 
 - Python 3.11+ (managed via `.python-version` and uv)

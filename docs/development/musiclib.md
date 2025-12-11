@@ -1,5 +1,7 @@
 # Music Collection handling
 
+![Musiclib](../images/music-library.png){ align=right width="90" }
+
 The `musiclib` module provides the `MusicCollection` class, which serves as a high-level interface for managing and querying a local music library. It abstracts the complexities of synchronizing a music collection stored on the filesystem with a backing SQLite database, providing search, indexing, and live monitoring capabilities. The class is designed to be used as the main entry point for applications or services that need to interact with a user's music library, offering methods for searching artists, albums, and tracks, as well as for maintaining the integrity and synchronization of the library.
 
 Creating/maintaining the music collection database

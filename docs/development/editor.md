@@ -1,5 +1,7 @@
 # Mixtape editor
 
+![Mixtape editor](../images/mixtape.png){ align=right width="90" }
+
 The file `routes/editor.py` acts as the backend interface for the mixtape editor UI, managing the lifecycle of mixtape creation and editing, integrating with the music library, and handling file storage for mixtape data and cover images. It ensures that only authenticated users can access editor functionality. Its primary responsibility is to provide endpoints for creating, editing, searching, and saving mixtapes, including handling cover images and metadata. The file uses authentication, interacts with a music collection, and manages mixtape data as JSON files on disk.
 
 ## Sequence diagrams
