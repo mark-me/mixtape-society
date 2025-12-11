@@ -51,16 +51,16 @@ volumes:
   data: {}
 ```
 
-Run: `docker compose up -d` (use `--env-file .env` for secrets).
+Run: `docker compose -f docker/docker-compose.yml up --build` (use `--env-file .env` for secrets).
 
 ## Building Your Own
 
 ```bash
 # From Dockerfile in repo
-docker build -t my-mixtape:latest .
+docker build -f docker/Dockerfile -t my-mixtape:latest src/
 
 # Multi-arch (ARM/x86)
-docker buildx build --platform linux/amd64,linux/arm64 -t my-mixtape:latest .
+docker buildx build --platform linux/amd64,linux/arm64 -f docker/Dockerfile -t my-mixtape:latest /src
 ```
 
 ## Tips
