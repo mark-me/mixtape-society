@@ -1,6 +1,6 @@
 # Docker Deployment
 
-![Container](../images/container.png){ align=right width="90" }
+![Container](images/container.png){ align=right width="90" }
 
 ## Why Docker?
 
