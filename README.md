@@ -149,5 +149,7 @@ This project is a tool for organizing and interacting with your own music librar
 
 MIT – use it, hack it, share it.
 
+See the [DISCLAIMER](./DISCLAIMER) for important legal information.
+
 Made with love for real mixtapes in a digital world.
 © 2025 Mark Zwart
