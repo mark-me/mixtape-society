@@ -98,7 +98,7 @@ def delete_mixtape(slug: str) -> Response:
     return "", 200
 
 @browser.before_request
-def blueprint_require_auth():
+def blueprint_require_auth() -> Response | None:
     """
     Ensures authentication for all routes in the browse_mixtapes blueprint.
 
