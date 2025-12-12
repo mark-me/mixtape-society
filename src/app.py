@@ -1,5 +1,7 @@
 import mimetypes
 import os
+import logging
+import sys
 from datetime import datetime, timezone
 
 from flask import (
@@ -38,6 +40,12 @@ setup_logging(
     base_file="app.log",
     log_level=os.getenv("LOG_LEVEL", "INFO"),   # handig voor Docker
 )
+
+if 'gunicorn' in sys.argv[0].lower() or __name__ != '__main__':
+    gunicorn_logger = logging.getLogger('gunicorn.error')
+    if gunicorn_logger.handlers:  # Only sync if Gunicorn is active
+        logging.root.handlers = gunicorn_logger.handlers
+        logging.root.setLevel(gunicorn_logger.level)
 
 logger = get_logger(name=__name__)
 
