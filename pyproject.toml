@@ -10,6 +10,7 @@ authors = [
 dependencies = [
     "flask>=3.1.2",
     "flask-cors>=6.0.1",
+    "flask-limiter>=4.1.1",
     "flask-login>=0.6.3",
     "gunicorn>=23.0.0",
     "mkdocs>=1.6.1",

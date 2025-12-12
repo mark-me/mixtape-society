@@ -16,6 +16,8 @@ from flask import (
     session,
 )
 from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 from config import DevelopmentConfig, ProductionConfig, TestConfig
 from logtools import get_logger, setup_logging
@@ -38,10 +40,15 @@ log_dir = config.DATA_ROOT / "logs"
 setup_logging(
     dir_output=str(log_dir),
     base_file="app.log",
-    log_level=os.getenv("LOG_LEVEL", "INFO"),   # handig voor Docker
+    log_level=os.getenv("LOG_LEVEL", "INFO"),
 )
 
 app = Flask(__name__)
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["200 per day", "50 per hour"],
+)
 app.secret_key = config.PASSWORD
 CORS(app)  # This adds Access-Control-Allow-Origin: * to ALL responses
 
@@ -79,11 +86,13 @@ def landing() -> Response:
 
 
 @app.route("/login", methods=["POST"])
+@limiter.limit("5 per minute")
 def login() -> Response:
     """
-    Handles user login by verifying the submitted password.
+    Authenticates a user based on the submitted password.
 
-    Authenticates the user and redirects to the mixtapes page if the password is correct, otherwise flashes an error and redirects to the landing page.
+    Checks the provided password against the configured password and sets the session as authenticated if correct.
+    Redirects to the mixtapes page on success or flashes an error and redirects to the landing page on failure.
 
     Returns:
         Response: The Flask response object for the appropriate redirect.
@@ -180,9 +189,17 @@ app.register_blueprint(play, url_prefix="/play")
 app.register_blueprint(editor)
 
 
-def serve():
-    app.run(debug=True, host="0.0.0.0", port=5000)
+def serve(debug: bool = True) -> None:
+    """
+    Starts the Flask application server.
+
+    Runs the app on host 0.0.0.0 and port 5000, with debugging enabled or disabled based on the argument.
+
+    Args:
+        debug: Whether to run the server in debug mode. Defaults to True.
+    """
+    app.run(debug=debug, host="0.0.0.0", port=5000)
 
 
 if __name__ == "__main__":
-    serve()
+    serve(debug=True)
