@@ -7,9 +7,10 @@ All notable changes will be documented here.
 
 ---
 
-## v0.1.1-alpha
-**Released:** 2025-12-12
-:material-tag: *Pre-release*
+## 📦 v0.1.1-alpha
+<span class="md-tag">Pre-release</span>
+
+**🗓️** 2025-12-12
 
 ### 🚀 Added
 
@@ -27,3 +28,5 @@ All notable changes will be documented here.
 
 - Password handling with strange characters
 - Database locks when too many Watcher related updates
+
+[v0.1.1-alpha](https://github.com/mark-me/mixtape-society/compare/v0.1.0...v0.1.1-alpha)

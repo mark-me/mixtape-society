@@ -172,7 +172,7 @@ def public_play(slug: str) -> Response:
 
 
 @app.context_processor
-def inject_version():
+def inject_version() -> dict:
     """
     Injects the application version into the template context.
 
