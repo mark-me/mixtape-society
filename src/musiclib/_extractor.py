@@ -286,6 +286,10 @@ class CollectionExtractor:
         if self._observer is not None:
             return
 
+        if not self.music_root.exists():
+            logger.warning(f"Music root {self.music_root} does not exist - skipping filesystem monitoring")
+            return
+
         self._observer = Observer()
         self._observer.schedule(Watcher(self), str(self.music_root), recursive=True)
         self._observer.start()

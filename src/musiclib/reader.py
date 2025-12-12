@@ -41,6 +41,7 @@ class MusicCollection:
             db_path=Path(db_path) if db_path else None,
         )
         self.music_root = Path(music_root)
+        self._monitoring_started = False
 
         track_count = self._extractor.count_tracks()
         if track_count == 0:
@@ -57,6 +58,16 @@ class MusicCollection:
         if not self._extractor.is_synced_with_filesystem():
             print("Database out of sync with filesystem — repairing...")
             self._extractor.resync()
+
+    def ensure_monitoring(self):
+        """
+        Ensures that live monitoring of the music library is active.
+
+        Starts background monitoring if it has not already been started, keeping the database in sync with the filesystem.
+        """
+        if not self._monitoring_started:
+            self._extractor.start_monitoring()
+            self._monitoring_started = True
 
     def search_highlighting(self, query: str, limit: int = 30) -> list:
         """

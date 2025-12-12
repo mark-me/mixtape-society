@@ -10,12 +10,12 @@ services:
       - "5000:5000"
     volumes:
       # Your music collection (read-only)
-      - /home/mark/Music:/home/mark/Music:ro
+      - /home/mark/Music:/music:ro
       # App-generated data
       - ../collection-data:/app/collection-data
     environment:
       - APP_ENV=production
-      - FLASK_ENV=production
+      - LOG_LEVEL=INFO
 
       # These override everything — required in production
       - MUSIC_ROOT=/music

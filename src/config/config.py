@@ -12,7 +12,7 @@ BASE_DIR = Path(__file__).parent.parent  # src/
 
 class BaseConfig:
     # 1. Music library location
-    MUSIC_ROOT = Path(os.getenv("MUSIC_ROOT", "/home/mark/Music"))
+    MUSIC_ROOT = Path(os.getenv("MUSIC_ROOT", "/music"))
 
     # 2. NEW: Single data root for everything the app writes
     DATA_ROOT = Path(

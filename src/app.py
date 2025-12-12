@@ -16,14 +16,10 @@ from flask import (
 from flask_cors import CORS
 
 from config import DevelopmentConfig, ProductionConfig, TestConfig
-from logtools import get_logger
+from logtools import get_logger, setup_logging
 from mixtape_manager import MixtapeManager
 from musiclib import MusicCollection
 from routes import browser, editor, play
-
-logger = get_logger(name=__name__)
-
-ENV = os.getenv("APP_ENV", "development")
 
 CONFIG_MAP = {
     "development": DevelopmentConfig,
@@ -31,8 +27,19 @@ CONFIG_MAP = {
     "production": ProductionConfig,
 }
 
+ENV = os.getenv("APP_ENV", "development")
+
 config = CONFIG_MAP.get(ENV, DevelopmentConfig)
 config.ensure_dirs()
+
+log_dir = config.DATA_ROOT / "logs"
+setup_logging(
+    dir_output=str(log_dir),
+    base_file="app.log",
+    log_level=os.getenv("LOG_LEVEL", "INFO"),   # handig voor Docker
+)
+
+logger = get_logger(name=__name__)
 
 app = Flask(__name__)
 app.secret_key = config.PASSWORD

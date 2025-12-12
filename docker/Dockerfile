@@ -9,6 +9,8 @@ RUN apt-get update && \
 
 WORKDIR /app
 
+RUN mkdir /music
+
 # Now we can copy from the context (project root)
 COPY pyproject.toml uv.lock ./
 

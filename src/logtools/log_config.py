@@ -1,6 +1,7 @@
 from pathlib import Path
 import logging.config
 
+
 def get_logging_config(dir_output: str, base_file: str) -> dict:
     """Generates a logging configuration dictionary for the application.
     Creates the output directory if it does not exist and configures file and stdout handlers.
@@ -30,12 +31,22 @@ def get_logging_config(dir_output: str, base_file: str) -> dict:
                 "format": "\033[1m%(levelname)s\033[0m: %(message)s | \033[1mBestand:\033[0m '%(module)s' | \033[1mFunctie:\033[0m '%(funcName)s'",
                 "()": "logtools.color_formatter.ColorFormatter",
             },
+            "simple": {  # ← NIEUWE eenvoudige formatter
+                "format": "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
+                "datefmt": "%H:%M:%S",
+            },
         },
         "handlers": {
+            "console": {  # ← Deze zorgt dat Docker logs werken
+                "class": "logging.StreamHandler",
+                "stream": "ext://sys.stderr",
+                "formatter": "simple",
+                "level": "INFO",
+            },
             "tqdm_stdout": {
-                "class": "logtools.tqdm_logging.TqdmLoggingHandler",  # Gebruik het juiste pad
+                "class": "logtools.tqdm_logging.TqdmLoggingHandler",
                 "formatter": "colored",
-                "level": "WARNING",  # of een andere drempel
+                "level": "WARNING",
             },
             "file": {
                 "class": "logging.handlers.RotatingFileHandler",
@@ -46,9 +57,14 @@ def get_logging_config(dir_output: str, base_file: str) -> dict:
             },
         },
         "loggers": {
-            "": {"handlers": ["tqdm_stdout", "file"], "level": "WARNING"}
+            "": {
+                "handlers": ["console", "tqdm_stdout", "file"],
+                "level": "WARNING",
+                "propagate": False,
+            }
         },
     }
+
 
 def setup_logging(dir_output: str, base_file: str, log_level: str = "INFO") -> None:
     """Configures the root logger for the application.

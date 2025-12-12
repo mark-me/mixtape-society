@@ -18,3 +18,4 @@
 # Ignore documentation and build artifacts in project root
 ../site/
 ../docs/
+../.env
