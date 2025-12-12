@@ -27,10 +27,6 @@ def get_logging_config(dir_output: str, base_file: str) -> dict:
                 "format": "%(asctime)s %(levelname)s %(message)s %(module)s %(funcName)s %(process)d",
                 "class": "pythonjsonlogger.jsonlogger.JsonFormatter",
             },
-            "colored": {
-                "format": "\033[1m%(levelname)s\033[0m: %(message)s | \033[1mBestand:\033[0m '%(module)s' | \033[1mFunctie:\033[0m '%(funcName)s'",
-                "()": "logtools.color_formatter.ColorFormatter",
-            },
             "simple": {  # ← NIEUWE eenvoudige formatter
                 "format": "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
                 "datefmt": "%H:%M:%S",
@@ -43,11 +39,6 @@ def get_logging_config(dir_output: str, base_file: str) -> dict:
                 "formatter": "simple",
                 "level": "INFO",
             },
-            "tqdm_stdout": {
-                "class": "logtools.tqdm_logging.TqdmLoggingHandler",
-                "formatter": "colored",
-                "level": "WARNING",
-            },
             "file": {
                 "class": "logging.handlers.RotatingFileHandler",
                 "formatter": "json",
@@ -58,7 +49,7 @@ def get_logging_config(dir_output: str, base_file: str) -> dict:
         },
         "loggers": {
             "": {
-                "handlers": ["console", "tqdm_stdout", "file"],
+                "handlers": ["console", "file"],
                 "level": "WARNING",
                 "propagate": False,
             }

@@ -19,12 +19,10 @@ dependencies = [
     "mkdocs-panzoom-plugin>=0.4.2",
     "mkdocstrings>=1.0.0",
     "mkdocstrings-python>=2.0.1",
-    "mutagen>=1.47.0",
     "pillow>=12.0.0",
     "python-dotenv>=1.2.1",
     "python-json-logger>=4.0.0",
     "tinytag>=2.1.2",
-    "tqdm>=4.67.1",
     "watchdog>=6.0.0",
 ]
 
