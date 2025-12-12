@@ -46,8 +46,8 @@ mimetypes.add_type("audio/mp4", ".m4a")
 mimetypes.add_type("audio/aac", ".aac")
 mimetypes.add_type("audio/ogg", ".ogg")
 
-print("NOTE: This application does not include or distribute any copyrighted media.")
-print("Users are responsible for the content they load into the system.")
+logger.warning("NOTE: This application does not include or distribute any copyrighted media.")
+logger.warning("Users are responsible for the content they load into the system.")
 
 @app.route("/")
 def landing() -> Response:
