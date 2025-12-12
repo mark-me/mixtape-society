@@ -1,6 +1,6 @@
+import logging
 import mimetypes
 import os
-import logging
 import sys
 from datetime import datetime, timezone
 
@@ -24,6 +24,7 @@ from logtools import get_logger, setup_logging
 from mixtape_manager import MixtapeManager
 from musiclib import MusicCollection
 from routes import browser, editor, play
+from version_info import get_version
 
 CONFIG_MAP = {
     "development": DevelopmentConfig,
@@ -168,6 +169,19 @@ def public_play(slug: str) -> Response:
     if not mixtape:
         abort(404)
     return render_template("play_mixtape.html", mixtape=mixtape, public=True)
+
+
+@app.context_processor
+def inject_version():
+    """
+    Injects the application version into the template context.
+
+    This allows templates to access the current app version using the 'app_version' variable.
+
+    Returns:
+        dict: A dictionary with the application version under the key 'app_version'.
+    """
+    return {"app_version": get_version()}
 
 
 @app.context_processor

@@ -41,7 +41,7 @@
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-success shadow-sm">
     <div class="container">
-        <a class="navbar-brand" href="/mixtapes">
+        <a class="navbar-brand position-relative" href="/mixtapes" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Version v{{ app_version }}">
             <i class="bi bi-cassette-fill me-2"></i>Mixtape Society
         </a>
 
@@ -131,6 +131,13 @@
 })();
 </script>
 
-{% block extra_js %}{% endblock %}
+{% block extra_js %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            tooltipTriggerList.forEach(trigger => new bootstrap.Tooltip(trigger));
+        });
+    </script>
+{% endblock %}
 </body>
 </html>
