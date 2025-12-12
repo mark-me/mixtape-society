@@ -31,7 +31,11 @@ class CollectionExtractor:
             db_path (Path): Path to the SQLite database file.
         """
         self.music_root = music_root.resolve()
-        self.db_path = (db_path or (self.music_root.parent / "collection-data" / "music.db")).resolve()
+        self.db_path = db_path
+        if not self.db_path.exists():
+            logger.warning(f"Database file {self.db_path} does not exist and will be created.")
+        else:
+            logger.info(f"Using existing database at {self.db_path}")
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
 
         self._stop_event = Event()
