@@ -1,12 +1,13 @@
-#!/usr/bin/env python3
 import contextlib
 import sqlite3
 import time
 from pathlib import Path
-from threading import Event
+from queue import Queue
+from threading import Event, Thread
+from typing import Optional
 
 from tinytag import TinyTag
-from watchdog.events import FileSystemEventHandler, FileSystemEvent
+from watchdog.events import FileSystemEvent, FileSystemEventHandler
 from watchdog.observers import Observer
 
 from logtools import get_logger
@@ -41,7 +42,137 @@ class CollectionExtractor:
         self._stop_event = Event()
         self._observer: Observer | None = None
 
+        # Queue and thread for processing filesystem events
+        self._event_queue: Queue = Queue()
+        self._worker_thread: Optional[Thread] = None
+        self._start_worker()
+
         self._ensure_schema()
+
+    def _start_worker(self) -> None:
+        """
+        Starts the background worker thread for processing filesystem events.
+
+        Initializes and starts a daemon thread that processes the event queue for metadata extraction and database updates.
+        """
+        self._worker_thread = Thread(target=self._process_queue, daemon=True)
+        self._worker_thread.start()
+        logger.info("Background metadata worker started")
+
+    def _process_queue(self) -> None:
+        """
+        Processes filesystem events from the event queue in a background thread.
+
+        Handles file creation, modification, movement, and deletion events by updating the music database accordingly.
+        Skips unsupported file types and directories, and continues processing until the stop event is set.
+        """
+        while not self._stop_event.is_set():
+            try:
+                # Wait up to 1 second for next event
+                event = self._event_queue.get(timeout=1.0)
+                path = Path(event.src_path if hasattr(event, "src_path") else event.dest_path)
+
+                if event.is_directory or path.suffix.lower() not in self.SUPPORTED_EXTS:
+                    self._event_queue.task_done()
+                    continue
+
+                # Delete case (deleted or moved away)
+                if event.event_type in ("deleted", "moved") and hasattr(event, "src_path"):
+                    with self.get_conn() as conn:
+                        conn.execute("DELETE FROM tracks WHERE path = ?", (event.src_path,))
+                        conn.commit()
+                    logger.debug(f"Removed from DB: {event.src_path}")
+                elif path.exists():
+                    try:
+                        self._index_file_path_queued(path)
+                        logger.debug(f"Indexed: {path}")
+                    except Exception as e:
+                        logger.warning(f"Failed to index {path}: {e}")
+
+                self._event_queue.task_done()
+            except Exception:  # Empty exception = timeout, loop again
+                continue
+
+    def _index_file_path_queued(self, path: Path) -> None:
+        """
+        Indexes a music file and updates the database with its metadata.
+
+        Extracts metadata from the given file and inserts or updates the corresponding record in the tracks table.
+        If metadata extraction fails, the file is skipped.
+
+        Args:
+            path: The path to the music file to index.
+
+        Returns:
+            None
+        """
+        tag = None
+        try:
+            tag = TinyTag.get(path, tags=True, duration=True)
+        except Exception as e:
+            logger.warning(f"Failed to extract tags from {path}: {e}")
+
+        artist = self._extract_artist(tag, path)
+        album = self._extract_album(tag, path)
+        title = self._extract_title(tag, path)
+        year = self._safe_int_year(getattr(tag, "year", None))
+        duration = getattr(tag, "duration", None)
+        albumartist = getattr(tag, "albumartist", None)
+        genre = getattr(tag, "genre", None)
+        mtime = path.stat().st_mtime
+
+        with self.get_conn() as conn:
+            conn.execute("""
+                INSERT OR REPLACE INTO tracks
+                (path, filename, artist, album, title, albumartist, genre, year, duration, mtime)
+                VALUES (?,?,?,?,?,?,?,?,?,?)
+            """, (
+                str(path), path.name, artist, album, title,
+                albumartist, genre, year, duration, mtime
+            ))
+            conn.commit()
+
+    def start_monitoring(self) -> None:
+        """Starts live monitoring of the music directory for file system changes.
+
+        Sets up a file system observer to watch for changes in the music collection and updates the database in real time.
+
+        Returns:
+            None
+        """
+        if self._observer is not None:
+            return
+
+        if not self.music_root.exists():
+            logger.warning(f"Music root {self.music_root} does not exist - skipping filesystem monitoring")
+            return
+
+        self._observer = Observer()
+        self._observer.schedule(Watcher(self), str(self.music_root), recursive=True)
+        self._observer.start()
+        logger.info("Live filesystem monitoring started")
+
+    def stop_monitoring(self) -> None:
+        """
+        Stops live monitoring of the music directory and background worker thread.
+
+        Shuts down the file system observer and the background metadata worker if they are running,
+        releasing associated resources and logging the shutdown.
+
+        Returns:
+            None
+        """
+        if self._observer is not None:
+            self._observer.stop()
+            self._observer.join()
+            self._observer = None
+            logger.info("Filesystem monitoring stopped")
+
+        # Stop worker thread
+        self._stop_event.set()
+        if self._worker_thread:
+            self._worker_thread.join(timeout=5.0)
+            logger.info("Background metadata worker stopped")
 
     def get_conn(self) -> sqlite3.Connection:
         """Creates and returns a new SQLite database connection.
@@ -51,8 +182,9 @@ class CollectionExtractor:
         Returns:
             sqlite3.Connection: A connection object to the music collection database.
         """
-        conn = sqlite3.connect(self.db_path, timeout=10.0)
+        conn = sqlite3.connect(self.db_path, timeout=30.0)  # Increase timeout further as backup
         conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA journal_mode=WAL;")
         return conn
 
     def _ensure_schema(self) -> None:
@@ -180,13 +312,12 @@ class CollectionExtractor:
             conn.commit()
         logger.info(f"Full rebuild complete: {count:,} tracks in {time.time() - start:.1f}s")
 
-    def _index_file(self, conn: sqlite3.Connection, path: Path) -> None:
+    def _index_file(self, path: Path) -> None:
         """Indexes a single music file and updates the database with its metadata.
 
         Extracts metadata from the given file and inserts or updates the corresponding record in the tracks table. If metadata extraction fails, the file is skipped.
 
         Args:
-            conn: The SQLite database connection.
             path: The path to the music file to index.
 
         Returns:
@@ -210,6 +341,7 @@ class CollectionExtractor:
         genre = getattr(tag, "genre", None)
         mtime = path.stat().st_mtime
 
+        conn = self.get_conn()
         conn.execute("""
             INSERT OR REPLACE INTO tracks
             (path, filename, artist, album, title, albumartist, genre, year, duration, mtime)
@@ -245,7 +377,7 @@ class CollectionExtractor:
         except ValueError:
             return None
 
-    def _extract_artist(self, tag, path: Path) -> str:
+    def _extract_artist(self, tag: object, path: Path) -> str:
         """Extracts the artist name from tag or path.
 
         Returns the artist name as a string, using tag metadata or directory names as fallback. If no artist is found, returns 'Unknown'.
@@ -262,7 +394,19 @@ class CollectionExtractor:
             artist = path.parent.parent.name
         return (artist or "Unknown").strip()
 
-    def _extract_album(self, tag, path: Path) -> str:
+    def _extract_album(self, tag: object, path: Path) -> str:
+        """
+        Extracts the album name from tag or path.
+
+        Returns the album name as a string, using tag metadata or directory names as fallback. If no album is found, returns 'Unknown'.
+
+        Args:
+            tag: The metadata tag object from TinyTag.
+            path: The path to the music file.
+
+        Returns:
+            str: The extracted album name.
+        """
         album = getattr(tag, "album", None)
         if not album:
             album = path.parent.name
@@ -270,44 +414,21 @@ class CollectionExtractor:
                 album = path.parent.parent.name
         return (album or "Unknown").strip()
 
-    def _extract_title(self, tag, path: Path) -> str:
+    def _extract_title(self, tag: object, path: Path) -> str:
+        """
+        Extracts the track title from tag or path.
+
+        Returns the track title as a string, using tag metadata or the file stem as fallback. If no title is found, returns 'Unknown'.
+
+        Args:
+            tag: The metadata tag object from TinyTag.
+            path: The path to the music file.
+
+        Returns:
+            str: The extracted track title.
+        """
         return (getattr(tag, "title", None) or path.stem or "Unknown").strip()
 
-    # ==================== Monitoring ====================
-
-    def start_monitoring(self) -> None:
-        """Starts live monitoring of the music directory for file system changes.
-
-        Sets up a file system observer to watch for changes in the music collection and updates the database in real time.
-
-        Returns:
-            None
-        """
-        if self._observer is not None:
-            return
-
-        if not self.music_root.exists():
-            logger.warning(f"Music root {self.music_root} does not exist - skipping filesystem monitoring")
-            return
-
-        self._observer = Observer()
-        self._observer.schedule(Watcher(self), str(self.music_root), recursive=True)
-        self._observer.start()
-        logger.info("Live filesystem monitoring started")
-
-    def stop_monitoring(self) -> None:
-        """Stops live monitoring of the music directory for file system changes.
-
-        Shuts down the file system observer and releases associated resources if monitoring is active.
-
-        Returns:
-            None
-        """
-        if self._observer is not None:
-            self._observer.stop()
-            self._observer.join()
-            self._observer = None
-            logger.info("Filesystem monitoring stopped")
 
 class Watcher(FileSystemEventHandler):
     """Handles file system events for the music collection and updates the database.
@@ -323,6 +444,7 @@ class Watcher(FileSystemEventHandler):
             extractor: The CollectionExtractor instance to monitor and update.
         """
         self.extractor = extractor
+        super().__init__()
 
     def on_any_event(self, event: FileSystemEvent) -> None:
         """Handles any file system event for the music collection.
@@ -335,18 +457,4 @@ class Watcher(FileSystemEventHandler):
         Returns:
             None
         """
-        if event.is_directory:
-            return
-        path = Path(event.src_path if hasattr(event, "src_path") else event.dest_path)
-        if path.suffix.lower() not in self.extractor.SUPPORTED_EXTS:
-            return
-
-        with self.extractor.get_conn() as conn:
-            if event.event_type in ("deleted", "moved") and hasattr(event, "src_path"):
-                conn.execute("DELETE FROM tracks WHERE path = ?", (event.src_path,))
-            elif path.exists():
-                try:
-                    self._index_file(conn, path)
-                except Exception as e:
-                    logger.error(f"Error indexing file {path}: {e}", exc_info=True)
-            conn.commit()
+        self.extractor._event_queue.put(event)
