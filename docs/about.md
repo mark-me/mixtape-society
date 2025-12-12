@@ -26,9 +26,10 @@ Mixtape Society leverages several fantastic open-source libraries and tools. A b
 ### Python & Backend
 
 - **[Flask](https://flask.palletsprojects.com/)** – The lightweight and elegant web framework that powers everything
+- **[Jinja2](https://jinja.palletsprojects.com/)** – The powerful templating engine used for dynamic HTML rendering in all pages.
 - **[Flask-CORS](https://flask-cors.readthedocs.io/)** – Simple cross-origin resource sharing
 - **[Flask-Limiter](https://flask-limiter.readthedocs.io/)** – Rate limiting for the login route
-- **[Flask-Login](https://flask-login.readthedocs.io/)** – Session management (even if we only use it lightly)
+- **[Flask-Login](https://flask-login.readthedocs.io/)** – Session management
 - **[Gunicorn](https://gunicorn.org/)** – Production WSGI server
 - **[Pillow](https://python-pillow.org/)** – Image processing for uploaded covers
 - **[python-dotenv](https://github.com/theskumar/python-dotenv)** – Easy .env file support
@@ -38,18 +39,19 @@ Mixtape Society leverages several fantastic open-source libraries and tools. A b
 
 ### Documentation
 
-- **[MkDocs](https://www.mkdocs.org/)** & **[Material for MkDocs](https://squidfunk.github.io/mkdocs-material/)** – Beautiful static documentation you’re reading right now
+- **[MkDocs](https://www.mkdocs.org/)** & **[Material for MkDocs](https://squidfunk.github.io/mkdocs-material/)** – Static documentation you’re reading right now
 - **[mkdocstrings](https://mkdocstrings.github.io/)** – Auto-generated API docs from code
 - **[mkdocs-git-revision-date-localized-plugin](https://github.com/timvink/mkdocs-git-revision-date-localized-plugin)** – Page last-updated dates
 - **[mkdocs-git-committers-plugin](https://github.com/byrnereese/mkdocs-git-committers-plugin)** – Contributor credits
 - **[mkdocs-panzoom-plugin](https://github.com/lucasmaystre/mkdocs-panzoom)** – Zoomable screenshots
-- **[mermaid2](https://github.com/Franiac/mkdocs-mermaid2-plugin)** – Diagrams (if you ever add them)
+- **[mermaid2](https://github.com/Franiac/mkdocs-mermaid2-plugin)** – Diagrams
 
 ### Frontend & Design
 
 - **[Bootstrap 5](https://getbootstrap.com/)** – The entire responsive UI, cards, buttons, modals, and grid system
 - **[Bootstrap Icons](https://icons.getbootstrap.com/)** – All the lovely icons you see everywhere
-- **[Sortable.js](https://sortablejs.github.io/Sortable/)** – Drag-and-drop reordering in the editor (the heart of the mixtape experience)
+- **[Sortable.js](https://sortablejs.github.io/Sortable/)** – Drag-and-drop reordering in the editor
+- **[Placeholder.com](https://placeholder.com/)** – Simple placeholder images for default covers
 
 ## License
 
