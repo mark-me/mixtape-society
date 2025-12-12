@@ -189,6 +189,28 @@ document.addEventListener('DOMContentLoaded', function () {
         playTrack(0);
     }
 });
+
+// Update play button icon when active
+function updatePlayButtons() {
+    document.querySelectorAll('.play-this-track i').forEach(icon => {
+        icon.classList.remove('bi-pause-fill', 'bi-play-fill');
+        icon.classList.add('bi-play-fill');
+    });
+    if (currentIndex >= 0) {
+        const activeBtn = trackItems[currentIndex].querySelector('.play-this-track i');
+        if (activeBtn && !player.paused) {
+            activeBtn.classList.replace('bi-play-fill', 'bi-pause-fill');
+        }
+    }
+}
+
+// Call it after playTrack and on player events
+// Add inside playTrack() after player.play():
+updatePlayButtons();
+
+// Also add:
+player.addEventListener('play', updatePlayButtons);
+player.addEventListener('pause', updatePlayButtons);
 </script>
 
 <style>
@@ -198,19 +220,62 @@ document.addEventListener('DOMContentLoaded', function () {
     #main-player { background: #000; }
     #main-player::-webkit-media-controls-panel { background-color: #000; }
 
-    /* Track items – slanker */
-    .track-item {
-        cursor: pointer;
-        transition: all 0.2s;
+    /* Track items */
+    .list-group-numbered {
+        counter-reset: track-counter;
+        padding-left: 0; /* Remove Bootstrap's default padding */
+        list-style: none; /* Ensure no fallback numbers */
     }
+
+    .list-group-numbered .list-group-item {
+        position: relative;
+        padding: 1rem 1rem 1rem 3.5rem !important; /* Left padding for number + content */
+        border: none;
+        background-color: #111;
+        border-bottom: 1px solid #333;
+    }
+
+    .list-group-numbered .list-group-item::before {
+        content: counter(track-counter) ".";
+        counter-increment: track-counter;
+        position: absolute;
+        left: 1.2rem;
+        top: 50%;
+        transform: translateY(-50%);
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: #888;
+        width: 2rem;
+        text-align: right;
+    }
+
+    /* Hover state */
     .track-item:hover {
-        background-color: #1a1a1a !important;
+        background-color: #222 !important;
     }
+
+    /* Active (now playing) track - better color */
     .track-item.active-track {
-        background: #0d6efd !important;
+        background: #1e40af !important; /* Darker blue, more premium */
+        color: white !important;
     }
-    .track-item.active-track .text-white,
-    .track-item.active-track .opacity-75 { color: white !important; opacity: 1 !important; }
+
+    .track-item.active-track .opacity-75 {
+        opacity: 0.9 !important;
+        color: #ddd !important;
+    }
+
+    /* Optional: make first track rounded top, last rounded bottom */
+    .list-group-numbered .list-group-item:first-child {
+        border-top-left-radius: 0.5rem;
+        border-top-right-radius: 0.5rem;
+    }
+
+    .list-group-numbered .list-group-item:last-child {
+        border-bottom-left-radius: 0.5rem;
+        border-bottom-right-radius: 0.5rem;
+        border-bottom: none;
+    }
 
     .play-this-track {
         display: flex;
