@@ -24,4 +24,4 @@ EXPOSE 5000
 
 ENV PYTHONPATH=/app/src
 
-CMD ["uv", "run", "-m", "gunicorn", "--bind", "0.0.0.0:5000", "src.app:app"]
+CMD ["uv", "run", "-m", "gunicorn", "--bind", "0.0.0.0:5000", "--log-level", "info", "src.app:app"]

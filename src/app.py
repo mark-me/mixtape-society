@@ -41,18 +41,19 @@ setup_logging(
     log_level=os.getenv("LOG_LEVEL", "INFO"),   # handig voor Docker
 )
 
-if 'gunicorn' in sys.argv[0].lower() or __name__ != '__main__':
-    gunicorn_logger = logging.getLogger('gunicorn.error')
-    if gunicorn_logger.handlers:  # Only sync if Gunicorn is active
-        logging.root.handlers = gunicorn_logger.handlers
-        logging.root.setLevel(gunicorn_logger.level)
-
-logger = get_logger(name=__name__)
-
 app = Flask(__name__)
 app.secret_key = config.PASSWORD
-
 CORS(app)  # This adds Access-Control-Allow-Origin: * to ALL responses
+
+# Put this right after setup_logging(...)
+if "gunicorn" in str(type(app)).lower() or "gunicorn" in sys.modules:
+    gunicorn_logger = logging.getLogger("gunicorn.error")
+    app.logger.handlers = gunicorn_logger.handlers
+    app.logger.setLevel(gunicorn_logger.level)
+    logging.root.handlers = gunicorn_logger.handlers
+    logging.root.setLevel(gunicorn_logger.level)
+
+logger = get_logger(name=__name__)
 
 collection = MusicCollection(music_root=config.MUSIC_ROOT, db_path=config.DB_PATH)
 
