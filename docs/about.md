@@ -36,6 +36,7 @@ Mixtape Society leverages several fantastic open-source libraries and tools. A b
 - **[python-json-logger](https://github.com/madzak/python-json-logger)** – Structured logging
 - **[TinyTag](https://github.com/devsnd/tinytag)** – Fast and lightweight audio metadata reading
 - **[Watchdog](https://github.com/gorakhargosh/watchdog)** – File system events for auto-reindexing the music library
+- **[SQLite](https://www.sqlite.org/)** – Embedded, zero-configuration database that stores your entire music library index and makes instant search possible.
 
 ### Documentation
 
