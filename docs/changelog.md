@@ -7,6 +7,15 @@ All notable changes will be documented here.
 
 ---
 
+## 📦 v0.1.2-alpha
+<span class="md-tag">Pre-release</span>
+
+**🗓️** 2025-12-12
+
+### 🐛 Fixed
+
+- Made Mixtape browser responsive
+
 ## 📦 v0.1.1-alpha
 <span class="md-tag">Pre-release</span>
 
