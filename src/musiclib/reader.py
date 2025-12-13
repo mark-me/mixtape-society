@@ -1,10 +1,15 @@
-import re
 import contextlib
+import re
 from pathlib import Path
 from sqlite3 import Connection
+from threading import Thread
 from typing import Any
 
-from ._extractor import CollectionExtractor  # internal implementation
+from logtools import get_logger
+
+from ._extractor import CollectionExtractor
+
+logger = get_logger(__name__)
 
 
 class MusicCollection:
@@ -30,11 +35,12 @@ class MusicCollection:
         """
         Initializes a MusicCollection instance for managing a music library.
 
-        Sets up the music root directory, database path, and ensures the database is in sync with the filesystem. Starts live monitoring and repairs any drift on startup.
+        Sets up the music root directory, database path, and background monitoring.
+        Determines if initial indexing or resynchronization is needed based on the current state of the database and filesystem.
 
         Args:
             music_root: The root directory containing music files.
-            db_path: Optional path to the SQLite database file. If not provided, a default path is used.
+            db_path: Path to the SQLite database file.
         """
         self._extractor = CollectionExtractor(
             music_root=Path(music_root),
@@ -45,21 +51,74 @@ class MusicCollection:
 
         track_count = self._extractor.count_tracks()
         if track_count == 0:
-            # Brand new database — force full indexing
-            print("No tracks in database — performing initial scan...")
-            self._extractor.rebuild()
+            logger.info(
+                "No tracks in database — initial indexing will start in background."
+            )
+            self._needs_initial_index = True
         elif not self._extractor.is_synced_with_filesystem():
-            print("Database out of sync — repairing...")
-            self._extractor.resync()
+            logger.info("Database out of sync — resync will start in background.")
+            self._needs_resync = True
+        else:
+            self._needs_initial_index = False
+            self._needs_resync = False
+
         # Start background monitoring (will stop on __del__ or close())
         self._extractor.start_monitoring()
+        self._monitoring_started = True
 
-        # Ensure DB is in sync with filesystem on startup
-        if not self._extractor.is_synced_with_filesystem():
-            print("Database out of sync with filesystem — repairing...")
-            self._extractor.resync()
+        # Background task control
+        self._background_task_running = False
 
-    def ensure_monitoring(self):
+
+    def start_background_indexing(self):
+        """
+        Starts background indexing or resynchronization of the music library if needed.
+
+        Launches a background thread to perform a full rebuild or resync of the music collection, updating status and handling errors as necessary.
+        """
+        if getattr(self, "_background_task_running", False):
+            return
+        self._background_task_running = True
+
+        def indexing_task():
+            try:
+                if getattr(self, "_needs_initial_index", False):
+                    self._run_background_rebuild()
+                elif getattr(self, "_needs_resync", False):
+                    self._run_background_resync()
+                logger.info("Background indexing complete.")
+            except Exception as e:
+                logger.error(f"Background indexing failed: {e}")
+            finally:
+                self._background_task_running = False
+
+        Thread(target=indexing_task, daemon=True).start()
+
+    def _run_background_rebuild(self):
+        """
+        Runs a full rebuild of the music collection in the background.
+
+        Triggers the status update, performs the rebuild, and updates the internal state.
+        """
+        logger.info("Starting background full rebuild...")
+        self._trigger_status("rebuilding")
+        self._extractor.rebuild()
+        self._needs_initial_index = False
+
+
+
+    def _run_background_resync(self) -> None:
+        """
+        Runs a resynchronization of the music collection in the background.
+
+        Triggers the status update, performs the resync, and updates the internal state.
+        """
+        logger.info("Starting background resync...")
+        self._trigger_status("resyncing")
+        self._extractor.resync()
+        self._needs_resync = False
+
+    def ensure_monitoring(self) -> None:
         """
         Ensures that live monitoring of the music library is active.
 

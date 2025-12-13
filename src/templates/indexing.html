@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}Indexing library…{% endblock %}
+
+{% block extra_css %}
+<style>
+    .indexing-container {
+        max-width: 660px;
+        margin: 4rem auto;
+        text-align: center;
+        padding: 2.5rem;
+    }
+    .cassette-spinner {
+        font-size: 4.5rem;
+        animation: spin 4s linear infinite;
+        display: block;
+        margin: 0 auto 2rem;
+        color: var(--bs-success);
+    }
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    .progress {
+        height: 2.2rem;
+        font-size: 1rem;
+        margin: 2rem 0;
+        background-color: var(--bs-secondary-bg);
+    }
+    .progress-bar {
+        background: linear-gradient(90deg, #198754, #20c997);
+    }
+    .stats {
+        display: flex;
+        justify-content: space-around;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        margin: 2rem 0;
+        font-size: 1.1rem;
+    }
+    .stat-item {
+        min-width: 140px;
+    }
+    .stat-value {
+        font-weight: 700;
+        font-size: 1.4rem;
+        color: var(--bs-success);
+    }
+    .eta {
+        font-size: 1.3rem;
+        margin: 1.5rem 0;
+    }
+    .tip {
+        margin-top: 2.5rem;
+        font-style: italic;
+        color: var(--bs-secondary-color);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="indexing-container bg-light-subtle rounded-4 shadow">
+        <i class="bi bi-cassette-fill cassette-spinner"></i>
+
+        <h1 class="mb-3">Your music library is being indexed…</h1>
+        <p class="lead text-muted mb-4">
+            We are scanning your collection and reading metadata from all tracks. This only happens the first time or after major changes.
+        </p>
+
+        {% if status.total > 0 %}
+            {% set progress_percent = (status.current / status.total * 100) | round(1) %}
+
+            <div class="progress" role="progressbar" aria-valuenow="{{ status.current }}" aria-valuemin="0" aria-valuemax="{{ status.total }}">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: {{ progress_percent }}%">
+                    {{ progress_percent }}%
+                </div>
+            </div>
+
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-value">{{ "{:,}".format(status.current) }}</div>
+                    <div>Verwerkt</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ "{:,}".format(status.total) }}</div>
+                    <div>Totaal</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">
+                        {% if status.current > 100 %}
+                            {% set speed = status.current / ((now - status.started_at|to_datetime).total_seconds() / 60) %}
+                            {{ speed | round(0) }} /min
+                        {% else %}
+                            —
+                        {% endif %}
+                    </div>
+                    <div>Snelheid</div>
+                </div>
+            </div>
+
+            <div class="eta fw-semibold text-success">
+                {% if status.current > 50 and status.total > 100 %}
+                    {% set remaining_tracks = status.total - status.current %}
+                    {% set speed_per_sec = status.current / ((now - status.started_at|to_datetime).total_seconds()) if status.current > 0 else 0 %}
+                    {% set eta_seconds = (remaining_tracks / speed_per_sec) if speed_per_sec > 0 else 0 %}
+                    {% set eta_minutes = (eta_seconds / 60) | round(0) %}
+                    Nog ongeveer <strong>{{ eta_minutes }} minuut{{ 'en' if eta_minutes != 1 else '' }}</strong> te gaan
+                {% else %}
+                    Please be patient, indexation speed is being calculated…
+                {% endif %}
+            </div>
+        {% else %}
+            <div class="progress" style="height: 2.2rem;">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%"></div>
+            </div>
+            <p class="mt-4">Files are being counted and scanned… This may take a while for large collections.</p>
+        {% endif %}
+
+        <p class="tip">
+            <small>
+                <i class="bi bi-info-circle"></i>
+                Tip: Grab a coffee or tea – we’ll be done soon! ☕
+            </small>
+        </p>
+
+        <div class="mt-4">
+            <small class="text-muted">
+                This page refreshes every 8 seconds.
+            </small>
+        </div>
+    </div>
+</div>
+
+<meta http-equiv="refresh" content="8">
+{% endblock %}
+
+{% block extra_js %}
+{{ super() }}
+
+<script>
+    // Fallback: force refresh if something goes wrong
+    setTimeout(() => {
+        window.location.reload();
+    }, 90000); // 90 seconds max without progress
+</script>
+
+<!-- Custom filter to parse ISO datetime (needed for ETA calculation) -->
+{% macro to_datetime(iso_string) %}
+    {% if iso_string %}
+        {{ iso_string | strptime('%Y-%m-%dT%H:%M:%S.%f') }}
+    {% else %}
+        {{ now }}
+    {% endif %}
+{% endmacro %}
+{% endblock %}

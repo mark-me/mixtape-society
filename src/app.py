@@ -22,7 +22,7 @@ from flask_limiter.util import get_remote_address
 from config import DevelopmentConfig, ProductionConfig, TestConfig
 from logtools import get_logger, setup_logging
 from mixtape_manager import MixtapeManager
-from musiclib import MusicCollection
+from musiclib import MusicCollection, get_indexing_status
 from routes import browser, editor, play
 from version_info import get_version
 
@@ -65,6 +65,19 @@ logger = get_logger(name=__name__)
 
 collection = MusicCollection(music_root=config.MUSIC_ROOT, db_path=config.DB_PATH)
 
+# Start background indexing immediately if needed (Flask 2.3+ compatible)
+if hasattr(collection, "_needs_initial_index") or hasattr(collection, "_needs_resync"):
+    # Run in background thread right now — app starts instantly
+    def kick_off_indexing():
+        collection.start_background_indexing()
+
+    # Use threading to not block app startup
+    import threading
+    threading.Thread(target=kick_off_indexing, daemon=True).start()
+
+    # Optional: log it
+    logger.info("Background indexing scheduled to start immediately.")
+
 mimetypes.add_type("audio/flac", ".flac")
 mimetypes.add_type("audio/mp4", ".m4a")
 mimetypes.add_type("audio/aac", ".aac")
@@ -76,13 +89,16 @@ logger.warning("Users are responsible for the content they load into the system.
 @app.route("/")
 def landing() -> Response:
     """
-    Renders the landing page of the application.
+    Renders the landing page or indexing status page based on current indexing state.
 
-    Returns the landing page template for the root URL.
+    If the indexing status file exists and indicates scanning or rebuilding, renders the indexing status page. Otherwise, renders the normal landing page.
 
     Returns:
-        Response: The Flask response object containing the rendered landing page.
+        Response: The Flask response object containing the rendered page.
     """
+    status = get_indexing_status(config.DATA_ROOT)  # <-- pass the active config's DATA_ROOT
+    if status and status["status"] in ("rebuilding", "resyncing"):
+        return render_template("indexing.html", status=status)
     return render_template("landing.html")
 
 
