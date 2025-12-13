@@ -16,6 +16,10 @@ All notable changes will be documented here.
 
 - Made Mixtape browser responsive
 
+[v0.1.2-alpha](https://github.com/mark-me/mixtape-society/compare/v0.1.1-alpha...v0.1.2-alpha)
+
+---
+
 ## 📦 v0.1.1-alpha
 <span class="md-tag">Pre-release</span>
 
