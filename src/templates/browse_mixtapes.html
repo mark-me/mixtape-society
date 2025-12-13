@@ -8,28 +8,125 @@
         border-radius: 12px;
         overflow: hidden;
         transition: all 0.3s ease;
-        margin-bottom: 1rem;
+        margin-bottom: 1.5rem;
         display: flex;
         align-items: center;
         box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        flex-wrap: wrap; /* Allow wrapping on very small screens */
     }
-    .mixtape-item:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.5); }
-    .mixtape-cover { width: 120px; height: 120px; object-fit: cover; flex-shrink: 0; }
-    .mixtape-info { flex-grow: 1; padding: 1rem 1.5rem; }
-    .mixtape-title { font-size: 1.3rem; font-weight: 600; margin: 0 0 0.5rem 0; color: white; }
-    .mixtape-meta { color: #aaa; font-size: 0.9rem; margin: 0; }
-    .action-buttons { display: flex; gap: 0.75rem; padding-right: 1rem; }
+    .mixtape-item:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+    }
+
+    .mixtape-cover {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+
+    .mixtape-info {
+        flex-grow: 1;
+        padding: 1rem 1.5rem;
+        min-width: 0; /* Prevent flex overflow from long titles */
+    }
+
+    .mixtape-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin: 0 0 0.5rem 0;
+        color: white;
+        word-break: break-word; /* Handle very long titles */
+    }
+
+    .mixtape-meta {
+        color: #aaa;
+        font-size: 0.9rem;
+        margin: 0;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.75rem;
+        padding: 0 1rem 1rem 1rem; /* Better spacing on mobile */
+    }
+
     .action-btn {
-        width: 48px; height: 48px; border-radius: 50%;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 1.2rem; border: none; color: white; transition: all 0.2s;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        border: none;
+        color: white;
+        transition: all 0.2s;
     }
+
     .btn-edit   { background: #0d6efd; }
     .btn-play   { background: #198754; }
     .btn-share  { background: #0dcaf0; }
     .btn-delete { background: #dc3545; }
+
     .action-btn:hover { transform: scale(1.1); }
-    .no-mixtapes { text-align: center; padding: 4rem 2rem; color: #888; }
+
+    .no-mixtapes {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #888;
+    }
+
+    /* === Mobile Optimizations === */
+    @media (max-width: 576px) { /* Small phones */
+        .mixtape-cover {
+            width: 100px;
+            height: 100px;
+        }
+
+        .mixtape-info {
+            padding: 1rem;
+        }
+
+        .mixtape-title {
+            font-size: 1.2rem;
+        }
+
+        .action-btn {
+            width: 44px;
+            height: 44px;
+            font-size: 1.1rem;
+        }
+
+        .action-buttons {
+            gap: 0.5rem;
+            padding: 0 1rem 1rem 0;
+        }
+    }
+
+    @media (max-width: 480px) { /* Very small screens – stack vertically */
+        .mixtape-item {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .mixtape-cover {
+            width: 100%;
+            height: 200px;
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        .mixtape-info {
+            padding: 1rem 1rem 0.5rem 1rem;
+        }
+
+        .action-buttons {
+            justify-content: center;
+            padding: 0.5rem 1rem 1rem 1rem;
+        }
+    }
 </style>
 {% endblock %}
 
