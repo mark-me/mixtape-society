@@ -392,12 +392,7 @@ class CollectionExtractor:
         Returns:
             None
         """
-        try:
-            tag = TinyTag.get(path, tags=True, duration=True)
-        except Exception as e:
-            logger.warning(f"Failed to extract tags from {path}: {e}")
-            tag = None
-
+        tag = self._get_tag_for_path(path)
         artist = self._extract_artist(tag, path)
         album = self._extract_album(tag, path)
         title = self._extract_title(tag, path)
@@ -407,6 +402,31 @@ class CollectionExtractor:
         genre = getattr(tag, "genre", None)
         mtime = path.stat().st_mtime
 
+        values = (
+            str(path),
+            path.name,
+            artist,
+            album,
+            title,
+            albumartist,
+            genre,
+            year,
+            duration,
+            mtime,
+        )
+
+        self._insert_track_record(values)
+
+    def _get_tag_for_path(self, path: Path):
+        """Attempts to extract tags from a file, returning None on failure."""
+        try:
+            return TinyTag.get(path, tags=True, duration=True)
+        except Exception as e:
+            logger.warning(f"Failed to extract tags from {path}: {e}")
+            return None
+
+    def _insert_track_record(self, values: tuple):
+        """Inserts or replaces a track record in the database."""
         conn = self.get_conn()
         try:
             conn.execute(
@@ -415,18 +435,7 @@ class CollectionExtractor:
                 (path, filename, artist, album, title, albumartist, genre, year, duration, mtime)
                 VALUES (?,?,?,?,?,?,?,?,?,?)
                 """,
-                (
-                    str(path),
-                    path.name,
-                    artist,
-                    album,
-                    title,
-                    albumartist,
-                    genre,
-                    year,
-                    duration,
-                    mtime,
-                ),
+                values,
             )
             conn.commit()
         finally:
