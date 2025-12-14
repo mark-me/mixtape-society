@@ -29,15 +29,20 @@
     #playlist-cover {
         transition: opacity 0.3s ease;
     }
+
+    .card-header {
+        background-color: var(--bs-success-bg-subtle) !important;
+        color: var(--bs-success-text-emphasis) !important;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container py-4">
+<div class="container py-4 pb-5">
 
     <h1 class="mb-4">Create Mixtape</h1>
 
-    <!-- Zoekbalk -->
+    <!-- Search bar -->
     <div class="row mb-4">
         <div class="col">
             <div class="position-relative">
@@ -54,7 +59,7 @@
     <div class="row g-4">
         <!-- Library -->
         <div class="col-lg-7">
-            <div class="card shadow-sm h-100">
+            <div class="card shadow-sm">
                 <div class="card-header bg-success text-white">
                     <h2 class="h5 mb-0">Library</h2>
                 </div>
@@ -64,9 +69,9 @@
             </div>
         </div>
 
-        <!-- Playlist -->
+        <!-- Mixtape -->
         <div class="col-lg-5">
-            <div class="card shadow-sm h-100">
+            <div class="card shadow-sm">
                 <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
                     <h2 class="h5 mb-0">
                         My Mixtape <span id="playlist-count">(0)</span>
@@ -122,19 +127,29 @@
     </div>
 </div>
 
-<!-- Audio player on bottom -->
-<div class="fixed-bottom bg-dark text-white p-3 shadow-lg" id="audio-player-container" style="display:none;">
-    <div class="container">
-        <div class="d-flex align-items-center">
-            <button id="close-player" class="btn btn-sm btn-outline-light me-3">×</button>
-            <div class="me-3">
-                <strong id="now-playing-title">Niets afgespeeld</strong><br>
-                <small id="now-playing-artist">Selecteer een nummer</small>
+    <!-- Audio player on bottom -->
+    <div class="fixed-bottom bg-dark text-white p-3 shadow-lg" id="audio-player-container" style="display:none;">
+        <div class="container">
+            <div class="d-flex align-items-center">
+                <button id="close-player" class="btn btn-sm btn-outline-light me-3">×</button>
+                <div class="me-3">
+                    <strong id="now-playing-title">Niets afgespeeld</strong><br>
+                    <small id="now-playing-artist">Selecteer een nummer</small>
+                </div>
+                <audio id="global-audio-player" controls class="flex-grow-1"></audio>
             </div>
-            <audio id="global-audio-player" controls class="flex-grow-1"></audio>
         </div>
     </div>
-</div>
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1080;">
+        <div id="addTrackToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="bi bi-check-circle-fill me-2"></i> Track toegevoegd aan mixtape!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
 
@@ -145,357 +160,381 @@
 
 <script>
 
-/* ==== SEARCH AND RESULTS ==== */
-const searchInput = document.getElementById('searchInput');
-const resultsDiv = document.getElementById('results');
-const playlistOl = document.getElementById('playlist');
-const playlistCount = document.getElementById('playlist-count');
-let playlist = [];
+    /* ==== SEARCH AND RESULTS ==== */
+    const searchInput = document.getElementById('searchInput');
+    const resultsDiv = document.getElementById('results');
+    const playlistOl = document.getElementById('playlist');
+    const playlistCount = document.getElementById('playlist-count');
+    let playlist = [];
 
-// Preload
-document.addEventListener("DOMContentLoaded", () => {
-    {% if preload_mixtape %}
-    const mixtape = {{ preload_mixtape | tojson }};
-    document.getElementById("playlist-title").value = mixtape.title || "";
-    if (mixtape.cover) {
-        document.getElementById("playlist-cover").src = "/mixtapes/files/" + mixtape.cover;
-    }
-    playlist = mixtape.tracks.map(t => ({
-        artist: t.artist,
-        album: t.album,
-        title: t.title,
-        duration: t.duration,
-        path: t.path,
-        filename: t.filename || t.title + ".mp3"
-    }));
-    renderPlaylist();
-    {% endif %}
-});
-
-// Search
-let timeout;
-searchInput.addEventListener('input', () => {
-    clearTimeout(timeout);
-    document.getElementById('loading').classList.remove('visually-hidden');
-    timeout = setTimeout(() => {
-        const q = searchInput.value.trim();
-        if (q.length < 2) {
-            resultsDiv.innerHTML = '<p class="text-muted text-center my-5">Typ minimaal 2 tekens om te zoeken…</p>';
-            document.getElementById('loading').classList.add('visually-hidden');
-            return;
+    // Preload
+    document.addEventListener("DOMContentLoaded", () => {
+        {% if preload_mixtape %}
+        const mixtape = {{ preload_mixtape | tojson }};
+        document.getElementById("playlist-title").value = mixtape.title || "";
+        if (mixtape.cover) {
+            document.getElementById("playlist-cover").src = "/mixtapes/files/" + mixtape.cover;
         }
-        fetch(`/editor/search?q=${encodeURIComponent(q)}`)
-            .then(r => r.json())
-            .then(data => {
-                document.getElementById('loading').classList.add('visually-hidden');
-                renderResults(data);
-            })
-            .catch(err => {
-                console.error(err);
-                document.getElementById('loading').classList.add('visually-hidden');
-            });
-    }, 300);
-});
-
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-function highlightText(text, query) {
-    if (!query) return escapeHtml(text);
-    const regex = new RegExp(`(${escapeHtml(query).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-    return escapeHtml(text).replace(regex, '<mark>$1</mark>');
-}
-
-function renderResults(data) {
-    if (data.length === 0) {
-        resultsDiv.innerHTML = '<p class="text-center text-muted my-5">Geen resultaten gevonden.</p>';
-        return;
-    }
-
-    resultsDiv.innerHTML = data.map(entry => {
-        // badges with reason hit
-        const badges = entry.reasons.map(r => {
-            const icons = { artist: 'bi-person-fill', album: 'bi-disc-fill', track: 'bi-music-note' };
-            const colors = { artist: 'success', album: 'warning', track: 'primary' };
-            return `<span class="badge bg-${colors[r.type]} me-1">
-                        <i class="bi ${icons[r.type]}"></i> ${escapeHtml(r.text)}
-                    </span>`;
-        }).join('');
-
-        const tracksHtml = entry.tracks.map(track => {
-            const highlighted = entry.highlighted_tracks?.find(h => h.original.title === track.title);
-            const title = highlighted ? highlighted.highlighted : track.title;
-
-            return `
-               <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                    <span class="track-title flex-grow-1">${title}</span>
-                    <span class="text-muted me-3">${track.duration}</span>
-                    <button class="btn btn-success btn-sm add-btn"
-                            data-artist="${escapeHtml(entry.artist)}"
-                            data-album="${escapeHtml(entry.album)}"
-                            data-title="${escapeHtml(track.title)}"
-                            data-duration="${track.duration}"
-                            data-path="${escapeHtml(track.path || '')}"
-                            data-filename="${escapeHtml(track.filename || track.title + '.mp3')}">  <!-- fallback filename -->
-                        <i class="bi bi-plus-lg"></i>
-                    </button>
-                </li>`;
-        }).join('');
-
-        return `
-            <div class="mb-4">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                    <h3 class="h4 artist-name mb-0">${highlightText(entry.artist, searchInput.value)}</h3>
-                    <div>${badges}</div>
-                </div>
-                <h4 class="h5 album-title text-muted">${highlightText(entry.album, searchInput.value)}</h4>
-                <ul class="list-unstyled mt-3">${tracksHtml}</ul>
-            </div>`;
-    }).join('');
-
-    // add-to-playlist buttons
-    document.querySelectorAll('.add-btn').forEach(btn => {
-        btn.addEventListener('click', function () {
-            const item = {
-                artist: this.dataset.artist,
-                album: this.dataset.album,
-                title: this.dataset.title,
-                duration: this.dataset.duration,
-                path: this.dataset.path,
-                filename: this.dataset.filename
-            };
-            addToPlaylist(item);
-        });
-    });
-}
-
-/* ==== PLAYLIST ==== */
-function addToPlaylist(item) {
-    // Preventing duplicates
-    if (playlist.some(t =>
-        t.artist === item.artist &&
-        t.album === item.album &&
-        t.title === item.title &&
-        t.path === item.path)) return;
-
-    playlist.push(item);
-    renderPlaylist();
-}
-
-</script>
-<script>
-function renderPlaylist() {
-    playlistOl.innerHTML = playlist.map((item, idx) => `
-        <li class="d-flex align-items-center rounded p-3 mb-2 shadow-sm playlist-item
-           bg-body-tertiary border" data-index="${idx}">
-            <div class="drag-handle me-3 text-muted">⋮⋮</div>
-
-            <!-- Play knop -->
-            <button class="btn btn-success btn-sm me-2 play-track-btn"
-                    data-path="${encodeURIComponent(item.path || '')}"
-                    ${!item.path ? 'disabled title="Geen bestand"' : ''}>
-                <i class="bi ${item.path ? 'bi-play-fill' : 'bi-ban'}"></i>
-            </button>
-
-            <div class="flex-grow-1">
-                <strong>${escapeHtml(item.title)}</strong><br>
-                <small class="text-muted">${escapeHtml(item.artist)} • ${escapeHtml(item.album)}</small>
-            </div>
-            <span class="text-muted me-3">${item.duration || "?:??"}</span>
-            <button class="btn btn-danger btn-sm remove-btn" data-index="${idx}">
-                <i class="bi bi-x-lg"></i>
-            </button>
-        </li>
-    `).join('');
-
-    playlistCount.textContent = `(${playlist.length})`;
-
-    // === PLAY BUTTONS ===
-    document.querySelectorAll('.play-track-btn').forEach(btn => {
-        btn.onclick = function () {
-            const path = this.dataset.path;
-            if (!path) return;
-
-            const player = document.getElementById('global-audio-player');
-            const container = document.getElementById('audio-player-container');
-
-            player.src = `/play/${path}`;
-            player.play().catch(e => console.error("Afspelen mislukt:", e));
-
-            container.style.display = 'block';
-
-            // Update titel + highlight
-            const item = playlist[this.closest('.playlist-item').dataset.index];
-            document.getElementById('now-playing-title').textContent = item.title;
-            document.getElementById('now-playing-artist').textContent = `${item.artist} • ${item.album}`;
-
-            document.querySelectorAll('.playlist-item').forEach(el =>
-                el.classList.remove('bg-primary', 'text-white')
-            );
-            this.closest('.playlist-item').classList.add('bg-primary', 'text-white');
-        };
-    });
-
-    // Delete buttons
-    document.querySelectorAll('.remove-btn').forEach(btn => {
-        btn.onclick = () => {
-            playlist.splice(btn.dataset.index, 1);
-            renderPlaylist();
-        };
-    });
-}
-
-// Drag & drop
-new Sortable(playlistOl, {
-    animation: 150,
-    ghostClass: 'playlist-ghost',
-    handle: '.drag-handle',
-    onEnd: evt => {
-        const moved = playlist.splice(evt.oldIndex, 1)[0];
-        playlist.splice(evt.newIndex, 0, moved);
-        renderPlaylist();
-    }
-});
-
-// Empty playlist
-document.getElementById('clear-playlist').addEventListener('click', () => {
-    playlist = [];
-    renderPlaylist();
-});
-</script>
-<script>
-// === SAVE PLAYLIST WITH TITLE & COVER ===
-const playlistTitleInput = document.getElementById('playlist-title');
-const playlistCoverImg = document.getElementById('playlist-cover');
-const coverUpload = document.getElementById('cover-upload');
-const saveButton = document.getElementById('save-playlist');
-const saveText = document.getElementById('save-text');
-const editingSlug = document.getElementById('editing-slug').value;
-
-let coverDataUrl = null;
-
-if (editingSlug) {
-    saveText.textContent = "Save changes";
-}
-
-// Cover uploaden
-coverUpload.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-        coverDataUrl = ev.target.result;
-        playlistCoverImg.src = coverDataUrl;
-    };
-    reader.readAsDataURL(file);
-});
-
-// Save (with overwrite confirmation)
-saveButton.addEventListener('click', async () => {
-    if (playlist.length === 0) {
-        alert("Your mixtape is empty!");
-        return;
-    }
-
-    const title = playlistTitleInput.value.trim() || "Unnamed Mixtape";
-
-    const playlistData = {
-        title: title,
-        created_at: new Date().toISOString(),
-        cover: coverDataUrl,
-        tracks: playlist.map(t => ({
+        playlist = mixtape.tracks.map(t => ({
             artist: t.artist,
             album: t.album,
             title: t.title,
             duration: t.duration,
             path: t.path,
-            filename: t.filename
-        }))
-    };
+            filename: t.filename || t.title + ".mp3"
+        }));
+        renderPlaylist();
+        {% endif %}
+    });
 
-    // If we're editing → ask to overwrite
-    if (editingSlug) {
-        const confirmOverwrite = confirm(`Overwrite "${title}"?`);
-        if (!confirmOverwrite) return;
-
-        playlistData.slug = editingSlug;  // Tell backend to overwrite this slug
-    }
-
-    try {
-        const response = await fetch('/editor/save', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(playlistData)
-        });
-        const data = await response.json();
-
-        if (data.success) {
-            const finalSlug = data.slug || editingSlug;
-
-            // Success toast
-            const toast = document.createElement('div');
-            toast.className = "toast align-items-center text-bg-success border-0 position-fixed bottom-0 end-0 m-4";
-            toast.style.zIndex = '1090';
-            toast.innerHTML = `
-                <div class="d-flex">
-                    <div class="toast-body">
-                        Mixtape ${editingSlug ? 'updated' : 'saved'} as <strong>${escapeHtml(data.title)}</strong><br>
-                        <a href="/share/${finalSlug}" class="text-white text-decoration-underline" target="_blank">Open public link →</a>
-                    </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-                </div>`;
-            document.body.appendChild(toast);
-            new bootstrap.Toast(toast).show();
-
-            // Update URL without reload
-            if (!editingSlug) {
-                window.history.replaceState({}, '', `/editor/${data.slug}`);
-                document.getElementById('editing-slug').value = data.slug;
-                saveText.textContent = "Save changes";
+    // Search
+    let timeout;
+    searchInput.addEventListener('input', () => {
+        clearTimeout(timeout);
+        document.getElementById('loading').classList.remove('visually-hidden');
+        timeout = setTimeout(() => {
+            const q = searchInput.value.trim();
+            if (q.length < 2) {
+                resultsDiv.innerHTML = '<p class="text-muted text-center my-5">Typ minimaal 2 tekens om te zoeken…</p>';
+                document.getElementById('loading').classList.add('visually-hidden');
+                return;
             }
+            fetch(`/editor/search?q=${encodeURIComponent(q)}`)
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('loading').classList.add('visually-hidden');
+                    renderResults(data);
+                })
+                .catch(err => {
+                    console.error(err);
+                    document.getElementById('loading').classList.add('visually-hidden');
+                });
+        }, 300);
+    });
 
-        } else {
-            alert("Error saving: " + (data.error || "Unknown error"));
-        }
-    } catch (e) {
-        console.error(e);
-        alert("Network error: " + e.message);
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
-});
 
-// Update cover when playlist changes
-const originalRenderPlaylist = renderPlaylist;
-renderPlaylist = function() {
-    originalRenderPlaylist();
-    updatePlaylistCover();
-};
+    function escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    function highlightText(text, query) {
+        if (!query.trim()) return escapeHtml(text);
+
+        const regex = new RegExp(`(${escapeRegExp(query.trim())})`, 'gi');
+        return escapeHtml(text).replace(regex, '<mark>$1</mark>');
+    }
+
+    function renderResults(data) {
+        if (data.length === 0) {
+            resultsDiv.innerHTML = '<p class="text-center text-muted my-5">Geen resultaten gevonden.</p>';
+            return;
+        }
+
+        resultsDiv.innerHTML = data.map(entry => {
+            // badges with reason hit
+            const badges = entry.reasons.map(r => {
+                const icons = { artist: 'bi-person-fill', album: 'bi-disc-fill', track: 'bi-music-note' };
+                const colors = { artist: 'success', album: 'warning', track: 'primary' };
+                return `<span class="badge bg-${colors[r.type]} me-1">
+                            <i class="bi ${icons[r.type]}"></i> ${escapeHtml(r.text)}
+                        </span>`;
+            }).join('');
+
+            const tracksHtml = entry.tracks.map(track => {
+                const highlighted = entry.highlighted_tracks?.find(h => h.original.title === track.title);
+                const title = highlighted ? highlighted.highlighted : track.title;
+
+                return `
+                <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                        <span class="track-title flex-grow-1">${title}</span>
+                        <span class="text-muted me-3">${track.duration}</span>
+                        <button class="btn btn-success btn-sm add-btn"
+                                data-artist="${escapeHtml(entry.artist)}"
+                                data-album="${escapeHtml(entry.album)}"
+                                data-title="${escapeHtml(track.title)}"
+                                data-duration="${track.duration}"
+                                data-path="${escapeHtml(track.path || '')}"
+                                data-filename="${escapeHtml(track.filename || track.title + '.mp3')}">  <!-- fallback filename -->
+                            <i class="bi bi-plus-lg"></i>
+                        </button>
+                    </li>`;
+            }).join('');
+
+            return `
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h3 class="h4 artist-name mb-0">${highlightText(entry.artist, searchInput.value)}</h3>
+                        <div>${badges}</div>
+                    </div>
+                    <h4 class="h5 album-title text-muted">${highlightText(entry.album, searchInput.value)}</h4>
+                    <ul class="list-unstyled mt-3">${tracksHtml}</ul>
+                </div>`;
+        }).join('');
+
+        // add-to-playlist buttons
+        document.querySelectorAll('.add-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const item = {
+                    artist: this.dataset.artist,
+                    album: this.dataset.album,
+                    title: this.dataset.title,
+                    duration: this.dataset.duration,
+                    path: this.dataset.path,
+                    filename: this.dataset.filename
+                };
+                addToPlaylist(item);
+            });
+        });
+    }
+
+    /* ==== PLAYLIST ==== */
+    function addToPlaylist(item) {
+        // Preventing duplicates
+        if (playlist.some(t =>
+            t.artist === item.artist &&
+            t.album === item.album &&
+            t.title === item.title &&
+            t.path === item.path)) return;
+
+        playlist.push(item);
+        renderPlaylist();
+    }
+
+</script>
+<script>
+    function renderPlaylist() {
+        playlistOl.innerHTML = playlist.map((item, idx) => `
+            <li class="d-flex align-items-center rounded p-3 mb-2 shadow-sm playlist-item
+            bg-body-tertiary border" data-index="${idx}">
+                <div class="drag-handle me-3 text-muted">⋮⋮</div>
+
+                <!-- Play knop -->
+                <button class="btn btn-success btn-sm me-2 play-track-btn"
+                        data-path="${encodeURIComponent(item.path || '')}"
+                        ${!item.path ? 'disabled title="Geen bestand"' : ''}>
+                    <i class="bi ${item.path ? 'bi-play-fill' : 'bi-ban'}"></i>
+                </button>
+
+                <div class="flex-grow-1">
+                    <strong>${escapeHtml(item.title)}</strong><br>
+                    <small class="text-muted">${escapeHtml(item.artist)} • ${escapeHtml(item.album)}</small>
+                </div>
+                <span class="text-muted me-3">${item.duration || "?:??"}</span>
+                <button class="btn btn-danger btn-sm remove-btn" data-index="${idx}">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </li>
+        `).join('');
+
+        playlistCount.textContent = `(${playlist.length})`;
+
+        // === PLAY BUTTONS ===
+        document.querySelectorAll('.play-track-btn').forEach(btn => {
+            btn.onclick = function () {
+                const path = this.dataset.path;
+                if (!path) return;
+
+                const player = document.getElementById('global-audio-player');
+                const container = document.getElementById('audio-player-container');
+
+                player.src = `/play/${path}`;
+                player.play().catch(e => console.error("Afspelen mislukt:", e));
+
+                container.style.display = 'block';
+
+                // Update titel + highlight
+                const item = playlist[this.closest('.playlist-item').dataset.index];
+                document.getElementById('now-playing-title').textContent = item.title;
+                document.getElementById('now-playing-artist').textContent = `${item.artist} • ${item.album}`;
+
+                document.querySelectorAll('.playlist-item').forEach(el =>
+                    el.classList.remove('bg-primary', 'text-white')
+                );
+                this.closest('.playlist-item').classList.add('bg-primary', 'text-white');
+            };
+        });
+
+        // Delete buttons
+        document.querySelectorAll('.remove-btn').forEach(btn => {
+            btn.onclick = () => {
+                playlist.splice(btn.dataset.index, 1);
+                renderPlaylist();
+            };
+        });
+    }
+
+    // Drag & drop
+    new Sortable(playlistOl, {
+        animation: 150,
+        ghostClass: 'playlist-ghost',
+        handle: '.drag-handle',
+        onEnd: evt => {
+            const moved = playlist.splice(evt.oldIndex, 1)[0];
+            playlist.splice(evt.newIndex, 0, moved);
+            renderPlaylist();
+        }
+    });
+
+    // Empty playlist
+    document.getElementById('clear-playlist').addEventListener('click', () => {
+        playlist = [];
+        renderPlaylist();
+    });
+</script>
+<script>
+    // === SAVE PLAYLIST WITH TITLE & COVER ===
+    const playlistTitleInput = document.getElementById('playlist-title');
+    const playlistCoverImg = document.getElementById('playlist-cover');
+    const coverUpload = document.getElementById('cover-upload');
+    const saveButton = document.getElementById('save-playlist');
+    const saveText = document.getElementById('save-text');
+    const editingSlug = document.getElementById('editing-slug').value;
+
+    let coverDataUrl = null;
+
+    if (editingSlug) {
+        saveText.textContent = "Save changes";
+    }
+
+    // Cover uploaden
+    coverUpload.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            coverDataUrl = ev.target.result;
+            playlistCoverImg.src = coverDataUrl;
+        };
+        reader.readAsDataURL(file);
+    });
+
+    // Save (with overwrite confirmation)
+    saveButton.addEventListener('click', async () => {
+        if (playlist.length === 0) {
+            alert("Your mixtape is empty!");
+            return;
+        }
+
+        const title = playlistTitleInput.value.trim() || "Unnamed Mixtape";
+
+        const playlistData = {
+            title: title,
+            created_at: new Date().toISOString(),
+            cover: coverDataUrl,
+            tracks: playlist.map(t => ({
+                artist: t.artist,
+                album: t.album,
+                title: t.title,
+                duration: t.duration,
+                path: t.path,
+                filename: t.filename
+            }))
+        };
+
+        // If we're editing → ask to overwrite
+        if (editingSlug) {
+            const confirmOverwrite = confirm(`Overwrite "${title}"?`);
+            if (!confirmOverwrite) return;
+
+            playlistData.slug = editingSlug;  // Tell backend to overwrite this slug
+        }
+
+        try {
+            const response = await fetch('/editor/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(playlistData)
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                const finalSlug = data.slug || editingSlug;
+
+                // Success toast
+                const toast = document.createElement('div');
+                toast.className = "toast align-items-center text-bg-success border-0 position-fixed bottom-0 end-0 m-4";
+                toast.style.zIndex = '1090';
+                toast.innerHTML = `
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            Mixtape ${editingSlug ? 'updated' : 'saved'} as <strong>${escapeHtml(data.title)}</strong><br>
+                            <a href="/share/${finalSlug}" class="text-white text-decoration-underline" target="_blank">Open public link →</a>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>`;
+                document.body.appendChild(toast);
+                new bootstrap.Toast(toast).show();
+
+                // Update URL without reload
+                if (!editingSlug) {
+                    window.history.replaceState({}, '', `/editor/${data.slug}`);
+                    document.getElementById('editing-slug').value = data.slug;
+                    saveText.textContent = "Save changes";
+                }
+
+            } else {
+                alert("Error saving: " + (data.error || "Unknown error"));
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Network error: " + e.message);
+        }
+    });
+
+    // Update cover when playlist changes
+    const originalRenderPlaylist = renderPlaylist;
+    renderPlaylist = function() {
+        originalRenderPlaylist();
+        updatePlaylistCover();
+    };
 </script>
 
-<div class="fixed-bottom bg-dark text-white p-3 shadow-lg" id="audio-player-container" style="display:none;">
-    <div class="container">
-        <div class="d-flex align-items-center">
-            <button id="close-player" class="btn btn-sm btn-outline-light me-3">×</button>
-            <div class="me-3">
-                <strong id="now-playing-title">Niets afgespeeld</strong><br>
-                <small id="now-playing-artist">Selecteer een nummer</small>
+    <div class="fixed-bottom bg-dark text-white p-3 shadow-lg" id="audio-player-container" style="display:none;">
+        <div class="container">
+            <div class="d-flex align-items-center">
+                <button id="close-player" class="btn btn-sm btn-outline-light me-3">×</button>
+                <div class="me-3">
+                    <strong id="now-playing-title">Niets afgespeeld</strong><br>
+                    <small id="now-playing-artist">Selecteer een nummer</small>
+                </div>
+                <audio id="global-audio-player" controls class="flex-grow-1"></audio>
             </div>
-            <audio id="global-audio-player" controls class="flex-grow-1"></audio>
         </div>
     </div>
-</div>
 
 <script>
-// Show player when something is played
-document.getElementById('global-audio-player')?.addEventListener('play', () => {
-    document.getElementById('audio-player-container').style.display = 'block';
-});
+    // Show player when something is played
+    document.getElementById('global-audio-player')?.addEventListener('play', () => {
+        document.getElementById('audio-player-container').style.display = 'block';
+    });
 
-document.getElementById('close-player')?.addEventListener('click', () => {
-    document.getElementById('global-audio-player').pause();
-    document.getElementById('audio-player-container').style.display = 'none';
-});
+    document.getElementById('close-player')?.addEventListener('click', () => {
+        document.getElementById('global-audio-player').pause();
+        document.getElementById('audio-player-container').style.display = 'none';
+    });
+</script>
+<script>
+    const addTrackToastEl = document.getElementById('addTrackToast');
+    const addTrackToast = new bootstrap.Toast(addTrackToastEl, { delay: 2000 });
+
+    // Modify addToPlaylist to show the toast
+    function addToPlaylist(item) {
+        if (playlist.some(t =>
+            t.artist === item.artist &&
+            t.album === item.album &&
+            t.title === item.title &&
+            t.path === item.path)) {
+            return;  // Already exists → no toast
+        }
+
+        playlist.push(item);
+        renderPlaylist();
+        addTrackToast.show();  // Show toast on successful add
+    }
 </script>
 {% endblock %}
