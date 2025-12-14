@@ -1,11 +1,9 @@
-import contextlib
 import sqlite3
 import time
-import json
-from datetime import datetime, timezone
+from contextlib import contextmanager, suppress
 from pathlib import Path
-from queue import Queue
-from threading import Event, Thread
+from queue import Empty, Queue
+from threading import Event, Lock, Thread
 from typing import Optional
 
 from tinytag import TinyTag
@@ -14,7 +12,7 @@ from watchdog.observers import Observer
 
 from logtools import get_logger
 
-from .indexing_status import set_indexing_status, clear_indexing_status
+from .indexing_status import clear_indexing_status, set_indexing_status
 
 logger = get_logger(__name__)
 
@@ -47,15 +45,108 @@ class CollectionExtractor:
             logger.info(f"Using existing database at {self.db_path}")
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
 
+        # Related to background indexing and monitoring
         self._stop_event = Event()
         self._observer: Observer | None = None
+        self._observer_lock = Lock()
+        self._observer_paused = False
+        self._observer_pause_lock = Lock()
 
         # Queue and thread for processing filesystem events
         self._event_queue: Queue = Queue()
         self._worker_thread: Optional[Thread] = None
+        self._worker_thread = Thread(target=self._process_queue, daemon=True)
+        self._ensure_schema()
         self._start_worker()
 
-        self._ensure_schema()
+
+    # --- Monitoring and Worker Management ---
+
+    def start_monitoring(self) -> None:
+        """Starts live monitoring of the music directory for file system changes.
+
+        Sets up a file system observer to watch for changes in the music collection and updates the database in real time.
+
+        Returns:
+            None
+        """
+        with self._observer_lock:
+            if self._observer is not None:
+                if self._observer.is_alive():
+                    logger.debug(
+                        "Filesystem monitoring already active; skipping restart."
+                    )
+                    return
+                else:
+                    logger.warning(
+                        "Found stopped filesystem observer; restarting."
+                    )
+                    with suppress(Exception):
+                        self._observer.stop()
+                        self._observer.join(timeout=5.0)
+                    self._observer = None
+
+            if not self.music_root.exists():
+                logger.warning(
+                    f"Music root {self.music_root} does not exist - skipping filesystem monitoring"
+                )
+                return
+
+            self._observer = Observer()
+            self._observer.schedule(
+                Watcher(self),
+                str(self.music_root),
+                recursive=True
+            )
+            self._observer.start()
+            logger.info("Live filesystem monitoring started")
+
+    def pause_monitoring(self) -> None:
+        """Pauses live monitoring of the music directory for file system changes.
+
+        Temporarily disables the file system observer, preventing updates to the database until monitoring is resumed.
+
+        Returns:
+            None
+        """
+        with self._observer_pause_lock:
+            self._observer_paused = True
+            logger.info("Filesystem monitoring paused")
+
+    def resume_monitoring(self) -> None:
+        """Resumes live monitoring of the music directory for file system changes.
+
+        Re-enables the file system observer, allowing updates to the database to continue after being paused.
+
+        Returns:
+            None
+        """
+        with self._observer_pause_lock:
+            self._observer_paused = False
+            logger.info("Filesystem monitoring resumed")
+
+    def stop_monitoring(self) -> None:
+        """
+        Stops live monitoring of the music directory and background worker thread.
+
+        Shuts down the file system observer and the background metadata worker if they are running,
+        releasing associated resources and logging the shutdown.
+
+        Returns:
+            None
+        """
+        with self._observer_lock:
+            if self._observer is not None:
+                with suppress(Exception):
+                    self._observer.stop()
+                    self._observer.join(timeout=5.0)
+                self._observer = None
+                logger.info("Filesystem monitoring stopped")
+
+        self._stop_event.set()
+        if self._worker_thread:
+            self._worker_thread.join(timeout=5.0)
+            logger.info("Background metadata worker stopped")
 
     def _start_worker(self) -> None:
         """
@@ -63,49 +154,283 @@ class CollectionExtractor:
 
         Initializes and starts a daemon thread that processes the event queue for metadata extraction and database updates.
         """
-        self._worker_thread = Thread(target=self._process_queue, daemon=True)
         self._worker_thread.start()
-        logger.info("Background metadata worker started")
+        if getattr(self, "_background_task_running", False):
+            return
+        self._background_task_running = True
+
+        def indexing_task():
+            try:
+                if getattr(self, "_needs_initial_index", False):
+                    self._run_background_rebuild()
+                elif getattr(self, "_needs_resync", False):
+                    self._run_background_resync()
+                clear_indexing_status(self.data_root)  # Clear status after completion
+                logger.info("Background indexing complete.")
+            except Exception as e:
+                logger.error(f"Background indexing failed: {e}")
+                clear_indexing_status(self.data_root)  # Clear on error too
+            finally:
+                self._background_task_running = False
+
+        Thread(target=indexing_task, daemon=True).start()
 
     def _process_queue(self) -> None:
-        """
-        Processes filesystem events from the event queue in a background thread.
+        """Processes the event queue for file system changes and indexes supported files.
 
-        Handles file creation, modification, movement, and deletion events by updating the music database accordingly.
-        Skips unsupported file types and directories, and continues processing until the stop event is set.
+        Continuously retrieves file system events from the queue, checks if the file extension is supported,
+        and enqueues the file for indexing until stopped.
+
+        Returns:
+            None
         """
         while not self._stop_event.is_set():
             try:
-                # Wait up to 1 second for next event
-                event = self._event_queue.get(timeout=1.0)
-                path = Path(
-                    event.src_path if hasattr(event, "src_path") else event.dest_path
-                )
-
-                if event.is_directory or path.suffix.lower() not in self.SUPPORTED_EXTS:
-                    self._event_queue.task_done()
-                    continue
-
-                # Delete case (deleted or moved away)
-                if event.event_type in ("deleted", "moved") and hasattr(
-                    event, "src_path"
-                ):
-                    with self.get_conn() as conn:
-                        conn.execute(
-                            "DELETE FROM tracks WHERE path = ?", (event.src_path,)
-                        )
-                        conn.commit()
-                    logger.debug(f"Removed from DB: {event.src_path}")
-                elif path.exists():
-                    try:
-                        self._index_file_path_queued(path)
-                        logger.debug(f"Indexed: {path}")
-                    except Exception as e:
-                        logger.warning(f"Failed to index {path}: {e}")
-
-                self._event_queue.task_done()
-            except Exception:  # Empty exception = timeout, loop again
+                event = self._event_queue.get(timeout=1)
+            except Empty:
                 continue
+            path = Path(event.src_path)
+
+            if path.suffix.lower() in self.SUPPORTED_EXTS:
+                self._enqueue_index_file(path)
+
+            self._event_queue.task_done()
+
+    # --- Database and Schema Management ---
+
+    def get_conn(self) -> sqlite3.Connection:
+        """Creates and returns a new SQLite database connection.
+
+        Opens a connection to the music collection database and sets the row factory for named access. Returns the connection object for use in database operations.
+
+        Returns:
+            sqlite3.Connection: A connection object to the music collection database.
+        """
+        conn = sqlite3.connect(
+            self.db_path, timeout=30.0
+        )  # Increase timeout further as backup
+        conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA journal_mode=WAL;")
+        return conn
+
+    def _ensure_schema(self) -> None:
+        """Ensures the database schema for the music collection exists.
+
+        Creates the tracks table and necessary indexes if they do not already exist in the database. Adds the mtime column for sync checking if it is missing.
+
+        Returns:
+            None
+        """
+        with self.get_conn() as conn:
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS tracks (
+                    path TEXT PRIMARY KEY,
+                    filename TEXT,
+                    artist TEXT,
+                    album TEXT,
+                    title TEXT,
+                    albumartist TEXT,
+                    genre TEXT,
+                    year INTEGER,
+                    duration REAL,
+                    mtime REAL
+                )
+            """)
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_artist ON tracks(artist COLLATE NOCASE)"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_album  ON tracks(album  COLLATE NOCASE)"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_title  ON tracks(title  COLLATE NOCASE)"
+            )
+
+            # Add mtime column if not exists (for sync checking)
+            with suppress(sqlite3.OperationalError):
+                conn.execute("ALTER TABLE tracks ADD COLUMN mtime REAL")
+
+    def count_tracks(self) -> int:
+        """Returns the total number of tracks in the music collection.
+
+        Counts and returns the number of track records currently stored in the database.
+
+        Returns:
+            int: The total number of tracks in the collection.
+        """
+        with self.get_conn() as conn:
+            return conn.execute("SELECT COUNT(*) FROM tracks").fetchone()[0]
+
+    # --- Indexing and Synchronization ---
+
+    def rebuild(self) -> None:
+        """Performs a full rebuild of the music collection database.
+
+        Scans the music directory for all supported files, clears the existing database, indexes all found tracks, and restarts monitoring after completion.
+
+        Returns:
+            None
+        """
+        logger.info(
+            "Full rebuild started - This could take a while for large collections..."
+        )
+        with self.rebuild_context():
+            set_indexing_status(
+                data_root=self.data_root,
+                status="rebuilding",
+                total=0,
+                current=0,
+            )
+            start = time.time()
+            files = [
+                p
+                for p in self.music_root.rglob("*")
+                if p.is_file() and p.suffix.lower() in self.SUPPORTED_EXTS
+            ]
+            logger.info(f"→ {len(files):,} music files found. Start indexing...")
+            with self.get_conn() as conn:
+                self._clear_tracks_table(conn)
+                count = self._index_files_for_rebuild(files)
+                conn.commit()
+
+        clear_indexing_status(data_root=self.data_root)
+        logger.info(
+            f"Full rebuild complete: {count:,} tracks in {time.time() - start:.1f}s"
+        )
+
+    def resync(self) -> None:
+        """Synchronizes the database with the current state of the file system.
+
+        Compares the database records with the files present in the music directory, adding new files and removing records for deleted files.
+        Logs the number of tracks added and removed.
+
+        Returns:
+            None
+        """
+        start = time.time()
+        db_paths = self._get_db_paths()
+        fs_paths = self._get_fs_paths()
+
+        to_add = fs_paths - db_paths
+        to_remove = db_paths - fs_paths
+
+        self._remove_missing_tracks(to_remove)
+        self._add_new_tracks(to_add)
+
+        added = len(to_add)
+        removed = len(to_remove)
+        logger.info(
+            f"Sync complete: +{added:,} / -{removed:,} tracks ({time.time() - start:.1f}s)"
+        )
+
+    def is_synced_with_filesystem(self, sample_size: int = 200) -> bool:
+        """Checks if the database is in sync with the file system.
+
+        Randomly samples tracks from the database and verifies that each file exists and its modification time matches the stored value.
+        Returns True if all sampled files are in sync, otherwise False.
+
+        Args:
+            sample_size (int): The number of tracks to sample for sync checking.
+
+        Returns:
+            bool: True if the sampled files are in sync with the database, False otherwise.
+        """
+        with self.get_conn() as conn:
+            rows = conn.execute(
+                "SELECT path, mtime FROM tracks ORDER BY RANDOM() LIMIT ?",
+                (sample_size,),
+            ).fetchall()
+            for row in rows:
+                path = Path(row["path"])
+                if not path.exists():
+                    return False
+                if row["mtime"] is None or path.stat().st_mtime != row["mtime"]:
+                    return False
+        return True
+
+    def _run_background_rebuild(self):
+        """
+        Runs a full rebuild of the music collection in the background.
+
+        Triggers the status update, performs the rebuild, and updates the internal state.
+        """
+        logger.info("Starting background full rebuild...")
+        self._trigger_status("rebuilding")
+        self._extractor.rebuild()
+        self._needs_initial_index = False
+
+    def _run_background_resync(self) -> None:
+        """
+        Runs a resynchronization of the music collection in the background.
+
+        Triggers the status update, performs the resync, and updates the internal state.
+        """
+        logger.info("Starting background resync...")
+        self._trigger_status("resyncing")
+        self._extractor.resync()
+        self._needs_resync = False
+
+    def _trigger_status(self, status: str):
+        """
+        Triggers the indexing status update.
+
+        Sets the initial status in the JSON file before starting indexing.
+        """
+        set_indexing_status(data_root=self.data_root, status=status, total=0, current=0)
+
+    # --- File Indexing Helpers ---
+
+    def _index_file_direct(self, path: Path) -> None:
+        """Indexes a single music file directly and updates the database with its metadata.
+
+        Extracts metadata from the given file and inserts or updates the corresponding record in the tracks table.
+        If metadata extraction fails, the file is still processed with available information.
+
+        Args:
+            path (Path): The path to the music file to index.
+
+        Returns:
+            None
+        """
+        try:
+            tag = TinyTag.get(path, tags=True, duration=True)
+        except Exception as e:
+            logger.warning(f"Failed to extract tags from {path}: {e}")
+            tag = None
+
+        artist = self._extract_artist(tag, path)
+        album = self._extract_album(tag, path)
+        title = self._extract_title(tag, path)
+        year = self._safe_int_year(getattr(tag, "year", None))
+        duration = getattr(tag, "duration", None)
+        albumartist = getattr(tag, "albumartist", None)
+        genre = getattr(tag, "genre", None)
+        mtime = path.stat().st_mtime
+
+        conn = self.get_conn()
+        try:
+            conn.execute(
+                """
+                INSERT OR REPLACE INTO tracks
+                (path, filename, artist, album, title, albumartist, genre, year, duration, mtime)
+                VALUES (?,?,?,?,?,?,?,?,?,?)
+                """,
+                (
+                    str(path),
+                    path.name,
+                    artist,
+                    album,
+                    title,
+                    albumartist,
+                    genre,
+                    year,
+                    duration,
+                    mtime,
+                ),
+            )
+            conn.commit()
+        finally:
+            conn.close()
 
     def _index_file_path_queued(self, path: Path) -> None:
         """
@@ -157,201 +482,55 @@ class CollectionExtractor:
             )
             conn.commit()
 
-    def start_monitoring(self) -> None:
-        """Starts live monitoring of the music directory for file system changes.
+    def _index_file(self, conn: Optional[sqlite3.Connection], path: Path) -> None:
 
-        Sets up a file system observer to watch for changes in the music collection and updates the database in real time.
-
-        Returns:
-            None
-        """
-        if self._observer is not None:
-            return
-
-        if not self.music_root.exists():
+        if conn is None:
+            conn = self.get_conn()
+            should_close = True
+        else:
+            should_close = False
+        tag = None
+        try:
+            tag = TinyTag.get(path, tags=True, duration=True)
+        except Exception as e:
             logger.warning(
-                f"Music root {self.music_root} does not exist - skipping filesystem monitoring"
-            )
-            return
-
-        self._observer = Observer()
-        self._observer.schedule(Watcher(self), str(self.music_root), recursive=True)
-        self._observer.start()
-        logger.info("Live filesystem monitoring started")
-
-    def stop_monitoring(self) -> None:
-        """
-        Stops live monitoring of the music directory and background worker thread.
-
-        Shuts down the file system observer and the background metadata worker if they are running,
-        releasing associated resources and logging the shutdown.
-
-        Returns:
-            None
-        """
-        if self._observer is not None:
-            self._observer.stop()
-            self._observer.join()
-            self._observer = None
-            logger.info("Filesystem monitoring stopped")
-
-        # Stop worker thread
-        self._stop_event.set()
-        if self._worker_thread:
-            self._worker_thread.join(timeout=5.0)
-            logger.info("Background metadata worker stopped")
-
-    def get_conn(self) -> sqlite3.Connection:
-        """Creates and returns a new SQLite database connection.
-
-        Opens a connection to the music collection database and sets the row factory for named access. Returns the connection object for use in database operations.
-
-        Returns:
-            sqlite3.Connection: A connection object to the music collection database.
-        """
-        conn = sqlite3.connect(
-            self.db_path, timeout=30.0
-        )  # Increase timeout further as backup
-        conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA journal_mode=WAL;")
-        return conn
-
-    def _ensure_schema(self) -> None:
-        """Ensures the database schema for the music collection exists.
-
-        Creates the tracks table and necessary indexes if they do not already exist in the database. Adds the mtime column for sync checking if it is missing.
-
-        Returns:
-            None
-        """
-        with self.get_conn() as conn:
-            conn.execute("""
-                CREATE TABLE IF NOT EXISTS tracks (
-                    path TEXT PRIMARY KEY,
-                    filename TEXT,
-                    artist TEXT,
-                    album TEXT,
-                    title TEXT,
-                    albumartist TEXT,
-                    genre TEXT,
-                    year INTEGER,
-                    duration REAL,
-                    mtime REAL
-                )
-            """)
-            conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_artist ON tracks(artist COLLATE NOCASE)"
-            )
-            conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_album  ON tracks(album  COLLATE NOCASE)"
-            )
-            conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_title  ON tracks(title  COLLATE NOCASE)"
+                f"Failed to extract tags from {path}: {type(e).__name__}: {e}",
+                exc_info=True,
             )
 
-            # Add mtime column if not exists (for sync checking)
-            with contextlib.suppress(sqlite3.OperationalError):
-                conn.execute("ALTER TABLE tracks ADD COLUMN mtime REAL")
+        artist = self._extract_artist(tag, path)
+        album = self._extract_album(tag, path)
+        title = self._extract_title(tag, path)
+        year = self._safe_int_year(getattr(tag, "year", None))
+        duration = getattr(tag, "duration", None)
+        albumartist = getattr(tag, "albumartist", None)
+        genre = getattr(tag, "genre", None)
+        mtime = path.stat().st_mtime
 
-    def count_tracks(self) -> int:
-        """Returns the total number of tracks in the music collection.
-
-        Counts and returns the number of track records currently stored in the database.
-
-        Returns:
-            int: The total number of tracks in the collection.
-        """
-        with self.get_conn() as conn:
-            return conn.execute("SELECT COUNT(*) FROM tracks").fetchone()[0]
-
-    def is_synced_with_filesystem(self, sample_size: int = 200) -> bool:
-        """Checks if the database is in sync with the file system.
-
-        Randomly samples tracks from the database and verifies that each file exists and its modification time matches the stored value.
-        Returns True if all sampled files are in sync, otherwise False.
-
-        Args:
-            sample_size (int): The number of tracks to sample for sync checking.
-
-        Returns:
-            bool: True if the sampled files are in sync with the database, False otherwise.
-        """
-        with self.get_conn() as conn:
-            rows = conn.execute(
-                "SELECT path, mtime FROM tracks ORDER BY RANDOM() LIMIT ?",
-                (sample_size,),
-            ).fetchall()
-            for row in rows:
-                path = Path(row["path"])
-                if not path.exists():
-                    return False
-                if row["mtime"] is None or path.stat().st_mtime != row["mtime"]:
-                    return False
-        return True
-
-    def set_indexing_status(
-        self, status: str, progress: float = 0.0, total: int = 0, current: int = 0
-    ):
-        """
-        Sets the current indexing status and progress for the music collection.
-
-        Writes a JSON file with the current status, progress, total, and current values, along with a timestamp, to track indexing operations.
-
-        Args:
-            status: The current status string ("idle", "scanning", "rebuilding").
-            progress: The progress value as a float.
-            total: The total number of items to process.
-            current: The current item index being processed.
-
-        Returns:
-            None
-        """
-        status_file = Path(self.db_path.parent) / "indexing_status.json"
-        with open(status_file, "w") as f:
-            json.dump(
-                {
-                    "status": status,  # "idle", "scanning", "rebuilding"
-                    "progress": progress,
-                    "total": total,
-                    "current": current,
-                    "started_at": datetime.now(timezone.utc).isoformat(),
-                },
-                f,
-            )
-
-    def clear_indexing_status(self):
-        """
-        Clears the current indexing status for the music collection.
-
-        Removes the indexing status JSON file if it exists, resetting any progress or status tracking.
-        """
-        status_file = Path(self.db_path.parent) / "indexing_status.json"
-        status_file.unlink(missing_ok=True)
-
-    def resync(self) -> None:
-        """Synchronizes the database with the current state of the file system.
-
-        Compares the database records with the files present in the music directory, adding new files and removing records for deleted files.
-        Logs the number of tracks added and removed.
-
-        Returns:
-            None
-        """
-        start = time.time()
-        db_paths = self._get_db_paths()
-        fs_paths = self._get_fs_paths()
-
-        to_add = fs_paths - db_paths
-        to_remove = db_paths - fs_paths
-
-        self._remove_missing_tracks(to_remove)
-        self._add_new_tracks(to_add)
-
-        added = len(to_add)
-        removed = len(to_remove)
-        logger.info(
-            f"Sync complete: +{added:,} / -{removed:,} tracks ({time.time() - start:.1f}s)"
+        conn.execute(
+            """
+            INSERT OR REPLACE INTO tracks
+            (path, filename, artist, album, title, albumartist, genre, year, duration, mtime)
+            VALUES (?,?,?,?,?,?,?,?,?,?)
+        """,
+            (
+                str(path),
+                path.name,
+                artist,
+                album,
+                title,
+                albumartist,
+                genre,
+                year,
+                duration,
+                mtime,
+            ),
         )
+        if should_close:
+            conn.commit()
+            conn.close()
+
+    # --- Synchronization Helpers ---
 
     def _get_db_paths(self) -> set:
         """
@@ -413,47 +592,26 @@ class CollectionExtractor:
             None
         """
         logger.info("Adding newly found tracks...")
-        set_indexing_status("rebuilding", total=0, current=0)
+        set_indexing_status(
+            data_root=self.data_root, status="rebuilding", total=0, current=0
+        )
         if not to_add:
             return
         with self.get_conn() as conn:
             for i, path_str in enumerate(to_add):
                 try:
-                    self._index_file(Path(path_str))
+                    self._index_file(conn=conn, path=Path(path_str))
                 except Exception as e:
                     logger.warning(f"Failed to index {path_str}: {e}")
                 if i % 200 == 0:  # update every 200 files
-                    set_indexing_status("rebuilding", total=len(to_add), current=i)
+                    set_indexing_status(
+                        data_root=self.data_root,
+                        status="rebuilding",
+                        total=len(to_add),
+                        current=i,
+                    )
             conn.commit()
             clear_indexing_status()
-
-    def rebuild(self) -> None:
-        """Scans and reindexes the entire music collection.
-
-        Removes all existing track records and rebuilds the index from the music root directory. Prints progress and summary information to the console.
-
-        Returns:
-            None
-        """
-        logger.info(
-            "Full rebuild started - This could take a while for large collections..."
-        )
-        self.set_indexing_status("rebuilding", progress=0.0)
-        start = time.time()
-        files = [
-            p
-            for p in self.music_root.rglob("*")
-            if p.is_file() and p.suffix.lower() in self.SUPPORTED_EXTS
-        ]
-        logger.info(f"→ {len(files):,} music files found. Start indexing...")
-        with self.get_conn() as conn:
-            self._clear_tracks_table(conn)
-            count = self._index_files_for_rebuild(conn, files)
-            conn.commit()
-            clear_indexing_status()
-        logger.info(
-            f"Full rebuild complete: {count:,} tracks in {time.time() - start:.1f}s"
-        )
 
     def _clear_tracks_table(self, conn: sqlite3.Connection) -> None:
         """
@@ -469,9 +627,7 @@ class CollectionExtractor:
         """
         conn.execute("DELETE FROM tracks")
 
-    def _index_files_for_rebuild(
-        self, conn: sqlite3.Connection, files: list[Path]
-    ) -> int:
+    def _index_files_for_rebuild(self, files: list[Path]) -> int:
         """
         Indexes all files for the rebuild process and returns the count of indexed tracks.
 
@@ -486,74 +642,48 @@ class CollectionExtractor:
             int: The total number of tracks indexed.
         """
         count = 0
-        for i, fp in enumerate(files):
-            try:
-                self._index_file(conn, fp)
-                count += 1
-            except Exception as e:
-                logger.warning(f"Skip {fp}: {e}")
+        conn = self.get_conn()
+        total_files = len(files)
+        for i, path_file in enumerate(files):
+            indexed = self._try_index_file(conn, path_file)
+            count += indexed
             if count % 5000 == 0:
                 logger.info(f"Indexed {count:,} tracks...")
             if i % 100 == 0:
-                set_indexing_status(
-                    "rebuilding",
-                    progress=i / len(files),
-                    total=len(files),
-                    current=i,
-                )
-        return count
-
-    def _index_file(self, path: Path) -> None:
-        """Indexes a single music file and updates the database with its metadata.
-
-        Extracts metadata from the given file and inserts or updates the corresponding record in the tracks table. If metadata extraction fails, the file is skipped.
-
-        Args:
-            path: The path to the music file to index.
-
-        Returns:
-            None
-        """
-        tag = None
-        try:
-            tag = TinyTag.get(path, tags=True, duration=True)
-        except Exception as e:
-            logger.warning(
-                f"Failed to extract tags from {path}: {type(e).__name__}: {e}",
-                exc_info=True,
-            )
-
-        artist = self._extract_artist(tag, path)
-        album = self._extract_album(tag, path)
-        title = self._extract_title(tag, path)
-        year = self._safe_int_year(getattr(tag, "year", None))
-        duration = getattr(tag, "duration", None)
-        albumartist = getattr(tag, "albumartist", None)
-        genre = getattr(tag, "genre", None)
-        mtime = path.stat().st_mtime
-
-        conn = self.get_conn()
-        conn.execute(
-            """
-            INSERT OR REPLACE INTO tracks
-            (path, filename, artist, album, title, albumartist, genre, year, duration, mtime)
-            VALUES (?,?,?,?,?,?,?,?,?,?)
-        """,
-            (
-                str(path),
-                path.name,
-                artist,
-                album,
-                title,
-                albumartist,
-                genre,
-                year,
-                duration,
-                mtime,
-            ),
-        )
+                self._update_rebuild_status(total_files, i)
         conn.commit()
         conn.close()
+        return count
+
+    def _try_index_file(self, conn: sqlite3.Connection, path_file: Path) -> int:
+        """Attempts to index a single file and logs any exception.
+
+        Tries to index the given file using the provided database connection. Returns 1 if successful, or 0 if an exception occurs.
+
+        Args:
+            conn (sqlite3.Connection): The SQLite database connection.
+            path_file (Path): The path to the music file to index.
+
+        Returns:
+            int: 1 if indexing succeeded, 0 otherwise.
+        """
+        try:
+            self._index_file(conn=conn, path=path_file)
+            return 1
+        except Exception as e:
+            logger.warning(f"Skip {path_file}: {e}")
+            return 0
+
+    def _update_rebuild_status(self, total: int, current: int) -> None:
+        """Updates the indexing status during a rebuild."""
+        set_indexing_status(
+            data_root=self.data_root,
+            status="rebuilding",
+            total=total,
+            current=current,
+        )
+
+    # --- Metadata Extraction Helpers ---
 
     def _safe_int_year(self, value) -> int | None:
         """Converts a value to an integer year if possible.
@@ -591,8 +721,7 @@ class CollectionExtractor:
         return (artist or "Unknown").strip()
 
     def _extract_album(self, tag: object, path: Path) -> str:
-        """
-        Extracts the album name from tag or path.
+        """Extracts the album name from tag or path.
 
         Returns the album name as a string, using tag metadata or directory names as fallback. If no album is found, returns 'Unknown'.
 
@@ -603,10 +732,13 @@ class CollectionExtractor:
         Returns:
             str: The extracted album name.
         """
+        # Configurable set of ignored directory names for album extraction fallback
+        ignored_album_dirs = getattr(self, "ignored_album_dirs", {"", ".", "..", "Music", "music"})
         album = getattr(tag, "album", None)
         if not album:
             album = path.parent.name
-            if album in {"", ".", "..", "Music", "music"} and len(path.parents) >= 3:
+            # Expand fallback to use configurable set, allowing for localization/customization
+            if album in ignored_album_dirs and len(path.parents) >= 3:
                 album = path.parent.parent.name
         return (album or "Unknown").strip()
 
@@ -624,6 +756,25 @@ class CollectionExtractor:
             str: The extracted track title.
         """
         return (getattr(tag, "title", None) or path.stem or "Unknown").strip()
+
+    # --- Context Managers ---
+    @contextmanager
+    def rebuild_context(self):
+        """Context manager for safely rebuilding the music collection database.
+
+        Pauses live monitoring during the rebuild process and ensures monitoring is resumed after completion, even if an error occurs.
+
+        Yields:
+            None
+        """
+        logger.info("Entering rebuild context")
+        self.pause_monitoring()
+
+        try:
+            yield
+        finally:
+            self.resume_monitoring()
+            logger.info("Exiting rebuild context")
 
 
 class Watcher(FileSystemEventHandler):
@@ -643,15 +794,25 @@ class Watcher(FileSystemEventHandler):
         self.extractor = extractor
         super().__init__()
 
-    def on_any_event(self, event: FileSystemEvent) -> None:
-        """Handles any file system event for the music collection.
 
-        Responds to file creation, modification, movement, or deletion events by updating the music database accordingly. Skips directories and unsupported file types.
+    def on_any_event(self, event: FileSystemEvent) -> None:
+        """Handles any file system event and queues it for processing.
+
+        Checks if monitoring is paused and, if not, adds the event to the extractor's event queue for further handling.
 
         Args:
-            event: The file system event to handle.
+            event (FileSystemEvent): The file system event to handle.
 
         Returns:
             None
         """
-        self.extractor._event_queue.put(event)
+        if self.extractor._observer_paused:
+            return
+
+        if event.is_directory:
+            return
+
+        path = Path(event.src_path)
+        if path.suffix.lower() in self.extractor.SUPPORTED_EXTS:
+            # Index directly on the watchdog thread — it's safe and simple
+            self.extractor._index_file_direct(path)

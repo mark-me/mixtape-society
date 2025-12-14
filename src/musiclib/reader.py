@@ -101,7 +101,7 @@ class MusicCollection:
         Triggers the status update, performs the rebuild, and updates the internal state.
         """
         logger.info("Starting background full rebuild...")
-        self._trigger_status("rebuilding")
+        self._extractor._trigger_status("rebuilding")
         self._extractor.rebuild()
         self._needs_initial_index = False
 
@@ -114,7 +114,7 @@ class MusicCollection:
         Triggers the status update, performs the resync, and updates the internal state.
         """
         logger.info("Starting background resync...")
-        self._trigger_status("resyncing")
+        self._extractor._trigger_status("resyncing")
         self._extractor.resync()
         self._needs_resync = False
 

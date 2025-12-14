@@ -19,6 +19,7 @@ from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
+from auth import check_auth
 from config import DevelopmentConfig, ProductionConfig, TestConfig
 from logtools import get_logger, setup_logging
 from mixtape_manager import MixtapeManager
@@ -37,6 +38,7 @@ ENV = os.getenv("APP_ENV", "development")
 config = CONFIG_MAP.get(ENV, DevelopmentConfig)
 config.ensure_dirs()
 
+
 log_dir = config.DATA_ROOT / "logs"
 setup_logging(
     dir_output=str(log_dir),
@@ -51,6 +53,7 @@ limiter = Limiter(
     default_limits=["200 per day", "50 per hour"],
 )
 app.secret_key = config.PASSWORD
+app.config["DATA_ROOT"] = config.DATA_ROOT
 CORS(app)  # This adds Access-Control-Allow-Origin: * to ALL responses
 
 # Put this right after setup_logging(...)
@@ -89,16 +92,18 @@ logger.warning("Users are responsible for the content they load into the system.
 @app.route("/")
 def landing() -> Response:
     """
-    Renders the landing page or indexing status page based on current indexing state.
+    Renders the landing page, indexing progress, or redirects authenticated users.
 
-    If the indexing status file exists and indicates scanning or rebuilding, renders the indexing status page. Otherwise, renders the normal landing page.
+    Checks for ongoing indexing and shows progress if active. If no indexing and authenticated, redirects to mixtapes. Otherwise, shows the login page.
 
     Returns:
-        Response: The Flask response object containing the rendered page.
+        Response: The appropriate rendered template or redirect.
     """
-    status = get_indexing_status(config.DATA_ROOT)  # <-- pass the active config's DATA_ROOT
+    status = get_indexing_status(config.DATA_ROOT)
     if status and status["status"] in ("rebuilding", "resyncing"):
         return render_template("indexing.html", status=status)
+    if check_auth():
+        return redirect("/mixtapes")
     return render_template("landing.html")
 
 
@@ -114,10 +119,11 @@ def login() -> Response:
     Returns:
         Response: The Flask response object for the appropriate redirect.
     """
-    if request.form.get("password") == config.PASSWORD:
+    password = request.form.get("password")
+    if password == config.PASSWORD:
         session["authenticated"] = True
-        return redirect("/mixtapes")
-    flash("Verkeerd wachtwoord")
+    else:
+        flash("Invalid password", "danger")
     return redirect("/")
 
 
