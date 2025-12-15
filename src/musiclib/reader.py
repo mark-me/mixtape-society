@@ -2,6 +2,7 @@ import re
 from pathlib import Path
 from threading import Thread
 from typing import Any
+from sqlite3 import Connection
 
 from logtools import get_logger
 
@@ -11,6 +12,7 @@ from .indexing_status import clear_indexing_status
 logger = get_logger(__name__)
 
 _STARTUP_DONE = False
+
 
 class MusicCollection:
     """
@@ -65,7 +67,7 @@ class MusicCollection:
     # Startup logic
     # =========================
 
-    def _start_background_startup_job(self):
+    def _start_background_startup_job(self) -> None:
         """
         Starts a background thread to perform initial indexing of the music collection.
 
@@ -98,7 +100,6 @@ class MusicCollection:
 
         Thread(target=task, daemon=True).start()
 
-
     # =========================
     # Public maintenance API
     # =========================
@@ -119,7 +120,7 @@ class MusicCollection:
     # Read-only DB helpers
     # =========================
 
-    def _get_conn(self):
+    def _get_conn(self) -> Connection:
         """
         Returns a read-only SQLite connection to the music database.
 
@@ -139,7 +140,9 @@ class MusicCollection:
     # Search API (unchanged semantics)
     # =========================
 
-    def search_grouped(self, query: str, limit: int = 20) -> dict[str, list[dict[str, Any]]]:
+    def search_grouped(
+        self, query: str, limit: int = 20
+    ) -> dict[str, list[dict[str, Any]]]:
         """
         Searches for artists, albums, and tracks matching the query and groups results by type.
 
@@ -169,14 +172,14 @@ class MusicCollection:
             "tracks": tracks,
         }
 
-    def _search_artists(self, conn, starts: str, limit: int):
+    def _search_artists(self, conn: Connection, starts: str, limit: int) -> list[dict]:
         """
         Searches for artists in the database matching the given prefix.
 
         Returns a list of artist dictionaries, each including associated albums, for use in grouped search results.
 
         Args:
-            conn: The SQLite database connection.
+            conn (sqlite3.Connection): The SQLite database connection.
             starts (str): The prefix to match artist names.
             limit (int): The maximum number of artists to return.
 
@@ -199,7 +202,7 @@ class MusicCollection:
 
         return artists
 
-    def _search_artist_albums(self, conn, artist: str):
+    def _search_artist_albums(self, conn, artist: str) -> list[dict]:
         """
         Searches for albums by a specific artist in the database.
 
@@ -227,14 +230,14 @@ class MusicCollection:
 
         return albums
 
-    def _search_album_tracks(self, conn, artist: str, album: str):
+    def _search_album_tracks(self, conn: Connection, artist: str, album: str) -> list[dict]:
         """
         Searches for tracks in the database by a specific artist and album.
 
         Returns a list of track dictionaries with title, relative path, filename, and formatted duration for use in search results.
 
         Args:
-            conn: The SQLite database connection.
+            conn (sqlite3.Connection): The SQLite database connection.
             artist (str): The artist name to match tracks for.
             album (str): The album name to match tracks for.
 
@@ -260,7 +263,29 @@ class MusicCollection:
             for r in cur
         ]
 
-    def _search_albums(self, conn, like, starts, limit, artists):
+    def _search_albums(
+        self,
+        conn: Connection,
+        like: str,
+        starts: str,
+        limit: int,
+        artists: list[dict]
+    ) -> list[dict]:
+        """
+        Searches for albums in the database matching the query, excluding those by already matched artists.
+
+        Returns a list of album dictionaries, each including associated tracks, for use in grouped search results.
+
+        Args:
+            conn (sqlite3.Connection): The SQLite database connection.
+            like (str): The SQL LIKE pattern for matching album names.
+            starts (str): The SQL LIKE pattern for matching album names at the start.
+            limit (int): The maximum number of albums to return.
+            artists (list[dict]): A list of artist dictionaries to exclude from results.
+
+        Returns:
+            list[dict]: A list of album dictionaries with associated tracks.
+        """
         skip = {a["artist"].lower() for a in artists}
         params = [like, starts]
 
@@ -269,7 +294,7 @@ class MusicCollection:
             WHERE album LIKE ? COLLATE NOCASE
         """
         if skip:
-            sql += f' AND lower(artist) NOT IN ({",".join("?" * len(skip))})'
+            sql += f" AND lower(artist) NOT IN ({','.join('?' * len(skip))})"
             params.extend(skip)
 
         sql += " ORDER BY album LIKE ? DESC, album COLLATE NOCASE LIMIT ?"
@@ -283,19 +308,27 @@ class MusicCollection:
 
         return albums
 
-    def _search_tracks(self, conn, like, starts, limit, artists, albums):
+    def _search_tracks(
+        self,
+        conn: Connection,
+        like: str,
+        starts: str,
+        limit: int,
+        artists: list[dict],
+        albums: list[dict]
+    ) -> list[dict]:
         """
         Searches for tracks in the database matching the query, excluding those by already matched artists and albums.
 
         Returns a list of track dictionaries with metadata for use in grouped search results.
 
         Args:
-            conn: The SQLite database connection.
-            like: The SQL LIKE pattern for matching track titles.
-            starts: The SQL LIKE pattern for matching track titles at the start.
-            limit: The maximum number of tracks to return.
-            artists: A list of artist dictionaries to exclude from results.
-            albums: A list of album dictionaries to exclude from results.
+            conn (sqlite3.Connection): The SQLite database connection.
+            like (str): The SQL LIKE pattern for matching track titles.
+            starts (str): The SQL LIKE pattern for matching track titles at the start.
+            limit (int): The maximum number of tracks to return.
+            artists (list[dict]): A list of artist dictionaries to exclude from results.
+            albums (list[dict]): A list of album dictionaries to exclude from results.
 
         Returns:
             list[dict]: A list of track dictionaries with metadata.
@@ -311,7 +344,7 @@ class MusicCollection:
         """
 
         if skip:
-            sql += f' AND lower(artist) NOT IN ({",".join("?" * len(skip))})'
+            sql += f" AND lower(artist) NOT IN ({','.join('?' * len(skip))})"
             params.extend(skip)
 
         sql += " ORDER BY title LIKE ? DESC, title COLLATE NOCASE LIMIT ?"
@@ -330,18 +363,18 @@ class MusicCollection:
             for r in cur
         ]
 
-    def search_highlighting(self, query: str, limit: int = 30) -> list:
+    def search_highlighting(self, query: str, limit: int = 30) -> list[dict]:
         """
-        Searches for artists, albums, and tracks for UI display based on a query.
+        Searches for artists, albums, and tracks matching the query and formats results with highlighted matches.
 
-        Returns a combined list of formatted search results for artists, albums, and tracks, suitable for user interface presentation.
+        Returns a list of formatted result dictionaries for UI display, including highlighted text for matching artists, albums, and tracks.
 
         Args:
-            query: The search string to match against the music library.
-            limit: The maximum number of results to return for each category.
+            query (str): The search string to match against the music library.
+            limit (int): The maximum number of results to return for each category.
 
         Returns:
-            list: A list of formatted search result dictionaries for UI display.
+            list[dict]: A list of formatted result dictionaries with highlighted matches.
         """
         if not (q := query.strip()):
             return []
@@ -357,7 +390,18 @@ class MusicCollection:
 
     @staticmethod
     def highlight_text(text: str, query_lower: str) -> str:
-        """Case-insensitive highlight van alle voorkomens van query_lower."""
+        """
+        Highlights occurrences of the search query within the given text.
+
+        Returns the text with all matches of the query wrapped in <mark> tags for UI display.
+
+        Args:
+            text (str): The text to search and highlight.
+            query_lower (str): The lowercase search query to highlight.
+
+        Returns:
+            str: The text with highlighted matches.
+        """
         if not query_lower:
             return text
 
@@ -370,16 +414,16 @@ class MusicCollection:
         self, artists: list[dict], query_lower: str
     ) -> list[dict]:
         """
-        Formats artist search results for UI display.
+        Highlights occurrences of the search query within the given text.
 
-        Processes a list of artist entries and returns formatted dictionaries including reasons, tracks, and highlighted tracks for each artist.
+        Returns the text with all matches of the query wrapped in <mark> tags for UI display.
 
         Args:
-            artists: A list of artist dictionaries to format.
-            query_lower: The lowercase search query for highlighting matches.
+            text (str): The text to search and highlight.
+            query_lower (str): The lowercase search query to highlight.
 
         Returns:
-            list[dict]: A list of formatted artist result dictionaries for UI display.
+            str: The text with highlighted matches.
         """
         out = []
         for entry in artists:

@@ -1,4 +1,3 @@
-import contextlib
 import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
@@ -41,6 +40,7 @@ class IndexEvent:
     Returns:
         None
     """
+
     type: EventType
     path: Optional[Path] = None
 
@@ -62,9 +62,22 @@ class CollectionExtractor:
     Returns:
         None
     """
+
     SUPPORTED_EXTS = {".mp3", ".flac", ".ogg", ".oga", ".m4a", ".mp4", ".wav", ".wma"}
 
     def __init__(self, music_root: Path, db_path: Path):
+        """
+        Initializes the CollectionExtractor with the specified music root and database path.
+
+        Sets up the data directory, initializes the database, and starts the background writer thread for processing indexing events.
+
+        Args:
+            music_root (Path): The root directory containing music files.
+            db_path (Path): The path to the SQLite database file.
+
+        Returns:
+            None
+        """
         self.music_root = music_root.resolve()
         self.db_path = db_path
         self.data_root = db_path.parent
@@ -115,9 +128,15 @@ class CollectionExtractor:
                 )
                 """
             )
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_artist ON tracks(artist COLLATE NOCASE)")
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_album  ON tracks(album  COLLATE NOCASE)")
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_title  ON tracks(title  COLLATE NOCASE)")
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_artist ON tracks(artist COLLATE NOCASE)"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_album  ON tracks(album  COLLATE NOCASE)"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_title  ON tracks(title  COLLATE NOCASE)"
+            )
 
     def get_conn(self, readonly: bool = False) -> sqlite3.Connection:
         """Creates and returns a SQLite database connection.
@@ -143,7 +162,7 @@ class CollectionExtractor:
     # Writer loop (ONLY writer)
     # =========================
 
-    def _db_writer_loop(self):
+    def _db_writer_loop(self) -> None:
         """Processes database write events from the queue in a dedicated thread.
 
         Handles indexing, deletion, and commit events to keep the music database up to date and responsive.
@@ -171,7 +190,9 @@ class CollectionExtractor:
                         self._index_file(conn, event.path)
 
                     elif event.type == "DELETE_FILE" and event.path:
-                        conn.execute("DELETE FROM tracks WHERE path = ?", (str(event.path),))
+                        conn.execute(
+                            "DELETE FROM tracks WHERE path = ?", (str(event.path),)
+                        )
 
                     elif event.type in ("REBUILD_DONE", "RESYNC_DONE"):
                         conn.commit()
@@ -195,7 +216,7 @@ class CollectionExtractor:
     # Metadata extraction
     # =========================
 
-    def _index_file(self, conn: sqlite3.Connection, path: Path):
+    def _index_file(self, conn: sqlite3.Connection, path: Path) -> None:
         """Extracts metadata from a music file and updates the database entry.
 
         Reads metadata such as artist, album, title, year, and duration from the given file and inserts or updates the corresponding record in the database.
@@ -217,9 +238,11 @@ class CollectionExtractor:
         title = getattr(tag, "title", None) or path.stem
 
         year = None
-        with contextlib.suppress(Exception):
+        try:
             if getattr(tag, "year", None):
                 year = int(str(tag.year)[:4])
+        except (AttributeError, ValueError):
+            year = None
         conn.execute(
             """
             INSERT OR REPLACE INTO tracks
@@ -244,7 +267,7 @@ class CollectionExtractor:
     # Rebuild
     # =========================
 
-    def rebuild(self):
+    def rebuild(self) -> None:
         """Rebuilds the music collection database from scratch.
 
         Scans all supported music files in the root directory and reindexes them, updating the database and indexing status throughout the process.
@@ -255,7 +278,8 @@ class CollectionExtractor:
         logger.info("Starting full rebuild")
 
         files = [
-            p for p in self.music_root.rglob("*")
+            p
+            for p in self.music_root.rglob("*")
             if p.is_file() and p.suffix.lower() in self.SUPPORTED_EXTS
         ]
 
@@ -279,7 +303,7 @@ class CollectionExtractor:
     # Resync (NEW)
     # =========================
 
-    def resync(self):
+    def resync(self) -> None:
         """Synchronizes the music database with the current state of the file system.
 
         Identifies new and removed music files, updating the database to reflect additions and deletions.
@@ -327,7 +351,7 @@ class CollectionExtractor:
     # Monitoring
     # =========================
 
-    def start_monitoring(self):
+    def start_monitoring(self) -> None:
         """Starts monitoring the music directory for file system changes.
 
         Initializes and starts a watchdog observer to track additions, modifications, and deletions of supported music files in real time.
@@ -341,7 +365,7 @@ class CollectionExtractor:
         self._observer.schedule(_Watcher(self), str(self.music_root), recursive=True)
         self._observer.start()
 
-    def stop(self):
+    def stop(self) -> None:
         """Stops the database writer thread and file system observer.
 
         Signals the writer thread to terminate and waits for it to finish, then stops and joins the observer if it is running.
@@ -366,7 +390,8 @@ class _Watcher(FileSystemEventHandler):
 
     Monitors the music directory for changes and notifies the CollectionExtractor to update the database accordingly.
     """
-    def __init__(self, extractor: CollectionExtractor):
+
+    def __init__(self, extractor: CollectionExtractor) -> None:
         """Initializes the file system event handler for music collection monitoring.
 
         Associates the handler with a CollectionExtractor instance to process file system events for supported music files.
@@ -379,14 +404,14 @@ class _Watcher(FileSystemEventHandler):
         """
         self.extractor = extractor
 
-    def on_any_event(self, event):
+    def on_any_event(self, event: object) -> None:
         """Handles any file system event for supported music files.
 
         Responds to file creation, modification, or deletion events by updating the music database accordingly.
         Ignores directory events and unsupported file types.
 
         Args:
-            event: The file system event to handle.
+            event (object): The file system event to handle.
 
         Returns:
             None
