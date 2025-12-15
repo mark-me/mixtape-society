@@ -28,6 +28,12 @@ def get_version() -> str:
         except FileNotFoundError:
             logger.warning("Git is not installed or not found in PATH.")
             return "dev"
+        except subprocess.CalledProcessError as e:
+            logger.warning(f"Git command failed: {e}")
+            return "dev"
+        except Exception as e:
+            logger.warning(f"Unexpected error while running git command: {e}")
+            return "dev"
 
         has_v_prefix = result.startswith("v")
         version = result[1:] if has_v_prefix else result
