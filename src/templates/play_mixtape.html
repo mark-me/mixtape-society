@@ -73,11 +73,19 @@
 
             <!-- Keep the big play button at the top -->
             <div class="text-center my-5">
-                <button id="big-play-btn" class="btn btn-outline-light btn-lg rounded-pill px-5 py-3 shadow subtle-play-btn">
-                    <i class="bi bi-play-fill me-2" style="font-size: 1.6rem; position:relative; top:2px;"></i>
-                    Play mixtape
-                </button>
+                <div class="btn-group" role="group">
+                    <button id="big-play-btn" class="btn btn-outline-light btn-lg rounded-pill px-5 py-3 shadow subtle-play-btn">
+                        <i class="bi bi-play-fill me-2" style="font-size: 1.6rem; position:relative; top:2px;"></i>
+                        Play mixtape
+                    </button>
+                    <button id="big-share-btn" class="btn btn-outline-info btn-lg rounded-pill px-4 py-3 shadow ms-3 copy-share-btn"
+                            title="Copy public share link">
+                        <i class="bi bi-share-fill me-2" style="font-size: 1.4rem;"></i>
+                        Share
+                    </button>
+                </div>
             </div>
+
                 <!-- Tracklist -->
                 <h4 class="mb-3 text-white">Tracklist</h4>
                 <div class="list-group list-group-numbered">
@@ -125,6 +133,18 @@
                     </div>
                 </div>
                 {% endif %}
+            </div>
+        </div>
+    </div>
+    <!-- Share toast (public page) -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080">
+        <div id="shareToast" class="toast align-items-center text-bg-success border-0 shadow" role="alert">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="bi bi-check2-circle me-2"></i>
+                    Public link copied to clipboard!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
             </div>
         </div>
     </div>
@@ -298,6 +318,29 @@
             }
         });
     </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Share button functionality
+            const shareBtn = document.getElementById('big-share-btn');
+            const toastEl = document.getElementById('shareToast');
+            if (shareBtn && toastEl) {
+                const toast = new bootstrap.Toast(toastEl);
+
+                // Construct the public URL (current page URL)
+                const shareUrl = window.location.href;
+
+                shareBtn.addEventListener('click', () => {
+                    navigator.clipboard.writeText(shareUrl).then(() => {
+                        toast.show();
+                    }).catch(err => {
+                        console.error('Failed to copy:', err);
+                        alert('Failed to copy link. Please copy the URL manually.');
+                    });
+                });
+            }
+        });
+    </script>
 {% endblock %}
 
 {% block extra_css %}
@@ -444,6 +487,20 @@
     @media (max-width: 768px) {
         #linerNotesCollapse .card-body {
             padding: 1rem;
+        }
+    }
+    @media (max-width: 576px) {
+        .btn-group {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .btn-group .btn {
+            width: 100%;
+            max-width: 300px;
+            margin-left: 0 !important;
+        }
+        #big-share-btn {
+            margin-left: 0 !important;
         }
     }
 </style>
