@@ -98,9 +98,8 @@ class CollectionExtractor:
         )
         self._writer_thread.start()
 
-    # =========================
-    # DB setup
-    # =========================
+
+    # === DB setup ===
 
     def _init_db(self):
         """Initializes the music database and ensures required tables and indexes exist.
@@ -159,9 +158,8 @@ class CollectionExtractor:
         conn.row_factory = sqlite3.Row
         return conn
 
-    # =========================
-    # Writer loop (ONLY writer)
-    # =========================
+
+    # === Writer loop (ONLY writer) ===
 
     def _db_writer_loop(self) -> None:
         """Processes database write events from the queue in a dedicated thread.
@@ -213,9 +211,8 @@ class CollectionExtractor:
             conn.commit()
             conn.close()
 
-    # =========================
-    # Metadata extraction
-    # =========================
+
+    # === Metadata extraction ===
 
     def _index_file(self, conn: sqlite3.Connection, path: Path) -> None:
         """Extracts metadata from a music file and updates the database entry.
@@ -264,9 +261,8 @@ class CollectionExtractor:
             ),
         )
 
-    # =========================
-    # Rebuild
-    # =========================
+
+    # === Rebuild ===
 
     def rebuild(self) -> None:
         """Rebuilds the music collection database from scratch.
@@ -300,9 +296,8 @@ class CollectionExtractor:
         clear_indexing_status(self.data_root)
         logger.info("Rebuild queued")
 
-    # =========================
-    # Resync (NEW)
-    # =========================
+
+    # === Resync ===
 
     def resync(self) -> None:
         """Synchronizes the music database with the current state of the file system.
@@ -348,9 +343,8 @@ class CollectionExtractor:
         clear_indexing_status(self.data_root)
         logger.info(f"Resync queued (+{len(to_add)} / -{len(to_remove)})")
 
-    # =========================
-    # Monitoring
-    # =========================
+
+    # === Monitoring ===
 
     def start_monitoring(self) -> None:
         """Starts monitoring the music directory for file system changes.

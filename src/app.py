@@ -93,6 +93,7 @@ def landing() -> Response:
         return redirect("/mixtapes")
     return render_template("landing.html")
 
+# === Authentication Routes ===
 
 @app.route("/login", methods=["POST"])
 @limiter.limit("5 per minute")
@@ -143,6 +144,7 @@ def mixtape_files(filename: str) -> Response:
     """
     return send_from_directory(config.MIXTAPE_DIR, filename)
 
+# === Public Routes ===
 
 @app.route("/covers/<filename>")
 def serve_cover(filename: str) -> Response:
@@ -180,6 +182,8 @@ def public_play(slug: str) -> Response:
     return render_template("play_mixtape.html", mixtape=mixtape, public=True)
 
 
+# === Context Processors ===
+
 @app.context_processor
 def inject_version() -> dict:
     """
@@ -206,11 +210,14 @@ def inject_now() -> dict:
     return {"now": datetime.now(timezone.utc)}
 
 
-# Blueprints
+# === Blueprints ===
+
 app.register_blueprint(browser)
 app.register_blueprint(play, url_prefix="/play")
 app.register_blueprint(editor)
 
+
+# === Server Start ===
 
 def serve(debug: bool = True) -> None:
     """

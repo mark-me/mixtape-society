@@ -63,9 +63,8 @@ class MusicCollection:
         # Kick background startup job
         self._start_background_startup_job()
 
-    # =========================
-    # Startup logic
-    # =========================
+
+    # === Startup logic ===
 
     def _start_background_startup_job(self) -> None:
         """
@@ -100,9 +99,8 @@ class MusicCollection:
 
         Thread(target=task, daemon=True).start()
 
-    # =========================
-    # Public maintenance API
-    # =========================
+
+    # === Public maintenance API ===
 
     def rebuild(self) -> None:
         """Force full rebuild."""
@@ -116,9 +114,8 @@ class MusicCollection:
         """Shutdown monitoring and writer thread."""
         self._extractor.stop()
 
-    # =========================
-    # Read-only DB helpers
-    # =========================
+
+    # === Read-only DB helpers ===
 
     def _get_conn(self) -> Connection:
         """
@@ -136,9 +133,8 @@ class MusicCollection:
         with self._get_conn() as conn:
             return conn.execute("SELECT COUNT(*) FROM tracks").fetchone()[0]
 
-    # =========================
-    # Search API (unchanged semantics)
-    # =========================
+
+    # === Search API ===
 
     def search_grouped(
         self, query: str, limit: int = 20
@@ -631,9 +627,8 @@ class MusicCollection:
         safe = "".join(c for c in title if c.isalnum() or c in " _-").strip()
         return f"{safe}{ext}"
 
-    # =========================
-    # Helpers
-    # =========================
+
+    # === Helpers ===
 
     def _relative_path(self, path: str) -> str:
         """
