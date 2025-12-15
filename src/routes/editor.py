@@ -97,9 +97,9 @@ def _finalize_highlight(item: dict) -> dict:
 @require_auth
 def save_mixtape() -> object:
     """
-    Saves a mixtape and its metadata to disk.
+    Saves a new or edited mixtape based on the provided data.
 
-    Receives mixtape data from a POST request, processes cover images, generates metadata, and writes the mixtape to a JSON file.
+    Handles both creation of new mixtapes and updates to existing ones, including cover image processing and validation.
     Returns a JSON response indicating success or failure.
 
     Returns:
@@ -111,47 +111,46 @@ def save_mixtape() -> object:
             return jsonify({"error": "Empty mixtape"}), 400
 
         original_title = data.get("title", "Unnamed mixtape").strip() or "Unnamed mixtape"
+        liner_notes = data.get("liner_notes", "")  # New field
 
-        # === OVERWRITE MODE ===
-        slug = data.get("slug")                     # sent from frontend when editing
+        slug = data.get("slug")
         if slug:
+            # Editing existing mixtape
             json_path = Config.MIXTAPE_DIR / f"{slug}.json"
             if not json_path.exists():
                 return jsonify({"error": "Mixtape not found"}), 404
 
-            # Load existing mixtape so we can keep created_at and existing cover
             with open(json_path, "r", encoding="utf-8") as f:
                 existing = json.load(f)
 
-            # Keep the original creation date
             data.setdefault("created_at", existing.get("created_at"))
 
-            # Only overwrite cover if the user actually uploaded a new one
+            # Keep old cover unless new one uploaded
             if data.get("cover") and data["cover"].startswith("data:image"):
                 data["cover"] = _process_cover(data["cover"], slug)
             else:
-                data["cover"] = existing.get("cover")  # keep old cover
+                data["cover"] = existing.get("cover")
+
+            # Keep existing liner notes if not sent
+            data["liner_notes"] = liner_notes or existing.get("liner_notes", "")
         else:
-            # === NEW MIXTAPE ===
+            # New mixtape
             slug = _generate_slug(original_title)
             json_path = Config.MIXTAPE_DIR / f"{slug}.json"
 
-            # Process new cover (if any)
             if data.get("cover") and data["cover"].startswith("data:image"):
                 data["cover"] = _process_cover(data["cover"], slug)
-            else:
-                data["cover"] = None
 
-        # Fallback: use first track’s album cover if we still have no cover
+            data["liner_notes"] = liner_notes
+
+        # Default cover fallback
         if not data.get("cover") and data["tracks"]:
             data["cover"] = _get_default_cover(data["tracks"][0]["path"], slug)
 
-        # Final metadata
         data["title"] = original_title
         data["slug"] = slug
         data["saved_at"] = datetime.now().isoformat()
 
-        # Write file (overwrite or create)
         _save_mixtape_json(json_path, data)
 
         return jsonify({
@@ -164,7 +163,6 @@ def save_mixtape() -> object:
     except Exception as e:
         logger.exception(f"Error saving mixtape: {e}")
         return jsonify({"error": "Server error"}), 500
-
 
 def _generate_slug(title: str) -> str:
     """
