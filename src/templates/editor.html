@@ -199,7 +199,7 @@
         <div id="addTrackToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="d-flex">
                 <div class="toast-body">
-                    <i class="bi bi-check-circle-fill me-2"></i> Track toegevoegd aan mixtape!
+                    <i class="bi bi-check-circle-fill me-2"></i> Track added to mixtape!
                 </div>
                 <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
@@ -546,26 +546,7 @@
         }
     });
 
-    // Update cover when playlist changes
-    const originalRenderPlaylist = renderPlaylist;
-    renderPlaylist = function() {
-        originalRenderPlaylist();
-        updatePlaylistCover();
-    };
 </script>
-
-    <div class="fixed-bottom bg-dark text-white p-3 shadow-lg" id="audio-player-container" style="display:none;">
-        <div class="container">
-            <div class="d-flex align-items-center">
-                <button id="close-player" class="btn btn-sm btn-outline-light me-3">×</button>
-                <div class="me-3">
-                    <strong id="now-playing-title">Niets afgespeeld</strong><br>
-                    <small id="now-playing-artist">Selecteer een nummer</small>
-                </div>
-                <audio id="global-audio-player" controls class="flex-grow-1"></audio>
-            </div>
-        </div>
-    </div>
 
 <script>
     // Show player when something is played
@@ -579,44 +560,38 @@
     });
 </script>
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    const addTrackToastEl = document.getElementById('addTrackToast');
-    if (!addTrackToastEl) {
-        console.warn('Toast element #addTrackToast not found');
-        return;
-    }
-
-    const addTrackToast = new bootstrap.Toast(addTrackToastEl, { delay: 2000 });
-
-    // Save reference to the original addToPlaylist function
-    const originalAddToPlaylist = window.addToPlaylist || function(item) {
-        if (playlist.some(t =>
-            t.artist === item.artist &&
-            t.album === item.album &&
-            t.title === item.title &&
-            t.path === item.path)) return;
-
-        playlist.push(item);
-        renderPlaylist();
-    };
-
-    // Override addToPlaylist globally with toast support
-    window.addToPlaylist = function(item) {
-        const isDuplicate = playlist.some(t =>
-            t.artist === item.artist &&
-            t.album === item.album &&
-            t.title === item.title &&
-            t.path === item.path
-        );
-
-        if (isDuplicate) {
-            return; // Silently ignore duplicates
+    document.addEventListener('DOMContentLoaded', () => {
+        const addTrackToastEl = document.getElementById('addTrackToast');
+        if (!addTrackToastEl) {
+            console.warn('Toast element #addTrackToast not found');
+            return;
         }
 
-        originalAddToPlaylist(item);
-        addTrackToast.show();
-    };
-});
+        const addTrackToast = new bootstrap.Toast(addTrackToastEl, { delay: 2000 });
+
+        // Capture the CURRENT (initial) addToPlaylist before any further overrides
+        const baseAddToPlaylist = window.addToPlaylist;
+
+        // Override to add toast, but call the full current chain
+        window.addToPlaylist = function(item) {
+            const isDuplicate = playlist.some(t =>
+                t.artist === item.artist &&
+                t.album === item.album &&
+                t.title === item.title &&
+                t.path === item.path
+            );
+
+            if (isDuplicate) {
+                return; // Silently ignore
+            }
+
+            // Call the original logic (push + render with all current overrides)
+            baseAddToPlaylist(item);
+
+            // Now show the toast
+            addTrackToast.show();
+        };
+    });
 </script>
 <script>
     /* ==== EASYMDE AND LIVE PREVIEW ==== */
@@ -740,5 +715,40 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
     }
+</script>
+<script>
+    // === FINAL TOAST OVERRIDE - MUST BE LAST ===
+    document.addEventListener('DOMContentLoaded', () => {
+        const addTrackToastEl = document.getElementById('addTrackToast');
+        if (!addTrackToastEl) {
+            console.warn('Toast element #addTrackToast not found');
+            return;
+        }
+
+        const addTrackToast = new bootstrap.Toast(addTrackToastEl, { delay: 2000 });
+
+        // At this point, ALL overrides of renderPlaylist are done
+        // So we safely capture the final addToPlaylist
+        const finalAddToPlaylist = window.addToPlaylist;
+
+        // Now override it to add the toast
+        window.addToPlaylist = function(item) {
+            // Duplicate check
+            const isDuplicate = playlist.some(t =>
+                t.artist === item.artist &&
+                t.album === item.album &&
+                t.title === item.title &&
+                t.path === item.path
+            );
+
+            if (isDuplicate) return;
+
+            // Includes all renderPlaylist overrides
+            finalAddToPlaylist(item);
+
+            // Show toast
+            addTrackToast.show();
+        };
+    });
 </script>
 {% endblock %}
