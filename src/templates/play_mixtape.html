@@ -1,218 +1,307 @@
 {% extends "base.html" %}
+
 {% block title %}{{ mixtape.title }}{% endblock %}
 
 {% block content %}
-<div class="container py-5">
+    <div class="container py-5">
 
-    {% if not public %}
-    <a href="/mixtapes" class="btn btn-outline-secondary btn-sm mb-4">
-        ← Back to mixtape browser
-    </a>
-    {% endif %}
+        {% if not public %}
+        <a href="/mixtapes" class="btn btn-outline-secondary btn-sm mb-4">
+            ← Back to mixtape browser
+        </a>
+        {% endif %}
 
-    <div class="row g-5">
-        <!-- Cover + title -->
-        <div class="col-lg-4 text-center">
-            {% if mixtape.cover %}
-            <img src="/mixtapes/files/{{ mixtape.cover }}"
-                 class="img-fluid rounded shadow mb-4"
-                 style="max-height: 400px; object-fit: cover;">
-            {% endif %}
-
-            <h1 class="display-6 mb-2">{{ mixtape.title }}</h1>
-            <p class="text-muted small mb-3">{{ mixtape.tracks|length }} tracks</p>
-
-            <div class="text-muted small">
-                {% if mixtape.created_at %}
-                <div><i class="bi bi-calendar-plus"></i> Created: {{ mixtape.created_at[:10] }}</div>
+        <div class="row g-5">
+            <!-- Cover + title -->
+            <div class="col-lg-4 text-center">
+                {% if mixtape.cover %}
+                <img src="/mixtapes/files/{{ mixtape.cover }}"
+                    class="img-fluid rounded shadow mb-4"
+                    style="max-height: 400px; object-fit: cover;">
                 {% endif %}
-                {% if mixtape.saved_at %}
-                <div><i class="bi bi-save"></i> Last changes: {{ mixtape.saved_at[:10] }} om {{ mixtape.saved_at[11:16] }}</div>
+
+                <h1 class="display-6 mb-2">{{ mixtape.title }}</h1>
+                <p class="text-muted small mb-3">{{ mixtape.tracks|length }} tracks</p>
+
+                <div class="text-muted small">
+                    {% if mixtape.created_at %}
+                    <div><i class="bi bi-calendar-plus"></i> Created: {{ mixtape.created_at[:10] }}</div>
+                    {% endif %}
+                    {% if mixtape.saved_at %}
+                    <div><i class="bi bi-save"></i> Last changes: {{ mixtape.saved_at[:10] }} om {{ mixtape.saved_at[11:16] }}</div>
+                    {% endif %}
+                </div>
+
+                {% if not public %}
+                <a href="/mixtapes" class="btn btn-outline-secondary btn-sm mt-4">Back to mixtape browser</a>
                 {% endif %}
             </div>
 
-            {% if not public %}
-            <a href="/mixtapes" class="btn btn-outline-secondary btn-sm mt-4">Back to mixtape browser</a>
-            {% endif %}
-        </div>
+            <!-- Player + tracklist -->
+            <div class="col-lg-8">
 
-        <!-- Player + tracklist -->
-        <div class="col-lg-8">
+            <!-- Music player -->
+            <div class="fixed-bottom" id="bottom-player-container" style="display:none; z-index: 1000;">
+                <div class="bg-dark text-white shadow-lg border-top border-secondary" style="backdrop-filter: blur(10px);">
+                    <div class="container py-2">
+                        <div class="d-flex align-items-center">
+                            <!-- Close button -->
+                            <button id="close-bottom-player" class="btn btn-sm btn-outline-light me-3 fs-4 lh-1" style="width:40px; height:40px;">
+                                ×
+                            </button>
 
-        <!-- Music player -->
-        <div class="fixed-bottom" id="bottom-player-container" style="display:none; z-index: 1000;">
-            <div class="bg-dark text-white shadow-lg border-top border-secondary" style="backdrop-filter: blur(10px);">
-                <div class="container py-2">
-                    <div class="d-flex align-items-center">
-                        <!-- Close button -->
-                        <button id="close-bottom-player" class="btn btn-sm btn-outline-light me-3 fs-4 lh-1" style="width:40px; height:40px;">
-                            ×
-                        </button>
+                            <!-- Current track info -->
+                            <div class="me-4 flex-shrink-0">
+                                <div class="fw-bold" id="bottom-now-title">–</div>
+                                <div class="small opacity-75" id="bottom-now-artist-album">–</div>
+                            </div>
 
-                        <!-- Current track info -->
-                        <div class="me-4 flex-shrink-0">
-                            <div class="fw-bold" id="bottom-now-title">–</div>
-                            <div class="small opacity-75" id="bottom-now-artist-album">–</div>
+                            <!-- Audio player controls (full width) -->
+                            <audio id="main-player" controls class="flex-grow-1" style="height: 42px;"></audio>
+
+                            <!-- Optional: Prev/Next buttons inside player (feels more premium) -->
+                            <button id="prev-btn-bottom" class="btn btn-outline-light ms-3" title="Vorige">
+                                <i class="bi bi-skip-backward-fill"></i>
+                            </button>
+                            <button id="next-btn-bottom" class="btn btn-outline-light ms-2" title="Volgende">
+                                <i class="bi bi-skip-forward-fill"></i>
+                            </button>
                         </div>
-
-                        <!-- Audio player controls (full width) -->
-                        <audio id="main-player" controls class="flex-grow-1" style="height: 42px;"></audio>
-
-                        <!-- Optional: Prev/Next buttons inside player (feels more premium) -->
-                        <button id="prev-btn-bottom" class="btn btn-outline-light ms-3" title="Vorige">
-                            <i class="bi bi-skip-backward-fill"></i>
-                        </button>
-                        <button id="next-btn-bottom" class="btn btn-outline-light ms-2" title="Volgende">
-                            <i class="bi bi-skip-forward-fill"></i>
-                        </button>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Keep the big play button at the top -->
-        <div class="text-center my-5">
-            <button id="big-play-btn" class="btn btn-outline-light btn-lg rounded-pill px-5 py-3 shadow subtle-play-btn">
-                <i class="bi bi-play-fill me-2" style="font-size: 1.6rem; position:relative; top:2px;"></i>
-                Play mixtape
-            </button>
-        </div>
-            <!-- Tracklist -->
-            <h4 class="mb-3 text-white">Tracklist</h4>
-            <div class="list-group list-group-numbered">
-                {% for t in mixtape.tracks %}
-                <li class="list-group-item track-item py-4 d-flex align-items-center"
-                     data-index="{{ loop.index0 }}"
-                     data-path="{{ url_for('play.stream_audio', file_path=t.path) }}"
-                     data-title="{{ t.title }}"
-                     data-artist="{{ t.artist }}"
-                     data-album="{{ t.album|default('Onbekend album') }}">
+            <!-- Keep the big play button at the top -->
+            <div class="text-center my-5">
+                <button id="big-play-btn" class="btn btn-outline-light btn-lg rounded-pill px-5 py-3 shadow subtle-play-btn">
+                    <i class="bi bi-play-fill me-2" style="font-size: 1.6rem; position:relative; top:2px;"></i>
+                    Play mixtape
+                </button>
+            </div>
+                <!-- Tracklist -->
+                <h4 class="mb-3 text-white">Tracklist</h4>
+                <div class="list-group list-group-numbered">
+                    {% for t in mixtape.tracks %}
+                    <li class="list-group-item track-item py-4 d-flex align-items-center"
+                        data-index="{{ loop.index0 }}"
+                        data-path="{{ url_for('play.stream_audio', file_path=t.path) }}"
+                        data-title="{{ t.title }}"
+                        data-artist="{{ t.artist }}"
+                        data-album="{{ t.album|default('Onbekend album') }}">
 
-                    <div class="flex-grow-1 pe-3">
-                        <div class="fw-bold">{{ t.title }}</div>
-                        <div class="small opacity-75">
-                            {{ t.artist }}{% if t.album %} • {{ t.album }}{% endif %}
+                        <div class="flex-grow-1 pe-3">
+                            <div class="fw-bold">{{ t.title }}</div>
+                            <div class="small opacity-75">
+                                {{ t.artist }}{% if t.album %} • {{ t.album }}{% endif %}
+                            </div>
+                        </div>
+
+                        <button class="btn btn-light rounded-circle play-this-track" style="width: 40px; height: 40px;">
+                            <i class="bi bi-play-fill"></i>
+                        </button>
+                    </li>
+                    {% endfor %}
+                </div>
+                <!-- Liner Notes Section -->
+                {% if mixtape.liner_notes and mixtape.liner_notes.strip() %}
+                <div class="mt-5">
+                    <h4 class="mb-3">
+                        <button class="btn btn-link text-decoration-none p-0 border-0 fw-bold collapsed"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#linerNotesCollapse"
+                                aria-expanded="false"
+                                aria-controls="linerNotesCollapse"
+                                style="font-size: inherit;">
+                            Liner Notes
+                            <i class="bi bi-chevron-down ms-2 transition-chevron"></i>
+                        </button>
+                    </h4>
+
+                    <div class="collapse" id="linerNotesCollapse">
+                        <div class="card card-body bg-body-tertiary border-0">
+                            <div id="rendered-liner-notes" class="markdown-body"></div>
                         </div>
                     </div>
-
-                    <button class="btn btn-light rounded-circle play-this-track" style="width: 40px; height: 40px;">
-                        <i class="bi bi-play-fill"></i>
-                    </button>
-                </li>
-                {% endfor %}
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
-</div>
+{% endblock %}
 
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const player = document.getElementById('main-player');
-    const container = document.getElementById('bottom-player-container');
-    const closeBtn = document.getElementById('close-bottom-player');
-    const prevBtn = document.getElementById('prev-btn-bottom');
-    const nextBtn = document.getElementById('next-btn-bottom');
-    const trackItems = document.querySelectorAll('.track-item');
-    const bottomTitle = document.getElementById('bottom-now-title');
-    const bottomArtistAlbum = document.getElementById('bottom-now-artist-album');
-    let currentIndex = -1;
+{% block extra_js %}
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.3.1/dist/purify.min.js" defer></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const player = document.getElementById('main-player');
+        const container = document.getElementById('bottom-player-container');
+        const closeBtn = document.getElementById('close-bottom-player');
+        const prevBtn = document.getElementById('prev-btn-bottom');
+        const nextBtn = document.getElementById('next-btn-bottom');
+        const trackItems = document.querySelectorAll('.track-item');
+        const bottomTitle = document.getElementById('bottom-now-title');
+        const bottomArtistAlbum = document.getElementById('bottom-now-artist-album');
+        let currentIndex = -1;
 
-    // Big play button starts playback
-    document.getElementById('big-play-btn')?.addEventListener('click', () => {
-        if (trackItems.length > 0 && currentIndex === -1) {
-            playTrack(0);
-        } else if (currentIndex >= 0) {
-            player.play();
-        }
-    });
+        // Big play button starts playback
+        document.getElementById('big-play-btn')?.addEventListener('click', () => {
+            if (trackItems.length > 0 && currentIndex === -1) {
+                playTrack(0);
+            } else if (currentIndex >= 0) {
+                player.play();
+            }
+        });
 
-    function playTrack(index) {
-        if (index < 0 || index >= trackItems.length) {
-            player.pause();
-            player.src = '';
-            container.style.display = 'none';
+        function playTrack(index) {
+            if (index < 0 || index >= trackItems.length) {
+                player.pause();
+                player.src = '';
+                container.style.display = 'none';
+                trackItems.forEach(t => t.classList.remove('active-track'));
+                currentIndex = -1;
+                return;
+            }
+
+            const track = trackItems[index];
+            player.src = track.dataset.path;
+
+            // Update bottom player info
+            bottomTitle.textContent = track.dataset.title;
+            bottomArtistAlbum.textContent = `${track.dataset.artist} • ${track.dataset.album}`;
+
+            // Show player
+            container.style.display = 'block';
+
+            // Highlight active track
             trackItems.forEach(t => t.classList.remove('active-track'));
-            currentIndex = -1;
-            return;
+            track.classList.add('active-track');
+
+            currentIndex = index;
+
+            // Auto-play
+            player.play().catch(e => {
+                console.log("Autoplay prevented:", e);
+            });
         }
 
-        const track = trackItems[index];
-        player.src = track.dataset.path;
+        // Navigation
+        prevBtn.addEventListener('click', () => playTrack(currentIndex - 1));
+        nextBtn.addEventListener('click', () => playTrack(currentIndex + 1));
+        player.addEventListener('ended', () => playTrack(currentIndex + 1));
 
-        // Update bottom player info
-        bottomTitle.textContent = track.dataset.title;
-        bottomArtistAlbum.textContent = `${track.dataset.artist} • ${track.dataset.album}`;
-
-        // Show player
-        container.style.display = 'block';
-
-        // Highlight active track
-        trackItems.forEach(t => t.classList.remove('active-track'));
-        track.classList.add('active-track');
-
-        currentIndex = index;
-
-        // Auto-play
-        player.play().catch(e => {
-            console.log("Autoplay prevented:", e);
+        // Click track in list
+        trackItems.forEach((item, i) => {
+            item.addEventListener('click', () => playTrack(i));
+            item.querySelector('.play-this-track')?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                playTrack(i);
+            });
         });
-    }
 
-    // Navigation
-    prevBtn.addEventListener('click', () => playTrack(currentIndex - 1));
-    nextBtn.addEventListener('click', () => playTrack(currentIndex + 1));
-    player.addEventListener('ended', () => playTrack(currentIndex + 1));
-
-    // Click track in list
-    trackItems.forEach((item, i) => {
-        item.addEventListener('click', () => playTrack(i));
-        item.querySelector('.play-this-track')?.addEventListener('click', (e) => {
-            e.stopPropagation();
-            playTrack(i);
+        // Close player
+        closeBtn.addEventListener('click', () => {
+            player.pause();
+            container.style.display = 'none';
         });
+
+        // Optional: Auto-start with #play
+        if (window.location.hash === '#play' && trackItems.length > 0) {
+            setTimeout(() => playTrack(0), 500);
+        }
+
+        // Resume playback if coming from editor with sessionStorage flag
+        if (sessionStorage.getItem('startPlaybackNow') && trackItems.length > 0) {
+            sessionStorage.removeItem('startPlaybackNow');
+            playTrack(0);
+        }
     });
 
-    // Close player
-    closeBtn.addEventListener('click', () => {
-        player.pause();
-        container.style.display = 'none';
-    });
-
-    // Optional: Auto-start with #play
-    if (window.location.hash === '#play' && trackItems.length > 0) {
-        setTimeout(() => playTrack(0), 500);
-    }
-
-    // Resume playback if coming from editor with sessionStorage flag
-    if (sessionStorage.getItem('startPlaybackNow') && trackItems.length > 0) {
-        sessionStorage.removeItem('startPlaybackNow');
-        playTrack(0);
-    }
-});
-
-// Update play button icon when active
-function updatePlayButtons() {
-    document.querySelectorAll('.play-this-track i').forEach(icon => {
-        icon.classList.remove('bi-pause-fill', 'bi-play-fill');
-        icon.classList.add('bi-play-fill');
-    });
-    if (currentIndex >= 0) {
-        const activeBtn = trackItems[currentIndex].querySelector('.play-this-track i');
-        if (activeBtn && !player.paused) {
-            activeBtn.classList.replace('bi-play-fill', 'bi-pause-fill');
+    // Update play button icon when active
+    function updatePlayButtons() {
+        document.querySelectorAll('.play-this-track i').forEach(icon => {
+            icon.classList.remove('bi-pause-fill', 'bi-play-fill');
+            icon.classList.add('bi-play-fill');
+        });
+        if (currentIndex >= 0) {
+            const activeBtn = trackItems[currentIndex].querySelector('.play-this-track i');
+            if (activeBtn && !player.paused) {
+                activeBtn.classList.replace('bi-play-fill', 'bi-pause-fill');
+            }
         }
     }
-}
 
-// Call it after playTrack and on player events
-// Add inside playTrack() after player.play():
-updatePlayButtons();
+    // Call it after playTrack and on player events
+    updatePlayButtons();
 
-// Also add:
-player.addEventListener('play', updatePlayButtons);
-player.addEventListener('pause', updatePlayButtons);
-</script>
+    player.addEventListener('play', updatePlayButtons);
+    player.addEventListener('pause', updatePlayButtons);
+    </script>
+    <script>
+        // === Liner Notes Rendering ===
+        // Track reference renderer (same logic as in the editor)
+        function renderTrackReferences(text, tracks) {
+            if (!tracks || tracks.length === 0) return text;
 
+            // Range: #3-7
+            text = text.replace(/#(\d+)-(\d+)/g, (match, start, end) => {
+                start = parseInt(start);
+                end = parseInt(end);
+                if (start > end || start < 1 || end > tracks.length) return match;
+
+                const parts = [];
+                for (let i = start; i <= end; i++) {
+                    const t = tracks[i - 1];
+                    parts.push(`${i}. ${t.title} – ${t.artist}`);
+                }
+                return parts.join(" → ");
+            });
+
+            // Single: #4
+            text = text.replace(/#(\d+)/g, (match, num) => {
+                const i = parseInt(num);
+                if (i < 1 || i > tracks.length) return match;
+                const t = tracks[i - 1];
+                return `**${i}. ${t.title} – ${t.artist}**`;
+            });
+
+            return text;
+        }
+
+        // Render liner notes when page loads (and when collapse is shown)
+        document.addEventListener('DOMContentLoaded', function () {
+            const linerNotesEl = document.getElementById('rendered-liner-notes');
+            if (!linerNotesEl) return;
+
+            const rawMarkdown = {{ mixtape.liner_notes | tojson | safe }};
+            const tracks = {{ mixtape.tracks | tojson | safe }};
+
+            function render() {
+                let processed = renderTrackReferences(rawMarkdown, tracks);
+                let html = marked.parse(processed);
+                linerNotesEl.innerHTML = DOMPurify.sanitize(html);
+            }
+
+            render();
+
+            // Re-render when the collapse is opened (in case tracks change – unlikely but safe)
+            const collapseEl = document.getElementById('linerNotesCollapse');
+            collapseEl.addEventListener('shown.bs.collapse', render);
+        });
+
+        // Optional: rotate chevron when opening/closing
+        document.querySelector('[data-bs-target="#linerNotesCollapse"]')?.addEventListener('click', function () {
+            const icon = this.querySelector('.transition-chevron');
+            if (icon) {
+                icon.classList.toggle('rotated', this.getAttribute('aria-expanded') === 'true');
+            }
+        });
+    </script>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">  <!-- For Markdown styles -->
 <style>
     body {
         background-color: var(--bs-body-bg);
@@ -329,6 +418,33 @@ player.addEventListener('pause', updatePlayButtons);
     /* Big play button - use Bootstrap outline variant */
     .subtle-play-btn {
         border-color: var(--bs-border-color);
+    }
+
+    /* Liner notes styling */
+    #rendered-liner-notes {
+        line-height: 1.7;
+        font-size: 1rem;
+    }
+    #rendered-liner-notes h1 { font-size: 1.8rem; margin-top: 1.5em; margin-bottom: 0.8em; }
+    #rendered-liner-notes h2 { font-size: 1.5rem; margin-top: 1.5em; }
+    #rendered-liner-notes h3 { font-size: 1.3rem; }
+    #rendered-liner-notes p { margin-bottom: 1em; }
+    #rendered-liner-notes ul, #rendered-liner-notes ol { padding-left: 1.5em; margin-bottom: 1em; }
+    #rendered-liner-notes strong { font-weight: 600; }
+
+    /* Chevron animation */
+    .transition-chevron {
+        transition: transform 0.25s ease;
+    }
+    .transition-chevron.rotated {
+        transform: rotate(180deg);
+    }
+
+    /* Mobile friendliness */
+    @media (max-width: 768px) {
+        #linerNotesCollapse .card-body {
+            padding: 1rem;
+        }
     }
 </style>
 {% endblock %}
