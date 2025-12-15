@@ -102,5 +102,9 @@ class MixtapeManager:
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
 
+        # Reverse compatibility: make sure liner_notes are always present
+        if "liner_notes" not in data:
+            data["liner_notes"] = ""
+
         data["slug"] = slug
         return data

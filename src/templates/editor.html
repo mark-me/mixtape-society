@@ -3,6 +3,7 @@
 {% block title %}Create Mixtape{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
 
 <style>
     .track-title mark,
@@ -33,6 +34,20 @@
     .card-header {
         background-color: var(--bs-success-bg-subtle) !important;
         color: var(--bs-success-text-emphasis) !important;
+    }
+
+    #markdown-preview {
+        min-height: 100%;
+        padding: 1rem;
+        line-height: 1.6;
+    }
+    #markdown-preview h1, #markdown-preview h2, #markdown-preview h3 {
+        margin-top: 1.5em;
+        border-bottom: 1px solid var(--bs-border-color);
+        padding-bottom: .3em;
+    }
+    #markdown-preview ul, #markdown-preview ol {
+        padding-left: 1.5em;
     }
 </style>
 {% endblock %}
@@ -91,10 +106,9 @@
                                 class="rounded shadow-sm img-fluid"
                                 style="max-width: 260px; aspect-ratio: 1; object-fit: cover; border: 3px solid rgba(255,255,255,0.1);">
 
-                            <!-- New beautiful overlay button -->
                             <label id="cover-upload-btn" class="position-absolute bottom-0 end-0 mb-3 me-3 cursor-pointer">
                                 <input type="file" id="cover-upload" accept="image/*" class="d-none">
-                                <span class="btn btn-dark btn-sm rounded-circle shadow-lg d-flex align-items-center justify-content justify-content-center"
+                                <span class="btn btn-dark btn-sm rounded-circle shadow-lg d-flex align-items-center justify-content-center"
                                     style="width: 48px; height: 48px; border: 3px solid rgba(255,255,255,0.2);">
                                     <i class="bi bi-camera-fill text-white" style="font-size: 1.3rem;"></i>
                                 </span>
@@ -108,12 +122,53 @@
                             value="My Mixtape">
                     </div>
 
-                    <ol id="playlist" class="list-unstyled mb-3 flex-grow-1 overflow-auto" style="max-height: 400px;"></ol>
+                    <!-- New: Tabs for Tracks and Liner Notes -->
+                    <ul class="nav nav-tabs mb-3" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="tracks-tab" data-bs-toggle="tab" data-bs-target="#tracks-pane" type="button">Tracks</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="notes-tab" data-bs-toggle="tab" data-bs-target="#notes-pane" type="button">Liner Notes</button>
+                        </li>
+                    </ul>
 
-                    <div class="mt-auto">
-                        <button id="clear-playlist" class="btn btn-outline-danger w-100 mb-2">
-                            Empty mixtape
-                        </button>
+                    <div class="tab-content flex-grow-1 d-flex flex-column">
+                        <!-- Tracks tab -->
+                        <div class="tab-pane fade show active" id="tracks-pane" role="tabpanel">
+                            <ol id="playlist" class="list-unstyled mb-3 flex-grow-1 overflow-auto" style="max-height: 400px;"></ol>
+                            <div class="mt-auto">
+                                <button id="clear-playlist" class="btn btn-outline-danger w-100 mb-2">
+                                    Empty mixtape
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Liner Notes tab -->
+                        <div class="tab-pane fade" id="notes-pane" role="tabpanel">
+                            <div class="d-flex flex-column h-100">
+                                <small class="text-muted d-block mb-2">
+                                    Tip: Use <code>#1</code>, <code>#5</code>, or <code>#2-4</code> to auto-link to tracks!
+                                </small>
+                                <!-- Sub-tabs: Write / Preview -->
+                                <ul class="nav nav-pills mb-3" id="notesSubTabs" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active" id="write-tab" data-bs-toggle="pill" data-bs-target="#write-pane" type="button">Write</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="preview-tab" data-bs-toggle="pill" data-bs-target="#preview-pane" type="button">Preview</button>
+                                    </li>
+                                </ul>
+
+                                <div class="tab-content flex-grow-1 overflow-hidden">
+                                    <div class="tab-pane fade show active h-100" id="write-pane">
+                                        <textarea id="liner-notes"></textarea>
+                                    </div>
+                                    <div class="tab-pane fade h-100 overflow-auto p-3 bg-light" id="preview-pane">
+                                        <div id="markdown-preview" class="markdown-body"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -144,7 +199,7 @@
         <div id="addTrackToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="d-flex">
                 <div class="toast-body">
-                    <i class="bi bi-check-circle-fill me-2"></i> Track toegevoegd aan mixtape!
+                    <i class="bi bi-check-circle-fill me-2"></i> Track added to mixtape!
                 </div>
                 <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
@@ -157,6 +212,9 @@
 {% block extra_js %}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.3.1/dist/purify.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
 
 <script>
 
@@ -307,6 +365,7 @@
 
 </script>
 <script>
+    /* ==== PLAYLIST RENDERING ==== */
     function renderPlaylist() {
         playlistOl.innerHTML = playlist.map((item, idx) => `
             <li class="d-flex align-items-center rounded p-3 mb-2 shadow-sm playlist-item
@@ -426,6 +485,7 @@
             title: title,
             created_at: new Date().toISOString(),
             cover: coverDataUrl,
+            liner_notes: easyMDE ? easyMDE.value() : "",
             tracks: playlist.map(t => ({
                 artist: t.artist,
                 album: t.album,
@@ -486,26 +546,7 @@
         }
     });
 
-    // Update cover when playlist changes
-    const originalRenderPlaylist = renderPlaylist;
-    renderPlaylist = function() {
-        originalRenderPlaylist();
-        updatePlaylistCover();
-    };
 </script>
-
-    <div class="fixed-bottom bg-dark text-white p-3 shadow-lg" id="audio-player-container" style="display:none;">
-        <div class="container">
-            <div class="d-flex align-items-center">
-                <button id="close-player" class="btn btn-sm btn-outline-light me-3">×</button>
-                <div class="me-3">
-                    <strong id="now-playing-title">Niets afgespeeld</strong><br>
-                    <small id="now-playing-artist">Selecteer een nummer</small>
-                </div>
-                <audio id="global-audio-player" controls class="flex-grow-1"></audio>
-            </div>
-        </div>
-    </div>
 
 <script>
     // Show player when something is played
@@ -519,43 +560,195 @@
     });
 </script>
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    const addTrackToastEl = document.getElementById('addTrackToast');
-    if (!addTrackToastEl) {
-        console.warn('Toast element #addTrackToast not found');
-        return;
-    }
-
-    const addTrackToast = new bootstrap.Toast(addTrackToastEl, { delay: 2000 });
-
-    // Save reference to the original addToPlaylist function
-    const originalAddToPlaylist = window.addToPlaylist || function(item) {
-        if (playlist.some(t =>
-            t.artist === item.artist &&
-            t.album === item.album &&
-            t.title === item.title &&
-            t.path === item.path)) return;
-
-        playlist.push(item);
-        renderPlaylist();
-    };
-
-    // Override addToPlaylist globally with toast support
-    window.addToPlaylist = function(item) {
-        const isDuplicate = playlist.some(t =>
-            t.artist === item.artist &&
-            t.album === item.album &&
-            t.title === item.title &&
-            t.path === item.path
-        );
-
-        if (isDuplicate) {
-            return; // Silently ignore duplicates
+    document.addEventListener('DOMContentLoaded', () => {
+        const addTrackToastEl = document.getElementById('addTrackToast');
+        if (!addTrackToastEl) {
+            console.warn('Toast element #addTrackToast not found');
+            return;
         }
 
-        originalAddToPlaylist(item);
-        addTrackToast.show();
-    };
-});
+        const addTrackToast = new bootstrap.Toast(addTrackToastEl, { delay: 2000 });
+
+        // Capture the CURRENT (initial) addToPlaylist before any further overrides
+        const baseAddToPlaylist = window.addToPlaylist;
+
+        // Override to add toast, but call the full current chain
+        window.addToPlaylist = function(item) {
+            const isDuplicate = playlist.some(t =>
+                t.artist === item.artist &&
+                t.album === item.album &&
+                t.title === item.title &&
+                t.path === item.path
+            );
+
+            if (isDuplicate) {
+                return; // Silently ignore
+            }
+
+            // Call the original logic (push + render with all current overrides)
+            baseAddToPlaylist(item);
+
+            // Now show the toast
+            addTrackToast.show();
+        };
+    });
+</script>
+<script>
+    /* ==== EASYMDE AND LIVE PREVIEW ==== */
+    let easyMDE;
+
+    document.addEventListener("DOMContentLoaded", () => {
+        // Preload existing liner notes (if editing)
+        let initialValue = "";
+        {% if preload_mixtape %}
+        initialValue = {{ preload_mixtape.liner_notes | tojson | safe }} || "";
+        {% endif %}
+
+        easyMDE = new EasyMDE({
+            element: document.getElementById("liner-notes"),
+            initialValue: initialValue,
+            spellChecker: false,
+            toolbar: ["bold", "italic", "heading", "|", "quote", "unordered-list", "ordered-list", "|", "link", "image", "|", "preview", "side-by-side", "fullscreen", "|", "guide"],
+            previewRender: function(plainText) {
+                const html = marked.parse(plainText);
+                return DOMPurify.sanitize(html);
+            },
+        });
+
+        // Sync preview tab when user switches to it
+        const previewPane = document.getElementById('markdown-preview');
+        const previewTab = document.getElementById('preview-tab');
+
+        previewTab.addEventListener('shown.bs.tab', () => {
+            const html = marked.parse(easyMDE.value());
+            previewPane.innerHTML = DOMPurify.sanitize(html);
+        });
+
+        // Also update on change when preview is active
+        easyMDE.codemirror.on("change", () => {
+            if (document.querySelector('#preview-tab.active')) {
+                const html = marked.parse(easyMDE.value());
+                previewPane.innerHTML = DOMPurify.sanitize(html);
+            }
+        });
+    });
+</script>
+<script>
+    // Custom Markdown renderer to handle track references like #1, #2, #1-3
+    function renderTrackReferences(markdownText, tracks) {
+        if (!tracks || tracks.length === 0) return markdownText;
+
+        // Sort tracks by index (just in case)
+        const sortedTracks = tracks.slice();
+
+        // Replace #1-5 ranges
+        markdownText = markdownText.replace(/#(\d+)-(\d+)/g, (match, start, end) => {
+            start = parseInt(start);
+            end = parseInt(end);
+            if (start > end || start < 1 || end > sortedTracks.length) return match;
+
+            const refs = [];
+            for (let i = start; i <= end; i++) {
+                const track = sortedTracks[i - 1];
+                refs.push(`${i}. ${track.title} – ${track.artist}`);
+            }
+            return refs.join(" → ");
+        });
+
+        // Replace single #1, #12, etc.
+        markdownText = markdownText.replace(/#(\d+)/g, (match, num) => {
+            const index = parseInt(num);
+            if (index < 1 || index > sortedTracks.length) return match;
+            const track = sortedTracks[index - 1];
+            return `**${index}. ${track.title} – ${track.artist}**`;
+        });
+
+        return markdownText;
+    }
+
+    // Override EasyMDE's preview renderer to include track references
+    if (typeof easyMDE !== 'undefined') {
+        const originalPreviewRender = easyMDE.options.previewRender;
+
+        easyMDE.options.previewRender = function(plainText, previewElement) {
+            // Get current track list (from global playlist array)
+            const currentTracks = window.playlist || [];
+
+            // First apply track reference magic
+            let processedText = renderTrackReferences(plainText, currentTracks);
+
+            // Then render as HTML with marked
+            let html = marked.parse(processedText);
+
+            // Sanitize
+            html = DOMPurify.sanitize(html);
+
+            return html;
+        };
+
+        // Also update the custom Preview tab when needed
+        const previewPane = document.getElementById('markdown-preview');
+        const previewTab = document.getElementById('preview-tab');
+
+        if (previewTab) {
+            previewTab.addEventListener('shown.bs.tab', () => {
+                const currentTracks = window.playlist || [];
+                let text = easyMDE.value();
+                text = renderTrackReferences(text, currentTracks);
+                const html = marked.parse(text);
+                previewPane.innerHTML = DOMPurify.sanitize(html);
+            });
+        }
+
+        // Update preview when playlist changes (add/remove/reorder)
+        const originalRenderPlaylist = window.renderPlaylist;
+        window.renderPlaylist = function() {
+            originalRenderPlaylist.apply(this, arguments);
+
+            // If user is currently viewing the preview tab, refresh it
+            if (document.querySelector('#preview-tab.active')) {
+                const currentTracks = window.playlist || [];
+                let text = easyMDE ? easyMDE.value() : "";
+                text = renderTrackReferences(text, currentTracks);
+                const html = marked.parse(text);
+                document.getElementById('markdown-preview').innerHTML = DOMPurify.sanitize(html);
+            }
+        };
+    }
+</script>
+<script>
+    // === FINAL TOAST OVERRIDE - MUST BE LAST ===
+    document.addEventListener('DOMContentLoaded', () => {
+        const addTrackToastEl = document.getElementById('addTrackToast');
+        if (!addTrackToastEl) {
+            console.warn('Toast element #addTrackToast not found');
+            return;
+        }
+
+        const addTrackToast = new bootstrap.Toast(addTrackToastEl, { delay: 2000 });
+
+        // At this point, ALL overrides of renderPlaylist are done
+        // So we safely capture the final addToPlaylist
+        const finalAddToPlaylist = window.addToPlaylist;
+
+        // Now override it to add the toast
+        window.addToPlaylist = function(item) {
+            // Duplicate check
+            const isDuplicate = playlist.some(t =>
+                t.artist === item.artist &&
+                t.album === item.album &&
+                t.title === item.title &&
+                t.path === item.path
+            );
+
+            if (isDuplicate) return;
+
+            // Includes all renderPlaylist overrides
+            finalAddToPlaylist(item);
+
+            // Show toast
+            addTrackToast.show();
+        };
+    });
 </script>
 {% endblock %}
