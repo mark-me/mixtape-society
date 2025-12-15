@@ -3,6 +3,7 @@
 {% block title %}Create Mixtape{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
 
 <style>
     .track-title mark,
@@ -33,6 +34,20 @@
     .card-header {
         background-color: var(--bs-success-bg-subtle) !important;
         color: var(--bs-success-text-emphasis) !important;
+    }
+
+    #markdown-preview {
+        min-height: 100%;
+        padding: 1rem;
+        line-height: 1.6;
+    }
+    #markdown-preview h1, #markdown-preview h2, #markdown-preview h3 {
+        margin-top: 1.5em;
+        border-bottom: 1px solid var(--bs-border-color);
+        padding-bottom: .3em;
+    }
+    #markdown-preview ul, #markdown-preview ol {
+        padding-left: 1.5em;
     }
 </style>
 {% endblock %}
@@ -130,9 +145,26 @@
 
                         <!-- Liner Notes tab -->
                         <div class="tab-pane fade" id="notes-pane" role="tabpanel">
-                            <textarea id="liner-notes" class="form-control flex-grow-1"
-                                    placeholder="Write your liner notes in Markdown...&#10;&#10;Tip: Use #1, #2, #3 etc. to reference tracks (1 = first track)"
-                                    style="min-height: 300px; resize: vertical;"></textarea>
+                            <div class="d-flex flex-column h-100">
+                                <!-- Sub-tabs: Write / Preview -->
+                                <ul class="nav nav-pills mb-3" id="notesSubTabs" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active" id="write-tab" data-bs-toggle="pill" data-bs-target="#write-pane" type="button">Write</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="preview-tab" data-bs-toggle="pill" data-bs-target="#preview-pane" type="button">Preview</button>
+                                    </li>
+                                </ul>
+
+                                <div class="tab-content flex-grow-1 overflow-hidden">
+                                    <div class="tab-pane fade show active h-100" id="write-pane">
+                                        <textarea id="liner-notes"></textarea>
+                                    </div>
+                                    <div class="tab-pane fade h-100 overflow-auto p-3 bg-light" id="preview-pane">
+                                        <div id="markdown-preview" class="markdown-body"></div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -177,6 +209,9 @@
 {% block extra_js %}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.3.1/dist/purify.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
 
 <script>
 
@@ -327,6 +362,7 @@
 
 </script>
 <script>
+    /* ==== PLAYLIST RENDERING ==== */
     function renderPlaylist() {
         playlistOl.innerHTML = playlist.map((item, idx) => `
             <li class="d-flex align-items-center rounded p-3 mb-2 shadow-sm playlist-item
@@ -446,7 +482,7 @@
             title: title,
             created_at: new Date().toISOString(),
             cover: coverDataUrl,
-            liner_notes: document.getElementById("liner-notes").value.trim(),
+            liner_notes: easyMDE ? easyMDE.value() : "",
             tracks: playlist.map(t => ({
                 artist: t.artist,
                 album: t.album,
@@ -578,5 +614,45 @@ document.addEventListener('DOMContentLoaded', () => {
         addTrackToast.show();
     };
 });
+</script>
+<script>
+    /* ==== EASYMDE AND LIVE PREVIEW ==== */
+    let easyMDE;
+
+    document.addEventListener("DOMContentLoaded", () => {
+        // Preload existing liner notes (if editing)
+        let initialValue = "";
+        {% if preload_mixtape %}
+        initialValue = {{ preload_mixtape.liner_notes | tojson | safe }} || "";
+        {% endif %}
+
+        easyMDE = new EasyMDE({
+            element: document.getElementById("liner-notes"),
+            initialValue: initialValue,
+            spellChecker: false,
+            toolbar: ["bold", "italic", "heading", "|", "quote", "unordered-list", "ordered-list", "|", "link", "image", "|", "preview", "side-by-side", "fullscreen", "|", "guide"],
+            previewRender: function(plainText) {
+                const html = marked.parse(plainText);
+                return DOMPurify.sanitize(html);
+            },
+        });
+
+        // Sync preview tab when user switches to it
+        const previewPane = document.getElementById('markdown-preview');
+        const previewTab = document.getElementById('preview-tab');
+
+        previewTab.addEventListener('shown.bs.tab', () => {
+            const html = marked.parse(easyMDE.value());
+            previewPane.innerHTML = DOMPurify.sanitize(html);
+        });
+
+        // Also update on change when preview is active
+        easyMDE.codemirror.on("change", () => {
+            if (document.querySelector('#preview-tab.active')) {
+                const html = marked.parse(easyMDE.value());
+                previewPane.innerHTML = DOMPurify.sanitize(html);
+            }
+        });
+    });
 </script>
 {% endblock %}
