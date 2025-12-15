@@ -48,7 +48,7 @@ app = Flask(__name__)
 limiter = Limiter(
     get_remote_address,
     app=app,
-    default_limits=["200 per day", "50 per hour"],
+    default_limits=["500 per day", "100 per hour"],
 )
 app.secret_key = config.PASSWORD
 CORS(app)  # This adds Access-Control-Allow-Origin: * to ALL responses

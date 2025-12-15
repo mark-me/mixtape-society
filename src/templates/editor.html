@@ -746,6 +746,20 @@
     }
 </script>
 <script>
+    // Fix: EasyMDE doesn't render preloaded content when initialized in a hidden tab
+    document.addEventListener("DOMContentLoaded", () => {
+        const notesTab = document.querySelector('#notes-tab');
+        if (!notesTab || typeof easyMDE === 'undefined') return;
+
+        // When the Liner Notes tab is shown, force EasyMDE to refresh
+        notesTab.addEventListener('shown.bs.tab', () => {
+            easyMDE.codemirror.refresh();
+            // Optional: also force a redraw of the value in case it's still not visible
+            easyMDE.codemirror.setValue(easyMDE.value());
+        });
+    });
+</script>
+<script>
     // === FINAL TOAST OVERRIDE - MUST BE LAST ===
     document.addEventListener('DOMContentLoaded', () => {
         const addTrackToastEl = document.getElementById('addTrackToast');
