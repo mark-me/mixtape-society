@@ -25,6 +25,12 @@ EventType = Literal[
     "REBUILD_DONE",
     "RESYNC_DONE",
 ]
+"""
+Represents the type of event for music collection indexing and synchronization.
+
+EventType is a type alias for string literals that specify the kind of operation to perform,
+such as indexing a file, deleting a file, clearing the database, or marking the completion of a rebuild or resync.
+"""
 
 
 @dataclass(slots=True)
@@ -43,11 +49,6 @@ class IndexEvent:
 
     type: EventType
     path: Optional[Path] = None
-
-
-# =========================
-# CollectionExtractor
-# =========================
 
 
 class CollectionExtractor:
@@ -378,11 +379,6 @@ class CollectionExtractor:
         if self._observer:
             self._observer.stop()
             self._observer.join()
-
-
-# =========================
-# Watchdog handler
-# =========================
 
 
 class _Watcher(FileSystemEventHandler):
