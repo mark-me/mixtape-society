@@ -87,20 +87,7 @@ def delete_mixtape(slug: str) -> Response:
         Response: An empty response with status 200 if successful, or 404 if the mixtape does not exist.
     """
     mixtape_manager = MixtapeManager(path_mixtapes=Config.MIXTAPE_DIR)
-    mixtape = mixtape_manager.get(slug)
-    if not mixtape:
-        abort(404)
-
-    # Delete JSON file
-    json_file = Config.MIXTAPE_DIR / f"{slug}.json"
-    json_file.unlink(missing_ok=True)
-
-    # Delete cover image if it exists
-    if mixtape.get("cover"):
-        cover_path = Config.COVER_DIR / Path(mixtape["cover"]).name
-        cover_path.unlink(missing_ok=True)
-
-    return "", 200
+    mixtape_manager.delete(slug)
 
 @browser.before_request
 def blueprint_require_auth() -> Response | None:
