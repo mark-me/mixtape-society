@@ -10,7 +10,7 @@
     <meta property="og:title" content="{{ mixtape.title }}"/>
     <meta property="og:type" content="music.playlist"/>
     <meta property="og:url" content="{{ url_for('public_play', slug=mixtape.slug, _external=True) }}"/>
-    <meta property="og:description" content="A personal mixtape with {{ mixtape.tracks|length }} nummers. Luister nu!"/>
+    <meta property="og:description" content="A personal mixtape with {{ mixtape.tracks|length }} tracks."/>
     <meta property="og:site_name" content="Mixtape Society"/>
 
     {% if mixtape.cover %}
@@ -26,7 +26,7 @@
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image"/>
     <meta name="twitter:title" content="{{ mixtape.title }}"/>
-    <meta name="twitter:description" content="Een persoonlijke mixtape met {{ mixtape.tracks|length }} nummers."/>
+    <meta name="twitter:description" content="A personal mixtape with {{ mixtape.tracks|length }} tracks."/>
     {% if mixtape.cover %}
         <meta name="twitter:image" content="{{ url_for('serve_cover', filename=mixtape.cover.split('/')[-1], _external=True) }}"/>
     {% else %}
