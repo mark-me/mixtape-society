@@ -9,6 +9,12 @@
 - No social features (likes, comments, following)
 - No ads, analytics, telemetry by default
 
+## 0. Liner notes
+
+- Adding text to a playlist
+- Links for mixtape tracks
+- Background info for artist, album or track
+
 ## 1. Progressive Web App (PWA) + Offline Playback
 
 - Add manifest.json + service worker → installable on phone/home screen
