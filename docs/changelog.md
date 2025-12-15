@@ -19,7 +19,7 @@ All notable changes will be documented here.
 ### 🐛 Fixed
 
 - Missing cover art standard art
--
+- Theme adherence on some pages
 
 [v0.1.4-alpha](https://github.com/mark-me/mixtape-society/compare/v0.1.3-alpha...v0.1.4-alpha)
 
