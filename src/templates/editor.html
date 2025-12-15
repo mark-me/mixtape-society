@@ -519,22 +519,43 @@
     });
 </script>
 <script>
+document.addEventListener('DOMContentLoaded', () => {
     const addTrackToastEl = document.getElementById('addTrackToast');
+    if (!addTrackToastEl) {
+        console.warn('Toast element #addTrackToast not found');
+        return;
+    }
+
     const addTrackToast = new bootstrap.Toast(addTrackToastEl, { delay: 2000 });
 
-    // Modify addToPlaylist to show the toast
-    function addToPlaylist(item) {
+    // Save reference to the original addToPlaylist function
+    const originalAddToPlaylist = window.addToPlaylist || function(item) {
         if (playlist.some(t =>
             t.artist === item.artist &&
             t.album === item.album &&
             t.title === item.title &&
-            t.path === item.path)) {
-            return;  // Already exists → no toast
-        }
+            t.path === item.path)) return;
 
         playlist.push(item);
         renderPlaylist();
-        addTrackToast.show();  // Show toast on successful add
-    }
+    };
+
+    // Override addToPlaylist globally with toast support
+    window.addToPlaylist = function(item) {
+        const isDuplicate = playlist.some(t =>
+            t.artist === item.artist &&
+            t.album === item.album &&
+            t.title === item.title &&
+            t.path === item.path
+        );
+
+        if (isDuplicate) {
+            return; // Silently ignore duplicates
+        }
+
+        originalAddToPlaylist(item);
+        addTrackToast.show();
+    };
+});
 </script>
 {% endblock %}
