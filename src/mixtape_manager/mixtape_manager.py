@@ -51,7 +51,7 @@ class MixtapeManager:
 
         return sanitized_title
 
-    def delete(self) -> None:
+    def delete(self, slug: str) -> None:
         """
         Deletes a mixtape and its associated cover image from disk.
 
@@ -60,7 +60,10 @@ class MixtapeManager:
         Returns:
             None
         """
-        pass  # TODO: Implementation would go here
+        path = self.path_mixtapes / f"{slug}.json"
+        if not path.exists():
+            return None
+        path.unlink()
 
     def list_all(self) -> list[dict]:
         """
