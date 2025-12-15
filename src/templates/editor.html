@@ -453,9 +453,36 @@
     const saveButton = document.getElementById('save-playlist');
     const saveText = document.getElementById('save-text');
     const editingSlug = document.getElementById('editing-slug').value;
+    const saveBadge = document.createElement('span');
+    saveBadge.className = 'badge bg-warning text-dark ms-2';
+    saveBadge.textContent = 'Unsaved';
+    saveBadge.style.fontSize = '0.7rem';
 
     let coverDataUrl = null;
 
+    // Function to update button
+    function updateSaveButton() {
+        if (hasUnsavedChanges && saveText.textContent !== 'Saving...') {
+            if (!saveButton.querySelector('.badge')) {
+                saveButton.appendChild(saveBadge);
+            }
+        } else {
+            if (saveButton.querySelector('.badge')) {
+                saveButton.removeChild(saveBadge);
+            }
+        }
+    }
+
+    // Call it whenever changes happen
+    // Add to markUnsaved():
+    function markUnsaved() {
+        hasUnsavedChanges = true;
+        updateSaveButton();
+    }
+
+    // After successful save:
+    hasUnsavedChanges = false;
+    updateSaveButton();
     if (editingSlug) {
         saveText.textContent = "Save changes";
     }
@@ -513,6 +540,8 @@
             const data = await response.json();
 
             if (data.success) {
+                hasUnsavedChanges = false;  // Clear unsaved flag
+                isSaving = false;
                 const finalSlug = data.slug || editingSlug;
 
                 // Success toast
@@ -717,6 +746,20 @@
     }
 </script>
 <script>
+    // Fix: EasyMDE doesn't render preloaded content when initialized in a hidden tab
+    document.addEventListener("DOMContentLoaded", () => {
+        const notesTab = document.querySelector('#notes-tab');
+        if (!notesTab || typeof easyMDE === 'undefined') return;
+
+        // When the Liner Notes tab is shown, force EasyMDE to refresh
+        notesTab.addEventListener('shown.bs.tab', () => {
+            easyMDE.codemirror.refresh();
+            // Optional: also force a redraw of the value in case it's still not visible
+            easyMDE.codemirror.setValue(easyMDE.value());
+        });
+    });
+</script>
+<script>
     // === FINAL TOAST OVERRIDE - MUST BE LAST ===
     document.addEventListener('DOMContentLoaded', () => {
         const addTrackToastEl = document.getElementById('addTrackToast');
@@ -750,5 +793,76 @@
             addTrackToast.show();
         };
     });
+</script>
+<script>
+    // === UNSAVED CHANGES WARNING ===
+    let hasUnsavedChanges = false;
+    let isSaving = false;
+
+    // Function to mark changes as unsaved
+    function markUnsaved() {
+        hasUnsavedChanges = true;
+    }
+
+    // Track changes that should trigger the warning
+    document.addEventListener('DOMContentLoaded', () => {
+        // Any change to the playlist (add, remove, reorder)
+        const originalAddToPlaylist = window.addToPlaylist;
+        window.addToPlaylist = function(item) {
+            originalAddToPlaylist(item);
+            markUnsaved();
+        };
+
+        const originalRenderPlaylist = window.renderPlaylist;
+        window.renderPlaylist = function() {
+            originalRenderPlaylist.apply(this, arguments);
+            // Reordering or removing also triggers renderPlaylist
+            markUnsaved();
+        };
+
+        // Title change
+        document.getElementById('playlist-title').addEventListener('input', markUnsaved);
+
+        // Cover upload
+        document.getElementById('cover-upload').addEventListener('change', markUnsaved);
+
+        // Liner notes changes (via EasyMDE)
+        if (easyMDE) {
+            easyMDE.codemirror.on('change', markUnsaved);
+        }
+
+        // When saving starts
+        document.getElementById('save-playlist').addEventListener('click', () => {
+            isSaving = true; // Temporarily disable warning during save
+        });
+    });
+
+    // Listen for page unload / navigation
+    window.addEventListener('beforeunload', (e) => {
+        if (hasUnsavedChanges && !isSaving) {
+            // Standard browser confirmation dialog
+            e.preventDefault();
+            e.returnValue = ''; // Required for Chrome/Firefox
+            return ''; // Some browsers need this
+        }
+    });
+
+    // Also handle Bootstrap tabs, links, etc. that change page without full unload
+    // (e.g., clicking the "Preview your mixtape" link or browser back button)
+    document.addEventListener('click', (e) => {
+        if (hasUnsavedChanges && !isSaving) {
+            const link = e.target.closest('a');
+            if (link && link.href && !link.href.includes(window.location.pathname)) {
+                // External or different page link
+                if (!confirm('You have unsaved changes. Do you want to leave without saving?')) {
+                    e.preventDefault();
+                } else {
+                    // User confirmed leave → reset flag so future navigations don't warn
+                    hasUnsavedChanges = false;
+                }
+            }
+        }
+    });
+
 </script>
 {% endblock %}
