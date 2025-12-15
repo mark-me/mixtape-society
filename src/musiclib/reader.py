@@ -8,6 +8,7 @@ from typing import Any
 from logtools import get_logger
 
 from ._extractor import CollectionExtractor
+from .indexing_status import clear_indexing_status
 
 logger = get_logger(__name__)
 
@@ -67,8 +68,10 @@ class MusicCollection:
         self._monitoring_started = True
 
         # Background task control
+        # Automatically start background indexing if needed
+        if self._needs_initial_index or self._needs_resync:
+            self.start_background_indexing()
         self._background_task_running = False
-
 
     def start_background_indexing(self):
         """
@@ -81,6 +84,12 @@ class MusicCollection:
         self._background_task_running = True
 
         def indexing_task():
+            """
+            Runs the background indexing or resynchronization task.
+
+            This function checks the current state and triggers a rebuild or resync as needed,
+            logging the outcome and ensuring cleanup is performed.
+            """
             try:
                 if getattr(self, "_needs_initial_index", False):
                     self._run_background_rebuild()
@@ -90,6 +99,7 @@ class MusicCollection:
             except Exception as e:
                 logger.error(f"Background indexing failed: {e}")
             finally:
+                clear_indexing_status(self.music_root)
                 self._background_task_running = False
 
         Thread(target=indexing_task, daemon=True).start()
@@ -101,11 +111,8 @@ class MusicCollection:
         Triggers the status update, performs the rebuild, and updates the internal state.
         """
         logger.info("Starting background full rebuild...")
-        self._extractor._trigger_status("rebuilding")
         self._extractor.rebuild()
         self._needs_initial_index = False
-
-
 
     def _run_background_resync(self) -> None:
         """
@@ -114,7 +121,6 @@ class MusicCollection:
         Triggers the status update, performs the resync, and updates the internal state.
         """
         logger.info("Starting background resync...")
-        self._extractor._trigger_status("resyncing")
         self._extractor.resync()
         self._needs_resync = False
 
