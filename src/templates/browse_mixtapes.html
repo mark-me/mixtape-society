@@ -4,19 +4,20 @@
 {% block extra_css %}
 <style>
     .mixtape-item {
-        background: #1e1e1e;
+        background: var(--bs-body-bg);
         border-radius: 12px;
         overflow: hidden;
         transition: all 0.3s ease;
         margin-bottom: 1.5rem;
         display: flex;
         align-items: center;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        flex-wrap: wrap; /* Allow wrapping on very small screens */
+        box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+        flex-wrap: wrap;
+        border: 1px solid var(--bs-border-color); /* Subtle border that adapts */
     }
     .mixtape-item:hover {
         transform: translateY(-4px);
-        box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.2);
     }
 
     .mixtape-cover {

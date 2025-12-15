@@ -7,6 +7,24 @@ All notable changes will be documented here.
 
 ---
 
+## 📦 v0.1.4-alpha
+<span class="md-tag">Pre-release</span>
+
+**🗓️** 2025-12-15
+
+### 🚀 Added
+
+-
+
+### 🐛 Fixed
+
+- Missing cover art standard art
+- Theme adherence on some pages
+
+[v0.1.4-alpha](https://github.com/mark-me/mixtape-society/compare/v0.1.3-alpha...v0.1.4-alpha)
+
+---
+
 ## 📦 v0.1.3-alpha
 <span class="md-tag">Pre-release</span>
 
@@ -23,7 +41,7 @@ All notable changes will be documented here.
 
 - Moving away from editing a mixtape then returning would lose changes
 
-[v0.1.2-alpha](https://github.com/mark-me/mixtape-society/compare/v0.1.2-alpha...v0.1.3-alpha)
+[v0.1.3-alpha](https://github.com/mark-me/mixtape-society/compare/v0.1.2-alpha...v0.1.3-alpha)
 
 ---
 

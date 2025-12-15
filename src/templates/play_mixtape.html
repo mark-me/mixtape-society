@@ -10,7 +10,7 @@
     <meta property="og:title" content="{{ mixtape.title }}"/>
     <meta property="og:type" content="music.playlist"/>
     <meta property="og:url" content="{{ url_for('public_play', slug=mixtape.slug, _external=True) }}"/>
-    <meta property="og:description" content="A personal mixtape with {{ mixtape.tracks|length }} nummers. Luister nu!"/>
+    <meta property="og:description" content="A personal mixtape with {{ mixtape.tracks|length }} tracks."/>
     <meta property="og:site_name" content="Mixtape Society"/>
 
     {% if mixtape.cover %}
@@ -26,7 +26,7 @@
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image"/>
     <meta name="twitter:title" content="{{ mixtape.title }}"/>
-    <meta name="twitter:description" content="Een persoonlijke mixtape met {{ mixtape.tracks|length }} nummers."/>
+    <meta name="twitter:description" content="A personal mixtape with {{ mixtape.tracks|length }} tracks."/>
     {% if mixtape.cover %}
         <meta name="twitter:image" content="{{ url_for('serve_cover', filename=mixtape.cover.split('/')[-1], _external=True) }}"/>
     {% else %}
@@ -106,7 +106,9 @@
             <!-- Keep the big play button at the top -->
             <div class="text-center my-5">
                 <div class="btn-group" role="group">
-                    <button id="big-play-btn" class="btn btn-outline-light btn-lg rounded-pill px-5 py-3 shadow subtle-play-btn">
+                    <button id="big-play-btn"
+                            class="btn btn-lg rounded-pill px-5 py-3 shadow theme-outline-btn"
+                            style="border-width: 2px; font-weight: 600;">
                         <i class="bi bi-play-fill me-2" style="font-size: 1.6rem; position:relative; top:2px;"></i>
                         Play mixtape
                     </button>
@@ -535,5 +537,40 @@
             margin-left: 0 !important;
         }
     }
+
+    /* Theme-adaptive outline button for the big Play button */
+    .theme-outline-btn {
+        border-color: var(--bs-primary) !important;
+        color: var(--bs-primary) !important;
+        background-color: transparent !important;
+    }
+
+    .theme-outline-btn:hover {
+        background-color: var(--bs-primary) !important;
+        color: white !important;
+    }
+
+    /* Light mode: dark border + text */
+    html[data-bs-theme="light"] .theme-outline-btn {
+        border-color: #212529; /* dark gray */
+        color: #212529;
+    }
+
+    html[data-bs-theme="light"] .theme-outline-btn:hover {
+        background-color: #212529;
+        color: white;
+    }
+
+    /* Dark mode: light border + text (like original btn-outline-light) */
+    html[data-bs-theme="dark"] .theme-outline-btn {
+        border-color: #f8f9fa; /* light gray */
+        color: #f8f9fa;
+    }
+
+    html[data-bs-theme="dark"] .theme-outline-btn:hover {
+        background-color: #f8f9fa;
+        color: #212529;
+    }
+
 </style>
 {% endblock %}
