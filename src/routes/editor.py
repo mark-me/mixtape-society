@@ -5,12 +5,13 @@ from base64 import b64decode
 from datetime import datetime
 from pathlib import Path
 
-from flask import Blueprint, abort, jsonify, render_template, request
+from flask import Blueprint, jsonify, render_template, request
 
 from auth import require_auth
 from config import BaseConfig as Config
 from logtools import get_logger
 from musiclib import MusicCollection
+from mixtape_manager import MixtapeManager
 
 logger = get_logger(__name__)
 
@@ -51,11 +52,8 @@ def edit_mixtape(slug: str) -> str:
     Returns:
         str: The rendered HTML page for editing the mixtape.
     """
-    json_path = Config.MIXTAPE_DIR / f"{slug}.json"
-    if not json_path.exists():
-        abort(404)
-    with open(json_path, "r", encoding="utf-8") as f:
-        mixtape = json.load(f)
+    mixtape_manager = MixtapeManager(path_mixtapes=Config.MIXTAPE_DIR)
+    mixtape = mixtape_manager.get(slug)
     return render_template("editor.html", preload_mixtape=mixtape, editing_slug=slug)
 
 
