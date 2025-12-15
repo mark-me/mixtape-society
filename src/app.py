@@ -68,19 +68,6 @@ logger = get_logger(name=__name__)
 
 collection = MusicCollection(music_root=config.MUSIC_ROOT, db_path=config.DB_PATH)
 
-# Start background indexing immediately if needed (Flask 2.3+ compatible)
-if hasattr(collection, "_needs_initial_index") or hasattr(collection, "_needs_resync"):
-    # Run in background thread right now — app starts instantly
-    def kick_off_indexing():
-        collection.start_background_indexing()
-
-    # Use threading to not block app startup
-    import threading
-    threading.Thread(target=kick_off_indexing, daemon=True).start()
-
-    # Optional: log it
-    logger.info("Background indexing scheduled to start immediately.")
-
 mimetypes.add_type("audio/flac", ".flac")
 mimetypes.add_type("audio/mp4", ".m4a")
 mimetypes.add_type("audio/aac", ".aac")
@@ -234,7 +221,7 @@ def serve(debug: bool = True) -> None:
     Args:
         debug: Whether to run the server in debug mode. Defaults to True.
     """
-    app.run(debug=debug, host="0.0.0.0", port=5000)
+    app.run(debug=debug, use_reloader=False, host="0.0.0.0", port=5000)
 
 
 if __name__ == "__main__":

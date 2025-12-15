@@ -263,6 +263,7 @@ class CollectionExtractor:
                 for p in self.music_root.rglob("*")
                 if p.is_file() and p.suffix.lower() in self.SUPPORTED_EXTS
             ]
+            files = files[:5000]  # FIXME: Remove limit after testing
             logger.info(f"→ {len(files):,} music files found. Start indexing...")
             with self.get_conn() as conn:
                 self._clear_tracks_table(conn)
@@ -608,6 +609,13 @@ class CollectionExtractor:
                 self._update_rebuild_status(total_files, i)
             if i % 500 == 0:  # Commit every 500 files to avoid long locks
                 conn.commit()
+            if i % 100 == 0:
+                set_indexing_status(
+                    data_root=self.data_root,
+                    status="rebuilding",
+                    total=total_files,
+                    current=i + 1,  # +1 since i starts at 0, and we've just processed this file
+                )
         conn.commit()  # Final commit
         conn.close()
         return count
