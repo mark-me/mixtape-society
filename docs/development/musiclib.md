@@ -87,6 +87,11 @@ sequenceDiagram
 
 ### ::: src.musiclib.reader.MusicCollection
 
+### ::: src.musiclib._extractor.EventType 
+
+### ::: src.musiclib._extractor.IndexEvent 
+
 ### ::: src.musiclib._extractor.CollectionExtractor
 
-### ::: src.musiclib._extractor.Watcher
+### ::: src.musiclib._extractor._Watcher
+
