@@ -16,8 +16,9 @@ from mixtape_manager import MixtapeManager
 logger = get_logger(__name__)
 
 
-
-collection = MusicCollection(music_root=Config.MUSIC_ROOT, db_path=Config.DB_PATH)
+collection = MusicCollection(
+    music_root=Config.MUSIC_ROOT, db_path=Config.DB_PATH, logger=logger
+)
 
 editor = Blueprint(
     "editor", __name__, template_folder="templates", url_prefix="/editor"
@@ -108,7 +109,9 @@ def save_mixtape() -> object:
         if not data or not data.get("tracks"):
             return jsonify({"error": "Empty mixtape"}), 400
 
-        original_title = data.get("title", "Unnamed mixtape").strip() or "Unnamed mixtape"
+        original_title = (
+            data.get("title", "Unnamed mixtape").strip() or "Unnamed mixtape"
+        )
         liner_notes = data.get("liner_notes", "")  # New field
 
         slug = data.get("slug")
@@ -151,16 +154,19 @@ def save_mixtape() -> object:
 
         _save_mixtape_json(json_path, data)
 
-        return jsonify({
-            "success": True,
-            "title": original_title,
-            "slug": slug,
-            "url": f"/editor/{slug}"
-        })
+        return jsonify(
+            {
+                "success": True,
+                "title": original_title,
+                "slug": slug,
+                "url": f"/editor/{slug}",
+            }
+        )
 
     except Exception as e:
         logger.exception(f"Error saving mixtape: {e}")
         return jsonify({"error": "Server error"}), 500
+
 
 def _generate_slug(title: str) -> str:
     """
@@ -223,7 +229,14 @@ def _get_default_cover(track_path: str, slug: str) -> str | None:
     """
     full_track_path = Config.MUSIC_ROOT / track_path
     album_dir = full_track_path.parent
-    possible = ["cover.jpg", "folder.jpg", "album.jpg", "front.jpg", "Cover.jpg", "Folder.jpg"]
+    possible = [
+        "cover.jpg",
+        "folder.jpg",
+        "album.jpg",
+        "front.jpg",
+        "Cover.jpg",
+        "Folder.jpg",
+    ]
     for name in possible:
         src = album_dir / name
         if src.exists():
@@ -248,4 +261,3 @@ def _save_mixtape_json(json_path: Path, data: dict) -> None:
     """
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
-

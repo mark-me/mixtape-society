@@ -9,10 +9,9 @@ from tinytag import TinyTag
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
-from logtools import get_logger
-from .indexing_status import set_indexing_status, clear_indexing_status
+from common.logging import NullLogger
 
-logger = get_logger(__name__)
+from .indexing_status import clear_indexing_status, set_indexing_status
 
 # =========================
 # Event model
@@ -60,7 +59,7 @@ class CollectionExtractor:
 
     SUPPORTED_EXTS = {".mp3", ".flac", ".ogg", ".oga", ".m4a", ".mp4", ".wav", ".wma"}
 
-    def __init__(self, music_root: Path, db_path: Path) -> None:
+    def __init__(self, music_root: Path, db_path: Path, logger=None) -> None:
         """
         Initializes the CollectionExtractor with the specified music root and database path.
 
@@ -76,6 +75,8 @@ class CollectionExtractor:
         self.music_root = music_root.resolve()
         self.db_path = db_path
         self.data_root = db_path.parent
+
+        self._logger = logger or NullLogger()
 
         self.data_root.mkdir(parents=True, exist_ok=True)
 
@@ -196,7 +197,7 @@ class CollectionExtractor:
                         pending = 0
 
                 except Exception as e:
-                    logger.error(f"Writer error: {e}", exc_info=True)
+                    self._logger.error(f"Writer error: {e}", exc_info=True)
 
                 finally:
                     self._write_queue.task_done()
@@ -266,7 +267,7 @@ class CollectionExtractor:
         Returns:
             None
         """
-        logger.info("Starting full rebuild")
+        self._logger.info("Starting full rebuild")
 
         files = [
             p
@@ -288,7 +289,7 @@ class CollectionExtractor:
         self._write_queue.put(IndexEvent("REBUILD_DONE"))
         self._write_queue.join()
         clear_indexing_status(self.data_root)
-        logger.info("Rebuild queued")
+        self._logger.info("Rebuild queued")
 
 
     # === Resync ===
@@ -302,7 +303,7 @@ class CollectionExtractor:
         Returns:
             None
         """
-        logger.info("Starting resync")
+        self._logger.info("Starting resync")
 
         fs_paths = {
             str(p)
@@ -335,7 +336,7 @@ class CollectionExtractor:
 
         self._write_queue.put(IndexEvent("RESYNC_DONE"))
         clear_indexing_status(self.data_root)
-        logger.info(f"Resync queued (+{len(to_add)} / -{len(to_remove)})")
+        self._logger.info(f"Resync queued (+{len(to_add)} / -{len(to_remove)})")
 
 
     # === Monitoring ===

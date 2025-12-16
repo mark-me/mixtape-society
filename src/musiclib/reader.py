@@ -4,12 +4,11 @@ from threading import Thread
 from typing import Any
 from sqlite3 import Connection
 
-from logtools import get_logger
+from common.logging import NullLogger
 
 from ._extractor import CollectionExtractor
 from .indexing_status import clear_indexing_status
 
-logger = get_logger(__name__)
 
 _STARTUP_DONE = False
 
@@ -24,7 +23,7 @@ class MusicCollection:
     - No SQLite access from UI / background threads
     """
 
-    def __init__(self, music_root: Path | str, db_path: Path | str) -> None:
+    def __init__(self, music_root: Path | str, db_path: Path | str, logger=None) -> None:
         """
         Initializes the MusicCollection with the specified music root and database path.
 
@@ -41,6 +40,8 @@ class MusicCollection:
         self.music_root = Path(music_root).resolve()
         self.db_path = Path(db_path)
 
+        self._logger = logger or NullLogger()
+
         self._extractor = CollectionExtractor(
             music_root=self.music_root,
             db_path=self.db_path,
@@ -50,7 +51,7 @@ class MusicCollection:
         track_count = self.count()
 
         if track_count == 0:
-            logger.info("No tracks in DB — scheduling initial rebuild")
+            self._logger.info("No tracks in DB — scheduling initial rebuild")
             self._startup_mode = "rebuild"
         else:
             self._startup_mode = "resync"
@@ -90,9 +91,9 @@ class MusicCollection:
                     self._extractor.rebuild()
                 elif self._startup_mode == "resync":
                     self._extractor.resync()
-                logger.info("Startup indexing scheduled")
+                self._logger.info("Startup indexing scheduled")
             except Exception as e:
-                logger.error(f"Startup indexing failed: {e}", exc_info=True)
+                self._logger.error(f"Startup indexing failed: {e}", exc_info=True)
             finally:
                 clear_indexing_status(self.music_root)
                 self._background_task_running = False

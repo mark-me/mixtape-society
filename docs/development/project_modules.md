@@ -6,6 +6,8 @@ This page provides an overview of the project’s Python modules and how they de
 
 ## Module description
 
+- **common** contains stable, infrastructure-free abstractions that may be used by all layers.
+
 ### Core modules
 
 - **auth**: Custom authentication logic for checking user credentials.
@@ -61,8 +63,6 @@ graph TD
 
     app.py --> Core
     app.py --> routes
-
-    musiclib --> logtools
 
     browse_mixtapes --> mixtape_manager
     browse_mixtapes --> config

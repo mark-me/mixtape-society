@@ -4,10 +4,7 @@ import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
-from config import config as Config  # assuming config is accessible
-from logtools import get_logger
-
-logger = get_logger(__name__)
+from common.logging import NullLogger
 
 def set_indexing_status(data_root: Path | str, status: str, total: int, current: int) -> None:
     """Writes the current indexing status to a JSON file.
@@ -133,7 +130,7 @@ def clear_indexing_status(data_root: Path | str) -> None:
     status_file.unlink(missing_ok=True)
 
 
-def get_indexing_status(data_root: Path | str) -> dict | None:
+def get_indexing_status(data_root: Path | str, logger=None) -> dict | None:
     """Retrieves the current indexing status from the status file.
 
     Reads and parses the indexing status JSON file for the given data root, returning its contents as a dictionary.
@@ -145,6 +142,7 @@ def get_indexing_status(data_root: Path | str) -> dict | None:
     Returns:
         dict | None: The parsed status data, or None if unavailable.
     """
+    logger = logger or NullLogger()
     data_root = Path(data_root)
     status_file = data_root / "indexing_status.json"
 

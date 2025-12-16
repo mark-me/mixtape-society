@@ -122,7 +122,7 @@ def _handle_range_request(
             }
         )
         return rv
-    except Exception as e:
+    except Exception:
         abort(500)
 
 

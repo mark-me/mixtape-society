@@ -12,9 +12,11 @@ from auth import check_auth, require_auth
 from config import BaseConfig as Config
 from mixtape_manager import MixtapeManager
 from musiclib import get_indexing_status
+from logtools import get_logger
 
 browser = Blueprint("browse_mixtapes", __name__, template_folder="../templates")
 
+logger = get_logger(name=__name__)
 
 @browser.route("/mixtapes")
 @require_auth
@@ -27,7 +29,7 @@ def browse() -> Response:
     Returns:
         Response: The rendered template for mixtapes or indexing progress.
     """
-    status = get_indexing_status(current_app.config["DATA_ROOT"])
+    status = get_indexing_status(current_app.config["DATA_ROOT"], logger=logger)
     if status and status["status"] in ("rebuilding", "resyncing"):
         return render_template("indexing.html", status=status)
 

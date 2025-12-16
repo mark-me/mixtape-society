@@ -23,6 +23,7 @@ from musiclib import MusicCollection, get_indexing_status
 from routes import browser, editor, play
 from version_info import get_version
 
+
 # === Loading configuration dependent on environment ===
 CONFIG_MAP = {
     "development": DevelopmentConfig,
@@ -66,10 +67,15 @@ if "gunicorn" in str(type(app)).lower() or "gunicorn" in sys.modules:
 logger = get_logger(name=__name__)
 
 # === Start collection extraction ===
-collection = MusicCollection(music_root=config.MUSIC_ROOT, db_path=config.DB_PATH)
+collection = MusicCollection(
+    music_root=config.MUSIC_ROOT, db_path=config.DB_PATH, logger=logger
+)
 
-logger.warning("NOTE: This application does not include or distribute any copyrighted media.")
+logger.warning(
+    "NOTE: This application does not include or distribute any copyrighted media."
+)
 logger.warning("Users are responsible for the content they load into the system.")
+
 
 @app.route("/")
 def landing() -> Response:
@@ -81,14 +87,16 @@ def landing() -> Response:
     Returns:
         Response: The appropriate rendered template or redirect.
     """
-    status = get_indexing_status(config.DATA_ROOT)
+    status = get_indexing_status(config.DATA_ROOT, logger=logger)
     if status and status["status"] in ("rebuilding", "resyncing"):
         return render_template("indexing.html", status=status)
     if check_auth():
         return redirect("/mixtapes")
     return render_template("landing.html")
 
+
 # === Authentication Routes ===
+
 
 @app.route("/login", methods=["POST"])
 @limiter.limit("5 per minute")
@@ -126,6 +134,7 @@ def logout() -> Response:
 
 # === Context Processors ===
 
+
 @app.context_processor
 def inject_version() -> dict:
     """
@@ -160,6 +169,7 @@ app.register_blueprint(editor)
 
 
 # === Server Start ===
+
 
 def serve(debug: bool = True) -> None:
     """

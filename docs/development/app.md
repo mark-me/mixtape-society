@@ -21,8 +21,6 @@ The file `app.py` defines the main Flask application for the "mixtape-society" p
 * **Static File Serving**
   * `/mixtapes/files/<path:filename>`: Serves mixtape files from a configured directory.
   * `/mixtapes/covers/<filename>`: Serves cover images from a configured directory.
-* **Public Mixtape Sharing**
-  * `/share/<slug>`: Renders a public playback page for a mixtape identified by a slug. If the mixtape does not exist, a 404 error is returned.
 * **Template Context Injection**
   * `inject_now`: Adds the current UTC datetime to the template context, making it available as now in templates.
 * **Blueprint Registration**
@@ -31,7 +29,7 @@ The file `app.py` defines the main Flask application for the "mixtape-society" p
 
 * **App Runner**
 
-    serve() function and the if __name__ == "__main__" block both start the Flask development server on all interfaces at port 5000.
+    serve() function and the if `__name__ == "__main__"` block both start the Flask development server on all interfaces at port 5000.
 
 ## API
 
