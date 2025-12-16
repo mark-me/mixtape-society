@@ -43,6 +43,7 @@ nav:
   - Development:
     - Overview: development/intro.md
     - Architecture:
+      - Project modules: development/project_modules.md
       - Main App: development/app.md
       - Browser Routes: development/browse_mixtapes.md
       - Editor Routes: development/editor.md
