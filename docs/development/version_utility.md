@@ -1,6 +1,6 @@
 # Git version utility
 
-![versioning](../images/version.png)
+![versioning](../images/version.png){ align=right width="90" }
 
 The `version` module provides utilities to access Git version information of the codebase. imported wherever version information is needed within the application. Its design ensures robust and consistent version reporting across different environments and deployment scenarios.
 
