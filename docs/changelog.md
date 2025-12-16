@@ -20,6 +20,7 @@ All notable changes will be documented here.
 ### 🔧 Changed
 
 - Music library extraction backend (Musiclib)
+- Huge overhaul of back-end, making modules less interdependent
 
 ### 🐛 Fixed
 

@@ -1,12 +1,21 @@
 import mimetypes
 from pathlib import Path
 
-from flask import Blueprint, Response, abort, render_template, request, send_file, current_app
+from flask import (
+    Blueprint,
+    Response,
+    abort,
+    current_app,
+    render_template,
+    request,
+    send_file,
+)
 
+from common.logging import Logger, NullLogger
 from mixtape_manager import MixtapeManager
 
 
-def create_play_blueprint(mixtape_manager: MixtapeManager, logger) -> Blueprint:
+def create_play_blueprint(mixtape_manager: MixtapeManager, logger: Logger | None = None) -> Blueprint:
     """
     Creates and configures the Flask blueprint for mixtape playback and audio streaming.
 
@@ -14,12 +23,14 @@ def create_play_blueprint(mixtape_manager: MixtapeManager, logger) -> Blueprint:
 
     Args:
         mixtape_manager (MixtapeManager): The manager instance for retrieving mixtape data.
-        logger: The logger instance for error reporting.
+        logger (Logger): The logger instance for error reporting.
 
     Returns:
         Blueprint: The configured Flask blueprint for playback and streaming.
     """
     play = Blueprint("play", __name__)
+
+    logger: Logger = logger or NullLogger()
 
     mimetypes.add_type("audio/flac", ".flac")
     mimetypes.add_type("audio/mp4", ".m4a")

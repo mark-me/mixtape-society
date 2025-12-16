@@ -11,8 +11,6 @@
 
 ## 0. Liner notes
 
-- Adding text to a playlist
-- Links for mixtape tracks
 - Background info for artist, album or track
 
 ## 1. Progressive Web App (PWA) + Offline Playback
@@ -38,7 +36,6 @@
 
 - “Smart Mix” button → auto-generate mixtape by genre/mood/decade/BPM with simple filters
 - “Recently added” automatic mixtape
-- Play count + last played tracking (opt-in)
 - Simple last.fm/scrobble support (optional)
 
 ## 5. Sharing & Discovery

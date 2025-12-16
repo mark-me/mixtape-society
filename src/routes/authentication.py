@@ -1,20 +1,26 @@
 from flask import session, redirect, Blueprint, Response, request, flash, current_app
 
+from flask_limiter import Limiter
 
+from common.logging import Logger, NullLogger
 
-
-def create_authentication_blueprint(logger, limiter) -> Blueprint:
+def create_authentication_blueprint(limiter: Limiter, logger: Logger | None = None) -> Blueprint:
     """
-    Creates and returns a Flask blueprint for user authentication routes.
+    Creates and configures the Flask blueprint for user authentication.
 
-    Sets up login and logout endpoints for handling user authentication and session management.
+    Sets up routes for user login and logout, applies rate limiting to login attempts, and provides logging support.
+
+    Args:
+        limiter (Limiter): The Flask-Limiter instance for rate limiting login attempts.
+        logger (Logger | None): Optional logger for logging authentication events. Uses NullLogger if not provided.
 
     Returns:
-        Blueprint: The Flask blueprint with authentication routes.
+        Blueprint: The configured Flask blueprint for authentication.
     """
+
     authenticator = Blueprint("authenticator", __name__)
 
-
+    logger: Logger = logger or NullLogger()
 
     # === Authentication Routes ===
     @authenticator.route("/login", methods=["POST"])

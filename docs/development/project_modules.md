@@ -1,4 +1,4 @@
-# Project modules
+# Project Module Architecture
 
 ![modules](../images/modules.png){ align=right width="90" }
 
@@ -41,9 +41,10 @@ Web-layer modules depend on core modules, but core modules do not depend on Flas
 - `mixtape_manager` acts as the central domain service.
 
 ```mermaid
-graph TD
+graph LR
     subgraph Application
         app.py
+        auth.py
     end
 
     subgraph Core
@@ -52,29 +53,17 @@ graph TD
         logtools
         mixtape_manager
         musiclib
-        auth
     end
 
     subgraph routes
         browse_mixtapes
         editor
         play
+        authentication
     end
 
-    app.py --> Core
     app.py --> routes
+    app.py --> auth.py
+    app.py --> Core
 
-    browse_mixtapes --> mixtape_manager
-    browse_mixtapes --> config
-    browse_mixtapes --> musiclib
-    browse_mixtapes --> auth
-
-    editor --> mixtape_manager
-    editor --> auth
-    editor --> config
-    editor --> logtools
-    editor --> musiclib
-
-    play --> mixtape_manager
-    play --> config
 ```

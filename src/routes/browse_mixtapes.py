@@ -10,10 +10,11 @@ from flask import (
 
 from auth import check_auth, require_auth
 from mixtape_manager import MixtapeManager
+from common.logging import Logger, NullLogger
 
 
 def create_browser_blueprint(
-    mixtape_manager: MixtapeManager, func_processing_status, logger
+    mixtape_manager: MixtapeManager, func_processing_status: any, logger: Logger | None = None
 ) -> Blueprint:
     """
     Creates and configures the Flask blueprint for browsing, playing, and managing mixtapes.
@@ -22,13 +23,15 @@ def create_browser_blueprint(
 
     Args:
         mixtape_manager (MixtapeManager): The manager instance for retrieving and managing mixtapes.
-        func_processing_status: A function to check the current indexing or processing status.
-        logger: The logger instance for error reporting.
+        func_processing_status (any): A function to check the current indexing or processing status.
+        logger (Logger): The logger instance for error reporting.
 
     Returns:
         Blueprint: The configured Flask blueprint for browsing and managing mixtapes.
     """
     browser = Blueprint("browse_mixtapes", __name__, template_folder="../templates")
+
+    logger: Logger = logger or NullLogger()
 
     @browser.route("/")
     @require_auth

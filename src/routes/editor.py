@@ -10,9 +10,10 @@ from flask import Blueprint, jsonify, render_template, request, current_app
 from auth import require_auth
 from musiclib import MusicCollection
 from mixtape_manager import MixtapeManager
+from common.logging import Logger, NullLogger
 
 
-def create_editor_blueprint(collection: MusicCollection, logger) -> Blueprint:
+def create_editor_blueprint(collection: MusicCollection, logger: Logger | None = None) -> Blueprint:
     """
     Creates and configures the Flask blueprint for the mixtape editor.
 
@@ -20,12 +21,14 @@ def create_editor_blueprint(collection: MusicCollection, logger) -> Blueprint:
 
     Args:
         collection (MusicCollection): The music collection instance to use for searching.
-        logger: The logger instance for error reporting.
+        logger (Logger): The logger instance for error reporting.
 
     Returns:
         Blueprint: The configured Flask blueprint for the editor.
     """
     editor = Blueprint("editor", __name__)
+
+    logger: Logger = logger or NullLogger()
 
     @editor.route("/")
     @require_auth

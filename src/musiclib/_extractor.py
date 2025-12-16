@@ -9,7 +9,7 @@ from tinytag import TinyTag
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
-from common.logging import NullLogger
+from common.logging import Logger, NullLogger
 
 from .indexing_status import clear_indexing_status, set_indexing_status
 
@@ -59,19 +59,9 @@ class CollectionExtractor:
 
     SUPPORTED_EXTS = {".mp3", ".flac", ".ogg", ".oga", ".m4a", ".mp4", ".wav", ".wma"}
 
-    def __init__(self, music_root: Path, db_path: Path, logger=None) -> None:
-        """
-        Initializes the CollectionExtractor with the specified music root and database path.
-
-        Sets up the data directory, initializes the database, and starts the background writer thread for processing indexing events.
-
-        Args:
-            music_root (Path): The root directory containing music files.
-            db_path (Path): The path to the SQLite database file.
-
-        Returns:
-            None
-        """
+    def __init__(
+        self, music_root: Path, db_path: Path, logger: Logger = None | None
+    ) -> None:
         self.music_root = music_root.resolve()
         self.db_path = db_path
         self.data_root = db_path.parent
@@ -92,7 +82,6 @@ class CollectionExtractor:
             daemon=True,
         )
         self._writer_thread.start()
-
 
     # === DB setup ===
 
@@ -153,7 +142,6 @@ class CollectionExtractor:
         conn.row_factory = sqlite3.Row
         return conn
 
-
     # === Writer loop (ONLY writer) ===
 
     def _db_writer_loop(self) -> None:
@@ -206,7 +194,6 @@ class CollectionExtractor:
             conn.commit()
             conn.close()
 
-
     # === Metadata extraction ===
 
     def _index_file(self, conn: sqlite3.Connection, path: Path) -> None:
@@ -256,7 +243,6 @@ class CollectionExtractor:
             ),
         )
 
-
     # === Rebuild ===
 
     def rebuild(self) -> None:
@@ -290,7 +276,6 @@ class CollectionExtractor:
         self._write_queue.join()
         clear_indexing_status(self.data_root)
         self._logger.info("Rebuild queued")
-
 
     # === Resync ===
 
@@ -337,7 +322,6 @@ class CollectionExtractor:
         self._write_queue.put(IndexEvent("RESYNC_DONE"))
         clear_indexing_status(self.data_root)
         self._logger.info(f"Resync queued (+{len(to_add)} / -{len(to_remove)})")
-
 
     # === Monitoring ===
 

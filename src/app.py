@@ -9,7 +9,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
 from auth import check_auth
-from config import DevelopmentConfig, ProductionConfig, TestConfig
+from config import DevelopmentConfig, ProductionConfig, TestConfig, BaseConfig
 from logtools import get_logger, setup_logging
 from musiclib import MusicCollection, get_indexing_status
 from mixtape_manager import MixtapeManager
@@ -123,7 +123,7 @@ def create_app() -> Flask:
     return app
 
 
-def get_configuration():
+def get_configuration() -> BaseConfig:
     """
     Determines and returns the appropriate configuration class for the current environment.
 
@@ -131,7 +131,7 @@ def get_configuration():
     ensures necessary directories exist, and returns the configuration object.
 
     Returns:
-        Config: The configuration object for the current environment.
+        BaseConfig: The configuration object for the current environment.
     """
     CONFIG_MAP = {
         "development": DevelopmentConfig,
