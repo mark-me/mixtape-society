@@ -60,9 +60,10 @@ def create_play_blueprint(mixtape_manager: MixtapeManager, logger) -> Blueprint:
             403: If the file is outside the music root directory.
             404: If the file does not exist.
         """
-        full_path = (current_app.config["MUSIC_ROOT"] / file_path).resolve()
+        path_music = Path(current_app.config["MUSIC_ROOT"]).resolve()
+        full_path = ( path_music / file_path).resolve()
         try:
-            full_path.relative_to(current_app.config["MUSIC_ROOT"])
+            full_path.relative_to(path_music)
         except ValueError:
             abort(403)
         if not full_path.is_file():
@@ -103,7 +104,7 @@ def create_play_blueprint(mixtape_manager: MixtapeManager, logger) -> Blueprint:
             byte1 = int(byte1_str) if byte1_str else 0
             byte2 = int(byte2_str) if byte2_str else file_size - 1
 
-            if byte1 >= file_size or byte2 >= file_size or byte1 < 0:
+            if byte1 >= file_size or byte2 >= file_size or byte1 < 0 or byte2 < byte1:
                 return Response("Range Not Satisfiable", 416)
 
             length = byte2 - byte1 + 1
@@ -123,7 +124,7 @@ def create_play_blueprint(mixtape_manager: MixtapeManager, logger) -> Blueprint:
                 }
             )
             return rv
-        except Exception:
+        except (ValueError, OSError):
             abort(500)
 
 
