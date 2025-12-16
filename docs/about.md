@@ -56,7 +56,7 @@ Mixtape Society leverages several fantastic open-source libraries and tools. A b
 
 ## License
 
-Mixtape Society is released under the [MIT License](LICENSE). Feel free to fork, modify, and share—but remember, users are responsible for their own music content (no copyrighted media is included or distributed).
+Mixtape Society is released under the [MIT License](https://mit-license.org/). Feel free to fork, modify, and share—but remember, users are responsible for their own music content (no copyrighted media is included or distributed).
 
 ## Get Involved
 
