@@ -24,7 +24,7 @@ All notable changes will be documented here.
 
 ### 🐛 Fixed
 
-- Missing cover art standard art
+- Missing standard cover art
 - Theme adherence on some pages
 - Favicon theme adherence
 - Deleting a mixtape actually works
