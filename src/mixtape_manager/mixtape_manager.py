@@ -16,7 +16,7 @@ class MixtapeManager:
         self.path_mixtapes.mkdir(exist_ok=True)
         self.path_cover.mkdir(exist_ok=True)
 
-    def save(self, mixtape_data: dict):
+    def save(self, mixtape_data: dict) -> str:
         """
         Saves a mixtape and its cover image to disk.
 
