@@ -9,14 +9,12 @@ from flask import (
 )
 
 from auth import check_auth, require_auth
-from config import BaseConfig as Config
 from mixtape_manager import MixtapeManager
 from musiclib import get_indexing_status
-from logtools import get_logger
 
 
 
-def create_browser_blueprint() -> Blueprint:
+def create_browser_blueprint(mixtape_manager, musiclib) -> Blueprint:
 
     browser = Blueprint("browse_mixtapes", __name__, template_folder="../templates")
 
@@ -32,11 +30,11 @@ def create_browser_blueprint() -> Blueprint:
         Returns:
             Response: The rendered template for mixtapes or indexing progress.
         """
-        status = get_indexing_status(current_app.config["DATA_ROOT"], logger=logger)
+        status = get_indexing_status(current_app.config["DATA_ROOT"], logger=current_app.logger)
         if status and status["status"] in ("rebuilding", "resyncing"):
             return render_template("indexing.html", status=status)
 
-        mixtape_manager = MixtapeManager(path_mixtapes=Config.MIXTAPE_DIR)
+        mixtape_manager = MixtapeManager(path_mixtapes=current_app.config.MIXTAPE_DIR)
         mixtapes = mixtape_manager.list_all()
         return render_template("browse_mixtapes.html", mixtapes=mixtapes)
 
