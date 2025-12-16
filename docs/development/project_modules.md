@@ -2,27 +2,66 @@
 
 ![modules](../images/modules.png){ align=right width="90" }
 
+This page provides an overview of the project’s Python modules and how they depend on each other. It describes the responsibilities of each module and visualizes their relationships to clarify the overall architecture. The goal is to make the structure of the codebase easier to understand for contributors and to highlight the separation between core functionality and the web interface.
+
+## Module description
+
+### Core modules
+
 - **auth**: Custom authentication logic for checking user credentials.
-- **config**: Handles configuration for different environments (development, test, production), including directory setup and passwords.
+- **config**: Environment-aware configuration and directory setup.
 - **logtools**: Custom logging setup and logger retrieval for the application.
 - **mixtape_manager**: Manages mixtape storage, retrieval, and metadata.
-- **musiclib**: Provides music collection management and indexing status.
-- **routes**: Contains route blueprints for browser, editor, and play functionality.
+- **musiclib**: Manages the music collection and indexing state.
 - **version_info**: Retrieves the current application version.
 
-- **browser, editor, play**: Flask blueprints for different parts of the web interface (browsing, editing, and playing mixtapes).
+### Web / Flask modules
 
-## Dependencies
+- **routes**: Registers and groups Flask blueprints.
+- **browser**: Blueprint for browsing mixtapes.
+- **editor**: Blueprint for editing mixtapes.
+- **play**: Blueprint for playing mixtapes.
+
+## Module dependencies
+
+The diagram below shows module-level dependencies.
+Arrows indicate "imports / uses".
+Web-layer modules depend on core modules, but core modules do not depend on Flask or web logic.
+
+### Entry point
+
+- `app.py` is the application entry point and wires together configuration, logging, domain services, and routes.
+
+### Design notes
+
+- Core modules do not depend on Flask or blueprints.
+- `logtools` is the only shared cross-cutting concern.
+- `mixtape_manager` acts as the central domain service.
 
 ```mermaid
 graph TD
-    app.py --> auth
-    app.py --> config
-    app.py --> logtools
-    app.py --> mixtape_manager
-    app.py --> musiclib
+    subgraph Application
+        app.py
+    end
+
+    subgraph Core
+        auth
+        config
+        logtools
+        mixtape_manager
+        musiclib
+        version_info
+    end
+
+    subgraph Web
+        routes
+        browser
+        editor
+        play
+    end
+
+    app.py --> Core
     app.py --> routes
-    app.py --> version_info
 
     musiclib --> logtools
 
@@ -35,6 +74,5 @@ graph TD
     browser --> musiclib
 
     editor --> mixtape_manager
-
     play --> mixtape_manager
 ```
