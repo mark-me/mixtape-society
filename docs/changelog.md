@@ -23,6 +23,10 @@ All notable changes will be documented here.
 
 - Moved from JavaScript dialogs to Bootstrap dialogs
 
+### 🐛 Fixed
+
+- Fixed Dockerfile by starting app from factory function
+
 [v0.1.5-alpha](https://github.com/mark-me/mixtape-society/compare/v0.1.4-alpha...v0.1.5-alpha)
 
 ---
