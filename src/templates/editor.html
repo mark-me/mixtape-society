@@ -1018,11 +1018,24 @@ function renderResults(data) {
                 </button>
             `;
 
+            let confirmed = false;
+
             const confirmBtn = document.getElementById('appModalConfirmBtn');
             confirmBtn.onclick = () => {
+                confirmed = true;
                 appModal.hide();
                 resolve(true);
             };
+
+            appModalEl.addEventListener(
+                'hidden.bs.modal',
+                () => {
+                    if (!confirmed) {
+                        resolve(false);
+                    }
+                },
+                { once: true }
+            );
 
             appModalEl.addEventListener(
                 'hidden.bs.modal',
