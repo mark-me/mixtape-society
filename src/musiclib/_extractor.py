@@ -60,7 +60,7 @@ class CollectionExtractor:
     SUPPORTED_EXTS = {".mp3", ".flac", ".ogg", ".oga", ".m4a", ".mp4", ".wav", ".wma"}
 
     def __init__(
-        self, music_root: Path, db_path: Path, logger: Logger = None | None
+        self, music_root: Path, db_path: Path, logger: Logger | None = None
     ) -> None:
         self.music_root = music_root.resolve()
         self.db_path = db_path

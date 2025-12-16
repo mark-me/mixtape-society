@@ -144,7 +144,9 @@ def clear_indexing_status(data_root: Path | str) -> None:
     status_file.unlink(missing_ok=True)
 
 
-def get_indexing_status(data_root: Path | str, logger :Logger=None|None) -> dict | None:
+def get_indexing_status(
+    data_root: Path | str, logger: Logger | None = None
+) -> dict | None:
     """
     Retrieves the current indexing status from the status file for the given data root.
 
