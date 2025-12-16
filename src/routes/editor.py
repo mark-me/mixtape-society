@@ -219,9 +219,12 @@ def create_editor_blueprint(collection: MusicCollection, logger) -> Blueprint:
             "folder.jpg",
             "album.jpg",
             "front.jpg",
-            "Cover.jpg",
-            "Folder.jpg",
         ]
+        for file in album_dir.iterdir():
+            if file.is_file() and file.name.lower() in possible:
+                dest = current_app.config["COVER_DIR"] / f"{slug}.jpg"
+                shutil.copy(file, dest)
+                return f"covers/{slug}.jpg"
         for name in possible:
             src = album_dir / name
             if src.exists():
