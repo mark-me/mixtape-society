@@ -53,8 +53,7 @@ graph TD
         version_info
     end
 
-    subgraph Web
-        routes
+    subgraph routes
         browser
         editor
         play
@@ -65,14 +64,16 @@ graph TD
 
     musiclib --> logtools
 
-    routes --> browser
-    routes --> editor
-    routes --> play
-
     browser --> mixtape_manager
     browser --> config
     browser --> musiclib
 
     editor --> mixtape_manager
+    editor --> auth
+    editor --> config
+    editor --> logtools
+    editor --> musiclib
+
     play --> mixtape_manager
+    play --> config
 ```
