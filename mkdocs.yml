@@ -45,13 +45,15 @@ nav:
     - Architecture:
       - Project modules: development/project_modules.md
       - Main App: development/app.md
-      - Browser Routes: development/browse_mixtapes.md
-      - Editor Routes: development/editor.md
-      - Playback Routes: development/playback.md
-      - Music Library (musiclib): development/musiclib.md
-      - Mixtape Manager: development/mixtape_manager.md
-      - Configuration: development/configuration.md
-      - Version utility: development/version_utility.md
+      - Routes:
+        - Browser: development/browse_mixtapes.md
+        - Editor: development/editor.md
+        - Playback: development/playback.md
+      - Core:
+        - Music Library (musiclib): development/musiclib.md
+        - Mixtape Manager: development/mixtape_manager.md
+        - Configuration: development/configuration.md
+        - Version utility: development/version_utility.md
     - Local Development: development/docker.md
     - Roadmap: development/roadmap.md
   - Changelog: changelog.md
