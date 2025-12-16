@@ -150,7 +150,7 @@ classDiagram
         -_start_background_startup_job() None
         -_get_conn() Connection
         -_search_artists(conn: Connection, starts: str, limit: int) list~dict~
-        -_search_artist_albums(conn: Connection, artist: str) list~dict~
+        -_search_artist_albums(conn: Connection, artist: str, logger) list~dict~
         -_search_album_tracks(conn: Connection, artist: str, album: str) list~dict~
         -_search_albums(conn: Connection, like: str, starts: str, limit: int, artists: list~dict~) list~dict~
         -_search_tracks(conn: Connection, like: str, starts: str, limit: int, artists: list~dict~, albums: list~dict~) list~dict~

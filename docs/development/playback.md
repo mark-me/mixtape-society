@@ -42,16 +42,19 @@ sequenceDiagram
 * Flask Blueprint (`play`)
     Encapsulates the audio streaming routes, allowing modular organization of the application's endpoints.
 
-* **Route**: `stream_audio` Handles GET requests to `/play/<path:file_path>`.
-    * Validates the requested file path.
-    * Determines the MIME type.
-    * Supports HTTP range requests for seeking.
-    * Streams the audio file or returns an error if access is denied or the file is not found.
-* **Function** `_resolve_and_validate_path`: Ensures the requested file is within the allowed music directory and exists as a file.
-    * Prevents directory traversal attacks.
-    * Returns 403 (Forbidden) or 404 (Not Found) errors as appropriate.
-* **Function** `_guess_mime_type`: Determines the MIME type of the requested file using the `mimetypes` module, with fallbacks for common audio formats.
-* **Function** `_handle_range_request`: Implements support for HTTP range requests, allowing clients to request specific byte ranges of audio files.
+* **Routes**
+    * `stream_audio` Handles GET requests to `/play/<path:file_path>`.
+        * Validates the requested file path.
+        * Determines the MIME type.
+        * Supports HTTP range requests for seeking.
+        * Streams the audio file or returns an error if access is denied or the file is not found.
+    * `/share/<slug>`: Renders a public playback page for a mixtape identified by a slug. If the mixtape does not exist, a 404 error is returned.
+* **Functions**
+    * `_resolve_and_validate_path`: Ensures the requested file is within the allowed music directory and exists as a file.
+        * Prevents directory traversal attacks.
+        * Returns 403 (Forbidden) or 404 (Not Found) errors as appropriate.
+    * `_guess_mime_type`: Determines the MIME type of the requested file using the `mimetypes` module, with fallbacks for common audio formats.
+    * `_handle_range_request`: Implements support for HTTP range requests, allowing clients to request specific byte ranges of audio files.
 
 ## Class diagram
 

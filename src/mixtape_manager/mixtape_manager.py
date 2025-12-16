@@ -3,6 +3,8 @@ from pathlib import Path
 from datetime import datetime
 from base64 import b64decode
 
+from common.logging import Logger, NullLogger
+
 
 class MixtapeManager:
     """
@@ -10,9 +12,22 @@ class MixtapeManager:
 
     Handles saving, listing, and loading mixtape data from disk, including cover image processing and metadata management.
     """
-    def __init__(self, path_mixtapes: Path):
-        self.path_mixtapes = path_mixtapes
-        self.path_cover = path_mixtapes / "covers"
+    def __init__(self, path_mixtapes: Path, logger: Logger | None = None) -> None:
+        """
+        Initializes the MixtapeManager with the given mixtape storage path and logger.
+
+        Sets up directories for storing mixtape JSON files and cover images, creating them if they do not exist.
+
+        Args:
+            path_mixtapes (Path): The directory where mixtape JSON files will be stored.
+            logger (Logger | None): Optional logger for logging operations. Uses NullLogger if not provided.
+
+        Returns:
+            None
+        """
+        self._logger: Logger = logger or NullLogger()
+        self.path_mixtapes: Path = path_mixtapes
+        self.path_cover: Path = path_mixtapes / "covers"
         self.path_mixtapes.mkdir(exist_ok=True)
         self.path_cover.mkdir(exist_ok=True)
 
@@ -60,10 +75,13 @@ class MixtapeManager:
         Returns:
             None
         """
-        path = self.path_mixtapes / f"{slug}.json"
-        if not path.exists():
-            return None
-        path.unlink()
+        json_path = self.path_mixtapes / f"{slug}.json"
+        if json_path.exists():
+            json_path.unlink()
+
+        cover_path = self.path_cover / f"{slug}.jpg"
+        if cover_path.exists():
+            cover_path.unlink()
 
     def list_all(self) -> list[dict]:
         """

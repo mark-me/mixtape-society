@@ -21,7 +21,8 @@ mixtape-society
 ├── src                         → Source code
 │   ├── app.py                  → Main Flask entrypoint
 │   ├── auth.py                 → Auth handling
-│   ├── config.py               → Env/config classes
+│   ├── common                  → infrastructure-free abstractions
+│   ├── config                  → Env/config module
 │   ├── logtools                → Logging utilities
 │   ├── mixtape_manager         → Mixtape persistence
 │   ├── musiclib                → Music indexing (TinyTag + SQLite)

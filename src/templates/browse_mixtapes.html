@@ -168,17 +168,18 @@
                 <a href="/editor/{{ m.slug }}" class="action-btn btn-edit" title="Edit">
                     <i class="bi bi-pencil-fill"></i>
                 </a>
-                <a href="{{ url_for('public_play', slug=m.slug) }}#play"
+                <a href="{{ url_for('play.public_play', slug=m.slug) }}#play"
                 class="action-btn btn-play" title="Play">
                     <i class="bi bi-play-fill"></i>
                 </a>
                 <button class="action-btn btn-share copy-btn"
-                        data-url="{{ url_for('public_play', slug=m.slug, _external=True) }}"
+                        data-url="{{ url_for('play.public_play', slug=m.slug, _external=True) }}"
                         title="Copy public link">
                     <i class="bi bi-share-fill"></i>
                 </button>
                 <button class="action-btn btn-delete" title="Delete"
-                        onclick="confirmDelete('{{ m.slug }}', {{ m.title|tojson }})">
+                        data-slug="{{ m.slug }}"
+                        data-title="{{ m.title }}">
                     <i class="bi bi-trash-fill"></i>
                 </button>
             </div>
@@ -203,39 +204,113 @@
     </div>
 </div>
 
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title" id="deleteConfirmModalLabel">Delete Mixtape</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <i class="bi bi-exclamation-triangle text-danger display-4 mb-3"></i>
+                <p class="fw-medium mb-1">Permanently delete mixtape:</p>
+                <p class="fs-5 fw-bold" id="deleteModalTitle">Untitled</p>
+                <p class="text-muted small">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer border-0 justify-content-center">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete Mixtape</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Success Toast (keep your existing copy toast, add this one next to it) -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080">
+    <div id="deleteSuccessToast" class="toast align-items-center text-bg-danger border-0 shadow" role="alert">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="bi bi-trash-fill me-2"></i> Mixtape deleted successfully
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    const toast = new bootstrap.Toast(document.getElementById('copyToast'));
-    document.querySelectorAll('.copy-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            navigator.clipboard.writeText(btn.dataset.url).then(() => toast.show());
+    document.addEventListener('DOMContentLoaded', () => {
+        // Copy-to-clipboard toast (unchanged)
+        const copyToastEl = document.getElementById('copyToast');
+        const copyToast = copyToastEl ? new bootstrap.Toast(copyToastEl) : null;
+
+        document.querySelectorAll('.copy-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                navigator.clipboard.writeText(btn.dataset.url).then(() => copyToast?.show());
+            });
+        });
+
+        // Delete modal & success toast
+        const deleteModalEl = document.getElementById('deleteConfirmModal');
+        const deleteModal = new bootstrap.Modal(deleteModalEl);
+        const deleteSuccessToastEl = document.getElementById('deleteSuccessToast');
+        const deleteSuccessToast = new bootstrap.Toast(deleteSuccessToastEl);
+
+        const modalTitle = document.getElementById('deleteModalTitle');
+        const confirmBtn = document.getElementById('confirmDeleteBtn');
+
+        let pendingSlug = null;
+
+        // Open modal when clicking delete button
+        document.querySelectorAll('.btn-delete').forEach(btn => {
+            btn.addEventListener('click', () => {
+                pendingSlug = btn.dataset.slug;
+                modalTitle.textContent = btn.dataset.title || 'Untitled';
+                deleteModal.show();
+            });
+        });
+
+        // Perform deletion when confirming in modal
+        confirmBtn.addEventListener('click', () => {
+            if (!pendingSlug) return;
+
+            fetch(`/mixtapes/delete/${pendingSlug}`, {
+                method: 'POST',
+                credentials: 'include'
+            })
+            .then(async r => {
+                const contentType = r.headers.get("content-type");
+                let data;
+
+                if (contentType && contentType.includes("application/json")) {
+                    data = await r.json();
+                } else {
+                    data = { error: await r.text() }; // fallback: show HTML if not JSON
+                }
+
+                if (r.ok && data.success !== false) {
+                    deleteSuccessToast.show();
+                    deleteModal.hide();
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    const errorMsg = data.error || `Server error ${r.status}`;
+                    alert(`Delete failed: ${errorMsg}`);
+                    console.error("Delete failed:", r.status, data);
+                }
+            })
+            .catch(err => {
+                console.error('Network/fetch error:', err);
+                alert('Network error — check your connection and try again.');
+            })
+            .finally(() => {
+                pendingSlug = null;
+            });
+        });
+
+        // Clear pending slug if modal is closed without confirming
+        deleteModalEl.addEventListener('hidden.bs.modal', () => {
+            pendingSlug = null;
         });
     });
-});
-
-function confirmDelete(slug, title) {
-    if (confirm(`Permanently delete "${title}"?`)) {
-        console.log('Starting delete for slug: ' + slug);
-        fetch(`/mixtapes/delete/${slug}`, {
-            method: 'POST',
-            credentials: 'include'
-        })
-        .then(r => {
-            console.log('Response status: ' + r.status);
-            if (r.ok) {
-                console.log('Delete successful - reloading page');
-                location.reload();
-            } else {
-                throw new Error('Delete failed: ' + r.status);
-            }
-        })
-        .catch(err => {
-            console.error('Fetch error:', err);
-            alert(err.message);
-        });
-    } else {
-        console.log('Delete cancelled by user');
-    }
-}
 </script>
 {% endblock %}

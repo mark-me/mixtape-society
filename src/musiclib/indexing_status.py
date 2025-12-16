@@ -4,12 +4,12 @@ import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
-from config import config as Config  # assuming config is accessible
-from logtools import get_logger
+from common.logging import Logger, NullLogger
 
-logger = get_logger(__name__)
 
-def set_indexing_status(data_root: Path | str, status: str, total: int, current: int) -> None:
+def set_indexing_status(
+    data_root: Path | str, status: str, total: int, current: int
+) -> None:
     """Writes the current indexing status to a JSON file.
 
     Calculates progress, determines the start time, builds the status data, and writes it atomically to the status file for the given data root.
@@ -31,6 +31,7 @@ def set_indexing_status(data_root: Path | str, status: str, total: int, current:
     data = _build_status_data(status, started_at, total, current, progress)
     _atomic_write_json(status_file, data)
 
+
 def _atomic_write_json(status_file: Path, data: dict) -> None:
     """Atomically writes the given data as JSON to the status file.
 
@@ -48,15 +49,20 @@ def _atomic_write_json(status_file: Path, data: dict) -> None:
         None
     """
     tmp_dir = status_file.parent
-    with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=tmp_dir, delete=False) as tmp_file:
+    with tempfile.NamedTemporaryFile(
+        "w", encoding="utf-8", dir=tmp_dir, delete=False
+    ) as tmp_file:
         tmp_file.write(json.dumps(data))
         tmp_file.flush()
         os.fsync(tmp_file.fileno())
         temp_path = Path(tmp_file.name)
     # Ensure both files are on the same filesystem for atomic replacement
     if os.stat(temp_path).st_dev != os.stat(status_file.parent).st_dev:
-        raise OSError("Atomic replacement requires temp file and status file to be on the same filesystem.")
+        raise OSError(
+            "Atomic replacement requires temp file and status file to be on the same filesystem."
+        )
     temp_path.replace(status_file)
+
 
 def _calculate_progress(total: int, current: int) -> float:
     """Calculates the progress of the indexing operation as a float between 0.0 and 1.0.
@@ -71,6 +77,7 @@ def _calculate_progress(total: int, current: int) -> float:
         float: The progress value between 0.0 and 1.0.
     """
     return 0.0 if total <= 0 else max(0.0, min(current / total, 1.0))
+
 
 def _get_started_at(status_file: Path) -> str | None:
     """Retrieves the 'started_at' timestamp from the indexing status file if it exists.
@@ -93,7 +100,10 @@ def _get_started_at(status_file: Path) -> str | None:
             return None
     return None
 
-def _build_status_data(status: str, started_at: str, total: int, current: int, progress: float) -> dict:
+
+def _build_status_data(
+    status: str, started_at: str, total: int, current: int, progress: float
+) -> dict:
     """Builds a dictionary representing the current indexing status.
 
     Constructs a status dictionary with all relevant fields for writing to the status file, including timestamps and progress.
@@ -117,6 +127,7 @@ def _build_status_data(status: str, started_at: str, total: int, current: int, p
         "progress": progress,
     }
 
+
 def clear_indexing_status(data_root: Path | str) -> None:
     """Removes the indexing status file for the given data root.
 
@@ -133,18 +144,23 @@ def clear_indexing_status(data_root: Path | str) -> None:
     status_file.unlink(missing_ok=True)
 
 
-def get_indexing_status(data_root: Path | str) -> dict | None:
-    """Retrieves the current indexing status from the status file.
+def get_indexing_status(
+    data_root: Path | str, logger: Logger | None = None
+) -> dict | None:
+    """
+    Retrieves the current indexing status from the status file for the given data root.
 
-    Reads and parses the indexing status JSON file for the given data root, returning its contents as a dictionary.
-    Returns None if the file does not exist or cannot be read.
+    Attempts to read and parse the indexing status JSON file, returning its contents as a dictionary.
+    Handles missing files and JSON decode errors gracefully, logging errors if a logger is provided.
 
     Args:
         data_root (Path | str): The root directory containing the indexing status file.
+        logger (Logger, optional): Logger for error reporting. Uses NullLogger if not provided.
 
     Returns:
-        dict | None: The parsed status data, or None if unavailable.
+        dict | None: The indexing status data as a dictionary, or None if the file does not exist or cannot be read.
     """
+    logger = logger or NullLogger()
     data_root = Path(data_root)
     status_file = data_root / "indexing_status.json"
 

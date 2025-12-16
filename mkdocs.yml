@@ -45,6 +45,7 @@ nav:
     - Architecture:
       - Project modules: development/project_modules.md
       - Main App: development/app.md
+      - Common: development/common.md
       - Routes:
         - Browser: development/browse_mixtapes.md
         - Editor: development/editor.md
@@ -73,10 +74,10 @@ plugins:
   - panzoom:
       full_screen: true
   - git-revision-date-localized
-  - git-committers:
-      repository: mark-me/mixtape-society
-      branch: master
-      token: !!python/object/apply:os.getenv ["MKDOCS_GIT_COMMITTERS_APIKEY"]
+  # - git-committers:
+  #     repository: mark-me/mixtape-society
+  #     branch: master
+  #     token: !!python/object/apply:os.getenv ["MKDOCS_GIT_COMMITTERS_APIKEY"]
 
 markdown_extensions:
   - attr_list

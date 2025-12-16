@@ -1,10 +1,12 @@
-# Project modules
+# Project Module Architecture
 
 ![modules](../images/modules.png){ align=right width="90" }
 
 This page provides an overview of the project’s Python modules and how they depend on each other. It describes the responsibilities of each module and visualizes their relationships to clarify the overall architecture. The goal is to make the structure of the codebase easier to understand for contributors and to highlight the separation between core functionality and the web interface.
 
 ## Module description
+
+- **common** contains stable, infrastructure-free abstractions that may be used by all layers.
 
 ### Core modules
 
@@ -39,41 +41,29 @@ Web-layer modules depend on core modules, but core modules do not depend on Flas
 - `mixtape_manager` acts as the central domain service.
 
 ```mermaid
-graph TD
+graph LR
     subgraph Application
         app.py
+        auth.py
     end
 
     subgraph Core
-        auth
+        version_info
         config
         logtools
         mixtape_manager
         musiclib
-        version_info
     end
 
     subgraph routes
         browse_mixtapes
         editor
         play
+        authentication
     end
 
-    app.py --> Core
     app.py --> routes
+    app.py --> auth.py
+    app.py --> Core
 
-    musiclib --> logtools
-
-    browse_mixtapes --> mixtape_manager
-    browse_mixtapes --> config
-    browse_mixtapes --> musiclib
-
-    editor --> mixtape_manager
-    editor --> auth
-    editor --> config
-    editor --> logtools
-    editor --> musiclib
-
-    play --> mixtape_manager
-    play --> config
 ```

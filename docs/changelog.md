@@ -20,12 +20,14 @@ All notable changes will be documented here.
 ### 🔧 Changed
 
 - Music library extraction backend (Musiclib)
+- Huge overhaul of back-end, making modules less interdependent
 
 ### 🐛 Fixed
 
-- Missing cover art standard art
+- Missing standard cover art
 - Theme adherence on some pages
 - Favicon theme adherence
+- Deleting a mixtape actually works
 
 [v0.1.4-alpha](https://github.com/mark-me/mixtape-society/compare/v0.1.3-alpha...v0.1.4-alpha)
 
