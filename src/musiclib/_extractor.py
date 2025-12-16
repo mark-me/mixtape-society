@@ -42,9 +42,6 @@ class IndexEvent:
     Args:
         type (EventType): The type of event (e.g., INDEX_FILE, DELETE_FILE).
         path (Optional[Path]): The path to the affected music file, if applicable.
-
-    Returns:
-        None
     """
 
     type: EventType
@@ -59,14 +56,11 @@ class CollectionExtractor:
     Args:
         music_root (Path): The root directory containing music files.
         db_path (Path): The path to the SQLite database file.
-
-    Returns:
-        None
     """
 
     SUPPORTED_EXTS = {".mp3", ".flac", ".ogg", ".oga", ".m4a", ".mp4", ".wav", ".wma"}
 
-    def __init__(self, music_root: Path, db_path: Path):
+    def __init__(self, music_root: Path, db_path: Path) -> None:
         """
         Initializes the CollectionExtractor with the specified music root and database path.
 

@@ -9,7 +9,7 @@ from logtools import get_logger
 
 logger = get_logger(__name__)
 
-def set_indexing_status(data_root: Path | str, status: str, total: int, current: int):
+def set_indexing_status(data_root: Path | str, status: str, total: int, current: int) -> None:
     """Writes the current indexing status to a JSON file.
 
     Calculates progress, determines the start time, builds the status data, and writes it atomically to the status file for the given data root.
@@ -31,7 +31,7 @@ def set_indexing_status(data_root: Path | str, status: str, total: int, current:
     data = _build_status_data(status, started_at, total, current, progress)
     _atomic_write_json(status_file, data)
 
-def _atomic_write_json(status_file: Path, data: dict):
+def _atomic_write_json(status_file: Path, data: dict) -> None:
     """Atomically writes the given data as JSON to the status file.
 
     Writes to a temporary file and then atomically replaces the target file to avoid partial writes.
@@ -43,6 +43,9 @@ def _atomic_write_json(status_file: Path, data: dict):
     Args:
         status_file (Path): The path to the status file.
         data (dict): The data to serialize and write.
+
+    Returns:
+        None
     """
     tmp_dir = status_file.parent
     with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=tmp_dir, delete=False) as tmp_file:
@@ -114,7 +117,7 @@ def _build_status_data(status: str, started_at: str, total: int, current: int, p
         "progress": progress,
     }
 
-def clear_indexing_status(data_root: Path | str):
+def clear_indexing_status(data_root: Path | str) -> None:
     """Removes the indexing status file for the given data root.
 
     Deletes the indexing status JSON file if it exists, effectively clearing any current indexing progress or state.
@@ -130,7 +133,7 @@ def clear_indexing_status(data_root: Path | str):
     status_file.unlink(missing_ok=True)
 
 
-def get_indexing_status(data_root: Path | str):
+def get_indexing_status(data_root: Path | str) -> dict | None:
     """Retrieves the current indexing status from the status file.
 
     Reads and parses the indexing status JSON file for the given data root, returning its contents as a dictionary.

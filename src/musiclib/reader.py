@@ -24,7 +24,7 @@ class MusicCollection:
     - No SQLite access from UI / background threads
     """
 
-    def __init__(self, music_root: Path | str, db_path: Path | str):
+    def __init__(self, music_root: Path | str, db_path: Path | str) -> None:
         """
         Initializes the MusicCollection with the specified music root and database path.
 

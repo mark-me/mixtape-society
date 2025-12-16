@@ -8,52 +8,99 @@ Creating/maintaining the music collection database
 
 ```mermaid
 sequenceDiagram
-    participant Editor
+    actor User
+    participant FlaskApp
     participant MusicCollection
     participant CollectionExtractor
-    participant SQLiteDB as SQLite Database
-    participant Filesystem
+    participant WriterThread
+    participant IndexingStatus
+    participant SQLiteDB as SQLite_DB
 
-    Editor->>MusicCollection: __init__(music_root, db_path)
-    MusicCollection->>CollectionExtractor: initialize
-    CollectionExtractor->>Filesystem: scan music files
-    CollectionExtractor->>SQLiteDB: check track count
-    alt No tracks in database
-        CollectionExtractor->>Filesystem: full scan
-        CollectionExtractor->>SQLiteDB: rebuild database
-    else Database out of sync
-        CollectionExtractor->>Filesystem: resync
-        CollectionExtractor->>SQLiteDB: update database
+    User->>FlaskApp: create MusicCollection(music_root, db_path)
+    FlaskApp->>MusicCollection: __init__
+    MusicCollection->>CollectionExtractor: __init__(music_root, db_path)
+    CollectionExtractor->>CollectionExtractor: _init_db()
+    CollectionExtractor->>WriterThread: start sqlite-writer
+    MusicCollection->>MusicCollection: count()
+    MusicCollection->>CollectionExtractor: get_conn(readonly=True)
+    CollectionExtractor-->>MusicCollection: Connection
+    MusicCollection->>SQLiteDB: SELECT COUNT(*) FROM tracks
+    SQLiteDB-->>MusicCollection: track_count
+    alt track_count == 0
+        MusicCollection->>MusicCollection: _startup_mode = rebuild
+    else track_count > 0
+        MusicCollection->>MusicCollection: _startup_mode = resync
     end
-    CollectionExtractor->>Filesystem: start monitoring
 
-    Editor->>MusicCollection: search_highlighting(query, limit)
-    MusicCollection->>MusicCollection: search_grouped(query, limit)
-    MusicCollection->>CollectionExtractor: get_conn()
-    MusicCollection->>SQLiteDB: query artists, albums, tracks
-    MusicCollection->>MusicCollection: format results
-    MusicCollection-->>Editor: highlighted search results
+    MusicCollection->>CollectionExtractor: start_monitoring()
+    MusicCollection->>MusicCollection: _start_background_startup_job()
+    MusicCollection->>MusicCollection: spawn background Thread
 
-    Editor->>MusicCollection: close()
-    MusicCollection->>CollectionExtractor: stop monitoring
+    par BackgroundThread
+        MusicCollection->>CollectionExtractor: rebuild() or resync()
+        alt rebuild
+            CollectionExtractor->>IndexingStatus: set_indexing_status(data_root, rebuilding, total, 0)
+            CollectionExtractor->>WriterThread: enqueue CLEAR_DB
+            loop for each file
+                CollectionExtractor->>WriterThread: enqueue INDEX_FILE(path)
+                CollectionExtractor->>IndexingStatus: set_indexing_status(... current)
+            end
+            CollectionExtractor->>WriterThread: enqueue REBUILD_DONE
+        else resync
+            CollectionExtractor->>IndexingStatus: set_indexing_status(data_root, resyncing, total, 0)
+            loop removed paths
+                CollectionExtractor->>WriterThread: enqueue DELETE_FILE(path)
+                CollectionExtractor->>IndexingStatus: set_indexing_status(... current)
+            end
+            loop new paths
+                CollectionExtractor->>WriterThread: enqueue INDEX_FILE(path)
+                CollectionExtractor->>IndexingStatus: set_indexing_status(... current)
+            end
+            CollectionExtractor->>WriterThread: enqueue RESYNC_DONE
+        end
+
+        WriterThread->>SQLiteDB: apply queued operations
+        WriterThread->>SQLiteDB: COMMIT on *_DONE
+        WriterThread-->>CollectionExtractor: done
+        CollectionExtractor->>IndexingStatus: clear_indexing_status(data_root)
+    end
 ```
 
 Real-time file system monitoring and database update
 
 ```mermaid
 sequenceDiagram
-    participant Music as actor User
-    participant Extractor as CollectionExtractor
-    participant Watcher as Watcher
-    participant DB as SQLite Database
-    participant FS as File System
-    User->>Extractor: start_monitoring()
-    Extractor->>Watcher: Create Watcher(self)
-    Extractor->>FS: Start Observer on music_root
-    FS-->>Watcher: File event (created/modified/deleted)
-    Watcher->>DB: Update tracks table (add/update/delete)
-    Watcher->>Extractor: (uses _index_file for metadata)
+    participant FS as FileSystem
+    participant Observer
+    participant Watcher as _Watcher
+    participant CollectionExtractor
+    participant WriterThread
+    participant SQLiteDB as SQLite_DB
 
+    FS-->>Observer: file created/modified/deleted
+    Observer-->>Watcher: on_any_event(event)
+
+    Watcher->>Watcher: ignore if directory or unsupported extension
+    alt supported file
+        alt event == created or modified
+            Watcher->>CollectionExtractor: _write_queue.put(INDEX_FILE, path)
+        else event == deleted
+            Watcher->>CollectionExtractor: _write_queue.put(DELETE_FILE, path)
+        end
+    end
+
+    loop in sqlite-writer thread
+        WriterThread->>CollectionExtractor: get IndexEvent from _write_queue
+        alt INDEX_FILE
+            WriterThread->>CollectionExtractor: _index_file(conn, path)
+            CollectionExtractor->>SQLiteDB: INSERT OR REPLACE INTO tracks(...)
+        else DELETE_FILE
+            WriterThread->>SQLiteDB: DELETE FROM tracks WHERE path = path
+        else CLEAR_DB
+            WriterThread->>SQLiteDB: DELETE FROM tracks
+        end
+        WriterThread->>SQLiteDB: periodic COMMIT
+    end
 ```
 
 ## Key Components
@@ -83,15 +130,105 @@ sequenceDiagram
     * Updates the database by adding, updating, or removing track records as needed.
     * Uses watchdog to observe changes in the music directory and trigger database updates in real time.
 
+## Class diagrams
+
+```mermaid
+classDiagram
+    class MusicCollection {
+        -music_root: Path
+        -db_path: Path
+        -_extractor: CollectionExtractor
+        -_startup_mode: str
+        -_background_task_running: bool
+        +MusicCollection(music_root: Path|str, db_path: Path|str)
+        +rebuild() None
+        +resync() None
+        +close() None
+        +count() int
+        +search_grouped(query: str, limit: int) dict~str, list~dict~~~~
+        +search_highlighting(query: str, limit: int) list~dict~
+        -_start_background_startup_job() None
+        -_get_conn() Connection
+        -_search_artists(conn: Connection, starts: str, limit: int) list~dict~
+        -_search_artist_albums(conn: Connection, artist: str) list~dict~
+        -_search_album_tracks(conn: Connection, artist: str, album: str) list~dict~
+        -_search_albums(conn: Connection, like: str, starts: str, limit: int, artists: list~dict~) list~dict~
+        -_search_tracks(conn: Connection, like: str, starts: str, limit: int, artists: list~dict~, albums: list~dict~) list~dict~
+        -_relative_path(path: str) str
+        -_format_duration(seconds: float|None) str
+    }
+
+    class CollectionExtractor {
+        +SUPPORTED_EXTS: set~str~
+        -music_root: Path
+        -db_path: Path
+        -data_root: Path
+        -_write_queue: Queue~IndexEvent~
+        -_writer_stop: Event
+        -_writer_thread: Thread
+        -_observer: Observer
+        +CollectionExtractor(music_root: Path, db_path: Path)
+        +get_conn(readonly: bool) sqlite3.Connection
+        +rebuild() None
+        +resync() None
+        +start_monitoring() None
+        +stop() None
+        -_init_db() None
+        -_db_writer_loop() None
+        -_index_file(conn: sqlite3.Connection, path: Path) None
+    }
+
+    class IndexEvent {
+        +type: EventType
+        +path: Path
+    }
+
+    class _Watcher {
+        -extractor: CollectionExtractor
+        +_Watcher(extractor: CollectionExtractor)
+        +on_any_event(event: object) None
+    }
+
+    class indexing_status_module {
+        +set_indexing_status(data_root: Path|str, status: str, total: int, current: int) None
+        +clear_indexing_status(data_root: Path|str) None
+        +get_indexing_status(data_root: Path|str) dict
+        -_atomic_write_json(status_file: Path, data: dict) None
+        -_calculate_progress(total: int, current: int) float
+        -_get_started_at(status_file: Path) str
+        -_build_status_data(status: str, started_at: str, total: int, current: int, progress: float) dict
+    }
+
+    class MixtapeManager {
+        -path_mixtapes: Path
+        +delete(slug: str) None
+        +list_all() list~dict~
+        +save(mixtape_data: dict) str
+    }
+
+    class EventType {
+    }
+
+    MusicCollection --> CollectionExtractor : uses
+    MusicCollection --> "1" indexing_status_module : uses
+    CollectionExtractor --> IndexEvent : enqueues
+    CollectionExtractor --> _Watcher : creates
+    _Watcher --> CollectionExtractor : notifies
+    CollectionExtractor --> indexing_status_module : reports_progress
+    MixtapeManager <.. browse_mixtapes_route : used_by
+    IndexEvent --> EventType : type
+```
+
 ## API
 
 ### ::: src.musiclib.reader.MusicCollection
 
-### ::: src.musiclib._extractor.EventType 
+### ::: src.musiclib._extractor.EventType
 
-### ::: src.musiclib._extractor.IndexEvent 
+### ::: src.musiclib._extractor.IndexEvent
 
 ### ::: src.musiclib._extractor.CollectionExtractor
 
-### ::: src.musiclib._extractor._Watcher
+### ::: src.musiclib.indexing_status
 
+### ::: src.musiclib._extractor._Watcher
