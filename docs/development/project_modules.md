@@ -18,7 +18,7 @@ This page provides an overview of the project’s Python modules and how they de
 ### Web / Flask modules
 
 - **routes**: Registers and groups Flask blueprints.
-- **browser**: Blueprint for browsing mixtapes.
+- **browse_mixtapes**: Blueprint for browsing mixtapes.
 - **editor**: Blueprint for editing mixtapes.
 - **play**: Blueprint for playing mixtapes.
 
@@ -54,7 +54,7 @@ graph TD
     end
 
     subgraph routes
-        browser
+        browse_mixtapes
         editor
         play
     end
@@ -64,9 +64,9 @@ graph TD
 
     musiclib --> logtools
 
-    browser --> mixtape_manager
-    browser --> config
-    browser --> musiclib
+    browse_mixtapes --> mixtape_manager
+    browse_mixtapes --> config
+    browse_mixtapes --> musiclib
 
     editor --> mixtape_manager
     editor --> auth
