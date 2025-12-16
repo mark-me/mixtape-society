@@ -57,6 +57,16 @@
     #markdown-preview ul, #markdown-preview ol {
         padding-left: 1.5em;
     }
+
+    .accordion-button.collapsed::after {
+        background-image: var(--bs-accordion-btn-icon);
+    }
+    .accordion-button:not(.collapsed)::after {
+        background-image: var(--bs-accordion-btn-active-icon);
+    }
+    .collapse.show {
+        transition: height 0.3s ease;
+    }
 </style>
 {% endblock %}
 
@@ -190,6 +200,20 @@
     </div>
 </div>
 
+    <!-- Generic Modal -->
+    <div class="modal fade" id="appModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="appModalTitle"></h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="appModalBody"></div>
+        <div class="modal-footer" id="appModalFooter"></div>
+        </div>
+    </div>
+    </div>
+
     <!-- Audio player on bottom -->
     <div class="fixed-bottom bg-dark text-white p-3 shadow-lg" id="audio-player-container" style="display:none;">
         <div class="container">
@@ -295,69 +319,140 @@
         return escapeHtml(text).replace(regex, '<mark>$1</mark>');
     }
 
-    function renderResults(data) {
-        if (data.length === 0) {
-            resultsDiv.innerHTML = '<p class="text-center text-muted my-5">Geen resultaten gevonden.</p>';
-            return;
+function renderTracks(tracks, highlightedTracks, artist, album, query) {
+    return tracks.map(track => {
+        let title = escapeHtml(track.title);
+        const highlighted = highlightedTracks.find(h => h.original.title === track.title);
+        if (highlighted) {
+            title = highlighted.highlighted;
         }
 
-        resultsDiv.innerHTML = data.map(entry => {
-            // badges with reason hit
-            const badges = entry.reasons.map(r => {
-                const icons = { artist: 'bi-person-fill', album: 'bi-disc-fill', track: 'bi-music-note' };
-                const colors = { artist: 'success', album: 'warning', track: 'primary' };
-                return `<span class="badge bg-${colors[r.type]} me-1">
-                            <i class="bi ${icons[r.type]}"></i> ${escapeHtml(r.text)}
-                        </span>`;
-            }).join('');
+        return `
+        <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
+            <span class="track-title flex-grow-1">${title}</span>
+            <span class="text-muted me-3">${track.duration}</span>
+            <button class="btn btn-success btn-sm add-btn"
+                    data-artist="${escapeHtml(artist)}"
+                    data-album="${escapeHtml(album)}"
+                    data-title="${escapeHtml(track.title)}"
+                    data-duration="${track.duration}"
+                    data-path="${escapeHtml(track.path || '')}"
+                    data-filename="${escapeHtml(track.filename || track.title + '.mp3')}">
+                <i class="bi bi-plus-lg"></i>
+            </button>
+        </li>`;
+    }).join('');
+}
 
-            const tracksHtml = entry.tracks.map(track => {
-                const highlighted = entry.highlighted_tracks?.find(h => h.original.title === track.title);
-                const title = highlighted ? highlighted.highlighted : track.title;
+let resultIndex = 0;
 
-                return `
-                <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                        <span class="track-title flex-grow-1">${title}</span>
-                        <span class="text-muted me-3">${track.duration}</span>
-                        <button class="btn btn-success btn-sm add-btn"
-                                data-artist="${escapeHtml(entry.artist)}"
-                                data-album="${escapeHtml(entry.album)}"
-                                data-title="${escapeHtml(track.title)}"
-                                data-duration="${track.duration}"
-                                data-path="${escapeHtml(track.path || '')}"
-                                data-filename="${escapeHtml(track.filename || track.title + '.mp3')}">  <!-- fallback filename -->
-                            <i class="bi bi-plus-lg"></i>
-                        </button>
-                    </li>`;
-            }).join('');
+function renderResults(data) {
+    resultIndex = 0;
 
-            return `
-                <div class="mb-4">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <h3 class="h4 artist-name mb-0">${highlightText(entry.artist, searchInput.value)}</h3>
-                        <div>${badges}</div>
-                    </div>
-                    <h4 class="h5 album-title text-muted">${highlightText(entry.album, searchInput.value)}</h4>
-                    <ul class="list-unstyled mt-3">${tracksHtml}</ul>
-                </div>`;
-        }).join('');
-
-        // add-to-playlist buttons
-        document.querySelectorAll('.add-btn').forEach(btn => {
-            btn.addEventListener('click', function () {
-                const item = {
-                    artist: this.dataset.artist,
-                    album: this.dataset.album,
-                    title: this.dataset.title,
-                    duration: this.dataset.duration,
-                    path: this.dataset.path,
-                    filename: this.dataset.filename
-                };
-                addToPlaylist(item);
-            });
-        });
+    if (data.length === 0) {
+        resultsDiv.innerHTML = '<p class="text-center text-muted my-5">Geen resultaten gevonden.</p>';
+        return;
     }
 
+    resultsDiv.innerHTML = data.map(entry => {
+        resultIndex++;
+        const type = entry.type;
+        const query = searchInput.value;
+        const highlightedArtist = highlightText(entry.artist, query);
+        const icons = { artist: 'bi-person-fill', album: 'bi-disc-fill', track: 'bi-music-note' };
+        const colors = { artist: 'success', album: 'warning', track: 'primary' };
+        const badges = entry.reasons.map(r => {
+            return `<span class="badge bg-${colors[r.type]} me-1">
+                        <i class="bi ${icons[r.type]}"></i> ${escapeHtml(r.text)}
+                    </span>`;
+        }).join('');
+
+        if (type === 'artist') {
+            let html = `
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h3 class="h4 artist-name mb-0">${highlightedArtist}</h3>
+                    <div>${badges}</div>
+                </div>
+                <div class="accordion" id="accordion-${resultIndex}">
+            `;
+            entry.albums.forEach((alb, albIndex) => {
+                const highlightedAlbum = highlightText(alb.album, query);
+                const albBadges = alb.reasons.map(r => {
+                    return `<span class="badge bg-${colors[r.type]} me-1">
+                                <i class="bi ${icons[r.type]}"></i> ${escapeHtml(r.text)}
+                            </span>`;
+                }).join('');
+                const collapseId = `collapse-${resultIndex}-${albIndex}`;
+                const tracksHtml = renderTracks(alb.tracks, alb.highlighted_tracks || [], entry.artist, alb.album, query);
+                html += `
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#${collapseId}">
+                            <span class="album-title">${highlightedAlbum}</span>
+                            <span class="ms-2">${albBadges}</span>
+                        </button>
+                    </h2>
+                    <div id="${collapseId}" class="accordion-collapse collapse">
+                        <div class="accordion-body">
+                            <ul class="list-unstyled mt-3">${tracksHtml}</ul>
+                        </div>
+                    </div>
+                </div>
+                `;
+            });
+            html += `</div></div>`;
+            return html;
+        } else if (type === 'album') {
+            const highlightedAlbum = highlightText(entry.album, query);
+            const collapseId = `collapse-${resultIndex}`;
+            const tracksHtml = renderTracks(entry.tracks, entry.highlighted_tracks || [], entry.artist, entry.album, query);
+            return `
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h3 class="h4 artist-name mb-0">${highlightedArtist}</h3>
+                    <div>${badges}</div>
+                </div>
+                <h4 class="h5 album-title text-muted mb-2">${highlightedAlbum}</h4>
+                <button class="btn btn-link ps-0" type="button" data-bs-toggle="collapse" data-bs-target="#${collapseId}" aria-expanded="false">
+                    Show tracks (${entry.tracks.length})
+                </button>
+                <div id="${collapseId}" class="collapse">
+                    <ul class="list-unstyled mt-3">${tracksHtml}</ul>
+                </div>
+            </div>
+            `;
+        } else if (type === 'track') {
+            const highlightedAlbum = highlightText(entry.album, query);
+            const tracksHtml = renderTracks(entry.tracks, entry.highlighted_tracks || [], entry.artist, entry.album, query);
+            return `
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h3 class="h4 artist-name mb-0">${highlightedArtist}</h3>
+                    <div>${badges}</div>
+                </div>
+                <h4 class="h5 album-title text-muted mb-2">${highlightedAlbum}</h4>
+                <ul class="list-unstyled mt-3">${tracksHtml}</ul>
+            </div>
+            `;
+        }
+    }).join('');
+
+    // Add-to-playlist buttons
+    document.querySelectorAll('.add-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const item = {
+                artist: this.dataset.artist,
+                album: this.dataset.album,
+                title: this.dataset.title,
+                duration: this.dataset.duration,
+                path: this.dataset.path,
+                filename: this.dataset.filename
+            };
+            addToPlaylist(item);
+        });
+    });
+}
     /* ==== PLAYLIST ==== */
     function addToPlaylist(item) {
         // Preventing duplicates
@@ -510,7 +605,10 @@
     // Save (with overwrite confirmation)
     saveButton.addEventListener('click', async () => {
         if (playlist.length === 0) {
-            alert("Your mixtape is empty!");
+            showAlert({
+                title: 'Empty mixtape',
+                message: 'Your mixtape does not contain any tracks yet.'
+            });
             return;
         }
 
@@ -533,7 +631,11 @@
 
         // If we're editing → ask to overwrite
         if (editingSlug) {
-            const confirmOverwrite = confirm(`Overwrite "${title}"?`);
+            const confirmOverwrite = await showConfirm({
+                title: 'Overwrite mixtape',
+                message: `Are you sure you want to overwrite <strong>${escapeHtml(title)}</strong>?`,
+                confirmText: 'Overwrite'
+            });
             if (!confirmOverwrite) return;
 
             playlistData.slug = editingSlug;  // Tell backend to overwrite this slug
@@ -575,11 +677,18 @@
                 }
 
             } else {
-                alert("Error saving: " + (data.error || "Unknown error"));
+                showAlert({
+                    title: 'Save failed',
+                    message: escapeHtml(data.error || 'Unknown error'),
+                    buttonText: 'Close'
+                });
             }
         } catch (e) {
             console.error(e);
-            alert("Network error: " + e.message);
+            showAlert({
+                title: 'Network error',
+                message: escapeHtml(e.message)
+            });
         }
     });
 
@@ -862,15 +971,80 @@
             const link = e.target.closest('a');
             if (link && link.href && !link.href.includes(window.location.pathname)) {
                 // External or different page link
-                if (!confirm('You have unsaved changes. Do you want to leave without saving?')) {
-                    e.preventDefault();
-                } else {
-                    // User confirmed leave → reset flag so future navigations don't warn
-                    hasUnsavedChanges = false;
-                }
+                e.preventDefault();
+
+                showConfirm({
+                    title: 'Unsaved changes',
+                    message: 'You have unsaved changes. Leave without saving?',
+                    confirmText: 'Leave',
+                    cancelText: 'Stay'
+                }).then(confirmed => {
+                    if (confirmed) {
+                        hasUnsavedChanges = false;
+                        window.location.href = link.href;
+                    }
+                });
             }
         }
     });
 
+</script>
+<script>
+    // Bootstrap dialogs
+    const appModalEl = document.getElementById('appModal');
+    const appModal = new bootstrap.Modal(appModalEl);
+
+    function showAlert({ title = 'Notice', message, buttonText = 'OK' }) {
+        document.getElementById('appModalTitle').textContent = title;
+        document.getElementById('appModalBody').innerHTML = message;
+        document.getElementById('appModalFooter').innerHTML = `
+            <button class="btn btn-primary" data-bs-dismiss="modal">
+                ${buttonText}
+            </button>
+        `;
+        appModal.show();
+    }
+
+    function showConfirm({ title = 'Confirm', message, confirmText = 'Confirm', cancelText = 'Cancel' }) {
+        return new Promise(resolve => {
+            document.getElementById('appModalTitle').textContent = title;
+            document.getElementById('appModalBody').innerHTML = message;
+            document.getElementById('appModalFooter').innerHTML = `
+                <button class="btn btn-secondary" data-bs-dismiss="modal">
+                    ${cancelText}
+                </button>
+                <button class="btn btn-danger" id="appModalConfirmBtn">
+                    ${confirmText}
+                </button>
+            `;
+
+            let confirmed = false;
+
+            const confirmBtn = document.getElementById('appModalConfirmBtn');
+            confirmBtn.onclick = () => {
+                confirmed = true;
+                appModal.hide();
+                resolve(true);
+            };
+
+            appModalEl.addEventListener(
+                'hidden.bs.modal',
+                () => {
+                    if (!confirmed) {
+                        resolve(false);
+                    }
+                },
+                { once: true }
+            );
+
+            appModalEl.addEventListener(
+                'hidden.bs.modal',
+                () => resolve(false),
+                { once: true }
+            );
+
+            appModal.show();
+        });
+    }
 </script>
 {% endblock %}

@@ -23,7 +23,9 @@ class MusicCollection:
     - No SQLite access from UI / background threads
     """
 
-    def __init__(self, music_root: Path | str, db_path: Path | str, logger=None) -> None:
+    def __init__(
+        self, music_root: Path | str, db_path: Path | str, logger=None
+    ) -> None:
         """
         Initializes the MusicCollection with the specified music root and database path.
 
@@ -64,7 +66,6 @@ class MusicCollection:
         # Kick background startup job
         self._start_background_startup_job()
 
-
     # === Startup logic ===
 
     def _start_background_startup_job(self) -> None:
@@ -100,7 +101,6 @@ class MusicCollection:
 
         Thread(target=task, daemon=True).start()
 
-
     # === Public maintenance API ===
 
     def rebuild(self) -> None:
@@ -114,7 +114,6 @@ class MusicCollection:
     def close(self) -> None:
         """Shutdown monitoring and writer thread."""
         self._extractor.stop()
-
 
     # === Read-only DB helpers ===
 
@@ -133,7 +132,6 @@ class MusicCollection:
     def count(self) -> int:
         with self._get_conn() as conn:
             return conn.execute("SELECT COUNT(*) FROM tracks").fetchone()[0]
-
 
     # === Search API ===
 
@@ -227,7 +225,9 @@ class MusicCollection:
 
         return albums
 
-    def _search_album_tracks(self, conn: Connection, artist: str, album: str) -> list[dict]:
+    def _search_album_tracks(
+        self, conn: Connection, artist: str, album: str
+    ) -> list[dict]:
         """
         Searches for tracks in the database by a specific artist and album.
 
@@ -261,12 +261,7 @@ class MusicCollection:
         ]
 
     def _search_albums(
-        self,
-        conn: Connection,
-        like: str,
-        starts: str,
-        limit: int,
-        artists: list[dict]
+        self, conn: Connection, like: str, starts: str, limit: int, artists: list[dict]
     ) -> list[dict]:
         """
         Searches for albums in the database matching the query, excluding those by already matched artists.
@@ -312,7 +307,7 @@ class MusicCollection:
         starts: str,
         limit: int,
         artists: list[dict],
-        albums: list[dict]
+        albums: list[dict],
     ) -> list[dict]:
         """
         Searches for tracks in the database matching the query, excluding those by already matched artists and albums.
@@ -411,70 +406,75 @@ class MusicCollection:
         self, artists: list[dict], query_lower: str
     ) -> list[dict]:
         """
-        Highlights occurrences of the search query within the given text.
+        Formats artist search results for UI display.
 
-        Returns the text with all matches of the query wrapped in <mark> tags for UI display.
+        Processes a list of artist entries and returns formatted dictionaries including reasons, albums, and highlighted tracks for each artist.
 
         Args:
-            text (str): The text to search and highlight.
-            query_lower (str): The lowercase search query to highlight.
+            artists (list[dict]): A list of artist dictionaries to format.
+            query_lower (str): The lowercase search query for highlighting matches.
 
         Returns:
-            str: The text with highlighted matches.
+            list[dict]: A list of formatted artist result dictionaries for UI display.
         """
         out = []
         for entry in artists:
             artist = entry["artist"]
-            processed = self._process_artist_albums(entry, query_lower)
+            artist_matched = query_lower in artist.lower()
+
+            album_list = []
+            matched_albums_count = 0
+            matched_tracks_count = 0
+
+            for album_entry in entry.get("albums", []):
+                album_name = album_entry["album"]
+                album_matched = query_lower in album_name.lower()
+                if album_matched:
+                    matched_albums_count += 1
+
+                processed = self._process_album_tracks(album_entry, query_lower)
+                highlighted_count = len(processed["highlighted_tracks"])
+                if highlighted_count > 0:
+                    matched_tracks_count += highlighted_count
+
+                album_reasons = []
+                if album_matched:
+                    album_reasons.append({"type": "album", "text": album_name})
+                if highlighted_count > 0:
+                    album_reasons.append(
+                        {"type": "track", "text": f"{highlighted_count} nummer(s)"}
+                    )
+
+                album_list.append(
+                    {
+                        "album": album_name,
+                        "reasons": album_reasons,
+                        "tracks": processed["displayed_tracks"],
+                        "highlighted_tracks": processed["highlighted_tracks"] or None,
+                    }
+                )
+
+            reasons = []
+            if artist_matched:
+                reasons.append({"type": "artist", "text": artist})
+            if matched_albums_count > 0:
+                reasons.append(
+                    {"type": "album", "text": f"{matched_albums_count} album(s)"}
+                )
+            if matched_tracks_count > 0:
+                reasons.append(
+                    {"type": "track", "text": f"{matched_tracks_count} nummer(s)"}
+                )
 
             out.append(
                 {
                     "type": "artist",
                     "artist": artist,
-                    "album": "Meerdere albums",
-                    "reasons": processed["reasons"],
-                    "tracks": processed["displayed_tracks"],
-                    "highlighted_tracks": processed["highlighted_tracks"] or None,
+                    "albums": album_list,
+                    "reasons": reasons,
                 }
             )
         return out
-
-    def _process_artist_albums(self, entry: dict, query_lower: str) -> dict:
-        """
-        Processes albums and tracks for a given artist entry to prepare search result formatting.
-
-        Returns a dictionary containing reasons for matches, displayed tracks, and highlighted tracks based on the search query.
-
-        Args:
-            entry (dict): The artist entry containing albums and tracks.
-            query_lower (str): The lowercase search query for highlighting matches.
-
-        Returns:
-            dict: A dictionary with keys 'reasons', 'displayed_tracks', and 'highlighted_tracks'.
-        """
-        displayed = []
-        highlighted = []
-        reasons = [{"type": "artist", "text": entry["artist"]}]
-
-        for album_entry in entry.get("albums", []):
-            album_name = album_entry["album"]
-            if query_lower in album_name.lower():
-                reasons.append({"type": "album", "text": album_name})
-
-            for track in album_entry.get("tracks", []):
-                displayed.append(self._track_display_dict(track))
-
-                if query_lower in track["track"].lower():
-                    highlighted.append(self._track_highlighted_dict(track, query_lower))
-
-        if highlighted:
-            reasons.append({"type": "track", "text": f"{len(highlighted)} nummer(s)"})
-
-        return {
-            "reasons": reasons,
-            "displayed_tracks": displayed,
-            "highlighted_tracks": highlighted,
-        }
 
     def _format_album_results(self, albums: list[dict], query_lower: str) -> list[dict]:
         """
@@ -627,7 +627,6 @@ class MusicCollection:
         ext = Path(path).suffix or ""
         safe = "".join(c for c in title if c.isalnum() or c in " _-").strip()
         return f"{safe}{ext}"
-
 
     # === Helpers ===
 
