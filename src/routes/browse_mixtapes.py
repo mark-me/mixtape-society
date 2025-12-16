@@ -4,6 +4,7 @@ from flask import (
     Blueprint,
     Response,
     abort,
+    current_app,
     redirect,
     render_template,
     send_from_directory,
@@ -13,6 +14,7 @@ from flask import (
 from auth import check_auth, require_auth
 from config import BaseConfig as Config
 from mixtape_manager import MixtapeManager
+from musiclib import get_indexing_status
 
 browser = Blueprint("browse_mixtapes", __name__, template_folder="../templates")
 
@@ -21,13 +23,17 @@ browser = Blueprint("browse_mixtapes", __name__, template_folder="../templates")
 @require_auth
 def browse() -> Response:
     """
-    Renders the browse mixtapes page with a list of all available mixtapes.
+    Renders the browse mixtapes page or indexing progress if active.
 
-    Retrieves all mixtapes using the MixtapeManager and passes them to the template for display.
+    Checks for ongoing indexing and shows progress if active. Otherwise, lists all mixtapes.
 
     Returns:
-        Response: A rendered template displaying the list of mixtapes.
+        Response: The rendered template for mixtapes or indexing progress.
     """
+    status = get_indexing_status(current_app.config["DATA_ROOT"])
+    if status and status["status"] in ("rebuilding", "resyncing"):
+        return render_template("indexing.html", status=status)
+
     mixtape_manager = MixtapeManager(path_mixtapes=Config.MIXTAPE_DIR)
     mixtapes = mixtape_manager.list_all()
     return render_template("browse_mixtapes.html", mixtapes=mixtapes)
@@ -81,20 +87,7 @@ def delete_mixtape(slug: str) -> Response:
         Response: An empty response with status 200 if successful, or 404 if the mixtape does not exist.
     """
     mixtape_manager = MixtapeManager(path_mixtapes=Config.MIXTAPE_DIR)
-    mixtape = mixtape_manager.get(slug)
-    if not mixtape:
-        abort(404)
-
-    # Delete JSON file
-    json_file = Config.MIXTAPE_DIR / f"{slug}.json"
-    json_file.unlink(missing_ok=True)
-
-    # Delete cover image if it exists
-    if mixtape.get("cover"):
-        cover_path = Config.COVER_DIR / Path(mixtape["cover"]).name
-        cover_path.unlink(missing_ok=True)
-
-    return "", 200
+    mixtape_manager.delete(slug)
 
 @browser.before_request
 def blueprint_require_auth() -> Response | None:

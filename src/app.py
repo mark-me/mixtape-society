@@ -19,10 +19,11 @@ from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
+from auth import check_auth
 from config import DevelopmentConfig, ProductionConfig, TestConfig
 from logtools import get_logger, setup_logging
 from mixtape_manager import MixtapeManager
-from musiclib import MusicCollection
+from musiclib import MusicCollection, get_indexing_status
 from routes import browser, editor, play
 from version_info import get_version
 
@@ -36,6 +37,7 @@ ENV = os.getenv("APP_ENV", "development")
 
 config = CONFIG_MAP.get(ENV, DevelopmentConfig)
 config.ensure_dirs()
+
 
 log_dir = config.DATA_ROOT / "logs"
 setup_logging(
@@ -51,6 +53,7 @@ limiter = Limiter(
     default_limits=["500 per day", "100 per hour"],
 )
 app.secret_key = config.PASSWORD
+app.config["DATA_ROOT"] = config.DATA_ROOT
 CORS(app)  # This adds Access-Control-Allow-Origin: * to ALL responses
 
 # Put this right after setup_logging(...)
@@ -76,15 +79,21 @@ logger.warning("Users are responsible for the content they load into the system.
 @app.route("/")
 def landing() -> Response:
     """
-    Renders the landing page of the application.
+    Renders the landing page, indexing progress, or redirects authenticated users.
 
-    Returns the landing page template for the root URL.
+    Checks for ongoing indexing and shows progress if active. If no indexing and authenticated, redirects to mixtapes. Otherwise, shows the login page.
 
     Returns:
-        Response: The Flask response object containing the rendered landing page.
+        Response: The appropriate rendered template or redirect.
     """
+    status = get_indexing_status(config.DATA_ROOT)
+    if status and status["status"] in ("rebuilding", "resyncing"):
+        return render_template("indexing.html", status=status)
+    if check_auth():
+        return redirect("/mixtapes")
     return render_template("landing.html")
 
+# === Authentication Routes ===
 
 @app.route("/login", methods=["POST"])
 @limiter.limit("5 per minute")
@@ -98,10 +107,11 @@ def login() -> Response:
     Returns:
         Response: The Flask response object for the appropriate redirect.
     """
-    if request.form.get("password") == config.PASSWORD:
+    password = request.form.get("password")
+    if password == config.PASSWORD:
         session["authenticated"] = True
-        return redirect("/mixtapes")
-    flash("Verkeerd wachtwoord")
+    else:
+        flash("Invalid password", "danger")
     return redirect("/")
 
 
@@ -134,6 +144,7 @@ def mixtape_files(filename: str) -> Response:
     """
     return send_from_directory(config.MIXTAPE_DIR, filename)
 
+# === Public Routes ===
 
 @app.route("/covers/<filename>")
 def serve_cover(filename: str) -> Response:
@@ -171,6 +182,8 @@ def public_play(slug: str) -> Response:
     return render_template("play_mixtape.html", mixtape=mixtape, public=True)
 
 
+# === Context Processors ===
+
 @app.context_processor
 def inject_version() -> dict:
     """
@@ -197,11 +210,14 @@ def inject_now() -> dict:
     return {"now": datetime.now(timezone.utc)}
 
 
-# Blueprints
+# === Blueprints ===
+
 app.register_blueprint(browser)
 app.register_blueprint(play, url_prefix="/play")
 app.register_blueprint(editor)
 
+
+# === Server Start ===
 
 def serve(debug: bool = True) -> None:
     """
@@ -212,7 +228,7 @@ def serve(debug: bool = True) -> None:
     Args:
         debug: Whether to run the server in debug mode. Defaults to True.
     """
-    app.run(debug=debug, host="0.0.0.0", port=5000)
+    app.run(debug=debug, use_reloader=False, host="0.0.0.0", port=5000)
 
 
 if __name__ == "__main__":

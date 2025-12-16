@@ -8,6 +8,7 @@ All notable changes will be documented here.
 ---
 
 ## 📦 v0.1.4-alpha
+
 <span class="md-tag">Pre-release</span>
 
 **🗓️** 2025-12-15
@@ -20,12 +21,14 @@ All notable changes will be documented here.
 
 - Missing cover art standard art
 - Theme adherence on some pages
+- Favicon theme adherence
 
 [v0.1.4-alpha](https://github.com/mark-me/mixtape-society/compare/v0.1.3-alpha...v0.1.4-alpha)
 
 ---
 
 ## 📦 v0.1.3-alpha
+
 <span class="md-tag">Pre-release</span>
 
 **🗓️** 2025-12-15
@@ -46,6 +49,7 @@ All notable changes will be documented here.
 ---
 
 ## 📦 v0.1.2-alpha
+
 <span class="md-tag">Pre-release</span>
 
 **🗓️** 2025-12-12
@@ -59,6 +63,7 @@ All notable changes will be documented here.
 ---
 
 ## 📦 v0.1.1-alpha
+
 <span class="md-tag">Pre-release</span>
 
 **🗓️** 2025-12-12

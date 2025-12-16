@@ -1,202 +1,119 @@
-import contextlib
 import sqlite3
-import time
+from dataclasses import dataclass
 from pathlib import Path
-from queue import Queue
+from queue import Empty, Queue
 from threading import Event, Thread
-from typing import Optional
+from typing import Literal, Optional
 
 from tinytag import TinyTag
-from watchdog.events import FileSystemEvent, FileSystemEventHandler
+from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
 from logtools import get_logger
+from .indexing_status import set_indexing_status, clear_indexing_status
 
 logger = get_logger(__name__)
 
+# =========================
+# Event model
+# =========================
+
+EventType = Literal[
+    "INDEX_FILE",
+    "DELETE_FILE",
+    "CLEAR_DB",
+    "REBUILD_DONE",
+    "RESYNC_DONE",
+]
+"""
+Represents the type of event for music collection indexing and synchronization.
+
+EventType is a type alias for string literals that specify the kind of operation to perform,
+such as indexing a file, deleting a file, clearing the database, or marking the completion of a rebuild or resync.
+"""
+
+
+@dataclass(slots=True)
+class IndexEvent:
+    """Represents an event for indexing or modifying music files in the collection.
+
+    Used to communicate file indexing, deletion, and database operations between threads in the music collection extractor.
+
+    Args:
+        type (EventType): The type of event (e.g., INDEX_FILE, DELETE_FILE).
+        path (Optional[Path]): The path to the affected music file, if applicable.
+
+    Returns:
+        None
+    """
+
+    type: EventType
+    path: Optional[Path] = None
+
 
 class CollectionExtractor:
-    """Manages extraction and synchronization of music metadata from a file system.
+    """Manages extraction, indexing, and synchronization of music files in a collection.
 
-    Handles scanning, indexing, and monitoring of a music collection, storing metadata in a SQLite database for efficient access and updates.
+    Handles database setup, metadata extraction, file system monitoring, and synchronization to keep the music database up to date with the file system.
+
+    Args:
+        music_root (Path): The root directory containing music files.
+        db_path (Path): The path to the SQLite database file.
+
+    Returns:
+        None
     """
+
     SUPPORTED_EXTS = {".mp3", ".flac", ".ogg", ".oga", ".m4a", ".mp4", ".wav", ".wma"}
 
     def __init__(self, music_root: Path, db_path: Path):
-        """Initializes a CollectionExtractor for managing a music library.
+        """
+        Initializes the CollectionExtractor with the specified music root and database path.
 
-        Sets up the music root directory, database path, and prepares the database schema for storing music metadata.
+        Sets up the data directory, initializes the database, and starts the background writer thread for processing indexing events.
 
         Args:
             music_root (Path): The root directory containing music files.
-            db_path (Path): Path to the SQLite database file.
+            db_path (Path): The path to the SQLite database file.
+
+        Returns:
+            None
         """
         self.music_root = music_root.resolve()
         self.db_path = db_path
-        if not self.db_path.exists():
-            logger.warning(f"Database file {self.db_path} does not exist and will be created.")
-        else:
-            logger.info(f"Using existing database at {self.db_path}")
-        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        self.data_root = db_path.parent
 
-        self._stop_event = Event()
-        self._observer: Observer | None = None
+        self.data_root.mkdir(parents=True, exist_ok=True)
 
-        # Queue and thread for processing filesystem events
-        self._event_queue: Queue = Queue()
-        self._worker_thread: Optional[Thread] = None
-        self._start_worker()
+        self._write_queue: Queue[IndexEvent] = Queue()
+        self._writer_stop = Event()
+        self._observer: Optional[Observer] = None
 
-        self._ensure_schema()
+        self._init_db()
 
-    def _start_worker(self) -> None:
-        """
-        Starts the background worker thread for processing filesystem events.
+        self._writer_thread = Thread(
+            target=self._db_writer_loop,
+            name="sqlite-writer",
+            daemon=True,
+        )
+        self._writer_thread.start()
 
-        Initializes and starts a daemon thread that processes the event queue for metadata extraction and database updates.
-        """
-        self._worker_thread = Thread(target=self._process_queue, daemon=True)
-        self._worker_thread.start()
-        logger.info("Background metadata worker started")
 
-    def _process_queue(self) -> None:
-        """
-        Processes filesystem events from the event queue in a background thread.
+    # === DB setup ===
 
-        Handles file creation, modification, movement, and deletion events by updating the music database accordingly.
-        Skips unsupported file types and directories, and continues processing until the stop event is set.
-        """
-        while not self._stop_event.is_set():
-            try:
-                # Wait up to 1 second for next event
-                event = self._event_queue.get(timeout=1.0)
-                path = Path(event.src_path if hasattr(event, "src_path") else event.dest_path)
+    def _init_db(self):
+        """Initializes the music database and ensures required tables and indexes exist.
 
-                if event.is_directory or path.suffix.lower() not in self.SUPPORTED_EXTS:
-                    self._event_queue.task_done()
-                    continue
-
-                # Delete case (deleted or moved away)
-                if event.event_type in ("deleted", "moved") and hasattr(event, "src_path"):
-                    with self.get_conn() as conn:
-                        conn.execute("DELETE FROM tracks WHERE path = ?", (event.src_path,))
-                        conn.commit()
-                    logger.debug(f"Removed from DB: {event.src_path}")
-                elif path.exists():
-                    try:
-                        self._index_file_path_queued(path)
-                        logger.debug(f"Indexed: {path}")
-                    except Exception as e:
-                        logger.warning(f"Failed to index {path}: {e}")
-
-                self._event_queue.task_done()
-            except Exception:  # Empty exception = timeout, loop again
-                continue
-
-    def _index_file_path_queued(self, path: Path) -> None:
-        """
-        Indexes a music file and updates the database with its metadata.
-
-        Extracts metadata from the given file and inserts or updates the corresponding record in the tracks table.
-        If metadata extraction fails, the file is skipped.
-
-        Args:
-            path: The path to the music file to index.
+        Sets up the SQLite database with the necessary schema for storing track metadata and creates indexes for efficient querying.
 
         Returns:
             None
         """
-        tag = None
-        try:
-            tag = TinyTag.get(path, tags=True, duration=True)
-        except Exception as e:
-            logger.warning(f"Failed to extract tags from {path}: {e}")
-
-        artist = self._extract_artist(tag, path)
-        album = self._extract_album(tag, path)
-        title = self._extract_title(tag, path)
-        year = self._safe_int_year(getattr(tag, "year", None))
-        duration = getattr(tag, "duration", None)
-        albumartist = getattr(tag, "albumartist", None)
-        genre = getattr(tag, "genre", None)
-        mtime = path.stat().st_mtime
-
-        with self.get_conn() as conn:
-            conn.execute("""
-                INSERT OR REPLACE INTO tracks
-                (path, filename, artist, album, title, albumartist, genre, year, duration, mtime)
-                VALUES (?,?,?,?,?,?,?,?,?,?)
-            """, (
-                str(path), path.name, artist, album, title,
-                albumartist, genre, year, duration, mtime
-            ))
-            conn.commit()
-
-    def start_monitoring(self) -> None:
-        """Starts live monitoring of the music directory for file system changes.
-
-        Sets up a file system observer to watch for changes in the music collection and updates the database in real time.
-
-        Returns:
-            None
-        """
-        if self._observer is not None:
-            return
-
-        if not self.music_root.exists():
-            logger.warning(f"Music root {self.music_root} does not exist - skipping filesystem monitoring")
-            return
-
-        self._observer = Observer()
-        self._observer.schedule(Watcher(self), str(self.music_root), recursive=True)
-        self._observer.start()
-        logger.info("Live filesystem monitoring started")
-
-    def stop_monitoring(self) -> None:
-        """
-        Stops live monitoring of the music directory and background worker thread.
-
-        Shuts down the file system observer and the background metadata worker if they are running,
-        releasing associated resources and logging the shutdown.
-
-        Returns:
-            None
-        """
-        if self._observer is not None:
-            self._observer.stop()
-            self._observer.join()
-            self._observer = None
-            logger.info("Filesystem monitoring stopped")
-
-        # Stop worker thread
-        self._stop_event.set()
-        if self._worker_thread:
-            self._worker_thread.join(timeout=5.0)
-            logger.info("Background metadata worker stopped")
-
-    def get_conn(self) -> sqlite3.Connection:
-        """Creates and returns a new SQLite database connection.
-
-        Opens a connection to the music collection database and sets the row factory for named access. Returns the connection object for use in database operations.
-
-        Returns:
-            sqlite3.Connection: A connection object to the music collection database.
-        """
-        conn = sqlite3.connect(self.db_path, timeout=30.0)  # Increase timeout further as backup
-        conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA journal_mode=WAL;")
-        return conn
-
-    def _ensure_schema(self) -> None:
-        """Ensures the database schema for the music collection exists.
-
-        Creates the tracks table and necessary indexes if they do not already exist in the database. Adds the mtime column for sync checking if it is missing.
-
-        Returns:
-            None
-        """
-        with self.get_conn() as conn:
-            conn.execute("""
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute("PRAGMA journal_mode=WAL;")
+            conn.execute("PRAGMA synchronous=NORMAL;")
+            conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS tracks (
                     path TEXT PRIMARY KEY,
                     filename TEXT,
@@ -209,252 +126,294 @@ class CollectionExtractor:
                     duration REAL,
                     mtime REAL
                 )
-            """)
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_artist ON tracks(artist COLLATE NOCASE)")
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_album  ON tracks(album  COLLATE NOCASE)")
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_title  ON tracks(title  COLLATE NOCASE)")
+                """
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_artist ON tracks(artist COLLATE NOCASE)"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_album  ON tracks(album  COLLATE NOCASE)"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_title  ON tracks(title  COLLATE NOCASE)"
+            )
 
-            # Add mtime column if not exists (for sync checking)
-            with contextlib.suppress(sqlite3.OperationalError):
-                conn.execute("ALTER TABLE tracks ADD COLUMN mtime REAL")
+    def get_conn(self, readonly: bool = False) -> sqlite3.Connection:
+        """Creates and returns a SQLite database connection.
 
-    def count_tracks(self) -> int:
-        """Returns the total number of tracks in the music collection.
-
-        Counts and returns the number of track records currently stored in the database.
-
-        Returns:
-            int: The total number of tracks in the collection.
-        """
-        with self.get_conn() as conn:
-            return conn.execute("SELECT COUNT(*) FROM tracks").fetchone()[0]
-
-    def is_synced_with_filesystem(self, sample_size: int = 200) -> bool:
-        """Checks if the database is in sync with the file system.
-
-        Randomly samples tracks from the database and verifies that each file exists and its modification time matches the stored value.
-        Returns True if all sampled files are in sync, otherwise False.
+        Returns a connection to the music database, optionally in read-only mode. The connection uses row factory for dictionary-like access to results.
 
         Args:
-            sample_size (int): The number of tracks to sample for sync checking.
+            readonly (bool): If True, opens the database in read-only mode.
 
         Returns:
-            bool: True if the sampled files are in sync with the database, False otherwise.
+            sqlite3.Connection: The database connection object.
         """
-        with self.get_conn() as conn:
-            rows = conn.execute("SELECT path, mtime FROM tracks ORDER BY RANDOM() LIMIT ?", (sample_size,)).fetchall()
-            for row in rows:
-                path = Path(row["path"])
-                if not path.exists():
-                    return False
-                if row["mtime"] is None or path.stat().st_mtime != row["mtime"]:
-                    return False
-        return True
+        if readonly:
+            uri = f"file:{self.db_path}?mode=ro"
+            conn = sqlite3.connect(uri, uri=True)
+        else:
+            conn = sqlite3.connect(self.db_path)
 
-    def resync(self) -> None:
-        """Synchronizes the database with the current state of the file system.
+        conn.row_factory = sqlite3.Row
+        return conn
 
-        Compares the database records with the files present in the music directory, adding new files and removing records for deleted files.
-        Logs the number of tracks added and removed.
+
+    # === Writer loop (ONLY writer) ===
+
+    def _db_writer_loop(self) -> None:
+        """Processes database write events from the queue in a dedicated thread.
+
+        Handles indexing, deletion, and commit events to keep the music database up to date and responsive.
+        Commits changes periodically and ensures proper cleanup on exit.
 
         Returns:
             None
         """
-        start = time.time()
-        db_paths = set()
-        with self.get_conn() as conn:
-            db_paths = {row["path"] for row in conn.execute("SELECT path FROM tracks")}
+        conn = self.get_conn()
+        conn.execute("PRAGMA busy_timeout = 60000")
+        pending = 0
+
+        try:
+            while not self._writer_stop.is_set():
+                try:
+                    event = self._write_queue.get(timeout=0.5)
+                except Empty:
+                    continue
+
+                try:
+                    if event.type == "CLEAR_DB":
+                        conn.execute("DELETE FROM tracks")
+
+                    elif event.type == "INDEX_FILE" and event.path:
+                        self._index_file(conn, event.path)
+
+                    elif event.type == "DELETE_FILE" and event.path:
+                        conn.execute(
+                            "DELETE FROM tracks WHERE path = ?", (str(event.path),)
+                        )
+
+                    elif event.type in ("REBUILD_DONE", "RESYNC_DONE"):
+                        conn.commit()
+
+                    pending += 1
+                    if pending >= 500:
+                        conn.commit()
+                        pending = 0
+
+                except Exception as e:
+                    logger.error(f"Writer error: {e}", exc_info=True)
+
+                finally:
+                    self._write_queue.task_done()
+
+        finally:
+            conn.commit()
+            conn.close()
+
+
+    # === Metadata extraction ===
+
+    def _index_file(self, conn: sqlite3.Connection, path: Path) -> None:
+        """Extracts metadata from a music file and updates the database entry.
+
+        Reads metadata such as artist, album, title, year, and duration from the given file and inserts or updates the corresponding record in the database.
+
+        Args:
+            conn (sqlite3.Connection): The database connection to use for the update.
+            path (Path): The path to the music file to index.
+
+        Returns:
+            None
+        """
+        try:
+            tag = TinyTag.get(path, tags=True, duration=True)
+        except Exception:
+            tag = None
+
+        artist = getattr(tag, "artist", None) or getattr(tag, "albumartist", None)
+        album = getattr(tag, "album", None)
+        title = getattr(tag, "title", None) or path.stem
+
+        year = None
+        try:
+            if getattr(tag, "year", None):
+                year = int(str(tag.year)[:4])
+        except (AttributeError, ValueError):
+            year = None
+        conn.execute(
+            """
+            INSERT OR REPLACE INTO tracks
+            (path, filename, artist, album, title, albumartist, genre, year, duration, mtime)
+            VALUES (?,?,?,?,?,?,?,?,?,?)
+            """,
+            (
+                str(path),
+                path.name,
+                artist or "Unknown",
+                album or "Unknown",
+                title or "Unknown",
+                getattr(tag, "albumartist", None),
+                getattr(tag, "genre", None),
+                year,
+                getattr(tag, "duration", None),
+                path.stat().st_mtime,
+            ),
+        )
+
+
+    # === Rebuild ===
+
+    def rebuild(self) -> None:
+        """Rebuilds the music collection database from scratch.
+
+        Scans all supported music files in the root directory and reindexes them, updating the database and indexing status throughout the process.
+
+        Returns:
+            None
+        """
+        logger.info("Starting full rebuild")
+
+        files = [
+            p
+            for p in self.music_root.rglob("*")
+            if p.is_file() and p.suffix.lower() in self.SUPPORTED_EXTS
+        ]
+
+        total = len(files)
+        set_indexing_status(self.data_root, "rebuilding", total=total, current=0)
+
+        self._write_queue.put(IndexEvent("CLEAR_DB"))
+
+        for i, path in enumerate(files, start=1):
+            self._write_queue.put(IndexEvent("INDEX_FILE", path))
+
+            if i % 100 == 0:
+                set_indexing_status(self.data_root, "rebuilding", total, i)
+
+        self._write_queue.put(IndexEvent("REBUILD_DONE"))
+        self._write_queue.join()
+        clear_indexing_status(self.data_root)
+        logger.info("Rebuild queued")
+
+
+    # === Resync ===
+
+    def resync(self) -> None:
+        """Synchronizes the music database with the current state of the file system.
+
+        Identifies new and removed music files, updating the database to reflect additions and deletions.
+        Progress is tracked and logged throughout the process.
+
+        Returns:
+            None
+        """
+        logger.info("Starting resync")
 
         fs_paths = {
-            str(p) for p in self.music_root.rglob("*")
+            str(p)
+            for p in self.music_root.rglob("*")
             if p.is_file() and p.suffix.lower() in self.SUPPORTED_EXTS
         }
+
+        with self.get_conn() as conn:
+            db_paths = {r["path"] for r in conn.execute("SELECT path FROM tracks")}
 
         to_add = fs_paths - db_paths
         to_remove = db_paths - fs_paths
 
-        with self.get_conn() as conn:
-            if to_remove:
-                conn.executemany("DELETE FROM tracks WHERE path = ?", [(p,) for p in to_remove])
-            for path_str in to_add:
-                try:
-                    self._index_file(conn, Path(path_str))
-                except Exception as e:
-                    logger.warning(f"Failed to index {path_str}: {e}")
-            conn.commit()
+        total = len(to_add) + len(to_remove)
+        set_indexing_status(self.data_root, "resyncing", total=total, current=0)
 
-        added = len(to_add)
-        removed = len(to_remove)
-        logger.info(f"Sync complete: +{added:,} / -{removed:,} tracks ({time.time() - start:.1f}s)")
+        progress = 0
 
-    def rebuild(self) -> None:
-        """Scans and reindexes the entire music collection.
+        for path in to_remove:
+            self._write_queue.put(IndexEvent("DELETE_FILE", Path(path)))
+            progress += 1
+            if progress % 100 == 0:
+                set_indexing_status(self.data_root, "resyncing", total, progress)
 
-        Removes all existing track records and rebuilds the index from the music root directory. Prints progress and summary information to the console.
+        for path in to_add:
+            self._write_queue.put(IndexEvent("INDEX_FILE", Path(path)))
+            progress += 1
+            if progress % 100 == 0:
+                set_indexing_status(self.data_root, "resyncing", total, progress)
 
-        Returns:
-            None
-        """
-        logger.info("Full rebuild started...")
-        start = time.time()
-        with self.get_conn() as conn:
-            conn.execute("DELETE FROM tracks")
-            count = 0
-            for fp in self.music_root.rglob("*"):
-                if fp.is_file() and fp.suffix.lower() in self.SUPPORTED_EXTS:
-                    try:
-                        self._index_file(conn, fp)
-                        count += 1
-                    except Exception as e:
-                        logger.warning(f"Skip {fp}: {e}")
-                    if count % 5000 == 0:
-                        logger.info(f"Indexed {count:,} tracks...")
-            conn.commit()
-        logger.info(f"Full rebuild complete: {count:,} tracks in {time.time() - start:.1f}s")
+        self._write_queue.put(IndexEvent("RESYNC_DONE"))
+        clear_indexing_status(self.data_root)
+        logger.info(f"Resync queued (+{len(to_add)} / -{len(to_remove)})")
 
-    def _index_file(self, path: Path) -> None:
-        """Indexes a single music file and updates the database with its metadata.
 
-        Extracts metadata from the given file and inserts or updates the corresponding record in the tracks table. If metadata extraction fails, the file is skipped.
+    # === Monitoring ===
 
-        Args:
-            path: The path to the music file to index.
+    def start_monitoring(self) -> None:
+        """Starts monitoring the music directory for file system changes.
+
+        Initializes and starts a watchdog observer to track additions, modifications, and deletions of supported music files in real time.
 
         Returns:
             None
         """
-        tag = None
-        try:
-            tag = TinyTag.get(path, tags=True, duration=True)
-        except Exception as e:
-            logger.warning(
-                f"Failed to extract tags from {path}: {type(e).__name__}: {e}",
-                exc_info=True
-            )
+        if self._observer:
+            return
+        self._observer = Observer()
+        self._observer.schedule(_Watcher(self), str(self.music_root), recursive=True)
+        self._observer.start()
 
-        artist = self._extract_artist(tag, path)
-        album = self._extract_album(tag, path)
-        title = self._extract_title(tag, path)
-        year = self._safe_int_year(getattr(tag, "year", None))
-        duration = getattr(tag, "duration", None)
-        albumartist = getattr(tag, "albumartist", None)
-        genre = getattr(tag, "genre", None)
-        mtime = path.stat().st_mtime
+    def stop(self) -> None:
+        """Stops the database writer thread and file system observer.
 
-        conn = self.get_conn()
-        conn.execute("""
-            INSERT OR REPLACE INTO tracks
-            (path, filename, artist, album, title, albumartist, genre, year, duration, mtime)
-            VALUES (?,?,?,?,?,?,?,?,?,?)
-        """, (
-            str(path),
-            path.name,
-            artist,
-            album,
-            title,
-            albumartist,
-            genre,
-            year,
-            duration,
-            mtime,
-        ))
-
-    def _safe_int_year(self, value) -> int | None:
-        """Converts a value to an integer year if possible.
-
-        Attempts to extract and return a valid integer year from the input value. Returns None if the value cannot be interpreted as a year.
-
-        Args:
-            value: The value to convert to an integer year.
+        Signals the writer thread to terminate and waits for it to finish, then stops and joins the observer if it is running.
 
         Returns:
-            int or None: The extracted year as an integer, or None if conversion is not possible.
+            None
         """
-        if not value:
-            return None
-        try:
-            return int(str(value).strip().split("-", 1)[0].split(".", 1)[0])
-        except ValueError:
-            return None
-
-    def _extract_artist(self, tag: object, path: Path) -> str:
-        """Extracts the artist name from tag or path.
-
-        Returns the artist name as a string, using tag metadata or directory names as fallback. If no artist is found, returns 'Unknown'.
-
-        Args:
-            tag: The metadata tag object from TinyTag.
-            path: The path to the music file.
-
-        Returns:
-            str: The extracted artist name.
-        """
-        artist = getattr(tag, "artist", None) or getattr(tag, "albumartist", None)
-        if not artist and len(path.parents) >= 3:
-            artist = path.parent.parent.name
-        return (artist or "Unknown").strip()
-
-    def _extract_album(self, tag: object, path: Path) -> str:
-        """
-        Extracts the album name from tag or path.
-
-        Returns the album name as a string, using tag metadata or directory names as fallback. If no album is found, returns 'Unknown'.
-
-        Args:
-            tag: The metadata tag object from TinyTag.
-            path: The path to the music file.
-
-        Returns:
-            str: The extracted album name.
-        """
-        album = getattr(tag, "album", None)
-        if not album:
-            album = path.parent.name
-            if album in {"", ".", "..", "Music", "music"} and len(path.parents) >= 3:
-                album = path.parent.parent.name
-        return (album or "Unknown").strip()
-
-    def _extract_title(self, tag: object, path: Path) -> str:
-        """
-        Extracts the track title from tag or path.
-
-        Returns the track title as a string, using tag metadata or the file stem as fallback. If no title is found, returns 'Unknown'.
-
-        Args:
-            tag: The metadata tag object from TinyTag.
-            path: The path to the music file.
-
-        Returns:
-            str: The extracted track title.
-        """
-        return (getattr(tag, "title", None) or path.stem or "Unknown").strip()
+        self._writer_stop.set()
+        self._writer_thread.join(timeout=5)
+        if self._observer:
+            self._observer.stop()
+            self._observer.join()
 
 
-class Watcher(FileSystemEventHandler):
-    """Handles file system events for the music collection and updates the database.
+class _Watcher(FileSystemEventHandler):
+    """Handles file system events for the music collection.
 
-    Monitors file changes in the music directory and synchronizes the music database by adding, updating, or removing track records as needed.
+    Monitors the music directory for changes and notifies the CollectionExtractor to update the database accordingly.
     """
-    def __init__(self, extractor: CollectionExtractor):
-        """Initializes a Watcher to handle file system events for a music collection.
 
-        Associates the watcher with a CollectionExtractor instance to synchronize the database with file changes.
+    def __init__(self, extractor: CollectionExtractor) -> None:
+        """Initializes the file system event handler for music collection monitoring.
+
+        Associates the handler with a CollectionExtractor instance to process file system events for supported music files.
 
         Args:
-            extractor: The CollectionExtractor instance to monitor and update.
+            extractor (CollectionExtractor): The music collection extractor to notify of file system events.
+
+        Returns:
+            None
         """
         self.extractor = extractor
-        super().__init__()
 
-    def on_any_event(self, event: FileSystemEvent) -> None:
-        """Handles any file system event for the music collection.
+    def on_any_event(self, event: object) -> None:
+        """Handles any file system event for supported music files.
 
-        Responds to file creation, modification, movement, or deletion events by updating the music database accordingly. Skips directories and unsupported file types.
+        Responds to file creation, modification, or deletion events by updating the music database accordingly.
+        Ignores directory events and unsupported file types.
 
         Args:
-            event: The file system event to handle.
+            event (object): The file system event to handle.
 
         Returns:
             None
         """
-        self.extractor._event_queue.put(event)
+        if event.is_directory:
+            return
+
+        path = Path(event.src_path)
+        if path.suffix.lower() not in self.extractor.SUPPORTED_EXTS:
+            return
+
+        if event.event_type in ("created", "modified"):
+            self.extractor._write_queue.put(IndexEvent("INDEX_FILE", path))
+        elif event.event_type == "deleted":
+            self.extractor._write_queue.put(IndexEvent("DELETE_FILE", path))
