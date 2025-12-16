@@ -50,6 +50,7 @@ nav:
       - Music Library (musiclib): development/musiclib.md
       - Mixtape Manager: development/mixtape_manager.md
       - Configuration: development/configuration.md
+      - Version utility: development/version_utility.md
     - Local Development: development/docker.md
     - Roadmap: development/roadmap.md
   - Changelog: changelog.md
