@@ -1,11 +1,17 @@
 import mimetypes
 from pathlib import Path
 
-from flask import Blueprint, Response, abort, request, send_file
+from flask import Blueprint, Response, abort, render_template, request, send_file
 
 from config import BaseConfig as Config
+from mixtape_manager import MixtapeManager
 
 play = Blueprint("play", __name__, template_folder="templates")
+
+mimetypes.add_type("audio/flac", ".flac")
+mimetypes.add_type("audio/mp4", ".m4a")
+mimetypes.add_type("audio/aac", ".aac")
+mimetypes.add_type("audio/ogg", ".ogg")
 
 
 @play.route("/<path:file_path>")
@@ -13,7 +19,8 @@ def stream_audio(file_path: str) -> Response:
     """
     Streams an audio file from the music directory to the client.
 
-    Validates the file path, determines the correct MIME type, and supports HTTP range requests for seeking. Returns the requested audio file or an appropriate error if the file is not found or access is denied.
+    Validates the file path, determines the correct MIME type, and supports HTTP range requests for seeking.
+    Returns the requested audio file or an appropriate error if the file is not found or access is denied.
 
     Args:
         file_path: The relative path to the audio file within the music directory.
@@ -25,9 +32,7 @@ def stream_audio(file_path: str) -> Response:
     mime_type = _guess_mime_type(full_path)
     file_size = full_path.stat().st_size
 
-    range_header = request.headers.get("Range")
-
-    if range_header:
+    if range_header := request.headers.get("Range"):
         return _handle_range_request(full_path, mime_type, range_header, file_size)
 
     # Full file request
@@ -36,6 +41,7 @@ def stream_audio(file_path: str) -> Response:
     response.headers["Access-Control-Allow-Origin"] = "*"
     response.headers["Cache-Control"] = "no-cache"
     return response
+
 
 def _resolve_and_validate_path(file_path: str) -> Path:
     """
@@ -87,7 +93,9 @@ def _guess_mime_type(full_path: Path) -> str:
     return mime_type
 
 
-def _handle_range_request(full_path: Path, mime_type: str, range_header: str, file_size: int) -> Response:
+def _handle_range_request(
+    full_path: Path, mime_type: str, range_header: str, file_size: int
+) -> Response:
     try:
         range_match = range_header.replace("bytes=", "")
         byte1_str, byte2_str = (range_match.split("-") + [""])[:2]
@@ -104,13 +112,35 @@ def _handle_range_request(full_path: Path, mime_type: str, range_header: str, fi
             data = f.read(length)
 
         rv = Response(data, 206, mimetype=mime_type, direct_passthrough=True)
-        rv.headers.update({
-            "Content-Range": f"bytes {byte1}-{byte2}/{file_size}",
-            "Accept-Ranges": "bytes",
-            "Content-Length": str(length),
-            "Access-Control-Allow-Origin": "*",
-            "Cache-Control": "no-cache",
-        })
+        rv.headers.update(
+            {
+                "Content-Range": f"bytes {byte1}-{byte2}/{file_size}",
+                "Accept-Ranges": "bytes",
+                "Content-Length": str(length),
+                "Access-Control-Allow-Origin": "*",
+                "Cache-Control": "no-cache",
+            }
+        )
         return rv
     except Exception as e:
         abort(500)
+
+
+@play.route("/share/<slug>")
+def public_play(slug: str) -> Response:
+    """
+    Renders the public mixtape playback page for a given slug.
+
+    Retrieves the mixtape by slug and displays it for public playback, or returns a 404 error if not found.
+
+    Args:
+        slug: The unique identifier for the mixtape.
+
+    Returns:
+        Response: The Flask response object containing the rendered mixtape playback page.
+    """
+    mixtape_manager = MixtapeManager(path_mixtapes=Config.MIXTAPE_DIR)
+    mixtape = mixtape_manager.get(slug)
+    if not mixtape:
+        abort(404)
+    return render_template("play_mixtape.html", mixtape=mixtape, public=True)

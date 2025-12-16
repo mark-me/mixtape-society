@@ -45,12 +45,12 @@ graph TD
     end
 
     subgraph Core
-        auth
+        version_info
         config
         logtools
         mixtape_manager
         musiclib
-        version_info
+        auth
     end
 
     subgraph routes
@@ -67,6 +67,7 @@ graph TD
     browse_mixtapes --> mixtape_manager
     browse_mixtapes --> config
     browse_mixtapes --> musiclib
+    browse_mixtapes --> auth
 
     editor --> mixtape_manager
     editor --> auth

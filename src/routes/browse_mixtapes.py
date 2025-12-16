@@ -53,6 +53,22 @@ def play(slug: str) -> Response:
     return redirect(url_for("public_play", slug=slug))
 
 
+@browser.route("/mixtapes/covers/<filename>")
+def serve_cover(filename: str) -> Response:
+    """
+    Serves a cover image file from the covers directory.
+
+    Returns the requested cover image file if it exists, or raises a 404 error if not found.
+
+    Args:
+        filename: The name of the cover image file to serve.
+
+    Returns:
+        Response: The Flask response object containing the requested file.
+    """
+    return send_from_directory(Config.COVER_DIR, filename)
+
+
 @browser.route("/mixtapes/files/<path:filename>")
 @require_auth
 def files(filename: str) -> Response:
@@ -68,6 +84,7 @@ def files(filename: str) -> Response:
         Response: A Flask response serving the requested file.
     """
     return send_from_directory(Config.MIXTAPE_DIR, filename)
+
 
 @browser.route("/mixtapes/delete/<slug>", methods=["POST"])
 @require_auth

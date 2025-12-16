@@ -20,7 +20,7 @@ The file `app.py` defines the main Flask application for the "mixtape-society" p
   * `/logout`: Logs out the user by clearing the session.
 * **Static File Serving**
   * `/mixtapes/files/<path:filename>`: Serves mixtape files from a configured directory.
-  * `/covers/<filename>`: Serves cover images from a configured directory.
+  * `/mixtapes/covers/<filename>`: Serves cover images from a configured directory.
 * **Public Mixtape Sharing**
   * `/share/<slug>`: Renders a public playback page for a mixtape identified by a slug. If the mixtape does not exist, a 404 error is returned.
 * **Template Context Injection**
