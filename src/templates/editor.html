@@ -1,6 +1,14 @@
 {% extends "base.html" %}
 
-{% block title %}Create Mixtape{% endblock %}
+{% block title %}
+    {% if preload_mixtape and preload_mixtape.title %}
+        Edit: {{ preload_mixtape.title }}
+    {% elif editing_slug %}
+        Edit Mixtape
+    {% else %}
+        Create Mixtape
+    {% endif %}
+{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
