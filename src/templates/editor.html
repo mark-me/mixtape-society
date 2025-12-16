@@ -347,6 +347,8 @@ function renderTracks(tracks, highlightedTracks, artist, album, query) {
 let resultIndex = 0;
 
 function renderResults(data) {
+    resultIndex = 0;
+
     if (data.length === 0) {
         resultsDiv.innerHTML = '<p class="text-center text-muted my-5">Geen resultaten gevonden.</p>';
         return;
