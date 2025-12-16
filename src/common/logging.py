@@ -6,9 +6,11 @@ class Logger(Protocol):
 
     Any logger implementing this protocol must provide info, warning, and error methods that accept a string message.
     """
-    def info(self, msg: str) -> None: ...
-    def warning(self, msg: str) -> None: ...
-    def error(self, msg: str) -> None: ...
+    def info(self, msg: str, *args, **kwargs) -> None: ...
+    def warning(self, msg: str, *args, **kwargs) -> None: ...
+    def error(self, msg: str, *args, **kwargs) -> None: ...
+    def exception(self, msg: str, *args, **kwargs) -> None: ...
+
 
 class NullLogger:
     """
@@ -16,6 +18,7 @@ class NullLogger:
 
     This logger provides info, warning, and error methods that do nothing, useful for disabling logging in certain contexts.
     """
-    def info(self, msg: str) -> None: pass
-    def warning(self, msg: str) -> None: pass
-    def error(self, msg: str) -> None: pass
+    def info(self, msg: str, *args, **kwargs) -> None: pass
+    def warning(self, msg: str, *args, **kwargs) -> None: pass
+    def error(self, msg: str, *args, **kwargs) -> None: pass
+    def exception(self, msg: str, *args, **kwargs) -> None: pass
