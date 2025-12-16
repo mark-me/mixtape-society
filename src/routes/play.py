@@ -7,6 +7,18 @@ from mixtape_manager import MixtapeManager
 
 
 def create_play_blueprint(mixtape_manager: MixtapeManager, logger) -> Blueprint:
+    """
+    Creates and configures the Flask blueprint for mixtape playback and audio streaming.
+
+    Sets up routes for streaming audio files, handling HTTP range requests, and rendering public mixtape playback pages.
+
+    Args:
+        mixtape_manager (MixtapeManager): The manager instance for retrieving mixtape data.
+        logger: The logger instance for error reporting.
+
+    Returns:
+        Blueprint: The configured Flask blueprint for playback and streaming.
+    """
     play = Blueprint("play", __name__)
 
     mimetypes.add_type("audio/flac", ".flac")

@@ -15,6 +15,19 @@ from mixtape_manager import MixtapeManager
 def create_browser_blueprint(
     mixtape_manager: MixtapeManager, func_processing_status, logger
 ) -> Blueprint:
+    """
+    Creates and configures the Flask blueprint for browsing, playing, and managing mixtapes.
+
+    Sets up routes for listing mixtapes, serving cover images and files, deleting mixtapes, and handling authentication for all routes in the blueprint.
+
+    Args:
+        mixtape_manager (MixtapeManager): The manager instance for retrieving and managing mixtapes.
+        func_processing_status: A function to check the current indexing or processing status.
+        logger: The logger instance for error reporting.
+
+    Returns:
+        Blueprint: The configured Flask blueprint for browsing and managing mixtapes.
+    """
     browser = Blueprint("browse_mixtapes", __name__, template_folder="../templates")
 
     @browser.route("/")
@@ -28,9 +41,7 @@ def create_browser_blueprint(
         Returns:
             Response: The rendered template for mixtapes or indexing progress.
         """
-        status = func_processing_status(
-            current_app.config["DATA_ROOT"], logger=logger
-        )
+        status = func_processing_status(current_app.config["DATA_ROOT"], logger=logger)
         if status and status["status"] in ("rebuilding", "resyncing"):
             return render_template("indexing.html", status=status)
 
@@ -98,7 +109,9 @@ def create_browser_blueprint(
         Returns:
             Response: An empty response with status 200 if successful, or 404 if the mixtape does not exist.
         """
-        mixtape_manager = MixtapeManager(path_mixtapes=current_app.config["MIXTAPE_DIR"])
+        mixtape_manager = MixtapeManager(
+            path_mixtapes=current_app.config["MIXTAPE_DIR"]
+        )
         mixtape_manager.delete(slug)
 
     @browser.before_request
