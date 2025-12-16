@@ -21,7 +21,7 @@ All notable changes will be documented here.
 
 ### 🔧 Changed
 
--
+- Moved from JavaScript dialogs to Bootstrap dialogs
 
 ### 🐛 Fixed
 

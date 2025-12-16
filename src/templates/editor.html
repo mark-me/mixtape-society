@@ -200,6 +200,20 @@
     </div>
 </div>
 
+    <!-- Generic Modal -->
+    <div class="modal fade" id="appModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="appModalTitle"></h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="appModalBody"></div>
+        <div class="modal-footer" id="appModalFooter"></div>
+        </div>
+    </div>
+    </div>
+
     <!-- Audio player on bottom -->
     <div class="fixed-bottom bg-dark text-white p-3 shadow-lg" id="audio-player-container" style="display:none;">
         <div class="container">
@@ -589,7 +603,10 @@ function renderResults(data) {
     // Save (with overwrite confirmation)
     saveButton.addEventListener('click', async () => {
         if (playlist.length === 0) {
-            alert("Your mixtape is empty!");
+            showAlert({
+                title: 'Empty mixtape',
+                message: 'Your mixtape does not contain any tracks yet.'
+            });
             return;
         }
 
@@ -612,7 +629,11 @@ function renderResults(data) {
 
         // If we're editing → ask to overwrite
         if (editingSlug) {
-            const confirmOverwrite = confirm(`Overwrite "${title}"?`);
+            const confirmOverwrite = await showConfirm({
+                title: 'Overwrite mixtape',
+                message: `Are you sure you want to overwrite <strong>${escapeHtml(title)}</strong>?`,
+                confirmText: 'Overwrite'
+            });
             if (!confirmOverwrite) return;
 
             playlistData.slug = editingSlug;  // Tell backend to overwrite this slug
@@ -654,11 +675,18 @@ function renderResults(data) {
                 }
 
             } else {
-                alert("Error saving: " + (data.error || "Unknown error"));
+                showAlert({
+                    title: 'Save failed',
+                    message: escapeHtml(data.error || 'Unknown error'),
+                    buttonText: 'Close'
+                });
             }
         } catch (e) {
             console.error(e);
-            alert("Network error: " + e.message);
+            showAlert({
+                title: 'Network error',
+                message: escapeHtml(e.message)
+            });
         }
     });
 
@@ -941,15 +969,67 @@ function renderResults(data) {
             const link = e.target.closest('a');
             if (link && link.href && !link.href.includes(window.location.pathname)) {
                 // External or different page link
-                if (!confirm('You have unsaved changes. Do you want to leave without saving?')) {
-                    e.preventDefault();
-                } else {
-                    // User confirmed leave → reset flag so future navigations don't warn
-                    hasUnsavedChanges = false;
-                }
+                e.preventDefault();
+
+                showConfirm({
+                    title: 'Unsaved changes',
+                    message: 'You have unsaved changes. Leave without saving?',
+                    confirmText: 'Leave',
+                    cancelText: 'Stay'
+                }).then(confirmed => {
+                    if (confirmed) {
+                        hasUnsavedChanges = false;
+                        window.location.href = link.href;
+                    }
+                });
             }
         }
     });
 
+</script>
+<script>
+    // Bootstrap dialogs
+    const appModalEl = document.getElementById('appModal');
+    const appModal = new bootstrap.Modal(appModalEl);
+
+    function showAlert({ title = 'Notice', message, buttonText = 'OK' }) {
+        document.getElementById('appModalTitle').textContent = title;
+        document.getElementById('appModalBody').innerHTML = message;
+        document.getElementById('appModalFooter').innerHTML = `
+            <button class="btn btn-primary" data-bs-dismiss="modal">
+                ${buttonText}
+            </button>
+        `;
+        appModal.show();
+    }
+
+    function showConfirm({ title = 'Confirm', message, confirmText = 'Confirm', cancelText = 'Cancel' }) {
+        return new Promise(resolve => {
+            document.getElementById('appModalTitle').textContent = title;
+            document.getElementById('appModalBody').innerHTML = message;
+            document.getElementById('appModalFooter').innerHTML = `
+                <button class="btn btn-secondary" data-bs-dismiss="modal">
+                    ${cancelText}
+                </button>
+                <button class="btn btn-danger" id="appModalConfirmBtn">
+                    ${confirmText}
+                </button>
+            `;
+
+            const confirmBtn = document.getElementById('appModalConfirmBtn');
+            confirmBtn.onclick = () => {
+                appModal.hide();
+                resolve(true);
+            };
+
+            appModalEl.addEventListener(
+                'hidden.bs.modal',
+                () => resolve(false),
+                { once: true }
+            );
+
+            appModal.show();
+        });
+    }
 </script>
 {% endblock %}
