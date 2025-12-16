@@ -1,7 +1,9 @@
-from flask import session, redirect, Blueprint, Response, request, limiter, flash, current_app
+from flask import session, redirect, Blueprint, Response, request, flash, current_app
 
 
-def create_authentication_blueprint() -> Blueprint:
+
+
+def create_authentication_blueprint(logger, limiter) -> Blueprint:
     """
     Creates and returns a Flask blueprint for user authentication routes.
 
@@ -11,6 +13,8 @@ def create_authentication_blueprint() -> Blueprint:
         Blueprint: The Flask blueprint with authentication routes.
     """
     authenticator = Blueprint("authenticator", __name__)
+
+
 
     # === Authentication Routes ===
     @authenticator.route("/login", methods=["POST"])

@@ -10,16 +10,14 @@ from flask import (
 
 from auth import check_auth, require_auth
 from mixtape_manager import MixtapeManager
-from musiclib import get_indexing_status
 
 
-
-def create_browser_blueprint(mixtape_manager, musiclib) -> Blueprint:
-
+def create_browser_blueprint(
+    mixtape_manager: MixtapeManager, func_processing_status, logger
+) -> Blueprint:
     browser = Blueprint("browse_mixtapes", __name__, template_folder="../templates")
 
-
-    @browser.route("/mixtapes")
+    @browser.route("/")
     @require_auth
     def browse() -> Response:
         """
@@ -30,16 +28,16 @@ def create_browser_blueprint(mixtape_manager, musiclib) -> Blueprint:
         Returns:
             Response: The rendered template for mixtapes or indexing progress.
         """
-        status = get_indexing_status(current_app.config["DATA_ROOT"], logger=current_app.logger)
+        status = func_processing_status(
+            current_app.config["DATA_ROOT"], logger=logger
+        )
         if status and status["status"] in ("rebuilding", "resyncing"):
             return render_template("indexing.html", status=status)
 
-        mixtape_manager = MixtapeManager(path_mixtapes=current_app.config.MIXTAPE_DIR)
         mixtapes = mixtape_manager.list_all()
         return render_template("browse_mixtapes.html", mixtapes=mixtapes)
 
-
-    @browser.route("/mixtapes/play/<slug>")
+    @browser.route("/play/<slug>")
     @require_auth
     def play(slug: str) -> Response:
         """
@@ -55,8 +53,7 @@ def create_browser_blueprint(mixtape_manager, musiclib) -> Blueprint:
         """
         return redirect(url_for("public_play", slug=slug))
 
-
-    @browser.route("/mixtapes/covers/<filename>")
+    @browser.route("/covers/<filename>")
     def serve_cover(filename: str) -> Response:
         """
         Serves a cover image file from the covers directory.
@@ -69,10 +66,9 @@ def create_browser_blueprint(mixtape_manager, musiclib) -> Blueprint:
         Returns:
             Response: The Flask response object containing the requested file.
         """
-        return send_from_directory(Config.COVER_DIR, filename)
+        return send_from_directory(current_app.config["COVER_DIR"], filename)
 
-
-    @browser.route("/mixtapes/files/<path:filename>")
+    @browser.route("/files/<path:filename>")
     @require_auth
     def files(filename: str) -> Response:
         """
@@ -86,10 +82,9 @@ def create_browser_blueprint(mixtape_manager, musiclib) -> Blueprint:
         Returns:
             Response: A Flask response serving the requested file.
         """
-        return send_from_directory(Config.MIXTAPE_DIR, filename)
+        return send_from_directory(current_app.config["MIXTAPE_DIR"], filename)
 
-
-    @browser.route("/mixtapes/delete/<slug>", methods=["POST"])
+    @browser.route("/delete/<slug>", methods=["POST"])
     @require_auth
     def delete_mixtape(slug: str) -> Response:
         """
@@ -103,9 +98,8 @@ def create_browser_blueprint(mixtape_manager, musiclib) -> Blueprint:
         Returns:
             Response: An empty response with status 200 if successful, or 404 if the mixtape does not exist.
         """
-        mixtape_manager = MixtapeManager(path_mixtapes=Config.MIXTAPE_DIR)
+        mixtape_manager = MixtapeManager(path_mixtapes=current_app.config["MIXTAPE_DIR"])
         mixtape_manager.delete(slug)
-
 
     @browser.before_request
     def blueprint_require_auth() -> Response | None:
@@ -120,3 +114,5 @@ def create_browser_blueprint(mixtape_manager, musiclib) -> Blueprint:
         # Protect everything in this blueprint
         if not check_auth():
             return redirect(url_for("landing"))
+
+    return browser

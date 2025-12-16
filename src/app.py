@@ -12,25 +12,33 @@ from auth import check_auth
 from config import DevelopmentConfig, ProductionConfig, TestConfig
 from logtools import get_logger, setup_logging
 from musiclib import MusicCollection, get_indexing_status
-from routes import browser, editor, play, create_authentication_blueprint
+from mixtape_manager import MixtapeManager
+from routes import (
+    create_browser_blueprint,
+    create_editor_blueprint,
+    create_play_blueprint,
+    create_authentication_blueprint,
+)
 from version_info import get_version
 
 
 def create_app() -> Flask:
-    config = get_configuration()
+    config_cls = get_configuration()
 
     # === Create Flask app ===
     app = Flask(__name__)
-    limiter = Limiter(
-        get_remote_address,
-        app=app,
-        default_limits=["500 per day", "100 per hour"],
-    )
-    app.secret_key = config.PASSWORD
-    app.config = config
+
+    app.secret_key = config_cls.PASSWORD
+    app.config.from_object(config_cls)
     CORS(app)  # This adds Access-Control-Allow-Origin: * to ALL responses
 
-    logger_setup(config=config)
+    limiter = Limiter(
+        get_remote_address,
+        default_limits=["500 per day", "100 per hour"],
+    )
+    limiter.init_app(app=app)
+
+    logger_setup(config=config_cls)
     # Setup Flask logging
     if "gunicorn" in str(type(app)).lower() or "gunicorn" in sys.modules:
         gunicorn_logger = logging.getLogger("gunicorn.error")
@@ -39,12 +47,13 @@ def create_app() -> Flask:
         logging.root.handlers = gunicorn_logger.handlers
         logging.root.setLevel(gunicorn_logger.level)
 
-    app.logger = get_logger(name=__name__)
+    logger = get_logger(name=__name__)
 
     # === Start collection extraction ===
     collection = MusicCollection(
-        music_root=config.MUSIC_ROOT, db_path=config.DB_PATH, logger=app.logger
+        music_root=config_cls.MUSIC_ROOT, db_path=config_cls.DB_PATH, logger=logger
     )
+    mixtape_manager = MixtapeManager(path_mixtapes=config_cls.MIXTAPE_DIR)
 
     @app.route("/")
     def landing() -> Response:
@@ -56,7 +65,7 @@ def create_app() -> Flask:
         Returns:
             Response: The appropriate rendered template or redirect.
         """
-        status = get_indexing_status(config.DATA_ROOT, logger=app.logger)
+        status = get_indexing_status(config_cls.DATA_ROOT, logger=app.logger)
         if status and status["status"] in ("rebuilding", "resyncing"):
             return render_template("indexing.html", status=status)
         if check_auth():
@@ -90,10 +99,26 @@ def create_app() -> Flask:
         return {"now": datetime.now(timezone.utc)}
 
     # === Blueprints ===
-    app.register_blueprint(create_authentication_blueprint())
-    app.register_blueprint(browser)
-    app.register_blueprint(play, url_prefix="/play")
-    app.register_blueprint(editor)
+    app.register_blueprint(
+        create_authentication_blueprint(logger=logger, limiter=limiter),
+        url_prefix="/auth",
+    )
+    app.register_blueprint(
+        create_browser_blueprint(
+            mixtape_manager=mixtape_manager,
+            func_processing_status=get_indexing_status,
+            logger=logger,
+        ),
+        url_prefix="/mixtapes",
+    )
+    app.register_blueprint(
+        create_play_blueprint(mixtape_manager=mixtape_manager, logger=logger),
+        url_prefix="/play",
+    )
+    app.register_blueprint(
+        create_editor_blueprint(collection=collection, logger=logger),
+        url_prefix="/editor",
+    )
 
     return app
 
