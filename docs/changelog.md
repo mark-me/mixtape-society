@@ -15,7 +15,11 @@ All notable changes will be documented here.
 
 ### 🚀 Added
 
--
+- Page that informs user at first startup on the progress of music library scraping
+
+### 🔧 Changed
+
+- Music library extraction backend (Musiclib)
 
 ### 🐛 Fixed
 
@@ -86,3 +90,4 @@ All notable changes will be documented here.
 - Database locks when too many Watcher related updates
 
 [v0.1.1-alpha](https://github.com/mark-me/mixtape-society/compare/v0.1.0...v0.1.1-alpha)
+
