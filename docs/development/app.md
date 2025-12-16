@@ -1,5 +1,7 @@
 # App
 
+![modules](../images/app.png){ align=right width="90" }
+
 The file `app.py` defines the main Flask application for the "mixtape-society" project. It is responsible for initializing the web server, configuring the application based on the environment, setting up core services (such as music collection management), and registering routes and blueprints for handling various web requests. The file serves as the entry point for the application, orchestrating authentication, static file serving, and integration with modular route handlers.
 
 ## Key Components
