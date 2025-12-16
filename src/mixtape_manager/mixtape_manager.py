@@ -75,10 +75,13 @@ class MixtapeManager:
         Returns:
             None
         """
-        path = self.path_mixtapes / f"{slug}.json"
-        if not path.exists():
-            return None
-        path.unlink()
+        json_path = self.path_mixtapes / f"{slug}.json"
+        if json_path.exists():
+            json_path.unlink()
+
+        cover_path = self.path_cover / f"{slug}.jpg"
+        if cover_path.exists():
+            cover_path.unlink()
 
     def list_all(self) -> list[dict]:
         """

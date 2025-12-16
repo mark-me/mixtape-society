@@ -2,6 +2,7 @@ from flask import (
     Blueprint,
     Response,
     current_app,
+    jsonify,
     redirect,
     render_template,
     send_from_directory,
@@ -9,8 +10,8 @@ from flask import (
 )
 
 from auth import check_auth, require_auth
-from mixtape_manager import MixtapeManager
 from common.logging import Logger, NullLogger
+from mixtape_manager import MixtapeManager
 
 
 def create_browser_blueprint(
@@ -112,10 +113,21 @@ def create_browser_blueprint(
         Returns:
             Response: An empty response with status 200 if successful, or 404 if the mixtape does not exist.
         """
-        mixtape_manager = MixtapeManager(
-            path_mixtapes=current_app.config["MIXTAPE_DIR"]
-        )
-        mixtape_manager.delete(slug)
+        try:
+            mixtape_manager = MixtapeManager(
+                path_mixtapes=current_app.config["MIXTAPE_DIR"]
+            )
+            # First check if it exists
+            json_path = mixtape_manager.path_mixtapes / f"{slug}.json"
+            if not json_path.exists():
+                return jsonify({"success": False, "error": "Mixtape not found"}), 404
+
+            mixtape_manager.delete(slug)
+            return jsonify({"success": True}), 200
+
+        except Exception as e:
+            logger.exception("Error deleting mixtape")  # if you have logger
+            return jsonify({"success": False, "error": str(e)}), 500
 
     @browser.before_request
     def blueprint_require_auth() -> Response | None:
