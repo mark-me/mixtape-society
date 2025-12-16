@@ -8,4 +8,4 @@ It attempts to retrieve the latest Git tag, formats the version string to includ
 
 ## API
 
-### ::: src.version.version
+### ::: src.version_info.version
