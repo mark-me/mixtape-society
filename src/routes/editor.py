@@ -227,7 +227,8 @@ def create_editor_blueprint(collection: MusicCollection, logger: Logger | None =
         Returns:
             str | None: The relative path to the copied cover image, or None if no cover is found.
         """
-        full_track_path = current_app.config["MUSIC_ROOT"] / track_path
+        music_root = Path(current_app.config["MUSIC_ROOT"]).resolve()
+        full_track_path = music_root / track_path
         album_dir = full_track_path.parent
         possible = [
             "cover.jpg",
