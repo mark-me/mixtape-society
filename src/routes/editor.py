@@ -13,6 +13,18 @@ from mixtape_manager import MixtapeManager
 
 
 def create_editor_blueprint(collection: MusicCollection, logger) -> Blueprint:
+    """
+    Creates and configures the Flask blueprint for the mixtape editor.
+
+    Sets up routes for creating, editing, searching, and saving mixtapes, and provides helper functions for cover image and JSON handling.
+
+    Args:
+        collection (MusicCollection): The music collection instance to use for searching.
+        logger: The logger instance for error reporting.
+
+    Returns:
+        Blueprint: The configured Flask blueprint for the editor.
+    """
     editor = Blueprint("editor", __name__)
 
     @editor.route("/")
