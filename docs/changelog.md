@@ -27,6 +27,7 @@ All notable changes will be documented here.
 - Missing cover art standard art
 - Theme adherence on some pages
 - Favicon theme adherence
+- Deleting a mixtape actually works
 
 [v0.1.4-alpha](https://github.com/mark-me/mixtape-society/compare/v0.1.3-alpha...v0.1.4-alpha)
 
