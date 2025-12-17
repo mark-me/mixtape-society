@@ -2,9 +2,15 @@
 
 ![Development](../images/development.png){ align=right width="90" }
 
+Welcome to the development guide for Mixtape Society. This section covers everything you need to contribute, from setup to architecture and future plans.
+
+## Why This Structure?
+
+The project is modularized to separate concerns: core modules (e.g., musiclib, mixtape_manager) handle domain logic without depending on Flask, while routes focus on web interactions. This makes testing easier, improves maintainability, and allows potential extensions (e.g., CLI tools).
+
 ## Prerequisites
 
-- Python 3.11+ (managed via `.python-version` and uv)
+- Python 3.13+ (managed via `.python-version` and uv)
 - uv (install: `curl -LsSf https://astral.sh/uv/install.sh | sh`)
 - Docker (for containerized runs)
 
@@ -37,7 +43,7 @@ mixtape-society
 │   │   ├──css                  → Styling of Jinja2 views
 │   │   └──js                   → JavaScript for Jinja2 views
 │   └── templates               → Jinja2 views
-└── uv.lock             → uv-managed dependency lockfile
+└── uv.lock                     → uv-managed dependency lockfile
 ```
 
 ## Local Dev Workflow for uv
@@ -78,10 +84,17 @@ uv run -c "from musiclib import MusicCollection; MusicCollection(MUSIC_ROOT).reb
 
 ## Contributing
 
-PRs welcome! Ideas:
+PRs welcome! To contribute:
+
+- Fork the repo and create a feature branch.
+- Install dev deps with `uv sync --extra dev`.
+- Run tests: `uv run pytest`.
+- Submit a PR against main with a clear description.
+
+ Ideas:
 
 * Multi-user auth
 * M3U export
 * Mobile PWA support
 
-See `pyproject.toml` for dev dependencies
+See `pyproject.toml` for dev dependencies and the [Roadmap](roadmap.md) for more inspiration.

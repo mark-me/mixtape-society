@@ -11,6 +11,17 @@ Configuration is via environment variables (or `.env` file for local runs). Dock
 | Docker production | /music (mounted) | /app/collection-data (mounted) | env vars from docker-compose |
 | Tests | /tmp/test-music|/tmp/mixtape-test-data|TestConfig override |
 
+## Environment variables
+
+| Variable     | Description                                         | Example                           |
+| ------------ | ----------------------------------------------------| --------------------------------- |
+| APP_ENV      | development, production or test                     | production                        |
+| MUSIC_ROOT   | Path to your music collection (absolute)            | /mnt/music                        |
+| DB_PATH      | Location where your SQLite database will be stored  | /var/lib/mixtape-society/music.db |
+| APP_PASSWORD | Login password (strongly recommended)               | MySuperSecret123!                 |
+
+Load via .env file or Docker env vars.
+
 ## Docker Volumes
 
 - `/music` `:ro` → Your music library (read-only)
