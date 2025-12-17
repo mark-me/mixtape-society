@@ -15,7 +15,9 @@ from mixtape_manager import MixtapeManager
 
 
 def create_browser_blueprint(
-    mixtape_manager: MixtapeManager, func_processing_status: any, logger: Logger | None = None
+    mixtape_manager: MixtapeManager,
+    func_processing_status: any,
+    logger: Logger | None = None,
 ) -> Blueprint:
     """
     Creates and configures the Flask blueprint for browsing, playing, and managing mixtapes.
@@ -67,37 +69,6 @@ def create_browser_blueprint(
             Response: A redirect response to the public play page for the mixtape.
         """
         return redirect(url_for("public_play", slug=slug))
-
-    @browser.route("/covers/<filename>")
-    def serve_cover(filename: str) -> Response:
-        """
-        Serves a cover image file from the covers directory.
-
-        Returns the requested cover image file if it exists, or raises a 404 error if not found.
-
-        Args:
-            filename: The name of the cover image file to serve.
-
-        Returns:
-            Response: The Flask response object containing the requested file.
-        """
-        return send_from_directory(current_app.config["COVER_DIR"], filename)
-
-    @browser.route("/files/<path:filename>")
-    @require_auth
-    def files(filename: str) -> Response:
-        """
-        Serves a mixtape file from the mixtape directory.
-
-        Returns the requested file as a Flask response for download or display.
-
-        Args:
-            filename: The path to the mixtape file within the mixtape directory.
-
-        Returns:
-            Response: A Flask response serving the requested file.
-        """
-        return send_from_directory(current_app.config["MIXTAPE_DIR"], filename)
 
     @browser.route("/delete/<slug>", methods=["POST"])
     @require_auth

@@ -9,6 +9,7 @@ from flask import (
     render_template,
     request,
     send_file,
+    send_from_directory,
 )
 
 from common.logging import Logger, NullLogger
@@ -168,5 +169,20 @@ def create_play_blueprint(mixtape_manager: MixtapeManager, logger: Logger | None
         if not mixtape:
             abort(404)
         return render_template("play_mixtape.html", mixtape=mixtape, public=True)
+
+    @play.route("/covers/<filename>")
+    def serve_cover(filename: str) -> Response:
+        """
+        Serves a cover image file from the covers directory.
+
+        Returns the requested cover image file if it exists, or raises a 404 error if not found.
+
+        Args:
+            filename: The name of the cover image file to serve.
+
+        Returns:
+            Response: The Flask response object containing the requested file.
+        """
+        return send_from_directory(current_app.config["COVER_DIR"], filename)
 
     return play
