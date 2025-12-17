@@ -2,36 +2,41 @@
 
 ![Container](images/container.png){ align=right width="90" }
 
-Deploy Mixtape Society effortlessly with Docker. Images are available on [GitHub Packages](https://github.com/mark-me/mixtape-society/pkgs/container/mixtape-society) (latest tag updated on CI).
+Deploying Mixtape Society with Docker is the easiest and most reliable way to get your private mixtape server up and running—perfect for home servers, VPS, or NAS devices.
 
 ## Why Docker?
 
-- Zero setup: No Python/uv install needed
-- Portable: Runs anywhere with Docker
-- Persistent: Volumes keep your mixtapes/DB safe
-- Secure: Isolated from host Python
+- **Zero setup** — No need to install Python, uv, or dependencies manually.
+- **Portable —** Runs identically on Linux, Windows (with Docker Desktop), macOS, or ARM devices (e.g., Raspberry Pi).
+- **Persistent data** — Volumes keep your mixtapes, database, and index safe across restarts or updates.
+- **Secure isolation** — The app runs in a container, separated from your host system.
 
-## Quick Run
+Official images are hosted on GitHub Container Registry: [ghcr.io/mark-me/mixtape-society:latest](ghcr.io/mark-me/mixtape-society:latest). They're automatically built and pushed on every commit to main.
+
+## Quick Start (Single Command)
+
+For testing or simple setups:
 
 ```bash
-docker pull ghcr.io/mark-me/mixtape-society:latest
-
-docker run -d -p 5000:5000 \
-  -v /your/music:/music:ro \
-  -v mixtapes:/app/mixtapes \
-  -v data:/app/collection-data \
-  -e MUSIC_ROOT=/music \
-  -e APP_PASSWORD=supersecret \
-  --name mixtape \
+docker run -d \
+  --name mixtape-society \
   --restart unless-stopped \
+  -p 5000:5000 \
+  -v /path/to/your/music:/music:ro \
+  -v /path/for/data:/app/collection-data \
+  -e APP_PASSWORD=YourStrongPassword123! \
   ghcr.io/mark-me/mixtape-society:latest
 ```
 
-Access at [http://localhost:5000](http://localhost:5000). First run indexes your library—check logs with docker logs mixtape.
+- Open with [http://localhost:5000](http://localhost:5000).
+- Login with your password
+- The first run will index your library (this can take time—check logs with `docker logs -f mixtape-society`).
 
-## Docker Compose (Recommended for Production)
+## Recommended: Docker Compose
 
-Use this for persistent setup with secrets in `.env`.
+For production or long-term use, Docker Compose makes management easier (updates, secrets, named volumes).
+
+Create a docker-compose.yml:
 
 ```yaml
 services:
@@ -53,25 +58,46 @@ services:
       - LOG_LEVEL=INFO
 ```
 
-Run: `docker compose -f docker/docker-compose.yml up --build` (use `--env-file .env` for secrets).
+Create a .env file in the same directory:
 
-## Building Your Own Image
-
-For custom builds (e.g., during development):
-
-```bash
-# From Dockerfile in repo
-docker build -f docker/Dockerfile -t mixtape-society .
-
-# Multi-arch (ARM/x86)
-docker buildx build --platform linux/amd64,linux/arm64 -f docker/Dockerfile -t my-mixtape:latest /src
+```text
+APP_PASSWORD=YourVeryStrongPasswordHere!
 ```
 
-## Tips
+Run it:
 
-- Reverse Proxy: Use Nginx/Traefik for HTTPS.
-- Scaling: Gunicorn inside the image handles multiple workers.
-- Troubleshooting: Monitor indexing with `docker logs`. Rebuild index if needed via container exec.
-- Questions? See repo's `Dockerfile` or open an issue.
+```bash
+docker compose -f docker/docker-compose.yml up --build
+```
 
-For dev-specific Docker workflows, see [Local Development](development/docker.md).
+Update later with `docker compose pull && docker compose up -d`.
+
+## Volumes explained
+
+- /music:ro → Your music files (mounted read-only for safety).
+- /app/collection-data → Persistent SQLite database, indexing data and a subdirectory for your created mixtapes (JSON files + covers).
+
+## Exposing Securely (HTTPS + Domain)
+
+For access outside your local network, use a reverse proxy like Traefik or Nginx Proxy Manager.
+Example setup with Traefik (labels in compose):
+
+```yaml
+services:
+  mixtape-society:
+    # ... existing config
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mixtape.rule=Host(`mixtape.yourdomain.com`)"
+      - "traefik.http.routers.mixtape.entrypoints=websecure"
+      - "traefik.http.routers.mixtape.tls.certresolver=myresolver"
+```
+
+## Tips & Troubleshooting
+
+- **First indexing slow?** Normal for large libraries—monitor with `docker logs -f mixtape-society`.
+- **Rebuild index?** Exec into container: `docker compose exec mixtape-society python -c "from musiclib import MusicCollection; - MusicCollection('/music').rebuild()"`
+- **Permissions issues?** Ensure the host music directory is readable by the container user (UID 1000).
+- **Building your own image?** See the [Development](development/docker.md) section.
+
+Enjoy your private mixtape haven! If you run into issues, check the logs or open a GitHub issue. 🎧
