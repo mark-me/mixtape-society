@@ -2,8 +2,9 @@
 
 ![Changelog](images/changelog.png){ align=right width="90" }
 
-This project adheres to semantic versioning.
-All notable changes will be documented here.
+All notable changes to Mixtape Society are documented here. We follow [Semantic Versioning](https://semver.org/) and the spirit of [Keep a Changelog](https://keepachangelog.com/).
+
+Each release rewinds and fast-forwards your mixtape experience—just like a real cassette! 🎧
 
 ---
 ## 📦 v0.1.5-alpha
