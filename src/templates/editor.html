@@ -11,63 +11,8 @@
 {% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
-
-<style>
-    .track-title mark,
-    .artist-name mark,
-    .album-title mark {
-        background-color: #ffeb3b;
-        color: #000;
-        padding: 0.1em 0.2em;
-        border-radius: 0.2em;
-    }
-    .drag-handle { cursor: grab; opacity: 0.6; }
-    .drag-handle:active { cursor: grabbing; }
-    .playlist-ghost { opacity: 0.4; background: var(--bs-primary-bg-subtle); border: 2px dashed var(--bs-primary); }
-    #searchInput { height: 58px; padding-left: 52px !important; padding-right: 52px !important; }
-    .bi-search { font-size: 1.25rem; pointer-events: none; }
-
-    #cover-upload-btn:hover span {
-        background-color: #0d6efd !important;
-        border-color: #0d6efd !important;
-        transform: scale(1.1);
-        transition: all 0.2s ease;
-    }
-
-    #playlist-cover {
-        transition: opacity 0.3s ease;
-    }
-
-    .card-header {
-        background-color: var(--bs-success-bg-subtle) !important;
-        color: var(--bs-success-text-emphasis) !important;
-    }
-
-    #markdown-preview {
-        min-height: 100%;
-        padding: 1rem;
-        line-height: 1.6;
-    }
-    #markdown-preview h1, #markdown-preview h2, #markdown-preview h3 {
-        margin-top: 1.5em;
-        border-bottom: 1px solid var(--bs-border-color);
-        padding-bottom: .3em;
-    }
-    #markdown-preview ul, #markdown-preview ol {
-        padding-left: 1.5em;
-    }
-
-    .accordion-button.collapsed::after {
-        background-image: var(--bs-accordion-btn-icon);
-    }
-    .accordion-button:not(.collapsed)::after {
-        background-image: var(--bs-accordion-btn-active-icon);
-    }
-    .collapse.show {
-        transition: height 0.3s ease;
-    }
-</style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/editor.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -789,55 +734,56 @@ function renderResults(data) {
 </script>
 <script>
     // Custom Markdown renderer to handle track references like #1, #2, #1-3
-    function renderTrackReferences(markdownText, tracks) {
-        if (!tracks || tracks.length === 0) return markdownText;
+    function renderTrackReferences(text, tracks) {
+        if (typeof text !== 'string') return '';
+        if (!Array.isArray(tracks) || tracks.length === 0) return text;
 
-        // Sort tracks by index (just in case)
-        const sortedTracks = tracks.slice();
-
-        // Replace #1-5 ranges
-        markdownText = markdownText.replace(/#(\d+)-(\d+)/g, (match, start, end) => {
+        // Range: #3-7
+        text = text.replace(/#(\d+)-(\d+)/g, (match, start, end) => {
             start = parseInt(start);
             end = parseInt(end);
-            if (start > end || start < 1 || end > sortedTracks.length) return match;
+            if (start > end || start < 1 || end > tracks.length) return match;
 
-            const refs = [];
+            const parts = [];
             for (let i = start; i <= end; i++) {
-                const track = sortedTracks[i - 1];
-                refs.push(`${i}. ${track.title} – ${track.artist}`);
+                const t = tracks[i - 1];
+                parts.push(`${i}. ${t.title} – ${t.artist}`);
             }
-            return refs.join(" → ");
+            return parts.join(" → ");
         });
 
-        // Replace single #1, #12, etc.
-        markdownText = markdownText.replace(/#(\d+)/g, (match, num) => {
-            const index = parseInt(num);
-            if (index < 1 || index > sortedTracks.length) return match;
-            const track = sortedTracks[index - 1];
-            return `**${index}. ${track.title} – ${track.artist}**`;
+        // Single: #4
+        text = text.replace(/#(\d+)/g, (match, num) => {
+            const i = parseInt(num);
+            if (i < 1 || i > tracks.length) return match;
+            const t = tracks[i - 1];
+            return `**${i}. ${t.title} – ${t.artist}**`;
         });
 
-        return markdownText;
+        return text;
     }
 
     // Override EasyMDE's preview renderer to include track references
     if (typeof easyMDE !== 'undefined') {
         const originalPreviewRender = easyMDE.options.previewRender;
 
-        easyMDE.options.previewRender = function(plainText, previewElement) {
-            // Get current track list (from global playlist array)
-            const currentTracks = window.playlist || [];
+        easyMDE.options.previewRender = function(plainText, preview) {
+            // Safely retrieve mixtape tracks
+            const tracks = (window.playlist || []).map(item => ({
+                title: item.title || 'Unknown title',
+                artist: item.artist || 'Unknown artist'
+            }));
 
-            // First apply track reference magic
-            let processedText = renderTrackReferences(plainText, currentTracks);
+            // Replace track-references (#3, #3-7, etc.)
+            let processed = renderTrackReferences(plainText, tracks);
 
-            // Then render as HTML with marked
-            let html = marked.parse(processedText);
+            // Render markdown to HTML
+            let html = marked.parse(processed);
 
-            // Sanitize
-            html = DOMPurify.sanitize(html);
+            // Sanitizen for safety
+            preview.innerHTML = DOMPurify.sanitize(html);
 
-            return html;
+            return preview;
         };
 
         // Also update the custom Preview tab when needed

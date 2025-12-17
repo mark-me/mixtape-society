@@ -1,0 +1,21 @@
+:root {
+    --bs-link-hover-color: #0d6efd;
+}
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+main {
+    flex: 1;
+}
+footer {
+    margin-top: auto;
+}
+.navbar-brand {
+    font-weight: 800;
+}
+.hover-shadow:hover {
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+    transition: all 0.3s;
+}

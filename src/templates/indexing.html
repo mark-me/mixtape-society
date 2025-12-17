@@ -3,59 +3,7 @@
 {% block title %}Indexing library…{% endblock %}
 
 {% block extra_css %}
-<style>
-    .indexing-container {
-        max-width: 660px;
-        margin: 4rem auto;
-        text-align: center;
-        padding: 2.5rem;
-    }
-    .cassette-spinner {
-        font-size: 4.5rem;
-        animation: spin 4s linear infinite;
-        display: block;
-        margin: 0 auto 2rem;
-        color: var(--bs-success);
-    }
-    @keyframes spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-    }
-    .progress {
-        height: 2.2rem;
-        font-size: 1rem;
-        margin: 2rem 0;
-        background-color: var(--bs-secondary-bg);
-    }
-    .progress-bar {
-        background: linear-gradient(90deg, #198754, #20c997);
-    }
-    .stats {
-        display: flex;
-        justify-content: space-around;
-        flex-wrap: wrap;
-        gap: 1.5rem;
-        margin: 2rem 0;
-        font-size: 1.1rem;
-    }
-    .stat-item {
-        min-width: 140px;
-    }
-    .stat-value {
-        font-weight: 700;
-        font-size: 1.4rem;
-        color: var(--bs-success);
-    }
-    .eta {
-        font-size: 1.3rem;
-        margin: 1.5rem 0;
-    }
-    .tip {
-        margin-top: 2.5rem;
-        font-style: italic;
-        color: var(--bs-secondary-color);
-    }
-</style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/indexing.css') }}">
 {% endblock %}
 
 {% block content %}
