@@ -2,9 +2,11 @@
 
 ![Started](images/rocket.png){ align=right width="90" }
 
-To get started with your own hosted Mixtape Society app you can deploy a Docker container in one of two ways:
+Launch your own Mixtape Society server and start crafting mixtapes from your music library.
 
-### Option 1 – Docker (recommended for production)
+We recommend **Docker** for most users: it is the quickest and most reliable way.
+
+### Quickest Way: One-Command Docker Run
 
 ```bash
 docker run -d \
@@ -18,63 +20,29 @@ docker run -d \
   ghcr.io/mark-me/mixtape-society:latest
 ```
 
-Open [http://localhost:5001](http://localhost:5001) – Done!
+→ Open [http://localhost:5000](http://localhost:5000), log in with your password, and let it index your library (check logs if needed: docker logs -f mixtape-society).
 
-### Option 2 – Docker Compose (best for long-term)
+## Prefer Docker Compose or More Options?
 
-```yaml
-# docker-compose.yml
-services:
-  mixtape:
-    image: ghcr.io/mark-me/mixtape-society:latest
-    container_name: mixtape-society
-    restart: unless-stopped
-    ports:
-      - "5001:5000"
-    volumes:
-      - /path/to/your/music:/music:ro
-      - /data/mixtape-society:/app/collection-data
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Europe/Amsterdam
-      - PASSWORD=${APP_PASSWORD}
-      - APP_ENV=production
-      - LOG_LEVEL=INFO
-```
+See the full [Docker Deployment](development/docker.md) guide for:
 
-with a `.env` file that contains the password which is loaded by `docker compose`:
+- Docker Compose examples (with .env secrets)
+- Persistent volumes setup
+- HTTPS via reverse proxy
+- Troubleshooting & tips
 
-```bash
-APP_PASSWORD='YourStrongPassword123!'
-```
-
-Then run:
-
-```bash
-docker compose up -d
-```
-
-### Option 3: Local Development (uv)
+### Local Development (for contributors)
 
 ```bash
 git clone https://github.com/mark-me/mixtape-society.git
 cd mixtape-society
-uv sync                    # creates venv + installs deps
-cp .env.example .env
-# ← Edit MUSIC_ROOT and APP_PASSWORD
+uv sync
+cp .env.example .env  # Edit MUSIC_ROOT and APP_PASSWORD
 uv run python app.py
 ```
 
-→ opens at [http://localhost:5000](http://localhost:5000) (Default dev password: `dev-password`)
+Opens at [http://localhost:5000](http://localhost:5000) (dev password: `dev-password`).
 
-**Pro Tip**: uv sync respects .python-version for exact Python version pinning. No manual venv activation needed!
+First run auto-indexes your library.
 
-First run auto-indexes your library. Access at [http://localhost:5000](http://localhost:5000).
-
-### Rebuild Index (if needed)
-
-Local: `uv run -c "from musiclib import MusicCollection; MusicCollection('/path/to/music').rebuild()"`
-Docker: Exec into container: `docker compose exec app python -c "..."` (same command).
-
-Enjoy mixtape magic! 🚀
+Enjoy the mixtape magic! 🚀
