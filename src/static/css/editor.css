@@ -1,3 +1,4 @@
+/* --- 1. Search Highlights --- */
 .track-title mark,
 .artist-name mark,
 .album-title mark {
@@ -6,12 +7,36 @@
     padding: 0.1em 0.2em;
     border-radius: 0.2em;
 }
-.drag-handle { cursor: grab; opacity: 0.6; }
-.drag-handle:active { cursor: grabbing; }
-.playlist-ghost { opacity: 0.4; background: var(--bs-primary-bg-subtle); border: 2px dashed var(--bs-primary); }
-#searchInput { height: 58px; padding-left: 52px !important; padding-right: 52px !important; }
-.bi-search { font-size: 1.25rem; pointer-events: none; }
 
+/* --- 2. Drag & Drop Handles --- */
+.drag-handle {
+    cursor: grab;
+    opacity: 0.6;
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+.playlist-ghost {
+    opacity: 0.4;
+    background: var(--bs-primary-bg-subtle);
+    border: 2px dashed var(--bs-primary);
+}
+
+/* --- 3. Search Input --- */
+#searchInput {
+    height: 58px;
+    padding-left: 52px !important;
+    padding-right: 52px !important;
+}
+
+.bi-search {
+    font-size: 1.25rem;
+    pointer-events: none;
+}
+
+/* --- 4. Cover Upload Button --- */
 #cover-upload-btn:hover span {
     background-color: #0d6efd !important;
     border-color: #0d6efd !important;
@@ -23,31 +48,41 @@
     transition: opacity 0.3s ease;
 }
 
+/* --- 5. Card Headers --- */
 .card-header {
     background-color: var(--bs-success-bg-subtle) !important;
     color: var(--bs-success-text-emphasis) !important;
 }
 
+/* --- 6. Markdown Preview Typography --- */
 #markdown-preview {
     min-height: 100%;
     padding: 1rem;
     line-height: 1.6;
 }
-#markdown-preview h1, #markdown-preview h2, #markdown-preview h3 {
+
+#markdown-preview h1,
+#markdown-preview h2,
+#markdown-preview h3 {
     margin-top: 1.5em;
     border-bottom: 1px solid var(--bs-border-color);
     padding-bottom: .3em;
 }
-#markdown-preview ul, #markdown-preview ol {
+
+#markdown-preview ul,
+#markdown-preview ol {
     padding-left: 1.5em;
 }
 
+/* --- 7. Accordion Overrides --- */
 .accordion-button.collapsed::after {
     background-image: var(--bs-accordion-btn-icon);
 }
+
 .accordion-button:not(.collapsed)::after {
     background-image: var(--bs-accordion-btn-active-icon);
 }
+
 .collapse.show {
     transition: height 0.3s ease;
 }
