@@ -70,6 +70,22 @@ def create_browser_blueprint(
         """
         return redirect(url_for("public_play", slug=slug))
 
+    @browser.route("/files/<path:filename>")
+    @require_auth
+    def files(filename: str) -> Response:
+        """
+        Serves a mixtape file from the mixtape directory.
+
+        Returns the requested file as a Flask response for download or display.
+
+        Args:
+            filename: The path to the mixtape file within the mixtape directory.
+
+        Returns:
+            Response: A Flask response serving the requested file.
+        """
+        return send_from_directory(current_app.config["MIXTAPE_DIR"], filename)
+
     @browser.route("/delete/<slug>", methods=["POST"])
     @require_auth
     def delete_mixtape(slug: str) -> Response:
