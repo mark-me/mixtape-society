@@ -1,5 +1,5 @@
 site_name: Mixtape Society
-site_url: https://mixtape-society.org/  # Update if you have a site
+# site_url: https://mixtape-society.org/  # Update if you have a site
 repo_url: https://github.com/mark-me/mixtape-society
 use_directory_urls: false
 theme:
@@ -25,6 +25,7 @@ theme:
     - navigation.tabs
     - navigation.top
     - navigation.indexes
+    - navigation.sections
     - toc.integrate
     - content.code.copy
     - content.code.select
@@ -63,6 +64,7 @@ nav:
 plugins:
   - search
   - offline
+  - autorefs
   - mkdocstrings:
       handlers:
         python:
