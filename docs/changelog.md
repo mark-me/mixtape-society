@@ -7,6 +7,29 @@ All notable changes to Mixtape Society are documented here. We follow [Semantic 
 Each release rewinds and fast-forwards your mixtape experience—just like a real cassette! 🎧
 
 ---
+## 📦 v0.1.6-alpha
+
+<span class="md-tag">Unreleased</span>
+
+**🗓️** 2025-12-17
+
+### 🚀 Added
+
+-
+
+### 🔧 Changed
+
+-
+
+### 🐛 Fixed
+
+- Covers not showing for users that are not logged in
+- Editor headers change according to creating or editing mixtape
+
+[v0.1.6-alpha](https://github.com/mark-me/mixtape-society/compare/v0.1.5-alpha...v0.1.6-alpha)
+
+
+---
 ## 📦 v0.1.5-alpha
 
 <span class="md-tag">Pre-release</span>
@@ -117,5 +140,4 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 - Database locks when too many Watcher related updates
 
 [v0.1.1-alpha](https://github.com/mark-me/mixtape-society/compare/v0.1.0...v0.1.1-alpha)
-
 
