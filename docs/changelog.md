@@ -13,13 +13,9 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 **🗓️** 2025-12-17
 
-### 🚀 Added
-
--
-
 ### 🔧 Changed
 
--
+- Extracted CSS to dedicated files in static, and added comments with clear flow
 
 ### 🐛 Fixed
 
