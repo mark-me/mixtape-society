@@ -86,3 +86,91 @@
 .collapse.show {
     transition: height 0.3s ease;
 }
+
+/* --- 8. EasyMDE Markdown Editor Custom Styling --- */
+
+/* Main editor container */
+.CodeMirror,
+.editor-toolbar {
+    border-radius: 0.5rem;
+    font-family: inherit;
+}
+
+/* Toolbar */
+.editor-toolbar {
+    background-color: var(--bs-tertiary-bg);
+    border: 1px solid var(--bs-border-color);
+    border-bottom: none;
+    border-top-left-radius: 0.5rem;
+    border-top-right-radius: 0.5rem;
+    opacity: 1 !important;
+    transition: all 0.2s ease;
+}
+
+.editor-toolbar a {
+    color: var(--bs-body-color) !important;
+    border: none !important;
+    border-radius: 0.375rem;
+    margin: 0 2px;
+    padding: 8px;
+    transition: all 0.2s ease;
+}
+
+.editor-toolbar a:hover {
+    background-color: var(--bs-primary-bg-subtle) !important;
+    color: var(--bs-primary-text-emphasis) !important;
+}
+
+.editor-toolbar a.active,
+.editor-toolbar a:hover {
+    background-color: var(--bs-primary-bg-subtle);
+}
+
+/* Fullscreen mode toolbar */
+.editor-toolbar.fullscreen {
+    background-color: var(--bs-body-bg);
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+/* Writing area (CodeMirror) */
+.CodeMirror {
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    border: 1px solid var(--bs-border-color);
+    border-top: none;
+    border-bottom-left-radius: 0.5rem;
+    border-bottom-right-radius: 0.5rem;
+    height: 100%;
+    min-height: 300px;
+    padding: 0.5rem 0;
+}
+
+/* Scrollbar */
+.CodeMirror-scrollbar-filler,
+.CodeMirror-gutter-filler {
+    background-color: var(--bs-body-bg);
+}
+
+/* Gutter (line numbers) */
+.CodeMirror-gutters {
+    background-color: var(--bs-tertiary-bg);
+    border-right: 1px solid var(--bs-border-color);
+}
+
+/* Cursor */
+.CodeMirror-cursor {
+    border-left: 2px solid var(--bs-primary);
+}
+
+/* Selected text */
+.CodeMirror-selected {
+    background: var(--bs-primary-bg-subtle);
+}
+
+/* Enhancement to preview pane */
+#markdown-preview {
+    background-color: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.5rem;
+    overflow-y: auto;
+}
