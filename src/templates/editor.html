@@ -73,7 +73,15 @@
 {% block content %}
 <div class="container py-4 pb-5">
 
-    <h1 class="mb-4">Create Mixtape</h1>
+    <h1 class="mb-4">
+    {% if preload_mixtape and preload_mixtape.title %}
+        Edit: {{ preload_mixtape.title }}
+    {% elif editing_slug %}
+        Edit Mixtape
+    {% else %}
+        Create Mixtape
+    {% endif %}
+    </h1>
 
     <!-- Search bar -->
     <div class="row mb-4">
