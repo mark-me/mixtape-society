@@ -1,6 +1,6 @@
 # Mixtape Society
 
-**A beautiful, private, self-hosted web app to create, edit, share and play music mixtapes from your personal library.**
+**A private, self-hosted web app to create, edit, share and play music mixtapes from your personal library.**
 
 No accounts, no telemetry, no Spotify – just your music, your server, your rules.
 
@@ -20,85 +20,25 @@ No accounts, no telemetry, no Spotify – just your music, your server, your rul
 
 ## Quick Start
 
-### Option 1 – Docker (recommended for production)
-
 ```bash
 docker run -d \
   --name mixtape-society \
   --restart unless-stopped \
-  -p 5000:5000 \
+  -p 5001:5000 \
   -v /path/to/your/music:/music:ro \
-  -v mixtape_data:/app/mixtapes \
-  -v collection_data:/app/collection-data \
-  -e MUSIC_ROOT=/music \
+  -v /data/mixtape-society:/app/mixtapes \
+  -v /data/mixtape-society:/app/collection-data \
   -e APP_PASSWORD=YourStrongPassword123! \
   ghcr.io/mark-me/mixtape-society:latest
 ```
 
-Open [http://localhost:5000](http://localhost:5000) – Done!
-
-### Option 2 – Docker Compose (best for long-term)
-
-```yaml
-# docker-compose.yml
-services:
-  mixtape:
-    image: ghcr.io/mark-me/mixtape-society:latest
-    container_name: mixtape-society
-    restart: unless-stopped
-    ports:
-      - "5000:5000"
-    volumes:
-      - /home/you/Music:/music:ro          # ← change this
-      - mixtapes:/app/mixtapes
-      - db:/app/collection-data
-    environment:
-      - MUSIC_ROOT=/music
-      - APP_PASSWORD=changeme-right-now-please!
-      - FLASK_ENV=production
-
-volumes:
-  mixtapes:
-  db:
-
-```
-
-Then run:
-
-```bash
-docker compose up -d
-```
-
-### Option 3: Local Development (uv)
-
-```bash
-git clone https://github.com/mark-me/mixtape-society.git
-cd mixtape-society
-uv sync                    # creates venv + installs deps
-cp .env.example .env
-# ← Edit MUSIC_ROOT and APP_PASSWORD
-uv run python app.py
-```
-
-→ opens at [http://localhost:5000](http://localhost:5000) (Default dev password: `password`)
+Open [http://localhost:5001](http://localhost:5001) – Done!
 
 ## Project docs
 
-- **[Changelog](https://mark-me.github.io/mixtape-society/changelog.html)** – What’s new in every release
-- **[Roadmap](https://mark-me.github.io/mixtape-society/development/roadmap.html)** – Planned features and ideas
-- **[Development](https://mark-me.github.io/mixtape-society/development/intro.html)**
-
-## Environment Variables (.env)
-
-| Variable     | Description                                         | Example                           |
-| ------------ | ----------------------------------------------------| --------------------------------- |
-| APP_ENV      | "development, production, test"                     | production                        |
-| MUSIC_ROOT   | Path to your music collection (absolute)            | /mnt/music                        |
-| DB_PATH      | Location where your SQLite database will be stored  | /var/lib/mixtape-society/music.db |
-| APP_PASSWORD | Login password (strongly recommended)               | MySuperSecret123!                 |
-| MIXTAPE_DIR  | Mixtapes storage                                    | ./mixtapes                        |
-
-Load via .env file or Docker env vars.
+- [🚀 Getting Started](https://mark-me.github.io/mixtape-society/getting-started.html)
+- [📖 Full Documentation](https://mark-me.github.io/mixtape-society/index.html)
+- [🐳 Docker Deployment](https://mark-me.github.io/mixtape-society/docker.html)
 
 ## Legal & Copyright Notice
 

@@ -2,11 +2,7 @@
 
 ![Started](images/rocket.png){ align=right width="90" }
 
-## Prerequisites
-
-- Python 3.11+ (managed via `.python-version` and uv)
-- uv (install: `curl -LsSf https://astral.sh/uv/install.sh | sh`)
-- Docker (for containerized runs)
+To get started with your own hosted Mixtape Society app you can deploy a Docker container in one of two ways:
 
 ### Option 1 – Docker (recommended for production)
 
@@ -14,16 +10,15 @@
 docker run -d \
   --name mixtape-society \
   --restart unless-stopped \
-  -p 5000:5000 \
+  -p 5001:5000 \
   -v /path/to/your/music:/music:ro \
-  -v mixtape_data:/app/mixtapes \
-  -v collection_data:/app/collection-data \
-  -e MUSIC_ROOT=/music \
+  -v /data/mixtape-society:/app/mixtapes \
+  -v /data/mixtape-society:/app/collection-data \
   -e APP_PASSWORD=YourStrongPassword123! \
   ghcr.io/mark-me/mixtape-society:latest
 ```
 
-Open [http://localhost:5000](http://localhost:5000) – Done!
+Open [http://localhost:5001](http://localhost:5001) – Done!
 
 ### Option 2 – Docker Compose (best for long-term)
 
@@ -35,20 +30,23 @@ services:
     container_name: mixtape-society
     restart: unless-stopped
     ports:
-      - "5000:5000"
+      - "5001:5000"
     volumes:
-      - /home/you/Music:/music:ro          # ← change this
-      - mixtapes:/app/mixtapes
-      - db:/app/collection-data
+      - /path/to/your/music:/music:ro
+      - /data/mixtape-society:/app/collection-data
     environment:
-      - MUSIC_ROOT=/music
-      - APP_PASSWORD=changeme-right-now-please!
-      - FLASK_ENV=production
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Amsterdam
+      - PASSWORD=${APP_PASSWORD}
+      - APP_ENV=production
+      - LOG_LEVEL=INFO
+```
 
-volumes:
-  mixtapes:
-  db:
+with a `.env` file that contains the password which is loaded by `docker compose`:
 
+```bash
+APP_PASSWORD='YourStrongPassword123!'
 ```
 
 Then run:
@@ -68,7 +66,7 @@ cp .env.example .env
 uv run python app.py
 ```
 
-→ opens at [http://localhost:5000](http://localhost:5000) (Default dev password: `password`)
+→ opens at [http://localhost:5000](http://localhost:5000) (Default dev password: `dev-password`)
 
 **Pro Tip**: uv sync respects .python-version for exact Python version pinning. No manual venv activation needed!
 

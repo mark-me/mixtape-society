@@ -2,6 +2,12 @@
 
 ![Development](../images/development.png){ align=right width="90" }
 
+## Prerequisites
+
+- Python 3.11+ (managed via `.python-version` and uv)
+- uv (install: `curl -LsSf https://astral.sh/uv/install.sh | sh`)
+- Docker (for containerized runs)
+
 ## Project Structure
 
 ```bash
@@ -28,11 +34,13 @@ mixtape-society
 │   ├── musiclib                → Music indexing (TinyTag + SQLite)
 │   ├── routes                  → Flask route handlers
 │   ├── static                  → Static assets
+│   │   ├──css                  → Styling of Jinja2 views
+│   │   └──js                   → JavaScript for Jinja2 views
 │   └── templates               → Jinja2 views
 └── uv.lock             → uv-managed dependency lockfile
 ```
 
-## Local Dev Workflow (uv)
+## Local Dev Workflow for uv
 
 ```bash
 uv sync                   # Install deps
