@@ -7,6 +7,19 @@ All notable changes to Mixtape Society are documented here. We follow [Semantic 
 Each release rewinds and fast-forwards your mixtape experience—just like a real cassette! 🎧
 
 ---
+## 📦 v0.1.7-alpha
+
+<span class="md-tag">Unreleased</span>
+
+**🗓️** 2025-12-17
+
+### 🚀 Added
+
+- Added project link in navbar
+
+[v0.1.7-alpha](https://github.com/mark-me/mixtape-society/compare/v0.1.6-alpha...v0.1.7-alpha)
+
+---
 ## 📦 v0.1.6-alpha
 
 <span class="md-tag">Unreleased</span>
