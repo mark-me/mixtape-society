@@ -3,7 +3,11 @@
 
 {% block content %}
 <div class="container py-5 text-center">
-    <i class="bi bi-cassette-fill display-1 text-success mb-4"></i>
+    <img src="{{ url_for('static', filename='logo.svg') }}"
+        alt="Mixtape Society"
+        width="180"
+        height="180"
+        class="mb-4">
     <h1 class="display-4 fw-bold">Mixtape Society</h1>
     <p class="lead text-muted mb-5">Share your favorite compilations</p>
 

@@ -9,7 +9,11 @@
 {% block content %}
 <div class="container">
     <div class="indexing-container bg-light-subtle rounded-4 shadow">
-        <i class="bi bi-cassette-fill cassette-spinner"></i>
+        <img src="{{ url_for('static', filename='logo.svg') }}"
+            alt="Spinning mixtape"
+            width="120"
+            height="120"
+            class="cassette-spinner">
 
         <h1 class="mb-3">Your music library is being indexed…</h1>
         <p class="lead text-muted mb-4">
