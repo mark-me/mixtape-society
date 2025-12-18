@@ -4,20 +4,20 @@ repo_url: https://github.com/mark-me/mixtape-society
 use_directory_urls: false
 theme:
   name: material
-  favicon: images/favicon.png
-  logo: images/favicon.png
+  favicon: images/favicon.svg
+  logo: images/logo.svg
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: green
-      accent: green
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: green
-      accent: green
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
@@ -33,6 +33,9 @@ theme:
     - content.tooltips
   icon:
     repo: fontawesome/brands/github
+
+extra_css:
+  - stylesheets/extra.css
 
 nav:
   - Home: index.md
