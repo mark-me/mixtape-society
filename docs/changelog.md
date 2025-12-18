@@ -27,7 +27,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 ---
 ## 📦 v0.1.6-alpha
 
-<span class="md-tag">Unreleased</span>
+<span class="md-tag">Pre-release</span>
 
 **🗓️** 2025-12-17
 
