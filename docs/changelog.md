@@ -6,12 +6,24 @@ All notable changes to Mixtape Society are documented here. We follow [Semantic 
 
 Each release rewinds and fast-forwards your mixtape experience—just like a real cassette! 🎧
 
----
-## 📦 v0.1.7-alpha
+## 📦 v0.1.8-alpha
 
 <span class="md-tag">Unreleased</span>
 
-**🗓️** 2025-12-17
+**🗓️** 2025-12-18
+
+### 🔧 Changed
+
+- Extracted JavaScript from Jinja templates to `static/js`
+
+[v0.1.8-alpha](https://github.com/mark-me/mixtape-society/compare/v0.1.7-alpha...v0.1.8-alpha)
+
+---
+## 📦 v0.1.7-alpha
+
+<span class="md-tag">Pre-release</span>
+
+**🗓️** 2025-12-18
 
 ### 🚀 Added
 
@@ -26,6 +38,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 [v0.1.7-alpha](https://github.com/mark-me/mixtape-society/compare/v0.1.6-alpha...v0.1.7-alpha)
 
 ---
+
 ## 📦 v0.1.6-alpha
 
 <span class="md-tag">Pre-release</span>
@@ -44,6 +57,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 [v0.1.6-alpha](https://github.com/mark-me/mixtape-society/compare/v0.1.5-alpha...v0.1.6-alpha)
 
 ---
+
 ## 📦 v0.1.5-alpha
 
 <span class="md-tag">Pre-release</span>
