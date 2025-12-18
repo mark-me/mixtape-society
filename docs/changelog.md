@@ -20,6 +20,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 ### 🔧 Changed
 
 - Updated logo and favicon
+- Made documentation style in line with app style
 
 [v0.1.7-alpha](https://github.com/mark-me/mixtape-society/compare/v0.1.6-alpha...v0.1.7-alpha)
 
