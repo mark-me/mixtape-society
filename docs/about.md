@@ -49,6 +49,7 @@ Mixtape Society leverages several fantastic open-source libraries and tools. A b
 
 ### Frontend & Design
 
+- **[Cassette Tape SVG Vector](https://www.svgrepo.com/svg/485308/cassette-tape)** by [flat-icon-design](https://www.svgrepo.com/author/flat-icon-design/)- Favicon is based on this
 - **[Bootstrap 5](https://getbootstrap.com/)** – The entire responsive UI, cards, buttons, modals, and grid system
 - **[Bootstrap Icons](https://icons.getbootstrap.com/)** – All the lovely icons you see everywhere
 - **[Sortable.js](https://sortablejs.github.io/Sortable/)** – Drag-and-drop reordering in the editor
