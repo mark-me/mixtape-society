@@ -284,6 +284,11 @@ function renderTracks(tracks, highlightedTracks, artist, album, query) {
         <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
             <span class="track-title flex-grow-1">${title}</span>
             <span class="text-muted me-3">${track.duration}</span>
+            <button class="btn btn-primary btn-sm preview-btn me-2"
+                    data-path="${escapeHtml(track.path || '')}"
+                    ${!track.path ? 'disabled title="Geen preview beschikbaar"' : ''}>
+                <i class="bi bi-play-fill"></i>
+            </button>
             <button class="btn btn-success btn-sm add-btn"
                     data-artist="${escapeHtml(artist)}"
                     data-album="${escapeHtml(album)}"
@@ -1000,5 +1005,73 @@ function renderResults(data) {
             appModal.show();
         });
     }
+</script>
+<script>
+    // Preview functionality for search results (reuses global player)
+    const player = document.getElementById('global-audio-player');
+    const container = document.getElementById('audio-player-container');
+    let currentPreviewBtn = null;
+
+    function stopPreview() {
+        player.pause();
+        player.src = '';
+        if (currentPreviewBtn) {
+            currentPreviewBtn.innerHTML = '<i class="bi bi-play-fill"></i>';
+            currentPreviewBtn.classList.remove('btn-warning');
+            currentPreviewBtn.classList.add('btn-primary');
+            currentPreviewBtn = null;
+        }
+        // Optional: hide player if no playlist track is playing
+        // (existing close button already handles pause/hide)
+    }
+
+    function attachPreviewListeners() {
+        document.querySelectorAll('.preview-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const path = this.dataset.path;
+                if (!path) return;
+
+                // Toggle: if same button is playing, stop it
+                if (currentPreviewBtn === this && !player.paused) {
+                    stopPreview();
+                    return;
+                }
+
+                // Stop any ongoing preview
+                stopPreview();
+
+                // Start new preview
+                player.src = `/play/${path}`;
+                player.play().catch(e => console.error("Preview mislukt:", e));
+
+                container.style.display = 'block';
+
+                // Change button to pause icon + yellow color
+                this.innerHTML = '<i class="bi bi-pause-fill"></i>';
+                this.classList.remove('btn-primary');
+                this.classList.add('btn-warning');
+
+                currentPreviewBtn = this;
+
+                // Update now-playing info
+                const li = this.closest('li');
+                const titleEl = li.querySelector('.track-title');
+                document.getElementById('now-playing-title').textContent = titleEl.textContent.trim();
+                document.getElementById('now-playing-artist').textContent = 'Preview';
+
+                // Auto-reset button when track ends
+                player.onended = stopPreview;
+            });
+        });
+    }
+
+    // Override renderResults to attach listeners after rendering
+    const originalRenderResults = window.renderResults;
+    window.renderResults = function(data) {
+        originalRenderResults(data);
+
+        // Re-attach preview listeners to new buttons
+        attachPreviewListeners();
+    };
 </script>
 {% endblock %}

@@ -15,12 +15,13 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 ### 🚀 Added
 
-- Added project link in navbar
+- Editing previews - each track in the search-result can be played without adding them to the playlist
+- Project link in navbar
 
 ### 🔧 Changed
 
-- Updated logo and favicon
-- Made documentation style in line with app style
+- Logo and favicon
+- Documentation line-up with app style
 
 [v0.1.7-alpha](https://github.com/mark-me/mixtape-society/compare/v0.1.6-alpha...v0.1.7-alpha)
 
