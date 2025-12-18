@@ -24,7 +24,6 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 [v0.1.6-alpha](https://github.com/mark-me/mixtape-society/compare/v0.1.5-alpha...v0.1.6-alpha)
 
-
 ---
 ## 📦 v0.1.5-alpha
 
