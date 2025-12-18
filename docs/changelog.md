@@ -12,6 +12,13 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 **🗓️** 2025-12-18
 
+### 🚀 Added
+
+- Using tags while searching
+  - Artist
+  - Album
+  - Song
+
 ### 🔧 Changed
 
 - Extracted JavaScript from Jinja templates to `static/js`
