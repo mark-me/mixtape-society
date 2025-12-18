@@ -17,6 +17,10 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 - Added project link in navbar
 
+### 🔧 Changed
+
+- Updated logo and favicon
+
 [v0.1.7-alpha](https://github.com/mark-me/mixtape-society/compare/v0.1.6-alpha...v0.1.7-alpha)
 
 ---
