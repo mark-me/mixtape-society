@@ -75,7 +75,7 @@ def create_editor_blueprint(collection: MusicCollection, logger: Logger | None =
             Response: A JSON response containing the search results.
         """
         query = request.args.get("q", "").strip()
-        if len(query) < 2:
+        if len(query) < 3:
             return jsonify([])
         raw_results = collection.search_highlighting(query, limit=30)
         results = raw_results #[_finalize_highlight(r) for r in raw_results]
