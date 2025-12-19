@@ -42,7 +42,6 @@
                 <button class="btn btn-outline-light dropdown-toggle d-flex align-items-center gap-2"
                         type="button" data-bs-toggle="dropdown" id="themeNavbarButton">
                     <i class="bi bi-sun-fill" id="themeNavbarIcon"></i>
-                    <span id="themeNavbarText">Auto</span>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
                     <li><button class="dropdown-item d-flex align-items-center gap-2" data-theme="light">
@@ -98,7 +97,6 @@
     const html = document.documentElement;
     const themeButtons = document.querySelectorAll('[data-theme]');
     const themeIcon = document.getElementById('themeNavbarIcon') || document.getElementById('themeIcon');
-    const themeText = document.getElementById('themeNavbarText') || document.getElementById('themeText');
 
     function applyTheme(theme) {
         if (theme === 'auto') {
