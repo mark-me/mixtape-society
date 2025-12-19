@@ -137,7 +137,7 @@ class MusicCollection:
 
     def search_grouped(
         self, query: str, limit: int = 20
-    ) -> dict[str, list[dict[str, any]]]:
+    ) -> tuple[dict[str, list[dict[str, any]]], dict[str, list[str]]]:
         """
         Searches the music collection for artists, albums, and tracks matching the query.
 
@@ -386,7 +386,7 @@ class MusicCollection:
             list[dict]: A list of search result dictionaries with highlighted text.
         """
         if not query.strip():
-            return []
+            return {"artists": [], "albums": [], "tracks": []}
 
         # Simple quote handling: if query has quotes, extract inside as exact phrase
         quoted = re.findall(r'"([^"]*)"', query)
@@ -394,22 +394,33 @@ class MusicCollection:
         terms = quoted + (plain.split() if plain else [])
 
         # Use your existing grouped search but with better terms
-        raw_results = self.search_grouped(query, limit=limit)  # or your existing logic
-        results = []
+        grouped, _ = self.search_grouped(query, limit=limit)
 
-        # Apply highlighting to titles/artists/albums
-        for item in raw_results:
-            if 'artist' in item:
-                item['artist'] = self.highlight_text(item['artist'], terms)
-            if 'album' in item:
-                item['album'] = self.highlight_text(item['album'], terms)
-            if 'title' in item or 'track' in item:
-                title = item.get('title') or item.get('track')
-                item['title'] = item['track'] = self.highlight_text(title, terms)
-            results.append(item)
+        # Highlight artists
+        for artist in grouped["artists"]:
+            artist["artist"] = self.highlight_text(artist["artist"], terms)
 
-        return results
+            for album in artist.get("albums", []):
+                album["album"] = self.highlight_text(album["album"], terms)
 
+                for track in album.get("tracks", []):
+                    track["track"] = self.highlight_text(track["track"], terms)
+
+        # Highlight albums
+        for album in grouped["albums"]:
+            album["artist"] = self.highlight_text(album["artist"], terms)
+            album["album"] = self.highlight_text(album["album"], terms)
+
+            for track in album.get("tracks", []):
+                track["track"] = self.highlight_text(track["track"], terms)
+
+        # Highlight tracks
+        for track in grouped["tracks"]:
+            track["artist"] = self.highlight_text(track["artist"], terms)
+            track["album"] = self.highlight_text(track["album"], terms)
+            track["track"] = self.highlight_text(track["track"], terms)
+
+        return grouped
     def parse_query(self, query: str) -> dict[str, list[str]]:
         """
         Parses a search query string into tagged components for artists, albums, tracks, and general terms.
