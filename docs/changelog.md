@@ -22,6 +22,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 ### 🔧 Changed
 
 - Extracted JavaScript from Jinja templates to `static/js`
+- Liner notes before tracks list 
 
 ### 🐛 Fixed
 
