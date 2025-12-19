@@ -23,6 +23,10 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 - Extracted JavaScript from Jinja templates to `static/js`
 
+### 🐛 Fixed
+
+- Player does not adhere to light/dark theming
+
 [v0.1.8-alpha](https://github.com/mark-me/mixtape-society/compare/v0.1.7-alpha...v0.1.8-alpha)
 
 ---
