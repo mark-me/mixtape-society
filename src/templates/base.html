@@ -45,14 +45,14 @@
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
                     <li><button class="dropdown-item d-flex align-items-center gap-2" data-theme="light">
-                        <i class="bi bi-sun-fill"></i> Licht
+                        <i class="bi bi-sun-fill"></i> Light
                     </button></li>
                     <li><button class="dropdown-item d-flex align-items-center gap-2" data-theme="dark">
-                        <i class="bi bi-moon-stars-fill"></i> Donker
+                        <i class="bi bi-moon-stars-fill"></i> Dark
                     </button></li>
                     <li><hr class="dropdown-divider"></li>
                     <li><button class="dropdown-item d-flex align-items-center gap-2 active" data-theme="auto">
-                        <i class="bi bi-circle-half"></i> Systeem
+                        <i class="bi bi-circle-half"></i> System
                     </button></li>
                 </ul>
             </li>
@@ -96,39 +96,44 @@
 (() => {
     const html = document.documentElement;
     const themeButtons = document.querySelectorAll('[data-theme]');
-    const themeIcon = document.getElementById('themeNavbarIcon') || document.getElementById('themeIcon');
+    const themeIcon = document.getElementById('themeNavbarIcon');
 
     function applyTheme(theme) {
         if (theme === 'auto') {
             const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             html.setAttribute('data-bs-theme', isDark ? 'dark' : 'light');
             themeIcon.className = 'bi bi-circle-half';
-            themeText.textContent = 'System';
         } else {
             html.setAttribute('data-bs-theme', theme);
-            themeIcon.className = theme === 'dark' ? 'bi bi-moon-stars-fill' : 'bi bi-sun-fill';
-            themeText.textContent = theme === 'dark' ? 'Dark' : 'Light';
+            themeIcon.className =
+                theme === 'dark'
+                    ? 'bi bi-moon-stars-fill'
+                    : 'bi bi-sun-fill';
         }
+
         localStorage.setItem('theme', theme);
-        themeButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.theme === theme));
+        themeButtons.forEach(btn =>
+            btn.classList.toggle('active', btn.dataset.theme === theme)
+        );
     }
 
     // Init
     const savedTheme = localStorage.getItem('theme') || 'auto';
     applyTheme(savedTheme);
 
-    // Klikken op theme knoppen
+    // Click handlers
     themeButtons.forEach(btn => {
         btn.addEventListener('click', () => applyTheme(btn.dataset.theme));
     });
 
-    // Luister naar systeemwijzigingen
+    // System theme changes
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-        if (localStorage.getItem('theme') === 'auto' || !localStorage.getItem('theme')) {
+        if ((localStorage.getItem('theme') || 'auto') === 'auto') {
             applyTheme('auto');
         }
     });
 })();
+
 </script>
 
 {% block extra_js %}
