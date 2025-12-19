@@ -70,7 +70,29 @@
                     <div><i class="bi bi-save"></i> Last changes: {{ mixtape.saved_at[:10] }} om {{ mixtape.saved_at[11:16] }}</div>
                     {% endif %}
                 </div>
+                <!-- Liner Notes Section -->
+                {% if mixtape.liner_notes and mixtape.liner_notes.strip() %}
+                <div class="mt-5">
+                    <h4 class="mb-3">
+                        <button class="btn btn-link text-decoration-none p-0 border-0 fw-bold collapsed"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#linerNotesCollapse"
+                                aria-expanded="false"
+                                aria-controls="linerNotesCollapse"
+                                style="font-size: inherit;">
+                            Tape Talk
+                            <i class="bi bi-chevron-down ms-2 transition-chevron"></i>
+                        </button>
+                    </h4>
 
+                    <div class="collapse" id="linerNotesCollapse">
+                        <div class="card card-body bg-body-tertiary border-0">
+                            <div id="rendered-liner-notes" class="markdown-body"></div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
                 {% if not public %}
                 <a href="/mixtapes" class="btn btn-outline-secondary btn-sm mt-4">Back to mixtape browser</a>
                 {% endif %}
@@ -151,29 +173,6 @@
                     </li>
                     {% endfor %}
                 </div>
-                <!-- Liner Notes Section -->
-                {% if mixtape.liner_notes and mixtape.liner_notes.strip() %}
-                <div class="mt-5">
-                    <h4 class="mb-3">
-                        <button class="btn btn-link text-decoration-none p-0 border-0 fw-bold collapsed"
-                                type="button"
-                                data-bs-toggle="collapse"
-                                data-bs-target="#linerNotesCollapse"
-                                aria-expanded="false"
-                                aria-controls="linerNotesCollapse"
-                                style="font-size: inherit;">
-                            Liner Notes
-                            <i class="bi bi-chevron-down ms-2 transition-chevron"></i>
-                        </button>
-                    </h4>
-
-                    <div class="collapse" id="linerNotesCollapse">
-                        <div class="card card-body bg-body-tertiary border-0">
-                            <div id="rendered-liner-notes" class="markdown-body"></div>
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
             </div>
         </div>
     </div>
