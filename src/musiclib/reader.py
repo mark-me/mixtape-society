@@ -137,35 +137,52 @@ class MusicCollection:
 
     def search_grouped(
         self, query: str, limit: int = 20
-    ) -> dict[str, list[dict[str, Any]]]:
+    ) -> dict[str, list[dict[str, any]]]:
         """
-        Searches for artists, albums, and tracks matching the query and groups results by type.
+        Searches the music collection for artists, albums, and tracks matching the query.
 
-        Returns a dictionary containing lists of matching artists, albums, and tracks, each formatted for further processing or display.
+        Returns grouped search results for artists, albums, and tracks, along with the search terms used for each category.
 
         Args:
             query (str): The search string to match against the music library.
-            limit (int): The maximum number of results to return for each category.
+            limit (int, optional): The maximum number of results to return for each category. Defaults to 20.
 
         Returns:
-            dict[str, list[dict[str, Any]]]: A dictionary with keys 'artists', 'albums', and 'tracks', each containing a list of result dictionaries.
+            tuple: A tuple containing a dictionary of grouped search results and a dictionary of search terms for each category.
         """
-        if not (q := query.strip()):
+        if not query.strip():
             return {"artists": [], "albums": [], "tracks": []}
 
-        like = f"%{q}%"
-        starts = f"{q}%"
+        parsed = self.parse_query(query)
+        has_specific = any(parsed[key] for key in ['artist', 'album', 'track'])
+        conn = self._get_conn()
 
-        with self._get_conn() as conn:
+        if not has_specific and parsed['general']:
+            # Legacy: treat general as single phrase across all fields
+            phrase = ' '.join(parsed['general'])
+            like = f"%{phrase}%"
+            starts = f"{phrase}%"
             artists = self._search_artists(conn, starts, limit)
             albums = self._search_albums(conn, like, starts, limit, artists)
             tracks = self._search_tracks(conn, like, starts, limit, artists, albums)
+            terms = {'artist': [phrase], 'album': [phrase], 'track': [phrase]}
+        else:
+            # Tagged search: general added to each category, OR within category, union across
+            artist_terms = parsed['artist'] + parsed['general']
+            album_terms = parsed['album'] + parsed['general']
+            track_terms = parsed['track'] + parsed['general']
+            artists = self._search_artists_multi(conn, artist_terms, limit) if artist_terms else []
+            albums = self._search_albums_multi(conn, album_terms, limit) if album_terms else []
+            tracks = self._search_tracks_multi(conn, track_terms, limit) if track_terms else []
+            terms = {'artist': artist_terms, 'album': album_terms, 'track': track_terms}
 
-        return {
-            "artists": artists,
-            "albums": albums,
-            "tracks": tracks,
-        }
+        # Populate sub-items (albums for artists, tracks for albums)
+        for artist in artists:
+            artist['albums'] = self._search_artist_albums(conn, artist['artist'])
+        for album in albums:
+            album['tracks'] = self._search_album_tracks(conn, album['artist'], album['album'])
+
+        return {"artists": artists, "albums": albums, "tracks": tracks}, terms
 
     def _search_artists(self, conn: Connection, starts: str, limit: int) -> list[dict]:
         """
@@ -357,50 +374,158 @@ class MusicCollection:
 
     def search_highlighting(self, query: str, limit: int = 30) -> list[dict]:
         """
-        Searches for artists, albums, and tracks matching the query and formats results with highlighted matches.
+        Searches the music collection and highlights matching terms in the results.
 
-        Returns a list of formatted result dictionaries for UI display, including highlighted text for matching artists, albums, and tracks.
+        Returns a list of search results with highlighted artist, album, and track fields based on the query terms.
 
         Args:
-            query (str): The search string to match against the music library.
-            limit (int): The maximum number of results to return for each category.
+            query (str): The search string to match and highlight in the music library.
+            limit (int, optional): The maximum number of results to return. Defaults to 30.
 
         Returns:
-            list[dict]: A list of formatted result dictionaries with highlighted matches.
+            list[dict]: A list of search result dictionaries with highlighted text.
         """
-        if not (q := query.strip()):
+        if not query.strip():
             return []
 
-        data = self.search_grouped(q, limit=limit)
+        # Simple quote handling: if query has quotes, extract inside as exact phrase
+        quoted = re.findall(r'"([^"]*)"', query)
+        plain = re.sub(r'"[^"]*"', '', query).strip()
+        terms = quoted + (plain.split() if plain else [])
 
+        # Use your existing grouped search but with better terms
+        raw_results = self.search_grouped(query, limit=limit)  # or your existing logic
         results = []
-        results.extend(self._format_artist_results(data["artists"], q.lower()))
-        results.extend(self._format_album_results(data["albums"], q.lower()))
-        results.extend(self._format_track_results(data["tracks"], q.lower()))
+
+        # Apply highlighting to titles/artists/albums
+        for item in raw_results:
+            if 'artist' in item:
+                item['artist'] = self.highlight_text(item['artist'], terms)
+            if 'album' in item:
+                item['album'] = self.highlight_text(item['album'], terms)
+            if 'title' in item or 'track' in item:
+                title = item.get('title') or item.get('track')
+                item['title'] = item['track'] = self.highlight_text(title, terms)
+            results.append(item)
 
         return results
 
-    @staticmethod
-    def highlight_text(text: str, query_lower: str) -> str:
+    def parse_query(self, query: str) -> dict[str, list[str]]:
         """
-        Highlights occurrences of the search query within the given text.
+        Parses a search query string into tagged components for artists, albums, tracks, and general terms.
 
-        Returns the text with all matches of the query wrapped in <mark> tags for UI display.
+        Returns a dictionary with lists of parsed search terms for each tag and general terms, supporting advanced search functionality.
 
         Args:
-            text (str): The text to search and highlight.
-            query_lower (str): The lowercase search query to highlight.
+            query (str): The raw search query string to parse.
 
         Returns:
-            str: The text with highlighted matches.
+            dict: A dictionary containing lists of search terms for 'artist', 'album', 'track', and 'general'.
         """
-        if not query_lower:
+        tags = {'artist': [], 'album': [], 'track': []}
+        general = []
+        tag_pattern = r'(artist|album|track|song):("([^"]+)"|(\S+))'
+        matches = re.finditer(tag_pattern, query, re.IGNORECASE)
+        last_end = 0
+        for match in matches:
+            tag = match.group(1).lower()
+            value = match.group(3) or match.group(4)
+            if tag == 'song':
+                tag = 'track'
+            tags[tag].append(value)
+            if between := query[last_end : match.start()].strip():
+                general.extend(re.split(r'\s+', between))
+            last_end = match.end()
+        if remaining := query[last_end:].strip():
+            general.extend(re.split(r'\s+', remaining))
+        return {'artist': tags['artist'], 'album': tags['album'], 'track': tags['track'], 'general': general}
+
+    def highlight_text(self, text: str, queries: list[str]) -> str:
+        """
+        Highlights matching terms in the given text using HTML <mark> tags.
+
+        Returns the text with all occurrences of the search terms wrapped in <mark> tags for UI display.
+
+        Args:
+            text (str): The text to highlight.
+            terms (list[str]): The list of terms to highlight in the text.
+
+        Returns:
+            str: The text with highlighted terms.
+        """
+        if not queries:
             return text
+        pattern = '|'.join(re.escape(q) for q in queries if q)
+        return re.sub(f"({pattern})", r"<mark>\1</mark>", text, flags=re.I)
 
-        def repl(match: re.Match) -> str:
-            return f"<mark>{match[0]}</mark>"
+    # Multi-term search methods (OR within category)
+    def _search_artists_multi(self, conn: Connection, terms: list[str], limit: int) -> list[dict]:
+        """
+        Searches for artists in the database matching any of the provided search terms.
 
-        return re.sub(re.escape(query_lower), repl, text, flags=re.IGNORECASE)
+        Returns a list of artist dictionaries that match one or more of the search terms.
+
+        Args:
+            conn (sqlite3.Connection): The SQLite database connection.
+            terms (list[str]): A list of search terms to match against artist names.
+            limit (int): The maximum number of artists to return.
+
+        Returns:
+            list[dict]: A list of artist dictionaries matching the search terms.
+        """
+        if not terms:
+            return []
+        where = ' OR '.join(['artist LIKE ? COLLATE NOCASE' for _ in terms])
+        params = [f'%{t}%' for t in terms] + [limit]
+        cur = conn.execute(f"SELECT DISTINCT artist FROM tracks WHERE {where} ORDER BY artist COLLATE NOCASE LIMIT ?", params)
+        return [{'artist': r['artist']} for r in cur]
+
+    def _search_albums_multi(self, conn: Connection, terms: list[str], limit: int) -> list[dict]:
+        """
+        Searches for albums in the database matching any of the provided search terms.
+
+        Returns a list of album dictionaries that match one or more of the search terms.
+
+        Args:
+            conn (sqlite3.Connection): The SQLite database connection.
+            terms (list[str]): A list of search terms to match against album names.
+            limit (int): The maximum number of albums to return.
+
+        Returns:
+            list[dict]: A list of album dictionaries matching the search terms.
+        """
+        if not terms:
+            return []
+        where = ' OR '.join(['album LIKE ? COLLATE NOCASE' for _ in terms])
+        params = [f'%{t}%' for t in terms] + [limit]
+        cur = conn.execute(f"SELECT DISTINCT album, artist FROM tracks WHERE {where} ORDER BY album COLLATE NOCASE LIMIT ?", params)
+        return [{'album': r['album'], 'artist': r['artist']} for r in cur]
+
+    def _search_tracks_multi(self, conn: Connection, terms: list[str], limit: int) -> list[dict]:
+        """
+        Searches for tracks in the database matching any of the provided search terms.
+
+        Returns a list of track dictionaries that match one or more of the search terms.
+
+        Args:
+            conn (sqlite3.Connection): The SQLite database connection.
+            terms (list[str]): A list of search terms to match against track titles.
+            limit (int): The maximum number of tracks to return.
+
+        Returns:
+            list[dict]: A list of track dictionaries matching the search terms.
+        """
+        if not terms:
+            return []
+        where = ' OR '.join(['title LIKE ? COLLATE NOCASE' for _ in terms])
+        params = [f'%{t}%' for t in terms] + [limit]
+        sql = f"""
+            SELECT path, filename, artist, album, title AS track, duration
+            FROM tracks WHERE {where}
+            ORDER BY title COLLATE NOCASE LIMIT ?
+        """
+        cur = conn.execute(sql, params)
+        return [dict(r) for r in cur]
 
     def _format_artist_results(
         self, artists: list[dict], query_lower: str

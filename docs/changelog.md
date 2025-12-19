@@ -18,6 +18,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
   - Artist
   - Album
   - Song
+- Clickable search results so you can change the search to an artist or album
 
 ### 🔧 Changed
 

@@ -32,9 +32,29 @@
     <div class="row mb-4">
         <div class="col">
             <div class="position-relative">
-                <input type="text" id="searchInput" class="form-control form-control-lg rounded-pill ps-5 pe-5"
-                       placeholder="Search by artist, album, or song..." autocomplete="off">
-                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-4 text-muted"></i>
+                <div id="searchContainer"
+                    class="form-control form-control-lg rounded-pill ps-5 pe-5 d-flex flex-wrap align-items-center gap-2"
+                    style="min-height: 58px; background: var(--bs-body-bg);">
+                    <!-- Search tags/badges will be inserted here dynamically -->
+                </div>
+                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-4 text-muted pointer-events-none"></i>
+                <i class="bi bi-info-circle position-absolute top-50 end-0 translate-middle-y me-4 text-muted"
+                id="searchHint"
+                tabindex="0"
+                role="button"
+                data-bs-toggle="popover"
+                data-bs-placement="bottom"
+                data-bs-trigger="focus"
+                data-bs-html="true"
+                data-bs-title="Search Tips"
+                data-bs-content='
+                    <strong>Advanced search tags:</strong><br>
+                    • <code>artist:beatles</code> – search only artists<br>
+                    • <code>album:abbey</code> – search only albums<br>
+                    • <code>track:hey</code> or <code>song:jude</code> – search only song titles<br><br>
+                    Use quotes for phrases with spaces: <code>artist:"the beatles"</code><br><br>
+                    Multiple tags are combined with <strong>OR</strong>.
+                '></i>
                 <div id="loading" class="position-absolute top-50 end-0 translate-middle-y me-4 visually-hidden">
                     <span class="spinner-border spinner-border-sm text-muted" role="status" aria-hidden="true"></span>
                 </div>
@@ -190,6 +210,119 @@
             </div>
         </div>
     </div>
+
+<script>
+// === 1. Your main rendering function ===
+let resultIndex = 0;
+
+function renderResults(data) {
+    resultIndex = 0;
+
+    const resultsDiv = document.getElementById('results');
+    resultsDiv.innerHTML = '';
+
+    if (data.length === 0) {
+        resultsDiv.innerHTML = '<p class="text-center text-muted my-5">Geen resultaten gevonden.</p>';
+        return;
+    }
+
+    const ul = document.createElement('ul');
+    ul.className = 'list-unstyled';
+
+    data.forEach(item => {
+        const li = document.createElement('li');
+        li.className = 'mb-4 p-3 border rounded hover-shadow';
+        li.dataset.index = resultIndex++;  // if you use this elsewhere
+
+        let content = '';
+
+        if (item.type === 'artist') {
+            content = `
+                <div>
+                    <a href="#" class="search-refine-link text-decoration-none fw-bold"
+                       data-type="artist" data-value="${escapeHtml(item.artist)}">
+                        ${escapeHtml(item.artist)}
+                    </a>
+                    <small class="text-muted ms-2">(${item.albums?.length || 0} albums)</small>
+                </div>
+            `;
+
+        } else if (item.type === 'album') {
+            content = `
+                <div>
+                    <a href="#" class="search-refine-link text-decoration-none"
+                       data-type="album" data-value="${escapeHtml(item.album)}">
+                        <em>${escapeHtml(item.album)}</em>
+                    </a>
+                    <span class="text-muted"> door </span>
+                    <strong>${escapeHtml(item.artist)}</strong>
+                </div>
+            `;
+
+        } else if (item.type === 'track') {
+            content = `
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="track-title">${escapeHtml(item.title || item.track)}</span><br>
+                        <small class="text-muted">
+                            ${escapeHtml(item.artist)} • ${escapeHtml(item.album)}
+                        </small>
+                    </div>
+                    <button class="btn btn-primary btn-sm preview-btn" data-path="${escapeHtml(item.path)}">
+                        <i class="bi bi-play-fill"></i>
+                    </button>
+                </div>
+            `;
+        }
+
+        li.innerHTML = content;
+        ul.appendChild(li);
+    });
+
+    resultsDiv.appendChild(ul);
+
+    // === IMPORTANT: Re-attach preview buttons and refine links ===
+    attachPreviewListeners();
+    attachRefineLinkListeners();  // We'll define this next
+}
+
+// === 2. Helper: Safe HTML escaping ===
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// === 3. Listener for clickable artist/album refinement (add this too) ===
+function attachRefineLinkListeners() {
+    document.querySelectorAll('.search-refine-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const type = this.dataset.type;
+            let value = this.dataset.value.trim();
+            if (value.includes(' ')) value = `"${value}"`;
+
+            // Clear existing badges
+            searchContainer.querySelectorAll('.badge').forEach(b => b.remove());
+
+            // Add new exclusive tag
+            createBadge(`${type}:${value}`);
+            tagInput.value = '';
+            performSearch();
+        });
+    });
+}
+
+// === 4. Override to ensure listeners are re-attached on every render ===
+// (This is safe even if renderResults is redefined above)
+if (typeof originalRenderResults === 'undefined') {
+    const originalRenderResults = window.renderResults;
+    window.renderResults = function(data) {
+        originalRenderResults(data);
+        // No need to do anything extra here — listeners are already attached inside renderResults
+    };
+}
+</script>
 {% endblock %}
 
 
@@ -204,7 +337,6 @@
 <script>
 
     /* ==== SEARCH AND RESULTS ==== */
-    const searchInput = document.getElementById('searchInput');
     const resultsDiv = document.getElementById('results');
     const playlistOl = document.getElementById('playlist');
     const playlistCount = document.getElementById('playlist-count');
@@ -230,30 +362,6 @@
         {% endif %}
     });
 
-    // Search
-    let timeout;
-    searchInput.addEventListener('input', () => {
-        clearTimeout(timeout);
-        document.getElementById('loading').classList.remove('visually-hidden');
-        timeout = setTimeout(() => {
-            const q = searchInput.value.trim();
-            if (q.length < 2) {
-                resultsDiv.innerHTML = '<p class="text-muted text-center my-5">Typ minimaal 2 tekens om te zoeken…</p>';
-                document.getElementById('loading').classList.add('visually-hidden');
-                return;
-            }
-            fetch(`/editor/search?q=${encodeURIComponent(q)}`)
-                .then(r => r.json())
-                .then(data => {
-                    document.getElementById('loading').classList.add('visually-hidden');
-                    renderResults(data);
-                })
-                .catch(err => {
-                    console.error(err);
-                    document.getElementById('loading').classList.add('visually-hidden');
-                });
-        }, 300);
-    });
 
     function escapeHtml(text) {
         const div = document.createElement('div');
@@ -272,146 +380,37 @@
         return escapeHtml(text).replace(regex, '<mark>$1</mark>');
     }
 
-function renderTracks(tracks, highlightedTracks, artist, album, query) {
-    return tracks.map(track => {
-        let title = escapeHtml(track.title);
-        const highlighted = highlightedTracks.find(h => h.original.title === track.title);
-        if (highlighted) {
-            title = highlighted.highlighted;
-        }
+    function renderTracks(tracks, highlightedTracks, artist, album, query) {
+        return tracks.map(track => {
+            let title = escapeHtml(track.title);
+            const highlighted = highlightedTracks.find(h => h.original.title === track.title);
+            if (highlighted) {
+                title = highlighted.highlighted;
+            }
 
-        return `
-        <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
-            <span class="track-title flex-grow-1">${title}</span>
-            <span class="text-muted me-3">${track.duration}</span>
-            <button class="btn btn-primary btn-sm preview-btn me-2"
-                    data-path="${escapeHtml(track.path || '')}"
-                    ${!track.path ? 'disabled title="Geen preview beschikbaar"' : ''}>
-                <i class="bi bi-play-fill"></i>
-            </button>
-            <button class="btn btn-success btn-sm add-btn"
-                    data-artist="${escapeHtml(artist)}"
-                    data-album="${escapeHtml(album)}"
-                    data-title="${escapeHtml(track.title)}"
-                    data-duration="${track.duration}"
-                    data-path="${escapeHtml(track.path || '')}"
-                    data-filename="${escapeHtml(track.filename || track.title + '.mp3')}">
-                <i class="bi bi-plus-lg"></i>
-            </button>
-        </li>`;
-    }).join('');
-}
-
-let resultIndex = 0;
-
-function renderResults(data) {
-    resultIndex = 0;
-
-    if (data.length === 0) {
-        resultsDiv.innerHTML = '<p class="text-center text-muted my-5">Geen resultaten gevonden.</p>';
-        return;
+            return `
+            <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                <span class="track-title flex-grow-1">${title}</span>
+                <span class="text-muted me-3">${track.duration}</span>
+                <button class="btn btn-primary btn-sm preview-btn me-2"
+                        data-path="${escapeHtml(track.path || '')}"
+                        ${!track.path ? 'disabled title="Geen preview beschikbaar"' : ''}>
+                    <i class="bi bi-play-fill"></i>
+                </button>
+                <button class="btn btn-success btn-sm add-btn"
+                        data-artist="${escapeHtml(artist)}"
+                        data-album="${escapeHtml(album)}"
+                        data-title="${escapeHtml(track.title)}"
+                        data-duration="${track.duration}"
+                        data-path="${escapeHtml(track.path || '')}"
+                        data-filename="${escapeHtml(track.filename || track.title + '.mp3')}">
+                    <i class="bi bi-plus-lg"></i>
+                </button>
+            </li>`;
+        }).join('');
     }
 
-    resultsDiv.innerHTML = data.map(entry => {
-        resultIndex++;
-        const type = entry.type;
-        const query = searchInput.value;
-        const highlightedArtist = highlightText(entry.artist, query);
-        const icons = { artist: 'bi-person-fill', album: 'bi-disc-fill', track: 'bi-music-note' };
-        const colors = { artist: 'success', album: 'warning', track: 'primary' };
-        const badges = entry.reasons.map(r => {
-            return `<span class="badge bg-${colors[r.type]} me-1">
-                        <i class="bi ${icons[r.type]}"></i> ${escapeHtml(r.text)}
-                    </span>`;
-        }).join('');
-
-        if (type === 'artist') {
-            let html = `
-            <div class="mb-4">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                    <h3 class="h4 artist-name mb-0">${highlightedArtist}</h3>
-                    <div>${badges}</div>
-                </div>
-                <div class="accordion" id="accordion-${resultIndex}">
-            `;
-            entry.albums.forEach((alb, albIndex) => {
-                const highlightedAlbum = highlightText(alb.album, query);
-                const albBadges = alb.reasons.map(r => {
-                    return `<span class="badge bg-${colors[r.type]} me-1">
-                                <i class="bi ${icons[r.type]}"></i> ${escapeHtml(r.text)}
-                            </span>`;
-                }).join('');
-                const collapseId = `collapse-${resultIndex}-${albIndex}`;
-                const tracksHtml = renderTracks(alb.tracks, alb.highlighted_tracks || [], entry.artist, alb.album, query);
-                html += `
-                <div class="accordion-item">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#${collapseId}">
-                            <span class="album-title">${highlightedAlbum}</span>
-                            <span class="ms-2">${albBadges}</span>
-                        </button>
-                    </h2>
-                    <div id="${collapseId}" class="accordion-collapse collapse">
-                        <div class="accordion-body">
-                            <ul class="list-unstyled mt-3">${tracksHtml}</ul>
-                        </div>
-                    </div>
-                </div>
-                `;
-            });
-            html += `</div></div>`;
-            return html;
-        } else if (type === 'album') {
-            const highlightedAlbum = highlightText(entry.album, query);
-            const collapseId = `collapse-${resultIndex}`;
-            const tracksHtml = renderTracks(entry.tracks, entry.highlighted_tracks || [], entry.artist, entry.album, query);
-            return `
-            <div class="mb-4">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                    <h3 class="h4 artist-name mb-0">${highlightedArtist}</h3>
-                    <div>${badges}</div>
-                </div>
-                <h4 class="h5 album-title text-muted mb-2">${highlightedAlbum}</h4>
-                <button class="btn btn-link ps-0" type="button" data-bs-toggle="collapse" data-bs-target="#${collapseId}" aria-expanded="false">
-                    Show tracks (${entry.tracks.length})
-                </button>
-                <div id="${collapseId}" class="collapse">
-                    <ul class="list-unstyled mt-3">${tracksHtml}</ul>
-                </div>
-            </div>
-            `;
-        } else if (type === 'track') {
-            const highlightedAlbum = highlightText(entry.album, query);
-            const tracksHtml = renderTracks(entry.tracks, entry.highlighted_tracks || [], entry.artist, entry.album, query);
-            return `
-            <div class="mb-4">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                    <h3 class="h4 artist-name mb-0">${highlightedArtist}</h3>
-                    <div>${badges}</div>
-                </div>
-                <h4 class="h5 album-title text-muted mb-2">${highlightedAlbum}</h4>
-                <ul class="list-unstyled mt-3">${tracksHtml}</ul>
-            </div>
-            `;
-        }
-    }).join('');
-
-    // Add-to-playlist buttons
-    document.querySelectorAll('.add-btn').forEach(btn => {
-        btn.addEventListener('click', function () {
-            const item = {
-                artist: this.dataset.artist,
-                album: this.dataset.album,
-                title: this.dataset.title,
-                duration: this.dataset.duration,
-                path: this.dataset.path,
-                filename: this.dataset.filename
-            };
-            addToPlaylist(item);
-        });
-    });
-}
-    /* ==== PLAYLIST ==== */
+/* ==== PLAYLIST ==== */
     function addToPlaylist(item) {
         // Preventing duplicates
         if (playlist.some(t =>
@@ -1064,14 +1063,141 @@ function renderResults(data) {
             });
         });
     }
+</script>
+<script>
+// Advanced tagged search implementation
+const searchContainer = document.getElementById('searchContainer');
+const loadingIndicator = document.getElementById('loading');
 
-    // Override renderResults to attach listeners after rendering
-    const originalRenderResults = window.renderResults;
-    window.renderResults = function(data) {
-        originalRenderResults(data);
+// Create the dynamic input field
+const tagInput = document.createElement('input');
+tagInput.type = 'text';
+tagInput.className = 'border-0 bg-transparent flex-grow-1';
+tagInput.style.outline = 'none';
+tagInput.style.minWidth = '150px';
+tagInput.placeholder = 'Search by artist, album, or song...';
+searchContainer.appendChild(tagInput);
 
-        // Re-attach preview listeners to new buttons
-        attachPreviewListeners();
+// Initialize info popover
+const searchHint = document.getElementById('searchHint');
+new bootstrap.Popover(searchHint, {
+    title: 'Search Tips',
+    content: `
+        <strong>Advanced tags:</strong><br>
+        • <code>artist:beatles</code> – only artists<br>
+        • <code>album:abbey</code> – only albums<br>
+        • <code>track:hey</code> or <code>song:jude</code> – only titles<br><br>
+        Quotes for phrases: <code>artist:"the beatles"</code><br><br>
+        Multiple tags = <strong>OR</strong> combination
+    `,
+    html: true,
+    placement: 'bottom',
+    trigger: 'focus click'
+});
+
+// Create a colored badge
+function createBadge(text) {
+    const badge = document.createElement('span');
+    badge.className = 'badge rounded-pill d-flex align-items-center gap-1';
+
+    // Color based on tag type
+    const lower = text.toLowerCase();
+    if (lower.startsWith('artist:')) badge.classList.add('bg-info', 'text-dark');
+    else if (lower.startsWith('album:')) badge.classList.add('bg-warning', 'text-dark');
+    else if (lower.startsWith('track:') || lower.startsWith('song:')) badge.classList.add('bg-danger');
+    else badge.classList.add('bg-secondary');
+
+    badge.innerHTML = `
+        ${text}
+        <i class="bi bi-x-circle-fill ms-1" style="cursor:pointer; font-size:0.85em;"></i>
+    `;
+
+    badge.querySelector('i').onclick = (e) => {
+        e.stopPropagation();
+        badge.remove();
+        performSearch();
     };
+
+    searchContainer.insertBefore(badge, tagInput);
+}
+
+// Input events
+tagInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ',') {
+        e.preventDefault();
+        const val = tagInput.value.trim();
+        if (val) {
+            createBadge(val);
+            tagInput.value = '';
+            performSearch();
+        }
+    } else if (e.key === 'Backspace' && tagInput.value === '' && searchContainer.children.length > 1) {
+        const last = searchContainer.children[searchContainer.children.length - 2];
+        if (last.classList.contains('badge')) {
+            last.remove();
+            performSearch();
+        }
+    }
+});
+
+tagInput.addEventListener('input', () => {
+    performSearch();
+});
+
+// Build query string from badges + free text
+function getQuery() {
+    const badges = Array.from(searchContainer.querySelectorAll('.badge'))
+        .map(b => b.childNodes[0].textContent.trim());
+    const free = tagInput.value.trim();
+    return [...badges, free].filter(Boolean).join(' ');
+}
+
+// Perform search with error handling
+function performSearch() {
+    const query = getQuery();
+    if (query.length < 2 && searchContainer.querySelectorAll('.badge').length === 0) {
+        document.getElementById('results').innerHTML = '<p class="text-muted text-center my-5">Type at least 2 characters to search…</p>';
+        return;
+    }
+
+    loadingIndicator.classList.remove('visually-hidden');
+    fetch(`search?q=${encodeURIComponent(query)}`)
+        .then(r => {
+            if (!r.ok) {
+                throw new Error(`HTTP error! Status: ${r.status}`);
+            }
+            return r.json();
+        })
+        .then(data => {
+            window.renderResults(data);
+        })
+        .catch(err => {
+            console.error('Search failed:', err);
+            showAlert({title: 'Search Error', message: 'Failed to fetch search results. Check console for details or try again.'});
+            document.getElementById('results').innerHTML = '<p class="text-danger text-center my-5">Search failed. Please try again.</p>';
+        })
+        .finally(() => loadingIndicator.classList.add('visually-hidden'));
+}
+
+// Refine search by clicking artist/album in results
+document.addEventListener('click', (e) => {
+    const link = e.target.closest('.search-refine-link');
+    if (!link) return;
+    e.preventDefault();
+
+    const type = link.dataset.type; // 'artist' or 'album'
+    let value = link.dataset.value.trim();
+
+    // Quote if contains space
+    if (value.includes(' ')) value = `"${value}"`;
+
+    // Clear all badges
+    searchContainer.querySelectorAll('.badge').forEach(b => b.remove());
+
+    // Add exclusive tag
+    createBadge(`${type}:${value}`);
+    tagInput.value = '';
+    performSearch();
+});
 </script>
 {% endblock %}
