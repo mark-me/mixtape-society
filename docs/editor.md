@@ -4,6 +4,8 @@
 
 The Mixtape Editor lets you craft personal mixtapes by searching your music library, adding tracks, reordering them, and customizing the cover and title. It evokes the joy of making a real cassette for a friend—simple, intuitive, and fun.
 
+![Editing a Mixtape](images/screenshot-create.png)
+
 ## Features
 
 - Live search with result highlighting
