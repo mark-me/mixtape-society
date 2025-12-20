@@ -34,6 +34,6 @@ How Sharing Works
 - Future ideas → QR codes for quick scanning (coming soon!).
 
 !!! tip "Pro Tip"
-Pair your link with a personal message: "Made this mixtape thinking of you—hope it brings back good memories! 🎧"
+    Pair your link with a personal message: "Made this mixtape thinking of you—hope it brings back good memories! 🎧"
 
 Sharing is the heart of Mixtape Society. Go make someone's day with your perfect playlist! 🚀
