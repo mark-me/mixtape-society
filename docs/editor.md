@@ -53,6 +53,6 @@ The Mixtape Editor lets you craft personal mixtapes by searching your music libr
 - `Escape` – Clear search field
 
 !!! tip "Pro Tip"
-Start with a strong opener track—the app uses its album art as the default cover for that perfect first impression.
+    Start with a strong opener track—the app uses its album art as the default cover for that perfect first impression.
 
 Once saved, head to the [Sharing page](sharing.md) to learn how to send your mixtape to friends. Enjoy the magic! 🚀
