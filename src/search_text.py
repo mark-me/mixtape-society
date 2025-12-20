@@ -1,8 +1,7 @@
 from pathlib import Path
-from time import sleep
 from logtools import get_logger
 
-from musiclib import MusicCollection, get_indexing_status
+from musiclib import MusicCollectionUI, get_indexing_status
 
 def main():
 
@@ -10,7 +9,7 @@ def main():
 
     path_music = Path("/home/mark/Music")
     path_db = Path("collection-data/collection.db")
-    collection = MusicCollection(music_root=path_music, db_path=path_db, logger=logger)
+    collection = MusicCollectionUI(music_root=path_music, db_path=path_db, logger=logger)
 
     data_root = path_db.parent.resolve()
 
@@ -30,7 +29,7 @@ def main():
               f"({status['current']}/{status['total']} – {status['progress']*100:.1f}%)")
 
     print("Indexing complete (or not needed). Searching...")
-    result = collection.search_highlighting(query="artist:Nick")
+    result = collection.search_highlighting(query="Nick")
     print(result)
 
 if __name__ == "__main__":
