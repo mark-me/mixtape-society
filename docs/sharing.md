@@ -4,7 +4,9 @@
 
 Sharing a mixtape with friends or family with Mixtape Society recreates the joy of handing over a physical cassette—personal, direct, and full of heart.
 
-![Sharing a Mixtape](images/screenshot-share.png)
+<figure markdown="span">
+    ![Sharing a Mixtape](images/screenshot-share.png)
+</figure>
 
 How Sharing Works
 
