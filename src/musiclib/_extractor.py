@@ -84,11 +84,10 @@ class CollectionExtractor:
         self._writer_thread.start()
 
     # === DB setup ===
-
     def _init_db(self):
-        """Initializes the music database and ensures required tables and indexes exist.
+        """Initializes the SQLite database schema for music tracks and full-text search.
 
-        Sets up the SQLite database with the necessary schema for storing track metadata and creates indexes for efficient querying.
+        Creates tables, indexes, and triggers required for efficient music metadata storage and search functionality.
 
         Returns:
             None
@@ -121,6 +120,76 @@ class CollectionExtractor:
             conn.execute(
                 "CREATE INDEX IF NOT EXISTS idx_title  ON tracks(title  COLLATE NOCASE)"
             )
+            # FTS5 virtual table (new)
+            conn.execute(
+                """
+                CREATE VIRTUAL TABLE IF NOT EXISTS tracks_fts USING fts5(
+                    artist,
+                    album,
+                    title,
+                    albumartist,
+                    genre,
+                    path,
+                    filename,
+                    duration,
+                    content='tracks',
+                    content_rowid='rowid',
+                    tokenize='unicode61 remove_diacritics 1'   -- sensible tokenizer
+                );
+                """
+            )
+
+            # Triggers to mirror changes to fts table
+            conn.executescript(
+                """
+                CREATE TRIGGER IF NOT EXISTS tracks_ai AFTER INSERT ON tracks
+                BEGIN
+                    INSERT INTO tracks_fts(rowid, artist, album, title, albumartist, genre, path, filename, duration)
+                    VALUES (new.rowid, new.artist, new.album, new.title,
+                            new.albumartist, new.genre, new.path, new.filename, new.duration);
+                END;
+
+                CREATE TRIGGER IF NOT EXISTS tracks_ad AFTER DELETE ON tracks
+                BEGIN
+                    INSERT INTO tracks_fts(tracks_fts, rowid, artist, album, title, albumartist, genre, path, filename, duration)
+                    VALUES('delete', old.rowid, old.artist, old.album, old.title,
+                            old.albumartist, old.genre, old.path, old.filename, old.duration);
+                END;
+
+                CREATE TRIGGER IF NOT EXISTS tracks_au AFTER UPDATE ON tracks
+                BEGIN
+                    INSERT INTO tracks_fts(tracks_fts, rowid, artist, album, title, albumartist, genre)
+                    VALUES('delete', old.rowid, old.artist, old.album, old.title,
+                            old.albumartist, old.genre, old.path, old.filename, old.duration);
+                    INSERT INTO tracks_fts(rowid, artist, album, title, albumartist, genre, path, filename, duration)
+                    VALUES (new.rowid, new.artist, new.album, new.title,
+                            new.albumartist, new.genre, new.path, new.filename, new.duration);
+                END;
+                """
+            )
+
+    def _populate_fts_if_needed(self):
+        """Populates the full-text search (FTS) table if it is currently empty.
+
+        Checks if the FTS table has any rows and, if not, bulk inserts all track metadata from the main tracks table.
+
+        Returns:
+            None
+        """
+        with sqlite3.connect(self.db_path) as conn:
+            # Quick check – if the FTS table already has rows, skip.
+            cnt = conn.execute("SELECT count(*) FROM tracks_fts").fetchone()[0]
+            if cnt > 0:
+                return
+
+            # Bulk insert using a single INSERT…SELECT statement – very fast.
+            conn.execute(
+                """
+                INSERT INTO tracks_fts(rowid, artist, album, title, albumartist, genre, path, filename, duration)
+                SELECT rowid, artist, album, title, albumartist, genre, path, filename, duration FROM tracks;
+                """
+            )
+            conn.commit()
 
     def get_conn(self, readonly: bool = False) -> sqlite3.Connection:
         """Creates and returns a SQLite database connection.
@@ -255,6 +324,10 @@ class CollectionExtractor:
         """
         self._logger.info("Starting full rebuild")
 
+        set_indexing_status(self.data_root, "rebuilding", total=-1, current=0)
+
+        self._write_queue.put(IndexEvent("CLEAR_DB"))
+
         files = [
             p
             for p in self.music_root.rglob("*")
@@ -263,8 +336,6 @@ class CollectionExtractor:
 
         total = len(files)
         set_indexing_status(self.data_root, "rebuilding", total=total, current=0)
-
-        self._write_queue.put(IndexEvent("CLEAR_DB"))
 
         for i, path in enumerate(files, start=1):
             self._write_queue.put(IndexEvent("INDEX_FILE", path))
@@ -289,6 +360,8 @@ class CollectionExtractor:
             None
         """
         self._logger.info("Starting resync")
+
+        set_indexing_status(self.data_root, "resyncing", total=-1, current=0)
 
         fs_paths = {
             str(p)

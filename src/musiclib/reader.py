@@ -7,6 +7,7 @@ from sqlite3 import Connection
 from common.logging import NullLogger
 
 from ._extractor import CollectionExtractor
+from .indexing_status import get_indexing_status
 from .indexing_status import clear_indexing_status
 
 
@@ -56,6 +57,7 @@ class MusicCollection:
             self._logger.info("No tracks in DB — scheduling initial rebuild")
             self._startup_mode = "rebuild"
         else:
+            self._logger.info("Start resync of DB")
             self._startup_mode = "resync"
 
         self._background_task_running = False
@@ -67,6 +69,17 @@ class MusicCollection:
         self._start_background_startup_job()
 
     # === Startup logic ===
+    def is_indexing(self) -> bool:
+        """
+        Checks if the music collection is currently being indexed or resynced.
+
+        Returns True if the indexing status is 'rebuilding' or 'resyncing', otherwise False.
+
+        Returns:
+            bool: True if indexing or resyncing is in progress, False otherwise.
+        """
+        status = get_indexing_status(self.db_path.parent)
+        return status is not None and status.get("status") in ("rebuilding", "resyncing")
 
     def _start_background_startup_job(self) -> None:
         """
@@ -188,16 +201,31 @@ class MusicCollection:
         """
         Searches for artists in the database matching the given prefix.
 
-        Returns a list of artist dictionaries, each including associated albums, for use in grouped search results.
+        Uses full-text search (FTS) if available, otherwise falls back to a SQL LIKE query. Returns a list of artist dictionaries.
 
         Args:
             conn (sqlite3.Connection): The SQLite database connection.
-            starts (str): The prefix to match artist names.
+            starts (str): The prefix pattern to match artist names.
             limit (int): The maximum number of artists to return.
 
         Returns:
-            list[dict]: A list of artist dictionaries with associated albums.
+            list[dict]: A list of artist dictionaries matching the prefix.
         """
+        if self._use_fts(conn):
+            # Build a MATCH query that respects the prefix.
+            # FTS5 does not support leading wildcards, so we use the prefix directly.
+            # The '^' anchor forces a prefix match.
+            match_expr = f'artist:"^{starts.rstrip("%")}"'   # strip trailing %
+            sql = """
+                SELECT rowid, artist FROM tracks_fts
+                WHERE tracks_fts MATCH ?
+                ORDER BY rank
+                LIMIT ?
+            """
+            cur = conn.execute(sql, (match_expr, limit))
+            return [{"artist": r["artist"]} for r in cur]
+
+        # Fallback to the original LIKE implementation
         cur = conn.execute(
             """
             SELECT DISTINCT artist FROM tracks
@@ -207,12 +235,38 @@ class MusicCollection:
             """,
             (starts, starts, limit),
         )
-        artists = [{"artist": r["artist"]} for r in cur]
+        return [{"artist": r["artist"]} for r in cur]
 
-        for a in artists:
-            a["albums"] = self._search_artist_albums(conn, a["artist"])
+    def _use_fts(self, conn: Connection) -> bool:
+        """
+        Determines if the full-text search (FTS) table exists in the database.
 
-        return artists
+        Checks for the presence of the 'tracks_fts' table to enable FTS-based search functionality.
+
+        Args:
+            conn (sqlite3.Connection): The SQLite database connection.
+
+        Returns:
+            bool: True if the FTS table exists, False otherwise.
+        """
+        cur = conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='tracks_fts'"
+        )
+        return cur.fetchone() is not None
+
+    def _fts_escape(self, txt: str) -> str:
+        """
+        Escapes special characters in a string for use in FTS queries.
+
+        Ensures that backslashes and double quotes are properly escaped to prevent query errors.
+
+        Args:
+            txt (str): The text string to escape.
+
+        Returns:
+            str: The escaped string safe for FTS queries.
+        """
+        return txt.replace('\\', '\\\\').replace('"', '\\"')
 
     def _search_artist_albums(self, conn, artist: str) -> list[dict]:
         """
@@ -281,14 +335,75 @@ class MusicCollection:
         self, conn: Connection, like: str, starts: str, limit: int, artists: list[dict]
     ) -> list[dict]:
         """
-        Searches for albums in the database matching the query, excluding those by already matched artists.
+        Searches for albums in the database matching the given prefix, excluding already matched artists.
 
-        Returns a list of album dictionaries, each including associated tracks, for use in grouped search results.
+        Uses full-text search (FTS) if available, otherwise falls back to a SQL LIKE query.
+        Returns a list of album dictionaries with associated tracks.
 
         Args:
             conn (sqlite3.Connection): The SQLite database connection.
             like (str): The SQL LIKE pattern for matching album names.
-            starts (str): The SQL LIKE pattern for matching album names at the start.
+            starts (str): The prefix pattern for matching album names.
+            limit (int): The maximum number of albums to return.
+            artists (list[dict]): A list of artist dictionaries to exclude from results.
+
+        Returns:
+            list[dict]: A list of album dictionaries with associated tracks.
+        """
+        if self._use_fts(conn):
+            return self._search_albums_fts(conn, starts, limit, artists)
+        else:
+            return self._search_albums_like(conn, like, starts, limit, artists)
+
+    def _search_albums_fts(
+        self, conn: Connection, starts: str, limit: int, artists: list[dict]
+    ) -> list[dict]:
+        """
+        Helper for _search_albums: performs FTS-based album search.
+
+        Args:
+            conn (sqlite3.Connection): The SQLite database connection.
+            starts (str): The prefix pattern for matching album names.
+            limit (int): The maximum number of albums to return.
+            artists (list[dict]): A list of artist dictionaries to exclude from results.
+
+        Returns:
+            list[dict]: A list of album dictionaries with associated tracks.
+        """
+        skip = {a["artist"].lower() for a in artists}
+        skip_clause = ""
+        params: list[Any] = []
+        if skip:
+            placeholders = ",".join("?" for _ in skip)
+            skip_clause = f"AND lower(artist) NOT IN ({placeholders})"
+            params.extend(skip)
+
+        match_expr = f'album:"^{starts.rstrip("%")}"'
+        sql = f"""
+            SELECT DISTINCT artist, album FROM tracks_fts
+            WHERE tracks_fts MATCH ?
+            {skip_clause}
+            ORDER BY rank
+            LIMIT ?
+        """
+        params = [match_expr] + params + [limit]
+        cur = conn.execute(sql, params)
+        albums = [{"artist": r["artist"], "album": r["album"]} for r in cur]
+
+        for a in albums:
+            a["tracks"] = self._search_album_tracks(conn, a["artist"], a["album"])
+        return albums
+
+    def _search_albums_like(
+        self, conn: Connection, like: str, starts: str, limit: int, artists: list[dict]
+    ) -> list[dict]:
+        """
+        Helper for _search_albums: performs LIKE-based album search.
+
+        Args:
+            conn (sqlite3.Connection): The SQLite database connection.
+            like (str): The SQL LIKE pattern for matching album names.
+            starts (str): The prefix pattern for matching album names.
             limit (int): The maximum number of albums to return.
             artists (list[dict]): A list of artist dictionaries to exclude from results.
 
@@ -297,7 +412,6 @@ class MusicCollection:
         """
         skip = {a["artist"].lower() for a in artists}
         params = [like, starts]
-
         sql = """
             SELECT DISTINCT artist, album FROM tracks
             WHERE album LIKE ? COLLATE NOCASE
@@ -305,16 +419,12 @@ class MusicCollection:
         if skip:
             sql += f" AND lower(artist) NOT IN ({','.join('?' * len(skip))})"
             params.extend(skip)
-
         sql += " ORDER BY album LIKE ? DESC, album COLLATE NOCASE LIMIT ?"
         params.extend([limit])
-
         cur = conn.execute(sql, params)
         albums = [{"artist": r["artist"], "album": r["album"]} for r in cur]
-
         for a in albums:
             a["tracks"] = self._search_album_tracks(conn, a["artist"], a["album"])
-
         return albums
 
     def _search_tracks(
@@ -327,14 +437,97 @@ class MusicCollection:
         albums: list[dict],
     ) -> list[dict]:
         """
-        Searches for tracks in the database matching the query, excluding those by already matched artists and albums.
+        Searches for tracks in the database matching the given prefix, excluding already matched artists and albums.
 
-        Returns a list of track dictionaries with metadata for use in grouped search results.
+        Uses full-text search (FTS) if available, otherwise falls back to a SQL LIKE query.
+        Returns a list of track dictionaries with metadata.
 
         Args:
             conn (sqlite3.Connection): The SQLite database connection.
             like (str): The SQL LIKE pattern for matching track titles.
-            starts (str): The SQL LIKE pattern for matching track titles at the start.
+            starts (str): The prefix pattern for matching track titles.
+            limit (int): The maximum number of tracks to return.
+            artists (list[dict]): A list of artist dictionaries to exclude from results.
+            albums (list[dict]): A list of album dictionaries to exclude from results.
+
+        Returns:
+            list[dict]: A list of track dictionaries with metadata.
+        """
+        if self._use_fts(conn):
+            return self._search_tracks_fts(conn, starts, limit, artists, albums)
+        else:
+            return self._search_tracks_like(conn, like, starts, limit, artists, albums)
+
+    def _search_tracks_fts(
+        self,
+        conn: Connection,
+        starts: str,
+        limit: int,
+        artists: list[dict],
+        albums: list[dict],
+    ) -> list[dict]:
+        """
+        Helper for _search_tracks: performs FTS-based track search.
+
+        Args:
+            conn (sqlite3.Connection): The SQLite database connection.
+            starts (str): The prefix pattern for matching track titles.
+            limit (int): The maximum number of tracks to return.
+            artists (list[dict]): A list of artist dictionaries to exclude from results.
+            albums (list[dict]): A list of album dictionaries to exclude from results.
+
+        Returns:
+            list[dict]: A list of track dictionaries with metadata.
+        """
+        skip_artists = {a["artist"].lower() for a in artists}
+        skip_artists.update(a["artist"].lower() for a in albums)
+
+        match_expr = f'title:"^{starts.rstrip("%")}"'
+        sql = """
+            SELECT artist, album, title AS track, path, filename, duration
+            FROM tracks_fts
+            WHERE tracks_fts MATCH ?
+        """
+        params: list[any] = [match_expr]
+
+        if skip_artists:
+            placeholders = ",".join("?" for _ in skip_artists)
+            sql += f" AND lower(artist) NOT IN ({placeholders})"
+            params.extend(skip_artists)
+
+        sql += " ORDER BY rank LIMIT ?"
+        params.append(limit)
+
+        cur = conn.execute(sql, params)
+
+        return [
+            {
+                "artist": r["artist"],
+                "album": r["album"],
+                "track": r["track"],
+                "path": self._relative_path(r["path"]),
+                "filename": r["filename"],
+                "duration": self._format_duration(r["duration"]),
+            }
+            for r in cur
+        ]
+
+    def _search_tracks_like(
+        self,
+        conn: Connection,
+        like: str,
+        starts: str,
+        limit: int,
+        artists: list[dict],
+        albums: list[dict],
+    ) -> list[dict]:
+        """
+        Helper for _search_tracks: performs LIKE-based track search.
+
+        Args:
+            conn (sqlite3.Connection): The SQLite database connection.
+            like (str): The SQL LIKE pattern for matching track titles.
+            starts (str): The prefix pattern for matching track titles.
             limit (int): The maximum number of tracks to return.
             artists (list[dict]): A list of artist dictionaries to exclude from results.
             albums (list[dict]): A list of album dictionaries to exclude from results.
@@ -344,21 +537,17 @@ class MusicCollection:
         """
         skip = {a["artist"].lower() for a in artists}
         skip.update(a["artist"].lower() for a in albums)
-
         params = [like, starts]
         sql = """
             SELECT artist, album, title, path, filename, duration
             FROM tracks
             WHERE title LIKE ? COLLATE NOCASE
         """
-
         if skip:
             sql += f" AND lower(artist) NOT IN ({','.join('?' * len(skip))})"
             params.extend(skip)
-
         sql += " ORDER BY title LIKE ? DESC, title COLLATE NOCASE LIMIT ?"
         params.extend([limit])
-
         cur = conn.execute(sql, params)
         return [
             {
@@ -392,33 +581,36 @@ class MusicCollection:
         quoted = re.findall(r'"([^"]*)"', query)
         plain = re.sub(r'"[^"]*"', '', query).strip()
         terms = quoted + (plain.split() if plain else [])
+        term_pat = re.compile("|".join(map(re.escape, filter(None, terms))), re.I)
 
         # Use your existing grouped search but with better terms
         grouped, _ = self.search_grouped(query, limit=limit)
 
         # Highlight artists
+        cache: dict[str, str] = {}
+        def hl(text: str) -> str:
+            if text not in cache:
+                cache[text] = term_pat.sub(r"<mark>\g<0></mark>", text)
+            return cache[text]
+
+        # 3️⃣ Walk the result tree once
         for artist in grouped["artists"]:
-            artist["artist"] = self.highlight_text(artist["artist"], terms)
-
+            artist["artist"] = hl(artist["artist"])
             for album in artist.get("albums", []):
-                album["album"] = self.highlight_text(album["album"], terms)
-
+                album["album"] = hl(album["album"])
                 for track in album.get("tracks", []):
-                    track["track"] = self.highlight_text(track["track"], terms)
+                    track["track"] = hl(track["track"])
 
-        # Highlight albums
         for album in grouped["albums"]:
-            album["artist"] = self.highlight_text(album["artist"], terms)
-            album["album"] = self.highlight_text(album["album"], terms)
-
+            album["artist"] = hl(album["artist"])
+            album["album"] = hl(album["album"])
             for track in album.get("tracks", []):
-                track["track"] = self.highlight_text(track["track"], terms)
+                track["track"] = hl(track["track"])
 
-        # Highlight tracks
         for track in grouped["tracks"]:
-            track["artist"] = self.highlight_text(track["artist"], terms)
-            track["album"] = self.highlight_text(track["album"], terms)
-            track["track"] = self.highlight_text(track["track"], terms)
+            track["artist"] = hl(track["artist"])
+            track["album"] = hl(track["album"])
+            track["track"] = hl(track["track"])
 
         return grouped
     def parse_query(self, query: str) -> dict[str, list[str]]:
@@ -474,7 +666,8 @@ class MusicCollection:
         """
         Searches for artists in the database matching any of the provided search terms.
 
-        Returns a list of artist dictionaries that match one or more of the search terms.
+        Uses full-text search (FTS) if available, otherwise falls back to a SQL LIKE query.
+        Returns a list of artist dictionaries matching any term.
 
         Args:
             conn (sqlite3.Connection): The SQLite database connection.
@@ -482,20 +675,35 @@ class MusicCollection:
             limit (int): The maximum number of artists to return.
 
         Returns:
-            list[dict]: A list of artist dictionaries matching the search terms.
+            list[dict]: A list of artist dictionaries matching any of the search terms.
         """
         if not terms:
             return []
-        where = ' OR '.join(['artist LIKE ? COLLATE NOCASE' for _ in terms])
-        params = [f'%{t}%' for t in terms] + [limit]
+        if self._use_fts(conn):
+            # Join terms with OR for any‑of‑these semantics.
+            # Each term is quoted to avoid tokenisation issues.
+            match_expr = " OR ".join(f'artist:{self._fts_escape(t)}' for t in terms)
+            sql = """
+                SELECT DISTINCT artist FROM tracks_fts
+                WHERE tracks_fts MATCH ?
+                ORDER BY rank
+                LIMIT ?
+            """
+            cur = conn.execute(sql, (match_expr, limit))
+            return [{"artist": r["artist"]} for r in cur]
+
+        # Legacy LIKE fallback
+        where = " OR ".join(["artist LIKE ? COLLATE NOCASE" for _ in terms])
+        params = [f"%{t}%" for t in terms] + [limit]
         cur = conn.execute(f"SELECT DISTINCT artist FROM tracks WHERE {where} ORDER BY artist COLLATE NOCASE LIMIT ?", params)
-        return [{'artist': r['artist']} for r in cur]
+        return [{"artist": r["artist"]} for r in cur]
 
     def _search_albums_multi(self, conn: Connection, terms: list[str], limit: int) -> list[dict]:
         """
         Searches for albums in the database matching any of the provided search terms.
 
-        Returns a list of album dictionaries that match one or more of the search terms.
+        Uses full-text search (FTS) if available, otherwise falls back to a SQL LIKE query.
+        Returns a list of album dictionaries matching any term.
 
         Args:
             conn (sqlite3.Connection): The SQLite database connection.
@@ -503,20 +711,66 @@ class MusicCollection:
             limit (int): The maximum number of albums to return.
 
         Returns:
-            list[dict]: A list of album dictionaries matching the search terms.
+            list[dict]: A list of album dictionaries matching any of the search terms.
         """
         if not terms:
             return []
-        where = ' OR '.join(['album LIKE ? COLLATE NOCASE' for _ in terms])
-        params = [f'%{t}%' for t in terms] + [limit]
+        if self._use_fts(conn):
+            return self._search_albums_multi_fts(conn, terms, limit)
+        else:
+            return self._search_albums_multi_like(conn, terms, limit)
+
+    def _search_albums_multi_fts(self, conn: Connection, terms: list[str], limit: int) -> list[dict]:
+        """
+        Helper for _search_albums_multi: performs FTS-based multi-term album search.
+
+        Args:
+            conn (sqlite3.Connection): The SQLite database connection.
+            terms (list[str]): A list of search terms to match against album names.
+            limit (int): The maximum number of albums to return.
+
+        Returns:
+            list[dict]: A list of album dictionaries matching any of the search terms.
+        """
+        match_expr = " OR ".join(f'album:{self._fts_escape(t)}' for t in terms)
+        sql = """
+            SELECT DISTINCT artist, album FROM tracks_fts
+            WHERE tracks_fts MATCH ?
+            ORDER BY rank
+            LIMIT ?
+        """
+        cur = conn.execute(sql, (match_expr, limit))
+        albums = [{"artist": r["artist"], "album": r["album"]} for r in cur]
+        for a in albums:
+            a["tracks"] = self._search_album_tracks(conn, a["artist"], a["album"])
+        return albums
+
+    def _search_albums_multi_like(self, conn: Connection, terms: list[str], limit: int) -> list[dict]:
+        """
+        Helper for _search_albums_multi: performs LIKE-based multi-term album search.
+
+        Args:
+            conn (sqlite3.Connection): The SQLite database connection.
+            terms (list[str]): A list of search terms to match against album names.
+            limit (int): The maximum number of albums to return.
+
+        Returns:
+            list[dict]: A list of album dictionaries matching any of the search terms.
+        """
+        where = " OR ".join(["album LIKE ? COLLATE NOCASE" for _ in terms])
+        params = [f"%{t}%" for t in terms] + [limit]
         cur = conn.execute(f"SELECT DISTINCT album, artist FROM tracks WHERE {where} ORDER BY album COLLATE NOCASE LIMIT ?", params)
-        return [{'album': r['album'], 'artist': r['artist']} for r in cur]
+        albums = [{"album": r["album"], "artist": r["artist"]} for r in cur]
+        for a in albums:
+            a["tracks"] = self._search_album_tracks(conn, a["artist"], a["album"])
+        return albums
 
     def _search_tracks_multi(self, conn: Connection, terms: list[str], limit: int) -> list[dict]:
         """
         Searches for tracks in the database matching any of the provided search terms.
 
-        Returns a list of track dictionaries that match one or more of the search terms.
+        Uses full-text search (FTS) if available, otherwise falls back to a SQL LIKE query.
+        Returns a list of track dictionaries matching any term.
 
         Args:
             conn (sqlite3.Connection): The SQLite database connection.
@@ -524,19 +778,81 @@ class MusicCollection:
             limit (int): The maximum number of tracks to return.
 
         Returns:
-            list[dict]: A list of track dictionaries matching the search terms.
+            list[dict]: A list of track dictionaries matching any of the search terms.
         """
         if not terms:
             return []
-        where = ' OR '.join(['title LIKE ? COLLATE NOCASE' for _ in terms])
-        params = [f'%{t}%' for t in terms] + [limit]
+        if self._use_fts(conn):
+            return self._search_tracks_multi_fts(conn, terms, limit)
+        else:
+            return self._search_tracks_multi_like(conn, terms, limit)
+
+    def _search_tracks_multi_fts(self, conn: Connection, terms: list[str], limit: int) -> list[dict]:
+        """
+        Helper for _search_tracks_multi: performs FTS-based multi-term track search.
+
+        Args:
+            conn (sqlite3.Connection): The SQLite database connection.
+            terms (list[str]): A list of search terms to match against track titles.
+            limit (int): The maximum number of tracks to return.
+
+        Returns:
+            list[dict]: A list of track dictionaries matching any of the search terms.
+        """
+        match_expr = " OR ".join(f'title:{self._fts_escape(t)}' for t in terms)
+        sql = """
+            SELECT artist, album, title AS track, path, filename, duration
+            FROM tracks_fts
+            WHERE tracks_fts MATCH ?
+            ORDER BY rank
+            LIMIT ?
+        """
+        cur = conn.execute(sql, (match_expr, limit))
+        return [
+            {
+                "artist": r["artist"],
+                "album": r["album"],
+                "track": r["track"],
+                "path": self._relative_path(r["path"]),
+                "filename": r["filename"],
+                "duration": self._format_duration(r["duration"]),
+            }
+            for r in cur
+        ]
+
+    def _search_tracks_multi_like(self, conn: Connection, terms: list[str], limit: int) -> list[dict]:
+        """
+        Helper for _search_tracks_multi: performs LIKE-based multi-term track search.
+
+        Args:
+            conn (sqlite3.Connection): The SQLite database connection.
+            terms (list[str]): A list of search terms to match against track titles.
+            limit (int): The maximum number of tracks to return.
+
+        Returns:
+            list[dict]: A list of track dictionaries matching any of the search terms.
+        """
+        where = " OR ".join(["title LIKE ? COLLATE NOCASE" for _ in terms])
+        params = [f"%{t}%" for t in terms] + [limit]
         sql = f"""
             SELECT path, filename, artist, album, title AS track, duration
-            FROM tracks WHERE {where}
-            ORDER BY title COLLATE NOCASE LIMIT ?
+            FROM tracks
+            WHERE {where}
+            ORDER BY title COLLATE NOCASE
+            LIMIT ?
         """
         cur = conn.execute(sql, params)
-        return [dict(r) for r in cur]
+        return [
+            {
+                "artist":   r["artist"],
+                "album":    r["album"],
+                "track":    r["track"],
+                "path":     self._relative_path(r["path"]),
+                "filename": r["filename"],
+                "duration": self._format_duration(r["duration"]),
+            }
+            for r in cur
+        ]
 
     def _format_artist_results(
         self, artists: list[dict], query_lower: str
