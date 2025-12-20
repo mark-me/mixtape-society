@@ -42,7 +42,8 @@ mixtape-society
 │   ├── static                  → Static assets
 │   │   ├──css                  → Styling of Jinja2 views
 │   │   └──js                   → JavaScript for Jinja2 views
-│   └── templates               → Jinja2 views
+│   ├── templates               → Jinja2 views
+│   └── utilities               → Additional tools
 └── uv.lock                     → uv-managed dependency lockfile
 ```
 

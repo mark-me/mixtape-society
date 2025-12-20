@@ -18,6 +18,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
   - Artist
   - Album
   - Song
+- Logo in social card cover image
 
 ### 🔧 Changed
 
@@ -25,6 +26,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 - Liner notes before tracks list
 - Remove track icon
 - Removed theme label from navbar
+- Documentation images update
 
 ### 🐛 Fixed
 

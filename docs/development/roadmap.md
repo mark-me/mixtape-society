@@ -1,6 +1,6 @@
-# Roadmap
-
 ![Roadmap](../images/roadmap.png){ align=right width="90" }
+
+# Roadmap
 
 ## What NOT to add (to keep the soul of the project)
 

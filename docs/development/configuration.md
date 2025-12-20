@@ -1,6 +1,6 @@
-# Configuration
-
 ![Configuration](../images/configuration.png){ align=right width="90" }
+
+# Configuration
 
 Configuration is via environment variables (or `.env` file for local runs). Docker images support all vars via `-e` flags.
 

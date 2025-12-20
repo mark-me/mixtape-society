@@ -1,6 +1,6 @@
-# Mixtape Manager
-
 ![Mixtape editor](../images/mixtape.png){ align=right width="90" }
+
+# Mixtape Manager
 
 The `mixtape_manager` package defines the `MixtapeManager` class, This class acts as the core data access and management layer for mixtape-related features in the larger system, abstracting away file system operations and data consistency concerns.
 

@@ -1,0 +1,285 @@
+# utils/og_image.py
+from io import BytesIO
+from pathlib import Path
+
+import cairosvg
+from flask import Blueprint, abort, current_app, request, send_file
+from PIL import Image
+
+from common.logging import Logger, NullLogger
+
+
+def create_og_cover_blueprint(
+    path_logo: Path, logger: Logger | None = None
+) -> Blueprint:
+    """
+    Creates a Flask blueprint for serving cover images with a logo overlay.
+
+    This function sets up routes and logic for handling requests to overlay a logo on cover images,
+    including caching and query parameter validation.
+
+    Args:
+        logger: An optional Logger instance for logging.
+
+    Returns:
+        A Flask Blueprint configured for cover image overlay routes.
+    """
+    og = Blueprint("og", __name__)
+
+    logger: Logger = logger or NullLogger()
+
+    @og.route("/cover/<path:filename>")
+    def cover_with_logo(filename):
+        """
+        Serves a cover image with a logo overlaid, using query parameters for customization.
+
+        This function locates the requested cover image, validates input parameters, overlays the logo,
+        and returns the composited PNG image. Results are cached for performance.
+
+        Args:
+            filename: The name of the cover image file.
+
+        Returns:
+            A Flask response containing the PNG image with the logo overlaid.
+
+        Raises:
+            Aborts with a 404 error if the cover image is not found.
+            Aborts with a 400 error if query parameters are invalid.
+        """
+        cover_path = _get_cover_path(filename)
+        _validate_cover_path(cover_path)
+        logo_scale, corner, margin = _get_query_params()
+        _validate_query_params(logo_scale, corner, margin)
+        # Use cover file modification time for cache key
+        cover_mtime = cover_path.stat().st_mtime
+        cache_key = f"{filename}:{cover_mtime}:{logo_scale}:{corner}:{margin}"
+        if cached := current_app.cache.get(cache_key):
+            return send_file(BytesIO(cached), mimetype="image/png")
+        with open(path_logo, "rb") as f:
+            file_logo = f.read()
+        result = overlay_logo_bytes(
+            cover_bytes=cover_path.read_bytes(),
+            svg_bytes=file_logo,
+            logo_scale=logo_scale,
+            corner=corner,
+            margin=margin,
+        )
+        current_app.cache.set(cache_key, result, timeout=60 * 60 * 24)
+        return send_file(BytesIO(result), mimetype="image/png")
+
+    return og
+
+
+def _svg_to_png(svg_bytes: bytes, width: int, height: int) -> bytes:
+    """Converts an SVG image to PNG format with the specified width and height.
+
+    This function takes SVG image data as bytes and returns PNG image data as bytes.
+
+    Args:
+        svg_bytes: The SVG image data as bytes.
+        width: The desired output width in pixels.
+        height: The desired output height in pixels.
+
+    Returns:
+        PNG image data as bytes.
+    """
+    return cairosvg.svg2png(
+        bytestring=svg_bytes, output_width=width, output_height=height
+    )
+
+
+def overlay_logo_bytes(
+    cover_bytes: bytes,
+    svg_bytes: bytes,
+    *,
+    logo_scale: float = 0.15,
+    corner: str = "bottom_right",
+    margin: int = 10,
+) -> bytes:
+    """Overlays a logo onto a cover image and returns the composited image as PNG bytes.
+
+    This function places a logo, provided as SVG bytes, onto a cover image at a specified corner and scale.
+
+    Args:
+        cover_bytes (bytes): The cover image data as bytes.
+        svg_bytes (bytes): The SVG logo image data as bytes.
+        logo_scale (float): The scale of the logo relative to the shortest side of the cover image.
+        corner (str): The corner of the cover image to place the logo ('bottom_right', 'bottom_left', 'top_right', 'top_left').
+        margin (int): The margin in pixels between the logo and the edge of the cover image.
+
+    Returns:
+        PNG image data as bytes with the logo overlaid.
+
+    Raises:
+        ValueError: If an unsupported corner is specified.
+    """
+    cover = _load_cover_image(cover_bytes)
+    logo = _load_logo_image(svg_bytes, cover.size, logo_scale)
+    x, y = _calculate_logo_position(cover.size, logo.size, corner, margin)
+    # Ensure logo has an alpha channel for use as mask
+    if logo.mode != "RGBA":
+        logo = logo.convert("RGBA")
+    cover.paste(logo, (x, y), logo)
+    return _save_image_to_bytes(cover)
+
+
+def _load_cover_image(cover_bytes: bytes) -> Image.Image:
+    """Loads a cover image from bytes and converts it to RGBA format.
+
+    This function opens the image from the provided bytes and ensures it is in RGBA mode.
+
+    Args:
+        cover_bytes: The cover image data as bytes.
+
+    Returns:
+        A PIL Image object in RGBA format.
+    """
+    return Image.open(BytesIO(cover_bytes)).convert("RGBA")
+
+
+def _load_logo_image(
+    svg_bytes: bytes, cover_size: tuple[int, int], logo_scale: float
+) -> Image.Image:
+    """Loads and scales a logo image from SVG bytes to fit the cover image.
+
+    This function converts SVG logo bytes to a PNG image, scaled according to the cover image size and logo scale.
+
+    Args:
+        svg_bytes (bytes): The SVG logo image data as bytes.
+        cover_size (tuple[int, int]): The (width, height) of the cover image.
+        logo_scale (float): The scale of the logo relative to the shortest side of the cover image.
+
+    Returns:
+        A PIL Image object of the logo in RGBA format.
+    """
+    width_cover, height_cover = cover_size
+    short_side = min(width_cover, height_cover)
+    target = int(short_side * logo_scale)
+    logo_png = _svg_to_png(svg_bytes, target, target)
+    return Image.open(BytesIO(logo_png)).convert("RGBA")
+
+
+def _calculate_logo_position(
+    cover_size: tuple[int, int], logo_size: tuple[int, int], corner: str, margin: int
+) -> tuple[int, int]:
+    """Calculates the position to place the logo on the cover image.
+
+    This function determines the (x, y) coordinates for the logo based on the specified corner and margin.
+
+    Args:
+        cover_size (tuple[int, int]): The (width, height) of the cover image.
+        logo_size (tuple[int, int]): The (width, height) of the logo image.
+        corner (str): The corner of the cover image to place the logo ('bottom_right', 'bottom_left', 'top_right', 'top_left').
+        margin (int): The margin in pixels between the logo and the edge of the cover image.
+
+    Returns:
+        A tuple (x, y) representing the coordinates for the logo placement.
+
+    Raises:
+        ValueError: If an unsupported corner is specified.
+    """
+    width_cover, height_cover = cover_size
+    width_logo, height_logo = logo_size
+    if corner == "bottom_right":
+        return width_cover - width_logo - margin, height_cover - height_logo - margin
+    elif corner == "bottom_left":
+        return margin, height_cover - height_logo - margin
+    elif corner == "top_right":
+        return width_cover - width_logo - margin, margin
+    elif corner == "top_left":
+        return margin, margin
+    else:
+        raise ValueError(f"Unsupported corner: {corner}")
+
+
+def _save_image_to_bytes(image: Image.Image) -> bytes:
+    """Converts a PIL Image object to PNG bytes.
+
+    This function saves the provided image in PNG format and returns the image data as bytes.
+
+    Args:
+        image: The PIL Image object to convert.
+
+    Returns:
+        PNG image data as bytes.
+    """
+    out = BytesIO()
+    image.save(out, format="PNG")
+    out.seek(0)
+    return out.read()
+
+
+def _get_cover_path(filename: str) -> Path:
+    """
+    Constructs the file path for a cover image based on the provided filename.
+
+    This function returns the absolute path to the cover image within the static/cover directory.
+
+    Args:
+        filename: The name of the cover image file.
+
+    Returns:
+        A Path object representing the cover image file location.
+    """
+    return Path(current_app.root_path) / "static" / "cover" / filename
+
+
+def _validate_cover_path(cover_path: Path) -> None:
+    """
+    Checks if the cover image file exists at the specified path.
+
+    This function aborts the request with a 404 error if the cover image file does not exist.
+
+    Args:
+        cover_path: The path to the cover image file.
+
+    Raises:
+        Aborts with a 404 error if the file is not found.
+    """
+    if not cover_path.is_file():
+        abort(404, description="Cover image not found")
+
+
+def _get_query_params():
+    """
+    Extracts and returns logo overlay parameters from the request query string.
+
+    This function reads the scale, corner, and margin parameters from the request query string,
+    providing sensible defaults if they are not specified.
+
+    Returns:
+        A tuple containing (logo_scale, corner, margin).
+
+    Raises:
+        Aborts with a 400 error if query parameters are invalid.
+    """
+    try:
+        logo_scale = float(request.args.get("scale", 0.15))
+        corner = request.args.get("corner", "bottom_right")
+        margin = int(request.args.get("margin", 10))
+    except ValueError:
+        abort(400, description="Invalid query parameters")
+    return logo_scale, corner, margin
+
+
+def _validate_query_params(logo_scale: float, corner: str, margin: int) -> None:
+    """
+    Validates the logo overlay query parameters for scale, corner, and margin.
+
+    This function aborts the request with a 400 error if any parameter is invalid.
+
+    Args:
+        logo_scale: The scale of the logo relative to the cover image.
+        corner: The corner of the cover image to place the logo.
+        margin: The margin in pixels between the logo and the edge of the cover image.
+
+    Raises:
+        Aborts with a 400 error if any parameter is invalid.
+    """
+    if logo_scale <= 0:
+        abort(400, description="Scale must be positive")
+    if margin < 0:
+        abort(400, description="Margin must be non-negative")
+    allowed_corners = {"bottom_right", "bottom_left", "top_right", "top_left"}
+    if corner not in allowed_corners:
+        abort(400, description=f"Corner must be one of {', '.join(allowed_corners)}")

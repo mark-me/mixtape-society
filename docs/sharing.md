@@ -1,6 +1,6 @@
-# Sharing Mixtapes
-
 ![Sharing](images/share.png){ align=right width="90" }
+
+# Sharing Mixtapes
 
 Sharing a mixtape in Mixtape Society recreates the joy of handing over a physical cassette—personal, direct, and full of heart.
 

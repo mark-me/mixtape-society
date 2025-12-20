@@ -1,6 +1,6 @@
-# Project Module Architecture
-
 ![modules](../images/modules.png){ align=right width="90" }
+
+# Project Module Architecture
 
 This page provides an overview of the project’s Python modules and how they depend on each other. It describes the responsibilities of each module and visualizes their relationships to clarify the overall architecture. The goal is to make the structure of the codebase easier to understand for contributors and to highlight the separation between core functionality and the web interface.
 

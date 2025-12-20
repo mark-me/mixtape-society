@@ -1,6 +1,6 @@
-# Local Development with Docker
-
 ![Container](../images/container.png){ align=right width="90" }
+
+# Local Development with Docker
 
 While uv is recommended for local dev (faster iteration), Docker is great for testing production-like environments.
 

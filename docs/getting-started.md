@@ -1,6 +1,6 @@
-# Getting Started
-
 ![Started](images/rocket.png){ align=right width="90" }
+
+# Getting Started
 
 Launch your own Mixtape Society server and start crafting mixtapes from your music library.
 
