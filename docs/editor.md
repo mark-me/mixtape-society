@@ -25,9 +25,15 @@ The Mixtape Editor lets you craft personal mixtapes by searching your music libr
 
     Click a track to add it to your mixtape.
 
+    !!! tip "Pro Tip"
+        `Escape` – Clears the search field
+
 3. **Reorder Tracks**
 
     Drag and drop tracks in the playlist to perfect the flow (powered by Sortable.js).
+
+    !!! tip "Pro Tip"
+        Start with a strong opener track—the app uses its album art as the default cover for that perfect first impression.
 
 4. **Customize the Cover Art**
 
@@ -45,14 +51,9 @@ The Mixtape Editor lets you craft personal mixtapes by searching your music libr
 
     Enter a title (it auto-generates a clean, URL-friendly slug).
 
-    Click Save (or press Ctrl + Enter) – your mixtape saves instantly, and you get a public share link.
+    Click Save – your mixtape saves instantly, and you get a public share link.
 
-## Keyboard shortcuts
-
-- `Ctrl + Enter` – Save mixtape
-- `Escape` – Clear search field
-
-!!! tip "Pro Tip"
-    Start with a strong opener track—the app uses its album art as the default cover for that perfect first impression.
+    !!! tip "Pro Tip"
+        `Ctrl + Enter` also saves your mixtape
 
 Once saved, head to the [Sharing page](sharing.md) to learn how to send your mixtape to friends. Enjoy the magic! 🚀
