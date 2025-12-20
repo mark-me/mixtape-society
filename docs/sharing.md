@@ -2,6 +2,8 @@
 
 # Sharing Mixtapes
 
+![Sharing a Mixtape](images/screenshot-share.png)
+
 Sharing a mixtape in Mixtape Society recreates the joy of handing over a physical cassette—personal, direct, and full of heart.
 
 How Sharing Works
