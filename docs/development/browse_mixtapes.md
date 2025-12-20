@@ -1,6 +1,6 @@
-# Browse Mixtapes
-
 ![Browse Mixtapes](../images/browser.png){ align=right width="90" }
+
+# Browse Mixtapes
 
 The file `routes/browse_mixtapes.py` plays a central role in the user-facing browsing experience for mixtapes, enforcing access control and connecting the UI to the underlying mixtape data. It defines the browse_mixtapes Flask blueprint, which provides routes for browsing, playing, and serving mixtape files within a web application. It handles user authentication for protected routes, retrieves mixtape data, and serves static files related to mixtapes. The blueprint integrates with the application's authentication system and the MixtapeManager for data access.
 

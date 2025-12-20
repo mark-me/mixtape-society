@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 from datetime import datetime, timezone
+from pathlib import Path
 
 from flask import Flask, Response, redirect, render_template
 from flask_cors import CORS
@@ -19,7 +20,7 @@ from routes import (
     create_play_blueprint,
     create_authentication_blueprint,
 )
-from version_info import get_version
+from utils import get_version, create_og_cover_blueprint
 
 
 def create_app() -> Flask:
@@ -118,6 +119,12 @@ def create_app() -> Flask:
     app.register_blueprint(
         create_editor_blueprint(collection=collection, logger=logger),
         url_prefix="/editor",
+    )
+    app.register_blueprint(
+        create_og_cover_blueprint(
+            path_logo=Path(__file__).parent / "static" / "logo.svg", logger=logger
+        ),
+        url_prefix="/og",
     )
 
     return app

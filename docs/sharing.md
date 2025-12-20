@@ -1,8 +1,12 @@
-# Sharing Mixtapes
-
 ![Sharing](images/share.png){ align=right width="90" }
 
-Sharing a mixtape in Mixtape Society recreates the joy of handing over a physical cassette—personal, direct, and full of heart.
+# Sharing Mixtapes
+
+Sharing a mixtape with friends or family with Mixtape Society recreates the joy of handing over a physical cassette—personal, direct, and full of heart.
+
+<figure markdown="span">
+    ![Sharing a Mixtape](images/screenshot-share.png)
+</figure>
 
 How Sharing Works
 
@@ -32,6 +36,6 @@ How Sharing Works
 - Future ideas → QR codes for quick scanning (coming soon!).
 
 !!! tip "Pro Tip"
-Pair your link with a personal message: "Made this mixtape thinking of you—hope it brings back good memories! 🎧"
+    Pair your link with a personal message: "Made this mixtape thinking of you—hope it brings back good memories! 🎧"
 
 Sharing is the heart of Mixtape Society. Go make someone's day with your perfect playlist! 🚀

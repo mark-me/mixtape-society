@@ -1,6 +1,6 @@
-# About Mixtape Society
+![Mixtape Society Logo](images/logo.svg){ align=right width="90" }
 
-![Mixtape Society Logo](images/cassette-fill-white.svg){ align=right width="150" }
+# About Mixtape Society
 
 Mixtape Society is a self-hosted web application that lets you create, manage, and share personalized music mixtapes from your own music library. Inspired by the nostalgia of cassette tapes, it brings a modern twist: drag-and-drop editing, custom covers, and public share links for easy listening without accounts or apps.
 
