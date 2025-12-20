@@ -14,10 +14,24 @@
     <meta property="og:site_name" content="Mixtape Society"/>
 
     {% if mixtape.cover %}
-        <meta property="og:image" content="{{ url_for('play.serve_cover', filename=mixtape.cover.split('/')[-1], _external=True) }}"/>
-        <meta property="og:image:width" content="1200"/>
-        <meta property="og:image:height" content="1200"/>
-        <meta property="og:image:alt" content="Cover of {{ mixtape.title }}"/>
+        {% set og_url = url_for('og.cover_with_logo',
+                               filename=mixtape.cover,
+                               scale=0.15,
+                               corner='bottom_right',
+                               margin=10,
+                               _external=True) %}
+        <meta property="og:title" content="{{ mixtape.title|e }}">
+        <meta property="og:description"
+              content="{{ mixtape.tracks|length }} tracks – {{ mixtape.saved_at[:10] if mixtape.saved_at else '' }}">
+        <meta property="og:image" content="{{ og_url }}">
+        <meta property="og:image:type" content="image/png">
+        <meta property="og:image:width" content="1200">
+        <meta property="og:image:height" content="630">
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="{{ mixtape.title|e }}">
+        <meta name="twitter:description"
+              content="{{ mixtape.tracks|length }} tracks – {{ mixtape.saved_at[:10] if mixtape.saved_at else '' }}">
+        <meta name="twitter:image" content="{{ og_url }}">
     {% else %}
         <!-- Fallback afbeelding als er geen cover is -->
         <meta property="og:image" content="{{ url_for('static', filename='image.jpg') }}"/>
