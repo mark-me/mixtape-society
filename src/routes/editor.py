@@ -3,17 +3,21 @@ import secrets
 import shutil
 from base64 import b64decode
 from datetime import datetime
+from io import BytesIO
 from pathlib import Path
 
-from flask import Blueprint, jsonify, render_template, request, current_app
+from flask import Blueprint, current_app, jsonify, render_template, request
+from PIL import Image
 
 from auth import require_auth
-from musiclib import MusicCollection
-from mixtape_manager import MixtapeManager
 from common.logging import Logger, NullLogger
+from mixtape_manager import MixtapeManager
+from musiclib import MusicCollection
 
 
-def create_editor_blueprint(collection: MusicCollection, logger: Logger | None = None) -> Blueprint:
+def create_editor_blueprint(
+    collection: MusicCollection, logger: Logger | None = None
+) -> Blueprint:
     """
     Creates and configures the Flask blueprint for the mixtape editor.
 
@@ -57,7 +61,9 @@ def create_editor_blueprint(collection: MusicCollection, logger: Logger | None =
         Returns:
             str: The rendered HTML page for editing the mixtape.
         """
-        mixtape_manager = MixtapeManager(path_mixtapes=current_app.config["MIXTAPE_DIR"])
+        mixtape_manager = MixtapeManager(
+            path_mixtapes=current_app.config["MIXTAPE_DIR"]
+        )
         mixtape = mixtape_manager.get(slug)
         return render_template(
             "editor.html", preload_mixtape=mixtape, editing_slug=slug
@@ -190,29 +196,48 @@ def create_editor_blueprint(collection: MusicCollection, logger: Logger | None =
 
     def _process_cover(cover_data: str, slug: str) -> str | None:
         """
-        Processes and saves a mixtape cover image from base64 data.
+        Processes and saves a cover image from base64-encoded data.
 
-        Decodes the image data, saves it to the covers directory, and returns the relative path to the saved image. Returns None if the data is invalid or saving fails.
+        Decodes the image data, resizes the image, and saves it as a JPEG file in the covers directory.
+        Returns the relative path to the saved cover image, or None if processing fails.
 
         Args:
-            cover_data: The base64-encoded image data as a string.
+            cover_data: The base64-encoded image data string.
             slug: The unique identifier for the mixtape.
 
         Returns:
-            str | None: The relative path to the saved cover image, or None if saving fails.
+            str | None: The relative path to the saved cover image, or None if processing fails.
         """
         if not cover_data or not cover_data.startswith("data:image"):
             return None
         try:
-            header, b64data = cover_data.split(",", 1)
-            img_data = b64decode(b64data)
+            _, b64data = cover_data.split(",", 1)
+            image = Image.open(BytesIO(b64decode(b64data)))
             cover_path = current_app.config["COVER_DIR"] / f"{slug}.jpg"
-            with open(cover_path, "wb") as f:
-                f.write(img_data)
+            image = _cover_resize(image=image)
+            image.save(cover_path, "JPEG", quality=100)
             return f"covers/{slug}.jpg"
         except Exception as e:
             logger.error(f"Cover opslaan mislukt voor {slug}: {e}")
             return None
+
+    def _cover_resize(image: Image, new_width: int=520) -> Image:
+        """
+        Resizes the given image to a specified width while maintaining aspect ratio.
+
+        Calculates the new height to preserve the image's proportions and resizes using high-quality Lanczos filtering.
+
+        Args:
+            image: The PIL Image object to resize.
+            new_width: The desired width of the resized image (default is 520).
+
+        Returns:
+            Image: The resized PIL Image object.
+        """
+        width, height = image.size
+        new_height = int(height * (new_width / width)) if width > new_width else height
+        image = image.resize((new_width, new_height), Image.LANCZOS)
+        return image
 
     def _get_default_cover(track_path: str, slug: str) -> str | None:
         """

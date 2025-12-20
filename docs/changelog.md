@@ -27,6 +27,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 - Remove track icon
 - Removed theme label from navbar
 - Documentation images update
+- Large cover files are scaled down to save bandwidth
 
 ### 🐛 Fixed
 
