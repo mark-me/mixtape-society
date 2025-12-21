@@ -29,8 +29,9 @@ def main():
               f"({status['current']}/{status['total']} – {status['progress']*100:.1f}%)")
 
     print("Indexing complete (or not needed). Searching...")
-    result = collection.search_highlighting(query="Nick")
-    print(result)
+    result = collection.search_highlighting(query="Sea")
+    return result
 
 if __name__ == "__main__":
-    main()
+    result = main()
+    print(result)
