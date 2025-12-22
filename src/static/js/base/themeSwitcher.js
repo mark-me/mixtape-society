@@ -1,3 +1,4 @@
+// static/js/base/themeSwitcher.js
 /**
  * Initializes the theme switcher UI and applies the selected or system theme.
  * Handles user interaction for theme selection and responds to OS-level theme changes.

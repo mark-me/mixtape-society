@@ -1,8 +1,9 @@
+// static/js/editor/ui.js
 import { showAlert, showConfirm, escapeHtml } from "./utils.js";
 import { playlist, registerUnsavedCallback } from "./playlist.js";
 import { easyMDE } from "./editorNotes.js";
 
-let hasUnsavedChanges = false;
+export let hasUnsavedChanges = false;
 let isSaving = false;
 let coverDataUrl = null;
 
@@ -339,4 +340,25 @@ export function initUI() {
             return confirmationMessage;          // WebKit, Safari
         }
     });
+}
+
+
+/**
+ * Activate the correct *sub‑tab* inside the “Liner Notes” section.
+ *
+ * @param {boolean} showPreview – If true, the Preview tab becomes active.
+ *                                 If false, the Write tab becomes active.
+ *
+ * This function is called from `main.js` **after** the UI (including the
+ * tab markup) has been rendered, guaranteeing that the tab elements exist.
+ */
+export function activateInitialNotesTab(showPreview) {
+    // The tab buttons have the IDs `write-tab` and `preview-tab`.
+    const targetId = showPreview ? "preview-tab" : "write-tab";
+    const targetEl = document.getElementById(targetId);
+    if (!targetEl) return;               // safety‑check
+
+    // Use the global `bootstrap.Tab` class (provided by the CDN script).
+    const bsTab = new bootstrap.Tab(targetEl);
+    bsTab.show();
 }

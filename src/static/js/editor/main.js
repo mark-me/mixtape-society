@@ -1,6 +1,7 @@
+// static/js/editor/main.js
 import { initSearch } from "./search.js";
 import { initEditorNotes } from "./editorNotes.js";
-import { initUI } from "./ui.js";
+import { initUI, activateInitialNotesTab } from "./ui.js";
 import { initPlaylist, setPlaylist } from "./playlist.js";
 
 const preloadMixtape = window.PRELOADED_MIXTAPE;
@@ -19,14 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ---------------------------------------------------------------
-    // 2️⃣  Initialise the rest of the UI (search, playlist UI, etc.)
-    // ---------------------------------------------------------------
-    initSearch();
-    initPlaylist();
-    initUI();
-
-    // ---------------------------------------------------------------
-    // 3️⃣  **Now** initialise EasyMDE – the tabs are already rendered,
+    // 2️⃣  Initialise EasyMDE (the editor) – the tabs are already rendered,
     //     so the editor will be visible and will receive the correct
     //     initial value.
     // ---------------------------------------------------------------
@@ -35,6 +29,23 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
         initEditorNotes();               // empty notes for a new mixtape
     }
- });
+
+    // ---------------------------------------------------------------
+    // 3️⃣  Initialise the rest of the UI (search, playlist UI, etc.)
+    // ---------------------------------------------------------------
+   initSearch();
+   initPlaylist();
+   initUI();
+
+    // ---------------------------------------------------------------
+    // 4️⃣  Activate the appropriate sub‑tab (Write vs Preview)
+    // ---------------------------------------------------------------
+    // If there are liner notes, we want the *Preview* tab to be visible
+    // right away. Otherwise we fall back to the *Write* tab.
+    const hasNotes = Boolean(
+        preloadMixtape && preloadMixtape.liner_notes && preloadMixtape.liner_notes.trim()
+    );
+    activateInitialNotesTab(hasNotes);
+});
 
 

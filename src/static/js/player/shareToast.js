@@ -1,3 +1,4 @@
+// static/js/player/shareToast.js
 /**
  * Initializes the share button to copy the current page URL and show a toast notification.
  * Handles user interaction for sharing the mixtape link and provides feedback on success or failure.

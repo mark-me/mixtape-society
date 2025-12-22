@@ -1,3 +1,4 @@
+// static/js/browser/initMixtapePage.js
 import { initCopyToast } from './copyToast.js';
 import { initDeleteMixtape } from './deleteMixtape.js';
 

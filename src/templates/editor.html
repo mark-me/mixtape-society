@@ -135,7 +135,14 @@
                                         <textarea id="liner-notes"></textarea>
                                     </div>
                                     <div class="tab-pane fade h-100 overflow-auto p-3 bg-light" id="preview-pane">
-                                        <div id="markdown-preview" class="markdown-body"></div>
+                                    <!--
+                                         The preview pane should blend with the current Bootstrap
+                                         colour scheme (dark or light).  `bg-body` applies the
+                                         appropriate background colour, and `border` adds a thin
+                                         border that also respects the theme.
+                                    -->
+                                    <div id="markdown-preview"
+                                         class="markdown-body bg-body border rounded p-2"></div>
                                     </div>
                                 </div>
                             </div>

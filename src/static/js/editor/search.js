@@ -1,3 +1,4 @@
+// static/js/editor/search.js
 import { escapeHtml, highlightText } from "./utils.js";
 import { addToPlaylist } from "./playlist.js";
 

@@ -1,4 +1,4 @@
-
+// static/js/base/tooltipInit.js
 /**
  * Initializes Bootstrap tooltips for all elements with the tooltip data attribute.
  * Ensures tooltips are enabled and ready after the DOM content is loaded.

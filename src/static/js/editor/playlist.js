@@ -1,3 +1,4 @@
+// static/js/editor/playlist.js
 import { escapeHtml } from "./utils.js";
 
 const {Sortable} = window;

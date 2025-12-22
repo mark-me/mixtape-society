@@ -1,3 +1,4 @@
+// static/js/editor/utils.js
 /**
  * Converts special characters in a string to their corresponding HTML entities.
  * Prevents HTML injection by escaping user-provided text for safe rendering.
@@ -60,11 +61,11 @@ export function showAlert({ title = "Notice", message, buttonText = "OK" }) {
     document.getElementById('appModalTitle').textContent = title;
     document.getElementById('appModalBody').innerHTML = message;
     document.getElementById('appModalFooter').innerHTML = `
-            <button class="btn btn-primary" data-bs-dismiss="modal">
-                ${buttonText}
-            </button>
-        `;
-    appModal.show();
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+            ${buttonText}
+        </button>
+    `;
+    appModal.show();          // `appModal` is the Bootstrap.Modal instance
 }
 /**
  * Displays a modal confirmation dialog with customizable title, message, and button texts.
@@ -86,34 +87,32 @@ export function showConfirm({
     cancelText = "Cancel"
 }) {
     return new Promise(resolve => {
-        // Populate modal content
         document.getElementById('appModalTitle').textContent = title;
         document.getElementById('appModalBody').innerHTML = message;
         document.getElementById('appModalFooter').innerHTML = `
-            <button class="btn btn-secondary" data-bs-dismiss="modal">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                 ${cancelText}
             </button>
-            <button class="btn btn-danger" id="appModalConfirmBtn">
+            <button type="button" class="btn btn-danger" id="appModalConfirmBtn">
                 ${confirmText}
             </button>
         `;
 
         let confirmed = false;
-
         const confirmBtn = document.getElementById('appModalConfirmBtn');
+
         confirmBtn.onclick = () => {
             confirmed = true;
-            appModal.hide();               // <-- now defined
+            appModal.hide();               // hide with Bootstrap animation
             resolve(true);
         };
 
-        // Resolve false if the user dismisses the modal without confirming
+        // If the modal is closed without confirming (X, backdrop, ESC)
         const hiddenHandler = () => {
             if (!confirmed) resolve(false);
         };
         appModalEl.addEventListener('hidden.bs.modal', hiddenHandler, { once: true });
 
-        // Show the modal
         appModal.show();
     });
 }

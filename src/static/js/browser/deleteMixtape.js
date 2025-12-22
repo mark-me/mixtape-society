@@ -1,4 +1,4 @@
-
+// static/js/browser/deleteMixtape.js
 /**
  * Initializes mixtape deletion functionality with confirmation modal and success toast.
  * Handles user interaction for deleting a mixtape, including feedback and error handling.

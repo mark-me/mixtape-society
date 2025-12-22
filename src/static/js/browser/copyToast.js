@@ -1,3 +1,4 @@
+// static/js/browser/copyToast.js
 /**
  * Initializes copy-to-clipboard functionality and displays a toast notification on success.
  * Attaches event listeners to copy buttons and shows feedback when a URL is copied.
