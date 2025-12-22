@@ -5,25 +5,36 @@ import { initPlaylist, setPlaylist } from "./playlist.js";
 
 const preloadMixtape = window.PRELOADED_MIXTAPE;
 
-if (preloadMixtape) {
-    setPlaylist(preloadMixtape.tracks || []);
-    // Populate other UI elements that depend on the preload data
-    const coverImg = document.getElementById("playlist-cover");
-    if (preloadMixtape.cover) coverImg.src = preloadMixtape.cover;
-
-    const titleInput = document.getElementById("playlist-title");
-    titleInput.value = preloadMixtape.title || "";
-
-    // Pass the pre‑loaded liner notes (if any) so the editor shows them.
-    initEditorNotes(preloadMixtape ? preloadMixtape.liner_notes : null);
-} else {
-    // No mixtape to preload – just initialise the editor normally.
-    initEditorNotes();
-}
-
 document.addEventListener("DOMContentLoaded", () => {
+    // ---------------------------------------------------------------
+    // 1️⃣  Populate playlist, cover, title … (needs the DOM)
+    // ---------------------------------------------------------------
+    if (preloadMixtape) {
+        setPlaylist(preloadMixtape.tracks || []);
+        const coverImg = document.getElementById("playlist-cover");
+        if (preloadMixtape.cover) coverImg.src = preloadMixtape.cover;
+
+        const titleInput = document.getElementById("playlist-title");
+        titleInput.value = preloadMixtape.title || "";
+    }
+
+    // ---------------------------------------------------------------
+    // 2️⃣  Initialise the rest of the UI (search, playlist UI, etc.)
+    // ---------------------------------------------------------------
     initSearch();
     initPlaylist();
-    initEditorNotes();   // (will be a no‑op if already called above)
     initUI();
-});
+
+    // ---------------------------------------------------------------
+    // 3️⃣  **Now** initialise EasyMDE – the tabs are already rendered,
+    //     so the editor will be visible and will receive the correct
+    //     initial value.
+    // ---------------------------------------------------------------
+    if (preloadMixtape) {
+        initEditorNotes(preloadMixtape.liner_notes);
+    } else {
+        initEditorNotes();               // empty notes for a new mixtape
+    }
+ });
+
+

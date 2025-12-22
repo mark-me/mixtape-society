@@ -14,24 +14,41 @@ export let easyMDE;
  *                                     with these notes (used when editing a mixtape).
  */
 export function initEditorNotes(preloadNotes = null) {
+    // -----------------------------------------------------------------
+    // If an EasyMDE instance already exists, just update its content.
+    // -----------------------------------------------------------------
+    if (easyMDE) {
+        if (preloadNotes) easyMDE.value(preloadNotes);
+        return;
+    }
+
     const textarea = document.getElementById("liner-notes");
-    const initialValue = window.PRELOADED_LINER_NOTES || "";
+
+    // Use the pre‑loaded notes as the *initial* value.
+    // Fall back to the generic global (used for a brand‑new mixtape).
+    const initialValue = preloadNotes ?? window.PRELOADED_LINER_NOTES ?? "";
 
     easyMDE = new EasyMDE({
         element: textarea,
         initialValue,
         spellChecker: false,
-        toolbar: ["bold","italic","heading","|","quote","unordered-list","ordered-list","|","link","image","|","preview","side-by-side","fullscreen","|","guide"],
+        toolbar: [
+            "bold","italic","heading","|","quote","unordered-list","ordered-list",
+            "|","link","image","|","preview","side-by-side","fullscreen","|","guide"
+        ],
         previewRender: plain => DOMPurify.sanitize(marked.parse(plain))
     });
 
-    // sync preview tab
+    // -----------------------------------------------------------------
+    // Sync the *Preview* tab when the user switches to it.
+    // -----------------------------------------------------------------
     const previewPane = document.getElementById("markdown-preview");
     const previewTab  = document.getElementById("preview-tab");
     previewTab.addEventListener("shown.bs.tab", () => {
         previewPane.innerHTML = DOMPurify.sanitize(marked.parse(easyMDE.value()));
     });
 
+    // Keep the preview live while the user types (if the preview tab is active).
     easyMDE.codemirror.on("change", () => {
         if (document.querySelector('#preview-tab.active')) {
             const html = marked.parse(easyMDE.value());
@@ -39,7 +56,9 @@ export function initEditorNotes(preloadNotes = null) {
         }
     });
 
-    // custom renderer that expands #1, #2‑4, etc.
+    // -----------------------------------------------------------------
+    // Custom renderer – expands #1, #2‑4, etc. using the current playlist.
+    // -----------------------------------------------------------------
     const originalRender = easyMDE.options.previewRender;
     easyMDE.options.previewRender = (plain, preview) => {
         const processed = renderTrackReferences(plain, playlist);
@@ -47,7 +66,11 @@ export function initEditorNotes(preloadNotes = null) {
         return preview;
     };
 
-    // If the caller supplied pre‑loaded liner notes, inject them now.
+    // -----------------------------------------------------------------
+    // If the caller supplied notes *after* construction, inject them now.
+    // (Usually this branch won’t run because we already gave the notes as
+    // `initialValue`, but it’s kept for completeness.)
+    // -----------------------------------------------------------------
     if (preloadNotes) {
         easyMDE.value(preloadNotes);
     }

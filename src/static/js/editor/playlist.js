@@ -98,6 +98,19 @@ function attachPlaylistEvents() {
     });
 }
 
+// -----------------------------------------------------------------
+// Helper – tiny wrapper around escapeHtml so we don’t forget any field
+// -----------------------------------------------------------------
+function esc(value) {
+    // Convert undefined/null to empty string first
+    if (value == null) return "";
+    // For numbers we can just return the string representation
+    if (typeof value === "number") return String(value);
+    // For everything else we run it through escapeHtml (which creates a div,
+    // sets textContent, and returns the escaped HTML).
+    return escapeHtml(String(value));
+}
+
 /**
  * Renders the current playlist in the UI and attaches event handlers for playback and removal.
  * Updates the playlist display, enables track playback, and allows users to remove tracks from the playlist.
@@ -109,28 +122,31 @@ function attachPlaylistEvents() {
  *   None.
  */
 export function renderPlaylist() {
+    // Build the markup safely – every dynamic piece goes through `esc()`.
     playlistOl.innerHTML = playlist.map((item, idx) => `
         <li class="d-flex align-items-center rounded p-3 mb-2 shadow-sm playlist-item
-        bg-body-tertiary border" data-index="${idx}">
+            bg-body-tertiary border" data-index="${esc(idx)}">
             <div class="drag-handle me-3 text-muted">⋮⋮</div>
 
-            <!-- Play knop -->
+            <!-- Play button -->
             <button class="btn btn-success btn-sm me-2 play-track-btn"
-                    data-path="${encodeURIComponent(item.path || '')}"
-                    ${item.path ? '' : 'disabled title="Geen bestand"'}>
-                <i class="bi ${item.path ? 'bi-play-fill' : 'bi-ban'}"></i>
+                    data-path="${esc(encodeURIComponent(item.path || ""))}"
+                    ${item.path ? "" : 'disabled title="Geen bestand"'}>
+                <i class="bi ${item.path ? "bi-play-fill" : "bi-ban"}"></i>
             </button>
 
             <div class="flex-grow-1">
-                <strong>${escapeHtml(item.title)}</strong><br>
-                <small class="text-muted">${escapeHtml(item.artist)} • ${escapeHtml(item.album)}</small>
+                <strong>${esc(item.title)}</strong><br>
+                <small class="text-muted">${esc(item.artist)} • ${esc(item.album)}</small>
             </div>
-            <span class="text-muted me-3">${item.duration || "?:??"}</span>
-            <button class="btn btn-danger btn-sm remove-btn" data-index="${idx}">
+
+            <span class="text-muted me-3">${esc(item.duration) || "?:??"}</span>
+
+            <button class="btn btn-danger btn-sm remove-btn" data-index="${esc(idx)}">
                 <i class="bi bi-trash-fill"></i>
             </button>
         </li>
-    `).join('');
+    `).join("");
 
     playlistCount.textContent = `(${playlist.length})`;
 
@@ -148,7 +164,7 @@ export function renderPlaylist() {
 
             container.style.display = 'block';
 
-            // Update titel + highlight
+            // Update title + highlight
             const item = playlist[this.closest('.playlist-item').dataset.index];
             document.getElementById('now-playing-title').textContent = item.title;
             document.getElementById('now-playing-artist').textContent = `${item.artist} • ${item.album}`;
@@ -163,7 +179,8 @@ export function renderPlaylist() {
     // Delete buttons
     document.querySelectorAll('.remove-btn').forEach(btn => {
         btn.onclick = () => {
-            playlist.splice(btn.dataset.index, 1);
+            const index = Number(btn.dataset.index);
+            playlist.splice(index, 1);
             renderPlaylist();
             unsavedCallback();
         };

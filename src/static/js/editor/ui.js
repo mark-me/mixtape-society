@@ -39,7 +39,7 @@ function updateSaveButton() {
  */
 export function initUI() {
     // -----------------------------------------------------------------
-    // UI elements we’ll interact with
+    // 1️⃣  UI elements we’ll interact with
     // -----------------------------------------------------------------
     const coverInput   = document.getElementById("cover-upload");
     const coverImg     = document.getElementById("playlist-cover");
@@ -49,25 +49,54 @@ export function initUI() {
     const titleInput   = document.getElementById("playlist-title");
 
     // -----------------------------------------------------------------
-    // Cover upload handling
+    // 2️⃣  Cover upload handling (validation + FileReader error handling)
     // -----------------------------------------------------------------
     coverInput.addEventListener("change", e => {
         const file = e.target.files[0];
         if (!file) return;
+
+        // ---- Validate MIME type -------------------------------------------------
+        const validTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+        if (!validTypes.includes(file.type)) {
+            showAlert("Please upload a valid image file (jpg, png, gif, webp).");
+            coverInput.value = "";
+            return;
+        }
+
+        // ---- Validate size (max 5 MiB) -----------------------------------------
+        const maxSize = 5 * 1024 * 1024; // 5 MiB
+        if (file.size > maxSize) {
+            showAlert("Image is too large. Maximum size is 5 MiB.");
+            coverInput.value = "";
+            return;
+        }
+
+        // ---- Read the file ------------------------------------------------------
         const reader = new FileReader();
+
+        // Successful read --------------------------------------------------------
         reader.onload = ev => {
             coverDataUrl = ev.target.result;
             coverImg.src = coverDataUrl;
             markUnsaved();
         };
+
+        reader.onerror = err => {
+            console.error("Cover file could not be read:", err);
+            showAlert("Failed to read the image file. Please try a different file.");
+            coverInput.value = ""; // reset the input so the user can retry
+        };
+
         reader.readAsDataURL(file);
     });
 
-    // Title changes also count as “unsaved”
+    // -----------------------------------------------------------------
+    // 3️⃣  Title changes also count as “unsaved”
+    // -----------------------------------------------------------------
     titleInput.addEventListener("input", markUnsaved);
 
     // -----------------------------------------------------------------
-    // SAVE button – send mixtape JSON to the backend
+    // 4️⃣  SAVE button – send mixtape JSON to the backend
     // -----------------------------------------------------------------
     saveBtn.addEventListener("click", async () => {
         if (playlist.length === 0) {
@@ -98,7 +127,9 @@ export function initUI() {
         if (editingSlug) {
             const confirmOverwrite = await showConfirm({
                 title: "Overwrite mixtape",
-                message: `Are you sure you want to overwrite <strong>${escapeHtml(title)}</strong>?`,
+                message: `Are you sure you want to overwrite <strong>${escapeHtml(
+                    title
+                )}</strong>?`,
                 confirmText: "Overwrite"
             });
             if (!confirmOverwrite) return;
@@ -108,56 +139,105 @@ export function initUI() {
         isSaving = true;
         saveText.textContent = "Saving...";
 
+        // Add a timeout for the fetch request (e.g., 10 seconds)
+        const FETCH_TIMEOUT = 10000;
+        let timeoutId;
+        let didTimeout = false;
+
         try {
-            const response = await fetch("/editor/save", {
+            const fetchPromise = fetch("/editor/save", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(playlistData)
             });
+
+            // Create a timeout promise that rejects after FETCH_TIMEOUT ms
+            const timeoutPromise = new Promise((_, reject) => {
+                timeoutId = setTimeout(() => {
+                    didTimeout = true;
+                    reject(new Error("Network timeout: The server took too long to respond."));
+                }, FETCH_TIMEOUT);
+            });
+
+            let response;
+            try {
+                response = await Promise.race([fetchPromise, timeoutPromise]);
+            } catch (err) {
+                if (didTimeout) {
+                    throw err; // Timeout error
+                } else {
+                    throw new Error("Network error: Could not reach the server.");
+                }
+            } finally {
+                clearTimeout(timeoutId);
+            }
+
+            if (!response.ok) {
+                // Server responded with 4xx/5xx – try to extract a JSON error message or log raw text
+                let errMsg = `Server returned ${response.status}`;
+                try {
+                    const errJson = await response.json();
+                    // Only use a generic error message for users, but log details for debugging
+                    if (errJson && typeof errJson.error === "string") {
+                        // Log the actual error for debugging, but do not show it to the user
+                        console.error("Server error:", errJson.error);
+                    }
+                } catch (_) {
+                    let rawText = await response.text();
+                    // Log the raw response text for debugging, but do not show it to the user
+                    console.error("Non-JSON error response:", rawText);
+                }
+                // Always show a sanitized, generic error message to the user
+                throw new Error("An error occurred while processing your request. Please try again later.");
+            }
+
             const data = await response.json();
 
-            if (data.success) {
-                hasUnsavedChanges = false;
-                updateSaveButton();
+            // --------------------------------------------------------------
+            // SUCCESS path
+            // --------------------------------------------------------------
+            hasUnsavedChanges = false;
+            updateSaveButton();
 
-                if (editingSlug) {
-                    saveText.textContent = "Save changes";
-                }
+            if (editingSlug) {
+                saveText.textContent = "Save changes";
+            }
 
-                const finalSlug = data.slug || editingSlug;
+            const finalSlug = data.slug || editingSlug;
 
-                // ---- SUCCESS TOAST -------------------------------------------------
-                const toast = document.createElement("div");
-                toast.className =
-                    "toast align-items-center text-bg-success border-0 position-fixed bottom-0 end-0 m-4";
-                toast.style.zIndex = "1090";
-                toast.innerHTML = `
-                    <div class="d-flex">
-                        <div class="toast-body">
-                            Mixtape ${editingSlug ? "updated" : "saved"} as <strong>${escapeHtml(
-                    data.title
-                )}</strong><br>
-                            <a href="/play/share/${finalSlug}" class="text-white text-decoration-underline" target="_blank">Open public link →</a>
-                        </div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-                    </div>`;
-                document.body.appendChild(toast);
-                new bootstrap.Toast(toast).show();
+            // ---- SUCCESS TOAST -------------------------------------------------
+            const toast = document.createElement("div");
+            toast.className =
+                "toast align-items-center text-bg-success border-0 position-fixed bottom-0 end-0 m-4";
+            toast.style.zIndex = "1090";
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        Mixtape ${editingSlug ? "updated" : "saved"} as <strong>${escapeHtml(
+                data.title
+            )}</strong><br>
+                        <a href="/play/share/${finalSlug}" class="text-white text-decoration-underline" target="_blank">Open public link →</a>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>`;
+            document.body.appendChild(toast);
+            new bootstrap.Toast(toast).show();
 
-                // ---- UPDATE URL after a *new* mixtape ----------------------------
-                if (!editingSlug) {
-                    window.history.replaceState({}, "", `/editor/${data.slug}`);
-                    document.getElementById("editing-slug").value = data.slug;
-                    saveText.textContent = "Save changes";
-                }
-            } else {
-                showAlert({
-                    title: "Save failed",
-                    message: escapeHtml(data.error || "Unknown error")
-                });
+            // ---- UPDATE URL after a *new* mixtape -----------------------------
+            if (!editingSlug) {
+                window.history.replaceState({}, "", `/editor/${data.slug}`);
+                document.getElementById("editing-slug").value = data.slug;
+                saveText.textContent = "Save changes";
             }
         } catch (e) {
-            showAlert({ title: "Network error", message: escapeHtml(e.message) });
+            // --------------------------------------------------------------
+            // FAILURE path – show a friendly alert
+            // --------------------------------------------------------------
+            console.error("Save error:", e);
+            showAlert({
+                title: "Save failed",
+                message: escapeHtml(e.message || "Unexpected error")
+            });
         } finally {
             isSaving = false;
             saveText.textContent = editingSlug ? "Save changes" : "Save";
@@ -165,7 +245,7 @@ export function initUI() {
     });
 
     // -----------------------------------------------------------------
-    // Global audio player (bottom‑fixed)
+    // 5️⃣  Global audio player (bottom‑fixed)
     // -----------------------------------------------------------------
     const audioPlayer    = document.getElementById("global-audio-player");
     const playerContainer = document.getElementById("audio-player-container");
@@ -183,11 +263,10 @@ export function initUI() {
     });
 
     // -----------------------------------------------------------------
-    // “Track added” toast (re‑used for any playlist mutation)
+    // 6️⃣  “Track added” toast (re‑used for any playlist mutation)
     // -----------------------------------------------------------------
     const addTrackToastEl = document.createElement("div");
-    addTrackToastEl.className =
-        "toast position-fixed bottom-0 end-0 m-3";
+    addTrackToastEl.className = "toast position-fixed bottom-0 end-0 m-3";
     addTrackToastEl.setAttribute("role", "alert");
     addTrackToastEl.setAttribute("aria-live", "assertive");
     addTrackToastEl.setAttribute("aria-atomic", "true");
@@ -195,13 +274,12 @@ export function initUI() {
         <div class="toast-header bg-success text-white">
             <strong class="me-auto">Track added!</strong>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
-        </div>
-    `;
+        </div>`;
     document.body.appendChild(addTrackToastEl);
     const addTrackToast = new bootstrap.Toast(addTrackToastEl, { delay: 2000 });
 
     // -----------------------------------------------------------------
-    // Register the **unsaved‑changes callback** with the playlist module.
+    // 7️⃣  Register the **unsaved‑changes callback** with the playlist module.
     //      The playlist module will call this function after ANY mutation
     //      (add, clear, remove, drag‑reorder).
     // -----------------------------------------------------------------
@@ -213,32 +291,52 @@ export function initUI() {
     });
 
     // -----------------------------------------------------------------
-    // EasyMDE (liner‑notes) – mark unsaved on any edit
+    // 8️⃣  EasyMDE (liner‑notes) – mark unsaved on any edit
     // -----------------------------------------------------------------
     if (easyMDE) {
         easyMDE.codemirror.on("change", markUnsaved);
     }
 
     // -----------------------------------------------------------------
-    // 8️⃣  Warn the user if they try to navigate away with unsaved changes
+    // 9️⃣  Warn the user if they try to navigate away with unsaved changes
     // -----------------------------------------------------------------
+    // 9a. Click‑based navigation (links)
     document.addEventListener("click", e => {
-        if (hasUnsavedChanges && !isSaving) {
-            const link = e.target.closest("a");
-            if (link && link.href && !link.href.includes(window.location.pathname)) {
-                e.preventDefault();
-                showConfirm({
-                    title: "Unsaved changes",
-                    message: "You have unsaved changes. Leave without saving?",
-                    confirmText: "Leave",
-                    cancelText: "Stay"
-                }).then(confirmed => {
-                    if (confirmed) {
-                        hasUnsavedChanges = false;
-                        window.location.href = link.href;
-                    }
-                });
+        if (!hasUnsavedChanges || isSaving) return;
+
+        const link = e.target.closest("a");
+        if (!link || !link.href) return;
+
+        // Ignore same-page anchors or links that already point to the current base path (ignoring query/hash)
+        try {
+            const linkUrl = new URL(link.href, window.location.origin);
+            const currentUrl = new URL(window.location.href);
+            if (linkUrl.origin === currentUrl.origin && linkUrl.pathname === currentUrl.pathname) return;
+        } catch (err) {
+            // If URL parsing fails, fall back to default behavior (do not suppress navigation)
+        }
+
+        e.preventDefault(); // stop immediate navigation
+        showConfirm({
+            title: "Unsaved changes",
+            message: "You have unsaved changes. Leave without saving?",
+            confirmText: "Leave",
+            cancelText: "Stay"
+        }).then(confirmed => {
+            if (confirmed) {
+                hasUnsavedChanges = false; // suppress the beforeunload dialog
+                window.location.href = link.href;
             }
+        });
+    });
+
+    // 9b. Browser‑level navigation (back/forward, tab close, refresh)
+    window.addEventListener("beforeunload", e => {
+        if (hasUnsavedChanges && !isSaving) {
+            // Modern browsers ignore the custom text, but returning a string triggers the native confirmation dialog.
+            const confirmationMessage = "You have unsaved changes. Are you sure you want to leave?";
+            e.returnValue = confirmationMessage; // Gecko, Chrome 34+
+            return confirmationMessage;          // WebKit, Safari
         }
     });
 }
