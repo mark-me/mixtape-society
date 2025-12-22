@@ -10,7 +10,6 @@ def main():
     path_music = Path("/home/mark/Music")
     path_db = Path("collection-data/collection.db")
     collection = MusicCollectionUI(music_root=path_music, db_path=path_db, logger=logger)
-
     data_root = path_db.parent.resolve()
 
     # Wait while indexing is in progress
@@ -28,14 +27,10 @@ def main():
         print(f"Indexing in progress: {status['status']} "
               f"({status['current']}/{status['total']} – {status['progress']*100:.1f}%)")
 
-    with collection._get_conn() as conn:
-        cur = conn.execute("SELECT artist, album FROM tracks WHERE lower(album) LIKE '%firstborn%'")
-        print("Albums with 'firstborn':", cur.fetchall())
-
     print("Indexing complete (or not needed). Searching...")
     result = collection.search_highlighting(query="artist:'Nick Cave'")
     result = collection.search_highlighting(query="artist:Nick album:\"Firstborn\"")
-    result = collection.search_highlighting(query="Nick")
+    result = collection.search_highlighting(query="Nick", limit=1000 )
     result = collection.search_highlighting(query="song:\"Weeping Song\"")
     result = collection.search_highlighting(query="song: \"Weeping Song\"")
     return result

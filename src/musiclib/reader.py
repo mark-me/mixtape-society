@@ -171,14 +171,16 @@ class MusicCollection:
                 field_exprs = []
                 for t in tag_terms:
                     escaped = self._fts_escape(t)
-                    tokens = escaped.split()
+                    tokens = [tok for tok in escaped.split() if tok]
+                    if not tokens:
+                        continue
                     if len(tokens) > 1:
-                        # OR for multi-word within tag
+                        # Stricter: require ALL words for tagged multi-word searches
                         token_matches = [f'{tok}*' for tok in tokens]
-                        field_exprs.append(f'({" OR ".join(token_matches)})')
+                        field_exprs.append(f'({" AND ".join(token_matches)})')
                     else:
                         field_exprs.append(f'{escaped}*')
-                # OR for multiple tags of same type
+                # Still OR for multiple separate tags (e.g. song:"Weeping Song" song:"Mercy Seat")
                 combined = " OR ".join(field_exprs)
                 expr_parts.append(f'{field_map}:({combined})')
                 terms[tag_key].extend(tag_terms)
@@ -249,7 +251,7 @@ class MusicCollection:
             if "duration" in r:
                 r["duration"] = self._format_duration(r["duration"])
 
-        # Group results with query-aware priority and no overlap
+        # Group results based on tags present, with priority and no overlap
         matched_artists = set()
         matched_albums = set()  # (artist, album)
         all_tracks = []         # all potential tracks
@@ -261,66 +263,44 @@ class MusicCollection:
             matched_albums.add((artist, album))
             all_tracks.append(row)
 
-        # Determine priority order based on query tags
-        has_album_tag = bool(parsed["album"])
-        has_track_tag = bool(parsed["track"])
+        # Determine which types to include based on tags
+        include_artists = bool(parsed["artist"]) or not has_specific
+        include_albums = bool(parsed["album"]) or not has_specific
+        include_tracks = bool(parsed["track"]) or not has_specific
 
         artists = []
         albums = []
         tracks = []
 
-        if has_album_tag:
-            # Priority: Albums first (since user searched for album)
-            albums_list = sorted(matched_albums, key=lambda x: x[1])[:limit]
-            albums = [{"artist": a, "album": al} for a, al in albums_list]
-
-            # Exclude artists that have a shown album
-            excluded_artists = {a for a, _ in albums_list}
-            artists = [{"artist": a} for a in sorted(matched_artists - excluded_artists)[:limit]]
-
-            # Tracks: only from non-shown albums
-            excluded_albums = set(albums_list)
-            excluded_artists_set = excluded_artists | {a["artist"] for a in artists}
-            for row in all_tracks:
-                if len(tracks) >= limit:
-                    break
-                a, al = row["artist"], row["album"]
-                if a in excluded_artists_set or (a, al) in excluded_albums:
-                    continue
-                tracks.append(row)
-
-        elif has_track_tag:
-            # Priority: Tracks first
-            tracks = all_tracks[:limit]
-
-            # Albums: only if not all tracks from same album
-            # (simplified: show albums only if multiple)
-            excluded_albums = set()
-            if len({row["album"] for row in tracks}) == 1:
-                excluded_albums.add((tracks[0]["artist"], tracks[0]["album"]))
-
-            excluded_artists = {row["artist"] for row in tracks}
-            albums = [{"artist": a, "album": al} for a, al in sorted(matched_albums - excluded_albums, key=lambda x: x[1])[:limit]]
-            artists = [{"artist": a} for a in sorted(matched_artists - excluded_artists - {a for a, _ in albums})[:limit]]
-
-        else:
-            # Default: Artists first (general or artist-only search)
+        # Build lists conditionally
+        if include_artists:
             artists_list = sorted(matched_artists)[:limit]
             artists = [{"artist": a} for a in artists_list]
 
-            excluded_artists = set(artists_list)
+        if include_albums:
+            # In tagged searches: suppress albums from shown artists
+            # In general searches: allow them (more discovery)
+            excluded_artists = set(a["artist"] for a in artists) if has_specific and include_artists else set()
             albums_to_show = [(a, al) for a, al in matched_albums if a not in excluded_artists]
             albums_to_show.sort(key=lambda x: x[1])
-            albums = [{"artist": a, "album": al} for a, al in albums_to_show[:limit]]
+            albums_list = albums_to_show[:limit]
+            albums = [{"artist": a, "album": al} for a, al in albums_list]
 
-            excluded_albums = {(a["artist"], a["album"]) for a in albums}
+        if include_tracks:
+            # In tagged searches: suppress tracks from shown artists/albums
+            # In general searches: allow tracks even from shown artists (title matches are valuable)
+            excluded_artists = set(a["artist"] for a in artists) if has_specific and include_artists else set()
+            excluded_albums = set((a["artist"], a["album"]) for a in albums) if has_specific and include_albums else set()
+
+            tracks_to_show = []
             for row in all_tracks:
-                if len(tracks) >= limit:
+                if len(tracks_to_show) >= limit:
                     break
                 a, al = row["artist"], row["album"]
-                if a in excluded_artists or (a, al) in excluded_albums:
+                if has_specific and (a in excluded_artists or (a, al) in excluded_albums):
                     continue
-                tracks.append(row)
+                tracks_to_show.append(row)
+            tracks = tracks_to_show
 
         return {"artists": artists, "albums": albums, "tracks": tracks}, terms
 
