@@ -45,6 +45,15 @@ def create_editor_blueprint(
         Returns:
             str: De gerenderde HTML-pagina voor het aanmaken van een nieuwe mixtape.
         """
+        empty_mixtape = {
+            "title": "",
+            "cover": None,
+            "liner_notes": "",
+            "tracks": [],
+            "slug": None,
+            "created_at": None,
+            "saved_at": None,
+        }
         return render_template("editor.html")
 
     @editor.route("/<slug>")
