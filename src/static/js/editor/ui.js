@@ -1,8 +1,5 @@
 import { showAlert, showConfirm, escapeHtml } from "./utils.js";
-import {
-    playlist,
-    registerUnsavedCallback
-} from "./playlist.js";
+import { playlist, registerUnsavedCallback } from "./playlist.js";
 import { easyMDE } from "./editorNotes.js";
 
 let hasUnsavedChanges = false;
