@@ -144,7 +144,7 @@ function renderResults(data) {
                         </div>
                         <div>
                             <button class="btn btn-sm btn-primary preview-btn"
-                                    data-path="${encodeURIComponent(entry.path)}"
+                                    data-path="${entry.path}"
                                     data-title="${escapeHtml(entry.track)}">
                                 <i class="bi bi-play-fill"></i>
                             </button>
@@ -193,7 +193,7 @@ function renderResults(data) {
                     </div>
                     <div>
                         <button class="btn btn-sm btn-primary preview-btn"
-                                data-path="${encodeURIComponent(track.path)}"
+                                data-path="${track.path}"
                                 data-title="${escapeHtml(track.title)}">
                             <i class="bi bi-play-fill"></i>
                         </button>

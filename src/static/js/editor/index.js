@@ -1,4 +1,4 @@
-// static/js/editor/main.js
+// static/js/editor/index.js
 import { initSearch } from "./search.js";
 import { initEditorNotes } from "./editorNotes.js";
 import { initUI, activateInitialNotesTab } from "./ui.js";

@@ -1,4 +1,4 @@
-// static/js/player/initPlayerPage.js
+// static/js/player/index.js
 import { initPlayerControls } from './playerControls.js';
 import { initLinerNotes } from './linerNotes.js';
 import { initShareToast } from './shareToast.js';

@@ -561,6 +561,8 @@ class MusicCollection:
                 "type": "track",
                 "artist": t["artist"],
                 "album": t["album"],
+                "path": t["path"],
+                "duration": t.get("duration") or "?:??",
                 "reasons": [{"type": "track", "text": t["track"]}],
                 "tracks": [self._track_display_dict(t)],
                 "highlighted_tracks": [self._track_highlighted_dict(t, query_lower)],
@@ -581,11 +583,14 @@ class MusicCollection:
         Returns:
             dict: A formatted track dictionary for display.
         """
+        print(track)
         return {
             "title": track["track"],
             "duration": track.get("duration") or "?:??",
             "path": track["path"],
             "filename": self._safe_filename(track["track"], track["path"]),
+            "artist": track["artist"],
+            "album": track["album"],
         }
 
     def _track_highlighted_dict(self, track: dict, query_lower: str) -> dict:
