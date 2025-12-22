@@ -142,10 +142,13 @@ function renderResults(data) {
                             <small class="text-muted">Duration: ${entry.duration || "?:??"}</small>
                         </div>
                         <div>
-                            <button class="btn btn-sm btn-primary preview-btn me-2" data-path="${encodeURIComponent(entry.path)}">
+                            <button class="btn btn-sm btn-primary preview-btn"
+                                    data-path="${encodeURIComponent(entry.path)}"
+                                    data-title="${escapeHtml(entry.track)}">
                                 <i class="bi bi-play-fill"></i>
                             </button>
-                            <button class="btn btn-sm btn-success add-btn" data-item='${escapeHtml(JSON.stringify(item))}'>
+                            <button class="btn btn-sm btn-success add-btn"
+                                    data-item='${escapeHtml(JSON.stringify(item))}'>
                                 <i class="bi bi-plus-circle"></i> Add
                             </button>
                         </div>
@@ -174,17 +177,27 @@ function renderResults(data) {
     function renderTracks(tracks, type) {
         return tracks.map(track => {
             const highlightedTitle = highlightText(track.title, searchInput.value);
-            const item = { artist: track.artist, album: track.album, title: track.title, path: track.path, duration: track.duration };
+            const item = {
+                artist: track.artist,
+                album: track.album,
+                title: track.title,
+                path: track.path,
+                duration: track.duration
+            };
             return `
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <div>
-                        ${highlightedTitle} <small class="text-muted">(${track.duration || "?:??"})</small>
+                        <span class="track-title">${highlightedTitle}</span>
+                        <small class="text-muted">(${track.duration || "?:??"})</small>
                     </div>
                     <div>
-                        <button class="btn btn-sm btn-primary preview-btn me-2" data-path="${encodeURIComponent(track.path)}">
+                        <button class="btn btn-sm btn-primary preview-btn"
+                                data-path="${encodeURIComponent(track.path)}"
+                                data-title="${escapeHtml(track.title)}">
                             <i class="bi bi-play-fill"></i>
                         </button>
-                        <button class="btn btn-sm btn-success add-btn" data-item='${escapeHtml(JSON.stringify(item))}'>
+                        <button class="btn btn-sm btn-success add-btn"
+                                data-item='${escapeHtml(JSON.stringify(item))}'>
                             <i class="bi bi-plus-circle"></i>
                         </button>
                     </div>
@@ -201,38 +214,39 @@ function renderResults(data) {
 function attachPreviewListeners() {
     document.querySelectorAll('.preview-btn').forEach(btn => {
         btn.addEventListener('click', function () {
-            const {path} = this.dataset;
+            const { path, title } = this.dataset;
             if (!path) return;
 
-            // Toggle: if same button is playing, stop it
+            // Toggle pause if the same button is already playing
             if (currentPreviewBtn === this && !player.paused) {
                 stopPreview();
                 return;
             }
 
-            // Stop any ongoing preview
+            // Stop any other preview that might be playing
             stopPreview();
 
-            // Start new preview
+            // Start the new preview
             player.src = `/play/${path}`;
             player.play().catch(e => console.error("Preview mislukt:", e));
 
             container.style.display = 'block';
 
-            // Change button to pause icon + yellow color
+            // Change button appearance to “pause”
             this.innerHTML = '<i class="bi bi-pause-fill"></i>';
             this.classList.remove('btn-primary');
             this.classList.add('btn-warning');
 
             currentPreviewBtn = this;
 
-            // Update now-playing info
-            const li = this.closest('li');
-            const titleEl = li.querySelector('.track-title');
-            document.getElementById('now-playing-title').textContent = titleEl.textContent.trim();
+            // ------- FUTURE‑PROOF TITLE ----------
+            const nowPlayingTitle = title ||
+                (this.closest('li')?.querySelector('.track-title')?.textContent?.trim() ?? '');
+
+            document.getElementById('now-playing-title').textContent = nowPlayingTitle;
             document.getElementById('now-playing-artist').textContent = 'Preview';
 
-            // Auto-reset button when track ends
+            // Reset button when the preview finishes
             player.onended = stopPreview;
         });
     });

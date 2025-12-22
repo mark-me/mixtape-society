@@ -6,6 +6,12 @@ export let playlist = [];               // exported so other modules (e.g. notes
 const playlistOl = document.getElementById("playlist");
 const playlistCount = document.getElementById("playlist-count");
 
+export function setPlaylist(newTracks) {
+    // Replace the current contents atomically
+    playlist.length = 0;
+    newTracks.forEach(t => playlist.push(t));
+}
+
 /**
  * Initializes the playlist UI and event handlers for user interaction.
  * Sets up the playlist display and enables playlist management features.
@@ -16,7 +22,7 @@ const playlistCount = document.getElementById("playlist-count");
  * Returns:
  *   None.
  */
-function initPlaylist() {
+export function initPlaylist() {
     renderPlaylist();                  // initial empty render
     attachPlaylistEvents();
 }
@@ -31,7 +37,7 @@ function initPlaylist() {
  * Returns:
  *   None.
  */
-function addToPlaylist(item) {
+export function addToPlaylist(item) {
     // Duplicate check
     const isDuplicate = playlist.some(t =>
         t.artist === item.artist &&
@@ -86,7 +92,7 @@ function attachPlaylistEvents() {
  * Returns:
  *   None.
  */
-function renderPlaylist() {
+export function renderPlaylist() {
     playlistOl.innerHTML = playlist.map((item, idx) => `
         <li class="d-flex align-items-center rounded p-3 mb-2 shadow-sm playlist-item
         bg-body-tertiary border" data-index="${idx}">
@@ -147,5 +153,3 @@ function renderPlaylist() {
     });
 }
 
-
-export { initPlaylist, addToPlaylist, renderPlaylist };
