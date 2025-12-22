@@ -2,7 +2,6 @@ import { initSearch } from "./search.js";
 import { initEditorNotes } from "./editorNotes.js";
 import { initUI } from "./ui.js";
 import { initPlaylist, setPlaylist } from "./playlist.js";
-import { easyMDE } from "./editorNotes.js";
 
 const preloadMixtape = window.PRELOADED_MIXTAPE;
 
