@@ -54,7 +54,7 @@ def create_editor_blueprint(
             "created_at": None,
             "saved_at": None,
         }
-        return render_template("editor.html", preload_mixtape=empty_mixtape)
+        return render_template("editor.html")
 
     @editor.route("/<slug>")
     @require_auth
