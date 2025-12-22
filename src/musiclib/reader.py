@@ -86,137 +86,7 @@ class MusicCollection:
         )
 
     def _fts_escape(self, txt: str) -> str:
-        return txt.replace("\\", "\\\\").replace('"', '\\"')
-
-    def _execute_search(
-        self,
-        conn: Connection,
-        field: str,
-        terms: Sequence[str],
-        limit: int,
-        extra_where: str = "",
-        extra_params: list[Any] | None = None,
-        select_fields: str = "artist, album, title AS track, path, filename, duration",
-        contains_match: bool = False,  # True = substring/contains, False = prefix/exact
-    ) -> list[dict]:
-        if not terms:
-            return []
-
-        params: list[Any] = []
-        use_fts = self._use_fts(conn)
-
-        if use_fts:
-            expr_parts = []
-            for t in terms:
-                escaped = self._fts_escape(t)
-                if contains_match:
-                    # For contains: use wildcard * at end (substring match)
-                    expr_parts.append(f'{field}:{escaped}*')
-                else:
-                    # For prefix/exact: use prefix ^ if it was a starts-with, otherwise exact
-                    if t.endswith("%"):
-                        expr_parts.append(f'{field}:"^{escaped.rstrip("%")}"')
-                    else:
-                        expr_parts.append(f'{field}:{escaped}')
-            expr = " OR ".join(expr_parts)
-            sql = f"SELECT DISTINCT {select_fields} FROM tracks_fts WHERE tracks_fts MATCH ?"
-            params.append(expr)
-        else:
-            # Fallback LIKE always uses contains (%term%)
-            like_terms = [f"%{t}%" for t in terms]
-            where_clause = " OR ".join(f"{field} LIKE ? COLLATE NOCASE" for _ in terms)
-            sql = f"SELECT DISTINCT {select_fields} FROM tracks WHERE {where_clause}"
-            params.extend(like_terms)
-
-        if extra_where:
-            sql += f" {extra_where}"
-            params.extend(extra_params or [])
-
-        order_by = 'rank' if use_fts else f'{field} COLLATE NOCASE'
-        sql += f" ORDER BY {order_by} LIMIT ?"
-        params.append(limit)
-
-        cur = conn.execute(sql, params)
-        rows = [dict(r) for r in cur]
-
-        # Post-process
-        for r in rows:
-            if "path" in r:
-                r["path"] = self._relative_path(r["path"])
-            if "duration" in r:
-                r["duration"] = self._format_duration(r["duration"])
-        return rows
-
-    def _search_artists_multi(
-        self,
-        conn: Connection,
-        terms: list[str],
-        limit: int,
-        contains_match: bool = False,  # <-- add this
-    ) -> list[dict]:
-        rows = self._execute_search(
-            conn,
-            "artist",
-            terms,
-            limit,
-            select_fields="artist",
-            contains_match=contains_match,
-        )
-        return [{"artist": r["artist"]} for r in rows]
-
-
-    def _search_albums_multi(
-        self,
-        conn: Connection,
-        terms: list[str],
-        limit: int,
-        skip_artists: set[str] | None = None,
-        contains_match: bool = False,  # <-- add this
-    ) -> list[dict]:
-        extra_where = ""
-        extra_params: list[Any] = []
-        if skip_artists:
-            placeholders = ",".join("?" for _ in skip_artists)
-            extra_where = f" AND lower(artist) NOT IN ({placeholders})"
-            extra_params = list(skip_artists)
-
-        rows = self._execute_search(
-            conn,
-            "album",
-            terms,
-            limit,
-            extra_where=extra_where,
-            extra_params=extra_params,
-            select_fields="artist, album",
-            contains_match=contains_match,  # <-- pass it
-        )
-        return rows
-
-
-    def _search_tracks_multi(
-        self,
-        conn: Connection,
-        terms: list[str],
-        limit: int,
-        skip_artists: set[str] | None = None,
-        contains_match: bool = False,  # <-- add this
-    ) -> list[dict]:
-        extra_where = ""
-        extra_params: list[Any] = []
-        if skip_artists:
-            placeholders = ",".join("?" for _ in skip_artists)
-            extra_where = f" AND lower(artist) NOT IN ({placeholders})"
-            extra_params = list(skip_artists)
-
-        return self._execute_search(
-            conn,
-            "title",
-            terms,
-            limit,
-            extra_where=extra_where,
-            extra_params=extra_params,
-            contains_match=contains_match,  # <-- pass it
-        )
+        return txt.replace('"', '""')
 
     def _search_album_tracks(
         self, conn: Connection, artist: str, album: str
@@ -248,25 +118,38 @@ class MusicCollection:
     def parse_query(self, query: str) -> dict[str, list[str]]:
         tags = {"artist": [], "album": [], "track": []}
         general: list[str] = []
-        pattern = r'(artist|album|song)\s*:\s*("((?:[^"\\]|\\.)*)"|(\S+))'
+
+        # Fixed regex: unquoted values stop before the next tag
+        pattern = r'(artist|album|song)\s*:\s*(?:"([^"\\]*(?:\\.[^"\\]*)*)"|\'([^\'\\]*(?:\\.[^\'\\]*)*)\'|(\S+(?:\s+(?!\s*(artist|album|song)\s*:\s*)\S+)*))'
+
         matches = re.finditer(pattern, query, re.IGNORECASE)
-        last = 0
-        for m in matches:
-            tag = m.group(1).lower()
-            quoted_value = m.group(2)  # inside quotes (already unescaped below)
-            unquoted_value = m.group(3)
-            if quoted_value is not None:
-                value = re.sub(r"\\(.)", r"\1", quoted_value)
-            else:
-                value = unquoted_value
-            if tag == "song":
-                tag = "track"
-            tags[tag].append(value)
-            if between := query[last : m.start()].strip():
+        last_end = 0
+
+        for match in matches:
+            # Text between previous match and this one → general terms
+            between = query[last_end:match.start()].strip()
+            if between:
                 general.extend(between.split())
-            last = m.end()
-        if remaining := query[last:].strip():
+
+            tag_name = match.group(1).lower()
+            if tag_name == "song":
+                tag_name = "track"
+
+            # Extract value from one of the three possible groups
+            value = next(g for g in match.groups()[1:] if g is not None)
+
+            # Unescape (handles \" , \' , \\ etc.)
+            value = re.sub(r'\\(.)', r'\1', value)
+
+            tags[tag_name].append(value.strip())
+
+            last_end = match.end()
+
+        # Remaining text after last match
+        remaining = query[last_end:].strip()
+        if remaining:
             general.extend(remaining.split())
+
         return {**tags, "general": general}
 
     def search_grouped(self, query: str, limit: int = 20) -> tuple[dict[str, list[dict]], dict[str, list[str]]]:
@@ -276,41 +159,169 @@ class MusicCollection:
         parsed = self.parse_query(query)
         has_specific = any(parsed[k] for k in ("artist", "album", "track"))
         conn = self._get_conn()
+        use_fts = self._use_fts(conn)
 
-        if not has_specific and parsed["general"]:
-            phrase = " ".join(parsed["general"])
-            like = f"%{phrase}%"
-            starts = f"{phrase}%"
-            term = starts if self._use_fts(conn) else like
-            artists = self._search_artists_multi(conn, [term], limit, contains_match=False)
-            albums = self._search_albums_multi(conn, [term], limit,
-                                            skip_artists={a["artist"].lower() for a in artists},
-                                            contains_match=False)
-            tracks = self._search_tracks_multi(conn, [term], limit,
-                                            skip_artists={a["artist"].lower() for a in artists + albums},
-                                            contains_match=False)
-            terms = {"artist": [phrase], "album": [phrase], "track": [phrase]}
+        # Build column-specific expressions for tags
+        expr_parts = []
+        terms = {"artist": [], "album": [], "track": []}  # Renamed to terms for consistency
+
+        for field_map, tag_key in [("artist", "artist"), ("album", "album"), ("title", "track")]:
+            tag_terms = parsed.get(tag_key, [])
+            if tag_terms:
+                field_exprs = []
+                for t in tag_terms:
+                    escaped = self._fts_escape(t)
+                    tokens = escaped.split()
+                    if len(tokens) > 1:
+                        # OR for multi-word within tag
+                        token_matches = [f'{tok}*' for tok in tokens]
+                        field_exprs.append(f'({" OR ".join(token_matches)})')
+                    else:
+                        field_exprs.append(f'{escaped}*')
+                # OR for multiple tags of same type
+                combined = " OR ".join(field_exprs)
+                expr_parts.append(f'{field_map}:({combined})')
+                terms[tag_key].extend(tag_terms)
+
+        # Add general terms as OR across all fields
+        if parsed["general"]:
+            general_tokens = parsed["general"]
+            general_exprs = [f'{tok}*' for tok in general_tokens]
+            general_combined = " OR ".join(general_exprs)
+            all_fields = f'(artist:({general_combined}) OR album:({general_combined}) OR title:({general_combined}))'
+            expr_parts.append(all_fields)
+            terms["artist"].extend(general_tokens)
+            terms["album"].extend(general_tokens)
+            terms["track"].extend(general_tokens)
+
+        if not expr_parts:
+            return {"artists": [], "albums": [], "tracks": []}, terms
+
+        # Final expression: AND for different tag types (or general), OR if no specific tags
+        join_op = " AND " if has_specific else " OR "
+        final_expr = join_op.join(expr_parts)
+
+        if use_fts:
+            sql = """
+                SELECT DISTINCT artist, album, title AS track, path, filename, duration
+                FROM tracks_fts
+                WHERE tracks_fts MATCH ?
+                ORDER BY rank
+                LIMIT ?
+            """
+            params = [final_expr, limit * 3]  # Buffer for grouping
         else:
-            general = parsed["general"]
-            artist_terms = parsed["artist"] + general
-            album_terms = parsed["album"] + general
-            track_terms = parsed["track"] + general
+            # Fallback LIKE (approximate)
+            where_parts = []
+            params = []
+            for field_map, tag_key in [("artist", "artist"), ("album", "album"), ("title", "track")]:
+                tag_terms = parsed.get(tag_key, [])
+                if tag_terms:
+                    likes = " OR ".join(f"lower({field_map}) LIKE ?" for _ in tag_terms)
+                    where_parts.append(f"({likes})")
+                    params.extend(f"%{t.lower()}%" for t in tag_terms)
+            if parsed["general"]:
+                gen_likes = " OR ".join("lower(artist) LIKE ? OR lower(album) LIKE ? OR lower(title) LIKE ?" for _ in parsed["general"])
+                where_parts.append(f"({gen_likes})")
+                for t in parsed["general"]:
+                    tl = f"%{t.lower()}%"
+                    params.extend([tl, tl, tl])
 
-            artists = self._search_artists_multi(conn, artist_terms, limit, contains_match=True) if artist_terms else []
-            albums = self._search_albums_multi(conn, album_terms, limit,
-                                            skip_artists={a["artist"].lower() for a in artists},
-                                            contains_match=True) if album_terms else []
-            tracks = self._search_tracks_multi(conn, track_terms, limit,
-                                            skip_artists={a["artist"].lower() for a in artists + albums},
-                                            contains_match=True) if track_terms else []
+            if not where_parts:
+                return {"artists": [], "albums": [], "tracks": []}, terms
 
-            terms = {
-                "artist": artist_terms,
-                "album": album_terms,
-                "track": track_terms,
-            }
+            join_op = " AND " if has_specific else " OR "
+            sql = f"""
+                SELECT DISTINCT artist, album, title AS track, path, filename, duration
+                FROM tracks
+                WHERE {' '.join(where_parts) if join_op == ' OR ' else join_op.join(where_parts)}
+                LIMIT ?
+            """
+            params.append(limit * 3)
 
-        # No population of sub-items – all lazy now (fast initial search)
+        cur = conn.execute(sql, params)
+        rows = [dict(r) for r in cur]
+
+        # Post-process
+        for r in rows:
+            if "path" in r:
+                r["path"] = self._relative_path(r["path"])
+            if "duration" in r:
+                r["duration"] = self._format_duration(r["duration"])
+
+        # Group results with query-aware priority and no overlap
+        matched_artists = set()
+        matched_albums = set()  # (artist, album)
+        all_tracks = []         # all potential tracks
+
+        for row in rows:
+            artist = row["artist"]
+            album = row["album"]
+            matched_artists.add(artist)
+            matched_albums.add((artist, album))
+            all_tracks.append(row)
+
+        # Determine priority order based on query tags
+        has_album_tag = bool(parsed["album"])
+        has_track_tag = bool(parsed["track"])
+
+        artists = []
+        albums = []
+        tracks = []
+
+        if has_album_tag:
+            # Priority: Albums first (since user searched for album)
+            albums_list = sorted(matched_albums, key=lambda x: x[1])[:limit]
+            albums = [{"artist": a, "album": al} for a, al in albums_list]
+
+            # Exclude artists that have a shown album
+            excluded_artists = {a for a, _ in albums_list}
+            artists = [{"artist": a} for a in sorted(matched_artists - excluded_artists)[:limit]]
+
+            # Tracks: only from non-shown albums
+            excluded_albums = set(albums_list)
+            excluded_artists_set = excluded_artists | {a["artist"] for a in artists}
+            for row in all_tracks:
+                if len(tracks) >= limit:
+                    break
+                a, al = row["artist"], row["album"]
+                if a in excluded_artists_set or (a, al) in excluded_albums:
+                    continue
+                tracks.append(row)
+
+        elif has_track_tag:
+            # Priority: Tracks first
+            tracks = all_tracks[:limit]
+
+            # Albums: only if not all tracks from same album
+            # (simplified: show albums only if multiple)
+            excluded_albums = set()
+            if len({row["album"] for row in tracks}) == 1:
+                excluded_albums.add((tracks[0]["artist"], tracks[0]["album"]))
+
+            excluded_artists = {row["artist"] for row in tracks}
+            albums = [{"artist": a, "album": al} for a, al in sorted(matched_albums - excluded_albums, key=lambda x: x[1])[:limit]]
+            artists = [{"artist": a} for a in sorted(matched_artists - excluded_artists - {a for a, _ in albums})[:limit]]
+
+        else:
+            # Default: Artists first (general or artist-only search)
+            artists_list = sorted(matched_artists)[:limit]
+            artists = [{"artist": a} for a in artists_list]
+
+            excluded_artists = set(artists_list)
+            albums_to_show = [(a, al) for a, al in matched_albums if a not in excluded_artists]
+            albums_to_show.sort(key=lambda x: x[1])
+            albums = [{"artist": a, "album": al} for a, al in albums_to_show[:limit]]
+
+            excluded_albums = {(a["artist"], a["album"]) for a in albums}
+            for row in all_tracks:
+                if len(tracks) >= limit:
+                    break
+                a, al = row["artist"], row["album"]
+                if a in excluded_artists or (a, al) in excluded_albums:
+                    continue
+                tracks.append(row)
+
         return {"artists": artists, "albums": albums, "tracks": tracks}, terms
 
     def get_artist_details(self, artist: str) -> dict:

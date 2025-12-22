@@ -31,7 +31,19 @@ class MusicCollectionUI(MusicCollection):
 
     @staticmethod
     def _escape_for_query(name: str) -> str:
-        return name.replace('"', '\\"')
+        """Escapes a string for use in a search query.
+
+        Returns the input string wrapped in single quotes unless it contains a single quote,
+        in which case it is wrapped in double quotes with any double quotes escaped.
+
+        Args:
+            name: The string to escape for query usage.
+
+        Returns:
+            The escaped string suitable for use in a search query.
+        """
+        # Prefer single quotes; if name has single quote, fall back to escaped double
+        return f"'{name}'" if "'" not in name else f""""{name.replace('"', '\"')}\""""
 
     def search_highlighting(self, query: str, limit: int = 30) -> list[dict]:
         if not query.strip():
@@ -81,7 +93,7 @@ class MusicCollectionUI(MusicCollection):
                 "albums": [],
                 "load_on_demand": True,
                 "clickable": True,
-                "click_query": f'artist:"{self._escape_for_query(artist["artist"])}"'
+                "click_query": f'artist:{self._escape_for_query(artist["artist"])}'
             })
 
         # Albums (summary with match counts, no tracks, clickable for album)
@@ -119,8 +131,8 @@ class MusicCollectionUI(MusicCollection):
                 "load_on_demand": True,
                 "is_compilation": album.get("is_compilation"),
                 "clickable": True,
-                "click_query": f'album:"{self._escape_for_query(album["album"])}"',
-                "artist_click_query": f'artist:"{self._escape_for_query(album["artist"])}"' if not album.get("is_compilation") else None
+                "click_query": f'album:{self._escape_for_query(album["album"])}',
+                "artist_click_query": None if album.get("is_compilation") else f'artist:{self._escape_for_query(album["artist"])}'
             })
 
         # Tracks (fully populated, with clickable artist and album)
@@ -141,8 +153,8 @@ class MusicCollectionUI(MusicCollection):
                     "highlighted": highlighted_track,
                     "match_type": "track",
                 }],
-                "artist_click_query": f'artist:"{self._escape_for_query(track["artist"])}"',
-                "album_click_query": f'album:"{self._escape_for_query(track["album"])}"'
+                "artist_click_query": f'artist:{self._escape_for_query(track["artist"])}',
+                "album_click_query": f'album:{self._escape_for_query(track["album"])}'
             })
 
         return results
