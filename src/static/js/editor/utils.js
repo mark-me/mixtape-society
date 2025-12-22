@@ -44,6 +44,9 @@ export function highlightText(text, query) {
 }
 
 
+const appModalEl = document.getElementById('appModal');
+const appModal   = new bootstrap.Modal(appModalEl);
+
 /**
  * Displays a modal alert dialog with a customizable title, message, and button text.
  * Shows a simple notification to the user that requires acknowledgment.
@@ -76,47 +79,45 @@ export function showAlert({ title = "Notice", message, buttonText = "OK" }) {
  * Returns:
  *   A Promise that resolves to a boolean indicating the user's choice.
  */
-export function showConfirm({ title = "Confirm", message, confirmText = "Confirm", cancelText = "Cancel" }) {
+export function showConfirm({
+    title = "Confirm",
+    message,
+    confirmText = "Confirm",
+    cancelText = "Cancel"
+}) {
     return new Promise(resolve => {
+        // Populate modal content
         document.getElementById('appModalTitle').textContent = title;
         document.getElementById('appModalBody').innerHTML = message;
         document.getElementById('appModalFooter').innerHTML = `
-                <button class="btn btn-secondary" data-bs-dismiss="modal">
-                    ${cancelText}
-                </button>
-                <button class="btn btn-danger" id="appModalConfirmBtn">
-                    ${confirmText}
-                </button>
-            `;
+            <button class="btn btn-secondary" data-bs-dismiss="modal">
+                ${cancelText}
+            </button>
+            <button class="btn btn-danger" id="appModalConfirmBtn">
+                ${confirmText}
+            </button>
+        `;
 
         let confirmed = false;
 
         const confirmBtn = document.getElementById('appModalConfirmBtn');
         confirmBtn.onclick = () => {
             confirmed = true;
-            appModal.hide();
+            appModal.hide();               // <-- now defined
             resolve(true);
         };
 
-        appModalEl.addEventListener(
-            'hidden.bs.modal',
-            () => {
-                if (!confirmed) {
-                    resolve(false);
-                }
-            },
-            { once: true }
-        );
+        // Resolve false if the user dismisses the modal without confirming
+        const hiddenHandler = () => {
+            if (!confirmed) resolve(false);
+        };
+        appModalEl.addEventListener('hidden.bs.modal', hiddenHandler, { once: true });
 
-        appModalEl.addEventListener(
-            'hidden.bs.modal',
-            () => resolve(false),
-            { once: true }
-        );
-
+        // Show the modal
         appModal.show();
     });
 }
+
 
 export function renderTrackReferences(text, tracks) {
     if (typeof text !== 'string') return '';

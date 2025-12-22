@@ -2,11 +2,18 @@
 import { playlist } from "./playlist.js";
 import { renderTrackReferences } from "./utils.js";
 
-export let easyMDE;
-
 const {EasyMDE, DOMPurify, marked} = window;
 
-export function initEditorNotes() {
+export let easyMDE;
+
+
+/**
+ * Initialise the EasyMDE markdown editor.
+ *
+ * @param {string|null} preloadNotes – If supplied, the editor will be pre‑filled
+ *                                     with these notes (used when editing a mixtape).
+ */
+export function initEditorNotes(preloadNotes = null) {
     const textarea = document.getElementById("liner-notes");
     const initialValue = window.PRELOADED_LINER_NOTES || "";
 
@@ -39,4 +46,9 @@ export function initEditorNotes() {
         preview.innerHTML = DOMPurify.sanitize(marked.parse(processed));
         return preview;
     };
+
+    // If the caller supplied pre‑loaded liner notes, inject them now.
+    if (preloadNotes) {
+        easyMDE.value(preloadNotes);
+    }
 }

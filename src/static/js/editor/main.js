@@ -1,7 +1,7 @@
 import { initSearch } from "./search.js";
 import { initEditorNotes } from "./editorNotes.js";
 import { initUI } from "./ui.js";
-import { initPlaylist, playlist, setPlaylist } from "./playlist.js";
+import { initPlaylist, setPlaylist } from "./playlist.js";
 import { easyMDE } from "./editorNotes.js";
 
 const preloadMixtape = window.PRELOADED_MIXTAPE;
@@ -15,15 +15,16 @@ if (preloadMixtape) {
     const titleInput = document.getElementById("playlist-title");
     titleInput.value = preloadMixtape.title || "";
 
-    // Liner notes – wait until EasyMDE is ready
-    if (window.PRELOADED_MIXTAPE.liner_notes && window.easyMDE) {
-        window.easyMDE.value(preloadMixtape.liner_notes);
-    }
+    // Pass the pre‑loaded liner notes (if any) so the editor shows them.
+    initEditorNotes(preloadMixtape ? preloadMixtape.liner_notes : null);
+} else {
+    // No mixtape to preload – just initialise the editor normally.
+    initEditorNotes();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
     initSearch();
     initPlaylist();
-    initEditorNotes();
+    initEditorNotes();   // (will be a no‑op if already called above)
     initUI();
 });

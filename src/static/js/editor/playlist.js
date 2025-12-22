@@ -6,6 +6,19 @@ export let playlist = [];               // exported so other modules (e.g. notes
 const playlistOl = document.getElementById("playlist");
 const playlistCount = document.getElementById("playlist-count");
 
+/* -----------------------------------------------------------------
+*  Unsaved‑changes callback
+*
+*  UI code (ui.js) will register a function that should be called
+*  whenever the playlist is mutated (add, clear, remove, reorder).
+*  This decouples the playlist module from the UI and avoids a
+*  circular import.
+* -----------------------------------------------------------------*/
+let unsavedCallback = () => {};               // default – no‑op
+export function registerUnsavedCallback(cb) {
+    if (typeof cb === "function") unsavedCallback = cb;
+}
+
 export function setPlaylist(newTracks) {
     // Replace the current contents atomically
     playlist.length = 0;
@@ -49,6 +62,7 @@ export function addToPlaylist(item) {
 
     playlist.push(item);
     renderPlaylist();
+    unsavedCallback();
 }
 
 
@@ -67,6 +81,7 @@ function attachPlaylistEvents() {
         .addEventListener("click", () => {
             playlist = [];
             renderPlaylist();
+            unsavedCallback();
         });
 
     // Sortable.js integration
@@ -78,6 +93,7 @@ function attachPlaylistEvents() {
             const moved = playlist.splice(evt.oldIndex, 1)[0];
             playlist.splice(evt.newIndex, 0, moved);
             renderPlaylist();
+            unsavedCallback();
         }
     });
 }
@@ -149,6 +165,7 @@ export function renderPlaylist() {
         btn.onclick = () => {
             playlist.splice(btn.dataset.index, 1);
             renderPlaylist();
+            unsavedCallback();
         };
     });
 }
