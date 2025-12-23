@@ -32,11 +32,23 @@
     <div class="row mb-4">
         <div class="col">
             <div class="position-relative">
+                <!-- 1️⃣ INPUT that the JS will listen to -->
+                <input
+                    id="searchInput"
+                    type="text"
+                    class="form-control form-control-lg rounded-pill ps-5 pe-5"
+                    placeholder="Zoeken…"
+                    autocomplete="off"
+                    style="min-height: 58px; background: var(--bs-body-bg);"
+                />
+
+                <!-- 2️⃣ Container for the dynamic tags/badges -->
                 <div id="searchContainer"
                     class="form-control form-control-lg rounded-pill ps-5 pe-5 d-flex flex-wrap align-items-center gap-2"
-                    style="min-height: 58px; background: var(--bs-body-bg);">
-                    <!-- Search tags/badges will be inserted here dynamically -->
+                    style="min-height: 58px; background: var(--bs-body-bg); position:absolute; inset:0; pointer-events:none;">
+                    <!-- Tags will be injected here -->
                 </div>
+
                 <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-4 text-muted pointer-events-none"></i>
                 <i class="bi bi-info-circle position-absolute top-50 end-0 translate-middle-y me-4 text-muted"
                 id="searchHint"
@@ -48,13 +60,14 @@
                 data-bs-html="true"
                 data-bs-title="Search Tips"
                 data-bs-content='
-                    <strong>Advanced search tags:</strong><br>
-                    • <code>artist:beatles</code> – search only artists<br>
-                    • <code>album:abbey</code> – search only albums<br>
-                    • <code>track:hey</code> or <code>song:jude</code> – search only song titles<br><br>
-                    Use quotes for phrases with spaces: <code>artist:"the beatles"</code><br><br>
-                    Multiple tags are combined with <strong>OR</strong>.
-                '></i>
+                        <strong>Advanced search tags:</strong><br>
+                        • <code>artist:beatles</code> – search only artists<br>
+                        • <code>album:abbey</code> – search only albums<br>
+                        • <code>track:hey</code> or <code>song:jude</code> – search only song titles<br><br>
+                        Use quotes for phrases with spaces: <code>artist:"the beatles"</code><br><br>
+                        Multiple tags are combined with <strong>OR</strong>.
+                    '></i>
+
                 <div id="loading" class="position-absolute top-50 end-0 translate-middle-y me-4 visually-hidden">
                     <span class="spinner-border spinner-border-sm text-muted" role="status" aria-hidden="true"></span>
                 </div>

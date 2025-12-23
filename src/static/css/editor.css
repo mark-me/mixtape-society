@@ -3,6 +3,40 @@
     height: 58px;
     padding-left: 52px !important;
     padding-right: 52px !important;
+
+    position: relative;          /* creates a stacking context */
+    z-index: 1;                  /* higher than the container */
+    background: transparent;     /* let the pill’s background show through */
+    color: var(--bs-body-color); /* ensure the text colour matches the theme */
+}
+
+/* Search container – push it behind the input */
+#searchContainer {
+    /* Existing layout rules (background colours, badge styles, etc.)
+       are already defined elsewhere – we only add stacking info. */
+    position: absolute;          /* already used in the HTML */
+    inset: 0;                    /* fill the pill */
+    pointer-events: none;        /* keep clicks passing to the input */
+    background: transparent;     /* don’t obscure the input’s text */
+    z-index: 0;                  /* lower than the input */
+}
+
+/* Search container – push it behind the input */
+#searchContainer::before {
+    content: attr(data-placeholder);
+    color: #6c757d;               /* Bootstrap’s muted colour */
+    position: absolute;
+    left: 1rem;                  /* same horizontal padding as the input */
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+/* Hide the placeholder as soon as the user types */
+#searchInput:not(:placeholder-shown) + #searchContainer::before,
+#searchInput:not(:empty) + #searchContainer::before {
+    content: "";
 }
 
 .bi-search {
