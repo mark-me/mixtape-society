@@ -3,6 +3,7 @@ from pathlib import Path
 
 from .reader import MusicCollection
 
+
 class MusicCollectionUI(MusicCollection):
     def __init__(self, music_root, db_path, logger=None):
         super().__init__(music_root, db_path, logger)
@@ -43,7 +44,7 @@ class MusicCollectionUI(MusicCollection):
             The escaped string suitable for use in a search query.
         """
         # Prefer single quotes; if name has single quote, fall back to escaped double
-        return f"'{name}'" if "'" not in name else f""""{name.replace('"', '\"')}\""""
+        return f"'{name}'" if "'" not in name else f""""{name.replace('"', '"')}\""""
 
     def search_highlighting(self, query: str, limit: int = 30) -> list[dict]:
         if not query.strip():
@@ -68,13 +69,13 @@ class MusicCollectionUI(MusicCollection):
             with self._get_conn() as conn:
                 cur = conn.execute(
                     "SELECT COUNT(DISTINCT album) FROM tracks WHERE artist = ? AND (album LIKE ? OR title LIKE ?)",
-                    (artist_name, f"%{query_lower}%", f"%{query_lower}%")
+                    (artist_name, f"%{query_lower}%", f"%{query_lower}%"),
                 )
                 matched_albums = cur.fetchone()[0] or 0
 
                 cur = conn.execute(
                     "SELECT COUNT(*) FROM tracks WHERE artist = ? AND title LIKE ?",
-                    (artist_name, f"%{query_lower}%")
+                    (artist_name, f"%{query_lower}%"),
                 )
                 matched_tracks = cur.fetchone()[0] or 0
 
@@ -86,54 +87,59 @@ class MusicCollectionUI(MusicCollection):
             if matched_tracks:
                 reasons.append({"type": "track", "text": f"{matched_tracks} nummer(s)"})
 
-            results.append({
-                "type": "artist",
-                "artist": highlighted_artist,
-                "reasons": reasons,
-                "albums": [],
-                "load_on_demand": True,
-                "clickable": True,
-                "click_query": f'artist:{self._escape_for_query(artist["artist"])}'
-            })
+            results.append(
+                {
+                    "type": "artist",
+                    "artist": highlighted_artist,
+                    "reasons": reasons,
+                    "albums": [],
+                    "load_on_demand": True,
+                    "clickable": True,
+                    "click_query": f"artist:{self._escape_for_query(artist['artist'])}",
+                }
+            )
 
         # Albums (summary with match counts, no tracks, clickable for album)
         for album in grouped["albums"]:
-            artist_name = album["artist"]
             album_name = album["album"]
-            if album.get("is_compilation"):
-                highlighted_artist = "Various Artists"
-            else:
-                highlighted_artist = self._highlight_text(artist_name, all_terms)
+            display_artist = album["display_artist"]
+            is_comp = album["is_compilation"]
+
+            highlighted_artist = "Various Artists" if is_comp else self._highlight_text(display_artist, all_terms)
             highlighted_album = self._highlight_text(album_name, all_terms)
 
             with self._get_conn() as conn:
                 cur = conn.execute(
                     "SELECT COUNT(*) FROM tracks WHERE album = ? AND title LIKE ?",
-                    (album_name, f"%{query_lower}%")
+                    (album_name, f"%{query_lower}%"),
                 )
                 matched_tracks = cur.fetchone()[0] or 0
 
             reasons = []
-            if query_lower in artist_name.lower():
-                reasons.append({"type": "artist", "text": artist_name})
+            if query_lower in display_artist.lower() and not is_comp:
+                reasons.append({"type": "artist", "text": display_artist})
             if query_lower in album_name.lower():
                 reasons.append({"type": "album", "text": album_name})
             if matched_tracks:
                 reasons.append({"type": "track", "text": f"{matched_tracks} nummer(s)"})
 
-            results.append({
-                "type": "album",
-                "artist": highlighted_artist,
-                "album": highlighted_album,
-                "reasons": reasons,
-                "tracks": [],
-                "highlighted_tracks": None,
-                "load_on_demand": True,
-                "is_compilation": album.get("is_compilation"),
-                "clickable": True,
-                "click_query": f'album:{self._escape_for_query(album["album"])}',
-                "artist_click_query": None if album.get("is_compilation") else f'artist:{self._escape_for_query(album["artist"])}'
-            })
+            results.append(
+                {
+                    "type": "album",
+                    "artist": highlighted_artist,
+                    "album": highlighted_album,
+                    "reasons": reasons,
+                    "tracks": [],
+                    "highlighted_tracks": None,
+                    "load_on_demand": True,
+                    "is_compilation": is_comp,
+                    "clickable": True,
+                    "click_query": f"album:{self._escape_for_query(album_name)}",
+                    "artist_click_query": None
+                    if album.get("is_compilation")
+                    else f"artist:{self._escape_for_query(album.get('display_artist', album['artist']))}",
+                }
+            )
 
         # Tracks (fully populated, with clickable artist and album)
         for track in grouped["tracks"]:
@@ -142,19 +148,26 @@ class MusicCollectionUI(MusicCollection):
             highlighted_artist = self._highlight_text(track["artist"], all_terms)
             highlighted_album = self._highlight_text(track["album"], all_terms)
 
-            results.append({
-                "type": "track",
-                "artist": highlighted_artist,
-                "album": highlighted_album,
-                "reasons": [{"type": "track", "text": track_title}],
-                "tracks": [self._track_display_dict(track)],
-                "highlighted_tracks": [{
-                    "original": {"title": track_title, "duration": track.get("duration") or "?:??"},
-                    "highlighted": highlighted_track,
-                    "match_type": "track",
-                }],
-                "artist_click_query": f'artist:{self._escape_for_query(track["artist"])}',
-                "album_click_query": f'album:{self._escape_for_query(track["album"])}'
-            })
+            results.append(
+                {
+                    "type": "track",
+                    "artist": highlighted_artist,
+                    "album": highlighted_album,
+                    "reasons": [{"type": "track", "text": track_title}],
+                    "tracks": [self._track_display_dict(track)],
+                    "highlighted_tracks": [
+                        {
+                            "original": {
+                                "title": track_title,
+                                "duration": track.get("duration") or "?:??",
+                            },
+                            "highlighted": highlighted_track,
+                            "match_type": "track",
+                        }
+                    ],
+                    "artist_click_query": f"artist:{self._escape_for_query(track['artist'])}",
+                    "album_click_query": f"album:{self._escape_for_query(track['album'])}",
+                }
+            )
 
         return results

@@ -279,17 +279,67 @@ class MusicCollection:
 
         if include_albums:
             # In tagged searches: suppress albums from shown artists
-            # In general searches: allow them (more discovery)
             excluded_artists = set(a["artist"] for a in artists) if has_specific and include_artists else set()
-            albums_to_show = [(a, al) for a, al in matched_albums if a not in excluded_artists]
-            albums_to_show.sort(key=lambda x: x[1])
-            albums_list = albums_to_show[:limit]
-            albums = [{"artist": a, "album": al} for a, al in albums_list]
+
+            # Collect candidate (artist, album) pairs
+            candidate_albums = [(a, al) for a, al in matched_albums if a not in excluded_artists]
+            candidate_albums.sort(key=lambda x: x[1])  # Sort by album name
+
+            # Group candidates by album_name for efficient processing
+            from collections import defaultdict
+            albums_by_name = defaultdict(list)
+            for artist, album_name in candidate_albums:
+                albums_by_name[album_name].append(artist)
+
+            # Build unique albums with splitting logic
+            seen = set()
+            albums = []
+
+            for album_name, matched_artists in albums_by_name.items():
+                if self.is_multiple_separate_releases(album_name):
+                    # Split into separate releases; use matched artists that are dominant
+                    dominant_groups = self.get_artist_groups(album_name)
+                    dominant_artists = {g["artist"] for g in dominant_groups}
+
+                    matched_artists_set = set(matched_artists)
+                    for track_artist in sorted(matched_artists_set & dominant_artists):  # Only matched dominant ones
+                        unique_key = (track_artist, album_name)
+                        if unique_key in seen:
+                            continue
+                        seen.add(unique_key)
+                        albums.append({
+                            "artist": track_artist,
+                            "album": album_name,
+                            "is_compilation": False,
+                            "display_artist": track_artist,
+                        })
+                else:
+                    # Single release: compilation or not
+                    unique_count = self.get_unique_artist_count(album_name)
+                    is_comp = unique_count > 3
+                    display_artist = "Various Artists" if is_comp else self.get_main_artist(album_name)
+                    unique_key = album_name
+                    if unique_key in seen:
+                        continue
+                    seen.add(unique_key)
+                    albums.append({
+                        "artist": display_artist,  # For backward compat
+                        "album": album_name,
+                        "is_compilation": is_comp,
+                        "display_artist": display_artist,
+                    })
+
+            # Apply limit after building
+            albums = albums[:limit]
 
         if include_tracks:
             # In tagged searches: suppress tracks from shown artists/albums
             # In general searches: allow tracks even from shown artists (title matches are valuable)
-            excluded_artists = set(a["artist"] for a in artists) if has_specific and include_artists else set()
+            excluded_artists = (
+                {a["artist"] for a in artists}
+                if has_specific and include_artists
+                else set()
+            )
             excluded_albums = set((a["artist"], a["album"]) for a in albums) if has_specific and include_albums else set()
 
             tracks_to_show = []
@@ -376,3 +426,43 @@ class MusicCollection:
                 "tracks": tracks,
                 "is_compilation": len(artists_in_album) > 3,
             }
+
+    def get_artist_groups(self, album: str, min_tracks_per_group: int = 3) -> list[dict]:
+        """Fetch artist clusters for an album name, filtered to dominant groups."""
+        with self._get_conn() as conn:
+            cur = conn.execute(
+                """
+                SELECT artist, COUNT(*) as cnt
+                FROM tracks
+                WHERE album = ?
+                GROUP BY artist
+                HAVING cnt >= ?
+                ORDER BY cnt DESC
+                """,
+                (album, min_tracks_per_group),
+            )
+            return [dict(row) for row in cur.fetchall()]
+
+    def is_multiple_separate_releases(self, album: str) -> bool:
+        """True if the album name has multiple dominant artist clusters (separate releases)."""
+        groups = self.get_artist_groups(album)
+        return len(groups) > 1
+
+    def get_unique_artist_count(self, album: str) -> int:
+        """Total unique artists for the album name."""
+        with self._get_conn() as conn:
+            cur = conn.execute(
+                "SELECT COUNT(DISTINCT artist) FROM tracks WHERE album = ?",
+                (album,)
+            )
+            return cur.fetchone()[0] or 0
+
+    def get_main_artist(self, album: str) -> str:
+        """Most common artist for the album name."""
+        with self._get_conn() as conn:
+            cur = conn.execute(
+                "SELECT artist, COUNT(*) as cnt FROM tracks WHERE album = ? GROUP BY artist ORDER BY cnt DESC LIMIT 1",
+                (album,)
+            )
+            row = cur.fetchone()
+            return row["artist"] if row else ""

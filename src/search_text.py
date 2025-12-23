@@ -30,8 +30,10 @@ def main():
     print("Indexing complete (or not needed). Searching...")
     result = collection.search_highlighting(query="artist:'Nick Cave'")
     result = collection.search_highlighting(query="album:\"Original Seeds\"")
+    result = collection.search_highlighting(query="album:\"Greatest Hits\"")
     result = collection.search_highlighting(query="artist:Nick album:\"Firstborn\"")
-    result = collection.search_highlighting(query="Nick", limit=1000 )
+    result = collection.search_highlighting(query="album:\"Firstborn\"")
+    result = collection.search_highlighting(query="Nick" )
     result = collection.search_highlighting(query="song:\"Weeping Song\"")
     result = collection.search_highlighting(query="song: \"Weeping Song\"")
     return result
