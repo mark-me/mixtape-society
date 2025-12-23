@@ -92,8 +92,8 @@ The UI never talks directly to the filesystem; it always goes through MusicColle
 1. Instantiate the high‑level class:
 
     ```python
-        from musiclib.reader import MusicCollection
-        mc = MusicCollection(music_root="/path/to/music", db_path="/path/to/db.sqlite")
+    from musiclib.reader import MusicCollection
+    mc = MusicCollection(music_root="/path/to/music", db_path="/path/to/db.sqlite")
     ```
 
 2. Run a query (the UI does this internally):
