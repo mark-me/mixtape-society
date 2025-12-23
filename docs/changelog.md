@@ -30,10 +30,12 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 - Documentation images update
 - Large cover files are scaled down to save bandwidth
 - Sped up searching
+- Better mixtape editing
 
 ### 🐛 Fixed
 
 - Player does not adhere to light/dark theming
+- Possible mixtape collision
 
 [v0.1.8-alpha](https://github.com/mark-me/mixtape-society/compare/v0.1.7-alpha...v0.1.8-alpha)
 
