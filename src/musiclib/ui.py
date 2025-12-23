@@ -5,11 +5,35 @@ from .reader import MusicCollection
 
 
 class MusicCollectionUI(MusicCollection):
+    """Extends MusicCollection to provide UI-specific search and highlighting features.
+    Adds methods for formatting, escaping, and highlighting search results for user interfaces.
+    """
     def __init__(self, music_root, db_path, logger=None):
+        """Initializes the MusicCollectionUI with the given music root, database path, and optional logger.
+        Sets up the UI-specific extension of the music collection functionality.
+
+        Args:
+            music_root: Path to the root directory containing music files.
+            db_path: Path to the SQLite database file.
+            logger: Optional logger instance.
+
+        Returns:
+            None
+        """
         super().__init__(music_root, db_path, logger)
 
     @staticmethod
     def _highlight_text(text: str, terms: list[str]) -> str:
+        """Highlights all occurrences of search terms in the given text for UI display.
+        Wraps matching terms in <mark> tags to visually emphasize them in the interface.
+
+        Args:
+            text: The text to highlight.
+            terms: List of search terms to highlight in the text.
+
+        Returns:
+            str: The text with matching terms wrapped in <mark> tags.
+        """
         if not terms:
             return text
         sorted_terms = sorted(terms, key=len, reverse=True)
@@ -17,6 +41,15 @@ class MusicCollectionUI(MusicCollection):
         return re.sub(f"({pattern})", r"<mark>\1</mark>", text, flags=re.I)
 
     def _track_display_dict(self, track: dict) -> dict:
+        """Formats a track dictionary for UI display.
+        Returns a dictionary with title, duration, path, and a safe filename for the track.
+
+        Args:
+            track: Dictionary containing track information.
+
+        Returns:
+            dict: Dictionary with formatted track details for UI display.
+        """
         return {
             "title": track["track"],
             "duration": track.get("duration") or "?:??",
@@ -26,6 +59,16 @@ class MusicCollectionUI(MusicCollection):
 
     @staticmethod
     def _safe_filename(title: str, path: str) -> str:
+        """Generates a safe filename for a track by sanitizing the title and preserving the file extension.
+        Removes unsafe characters from the title and appends the original file extension.
+
+        Args:
+            title: The track title to sanitize.
+            path: The original file path to extract the extension.
+
+        Returns:
+            str: A safe filename suitable for saving or displaying.
+        """
         ext = Path(path).suffix or ""
         safe = "".join(c for c in title if c.isalnum() or c in " _-").strip()
         return f"{safe}{ext}"
@@ -47,6 +90,16 @@ class MusicCollectionUI(MusicCollection):
         return f"'{name}'" if "'" not in name else f""""{name.replace('"', '"')}\""""
 
     def search_highlighting(self, query: str, limit: int = 30) -> list[dict]:
+        """Performs a search and returns results with highlighted matching terms for UI display.
+        Groups and highlights artists, albums, and tracks based on the search query and terms.
+
+        Args:
+            query: The search query string.
+            limit: Maximum number of results to return.
+
+        Returns:
+            list[dict]: List of dictionaries containing highlighted search results for artists, albums, and tracks.
+        """
         if not query.strip():
             return []
 

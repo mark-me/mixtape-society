@@ -62,6 +62,17 @@ class CollectionExtractor:
     def __init__(
         self, music_root: Path, db_path: Path, logger: Logger | None = None
     ) -> None:
+        """Initializes the CollectionExtractor with the given music root, database path, and optional logger.
+        Sets up the database, file system monitoring, and background writer thread for music collection management.
+
+        Args:
+            music_root: The root directory containing music files.
+            db_path: The path to the SQLite database file.
+            logger: Optional logger instance for logging events.
+
+        Returns:
+            None
+        """
         self.music_root = music_root.resolve()
         self.db_path = db_path
         self.data_root = db_path.parent

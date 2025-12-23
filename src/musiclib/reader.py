@@ -15,9 +15,23 @@ _STARTUP_DONE = False
 
 
 class MusicCollection:
+    """Manages a music collection database and provides search and detail retrieval functionality.
+    Handles lazy loading, background indexing, and query parsing for artists, albums, and tracks.
+    """
     def __init__(
         self, music_root: Path | str, db_path: Path | str, logger=None
     ) -> None:
+        """Initializes the MusicCollection with the given music root and database path.
+        Sets up logging, extraction, and schedules background indexing or resync as needed.
+
+        Args:
+            music_root: Path to the root directory containing music files.
+            db_path: Path to the SQLite database file.
+            logger: Optional logger instance.
+
+        Returns:
+            None
+        """
         self.music_root = Path(music_root).resolve()
         self.db_path = Path(db_path)
         self._logger = logger or NullLogger()
@@ -36,10 +50,22 @@ class MusicCollection:
         self._start_background_startup_job()
 
     def is_indexing(self) -> bool:
+        """Checks if the music collection is currently being indexed or resynced.
+        Returns True if a background indexing or resync operation is in progress.
+
+        Returns:
+            bool: True if indexing or resyncing is active, False otherwise.
+        """
         status = get_indexing_status(self.db_path.parent)
         return status and status.get("status") in ("rebuilding", "resyncing")
 
     def _start_background_startup_job(self) -> None:
+        """Starts a background thread to perform initial indexing or resync of the music collection.
+        Ensures that only one background startup job runs at a time.
+
+        Returns:
+            None
+        """
         global _STARTUP_DONE
         if _STARTUP_DONE or self._background_task_running:
             return
@@ -62,22 +88,61 @@ class MusicCollection:
         Thread(target=task, daemon=True).start()
 
     def rebuild(self) -> None:
+        """Triggers a full rebuild of the music collection database.
+        Rebuilds the database from scratch using the current music files.
+
+        Returns:
+            None
+        """
         self._extractor.rebuild()
 
     def resync(self) -> None:
+        """Performs a resync of the music collection database.
+        Updates the database to reflect changes in the music files without a full rebuild.
+
+        Returns:
+            None
+        """
         self._extractor.resync()
 
     def close(self) -> None:
+        """Stops monitoring and closes resources associated with the music collection.
+        Cleans up background tasks and releases any held resources.
+
+        Returns:
+            None
+        """
         self._extractor.stop()
 
     def _get_conn(self) -> Connection:
+        """Returns a read-only SQLite connection to the music collection database.
+        Used internally for executing queries against the database.
+
+        Returns:
+            Connection: A read-only SQLite database connection.
+        """
         return self._extractor.get_conn(readonly=True)
 
     def count(self) -> int:
+        """Returns the total number of tracks in the music collection database.
+        Executes a query to count all tracks currently indexed.
+
+        Returns:
+            int: The number of tracks in the database.
+        """
         with self._get_conn() as conn:
             return conn.execute("SELECT COUNT(*) FROM tracks").fetchone()[0]
 
     def _use_fts(self, conn: Connection) -> bool:
+        """Checks if the full-text search (FTS) table exists in the database.
+        Determines whether FTS-based queries can be used for searching tracks.
+
+        Args:
+            conn: SQLite database connection.
+
+        Returns:
+            bool: True if the FTS table exists, False otherwise.
+        """
         return (
             conn.execute(
                 "SELECT name FROM sqlite_master WHERE type='table' AND name='tracks_fts'"
@@ -86,11 +151,31 @@ class MusicCollection:
         )
 
     def _fts_escape(self, txt: str) -> str:
+        """Escapes double quotes in a string for use in full-text search queries.
+        Ensures that input text is safely formatted for FTS operations.
+
+        Args:
+            txt: The input string to escape.
+
+        Returns:
+            str: The escaped string with double quotes replaced.
+        """
         return txt.replace('"', '""')
 
     def _search_album_tracks(
         self, conn: Connection, artist: str, album: str
-    ) -> list[dict]:
+    ) -> list[dict[str, str]]:
+        """Fetches all tracks for a given artist and album from the database.
+        Returns a list of track details including title, path, filename, and duration.
+
+        Args:
+            conn: SQLite database connection.
+            artist: Name of the artist.
+            album: Name of the album.
+
+        Returns:
+            list[dict[str, str]]: List of dictionaries containing track details.
+        """
         cur = conn.execute(
             "SELECT title, path, filename, duration FROM tracks WHERE artist = ? AND album = ? ORDER BY title COLLATE NOCASE",
             (artist, album),
@@ -107,15 +192,42 @@ class MusicCollection:
 
     @staticmethod
     def _format_duration(seconds: float | None) -> str:
+        """Formats a duration in seconds into a MM:SS string.
+        Returns a placeholder if the duration is not provided.
+
+        Args:
+            seconds: The duration in seconds.
+
+        Returns:
+            str: The formatted duration as MM:SS or a placeholder if not available.
+        """
         if not seconds:
             return "?:??"
         m, s = divmod(int(seconds), 60)
         return f"{m}:{s:02d}"
 
     def _relative_path(self, path: str) -> str:
+        """Converts an absolute track path to a path relative to the music root directory.
+        Used to display or store paths in a consistent, relative format.
+
+        Args:
+            path: The absolute path to the track file.
+
+        Returns:
+            str: The path relative to the music root directory.
+        """
         return str(Path(path).relative_to(self.music_root))
 
     def parse_query(self, query: str) -> dict[str, list[str]]:
+        """Parses a search query string into tagged and general search terms.
+        Extracts artist, album, track tags and general terms for advanced search functionality.
+
+        Args:
+            query: The search query string to parse.
+
+        Returns:
+            dict[str, list[str]]: Dictionary containing lists of terms for 'artist', 'album', 'track', and 'general'.
+        """
         tags = {"artist": [], "album": [], "track": []}
         general: list[str] = []
 
@@ -126,9 +238,7 @@ class MusicCollection:
         last_end = 0
 
         for match in matches:
-            # Text between previous match and this one → general terms
-            between = query[last_end:match.start()].strip()
-            if between:
+            if between := query[last_end : match.start()].strip():
                 general.extend(between.split())
 
             tag_name = match.group(1).lower()
@@ -145,14 +255,22 @@ class MusicCollection:
 
             last_end = match.end()
 
-        # Remaining text after last match
-        remaining = query[last_end:].strip()
-        if remaining:
+        if remaining := query[last_end:].strip():
             general.extend(remaining.split())
 
         return {**tags, "general": general}
 
     def search_grouped(self, query: str, limit: int = 20) -> tuple[dict[str, list[dict]], dict[str, list[str]]]:
+        """Searches the music collection for artists, albums, and tracks matching the query.
+        Returns grouped search results and the parsed search terms for further processing.
+
+        Args:
+            query: The search query string.
+            limit: Maximum number of results to return for each group.
+
+        Returns:
+            tuple[dict[str, list[dict]], dict[str, list[str]]]: A tuple containing grouped search results and parsed terms.
+        """
         if not query.strip():
             return {"artists": [], "albums": [], "tracks": []}, {}
 
@@ -320,6 +438,15 @@ class MusicCollection:
         return {"artists": artists, "albums": albums, "tracks": tracks}, terms
 
     def get_artist_details(self, artist: str) -> dict:
+        """Retrieves detailed information about an artist, including their albums and tracks.
+        Returns a dictionary with the artist name and a list of albums containing track details.
+
+        Args:
+            artist: The name of the artist to retrieve details for.
+
+        Returns:
+            dict: Dictionary containing the artist name and a list of albums with track information.
+        """
         with self._get_conn() as conn:
             cur = conn.execute(
                 """
@@ -350,9 +477,14 @@ class MusicCollection:
             return {"artist": artist, "albums": albums}
 
     def get_album_details(self, release_dir: str) -> dict:
-        """
-        Fetch full track list for a release identified by its directory.
-        Includes per-track artist for multi-artist releases.
+        """Retrieves detailed information about an album given its release directory.
+        Returns a dictionary with album details, including artist, tracks, compilation status, and release directory.
+
+        Args:
+            release_dir: The release directory relative to the music root.
+
+        Returns:
+            dict: Dictionary containing album details, track list, and compilation status.
         """
         with self._get_conn() as conn:
             # Use SQL expr to match directory (handles trailing / consistency)
@@ -399,11 +531,24 @@ class MusicCollection:
             }
 
     def _get_release_dir(self, path: str) -> str:
-        """Compute the release directory from a track path (relative to music_root)."""
+        """Computes the release directory for a given track path relative to the music root.
+        Returns the parent directory path, typically representing 'artist/album'.
+
+        Args:
+            path: The path to the track file.
+
+        Returns:
+            str: The release directory relative to the music root.
+        """
         full_path = Path(path)
         relative_path = full_path.relative_to(self.music_root) if full_path.is_absolute() else full_path
         return str(relative_path.parent)  # e.g., 'artist/album'
 
     def _sql_release_dir_expr(self) -> str:
-        """SQL expression to compute release_dir in queries."""
+        """Returns the SQL expression to extract the release directory from a track's path.
+        Used to match and group tracks by their release directory in database queries.
+
+        Returns:
+            str: SQL expression for extracting the release directory from the path.
+        """
         return "SUBSTR(path, 1, LENGTH(path) - LENGTH(filename))"  # e.g., 'artist/album/' (with trailing /)

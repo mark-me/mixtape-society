@@ -384,6 +384,8 @@ sequenceDiagram
 
 #### ::: src.musiclib.reader.MusicCollection
 
+#### ::: src.musiclib.ui.MusicCollectionUI
+
 ## Creating/maintaining the music collection database
 
 ### 1. High‑level picture
