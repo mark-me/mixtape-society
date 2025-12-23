@@ -101,45 +101,47 @@ class MusicCollectionUI(MusicCollection):
 
         # Albums (summary with match counts, no tracks, clickable for album)
         for album in grouped["albums"]:
-            album_name = album["album"]
             display_artist = album["display_artist"]
-            is_comp = album["is_compilation"]
+            album_name = album["album"]
+            is_compilation = album["is_compilation"]
+            release_dir = album["release_dir"]
 
-            highlighted_artist = "Various Artists" if is_comp else self._highlight_text(display_artist, all_terms)
+            highlighted_artist = "Various Artists" if is_compilation else self._highlight_text(display_artist, all_terms)
             highlighted_album = self._highlight_text(album_name, all_terms)
 
             with self._get_conn() as conn:
                 cur = conn.execute(
-                    "SELECT COUNT(*) FROM tracks WHERE album = ? AND title LIKE ?",
-                    (album_name, f"%{query_lower}%"),
+                    """
+                    SELECT COUNT(*) FROM tracks
+                    WHERE SUBSTR(path, 1, LENGTH(path) - LENGTH(filename)) = ?
+                    AND title LIKE ?
+                    """,
+                    (f"{release_dir}/", f"%{query_lower}%"),
                 )
                 matched_tracks = cur.fetchone()[0] or 0
 
             reasons = []
-            if query_lower in display_artist.lower() and not is_comp:
+            if query_lower in display_artist.lower() and not is_compilation:
                 reasons.append({"type": "artist", "text": display_artist})
             if query_lower in album_name.lower():
                 reasons.append({"type": "album", "text": album_name})
             if matched_tracks:
                 reasons.append({"type": "track", "text": f"{matched_tracks} nummer(s)"})
 
-            results.append(
-                {
-                    "type": "album",
-                    "artist": highlighted_artist,
-                    "album": highlighted_album,
-                    "reasons": reasons,
-                    "tracks": [],
-                    "highlighted_tracks": None,
-                    "load_on_demand": True,
-                    "is_compilation": is_comp,
-                    "clickable": True,
-                    "click_query": f"album:{self._escape_for_query(album_name)}",
-                    "artist_click_query": None
-                    if album.get("is_compilation")
-                    else f"artist:{self._escape_for_query(album.get('display_artist', album['artist']))}",
-                }
-            )
+            results.append({
+                "type": "album",
+                "artist": highlighted_artist,
+                "album": highlighted_album,
+                "reasons": reasons,
+                "tracks": [],
+                "highlighted_tracks": None,
+                "load_on_demand": True,
+                "is_compilation": is_compilation,
+                "clickable": True,
+                "click_query": f'release_dir:{self._escape_for_query(release_dir)}',  # Or just provide release_dir
+                "artist_click_query": None if is_compilation else f'artist:{self._escape_for_query(display_artist)}',
+                "release_dir": release_dir  # For UI to use in lazy load call
+            })
 
         # Tracks (fully populated, with clickable artist and album)
         for track in grouped["tracks"]:

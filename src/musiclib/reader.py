@@ -1,15 +1,15 @@
 # Updated reader.py with lazy loading for both artists and albums
 # No automatic population of albums for artists or tracks for albums
 import re
+from collections import defaultdict
 from pathlib import Path
-from threading import Thread
-from typing import Any, Sequence
 from sqlite3 import Connection
+from threading import Thread
 
 from common.logging import NullLogger
 
 from ._extractor import CollectionExtractor
-from .indexing_status import get_indexing_status, clear_indexing_status
+from .indexing_status import clear_indexing_status, get_indexing_status
 
 _STARTUP_DONE = False
 
@@ -245,23 +245,34 @@ class MusicCollection:
         rows = [dict(r) for r in cur]
 
         # Post-process
-        for r in rows:
-            if "path" in r:
-                r["path"] = self._relative_path(r["path"])
-            if "duration" in r:
-                r["duration"] = self._format_duration(r["duration"])
-
-        # Group results based on tags present, with priority and no overlap
-        matched_artists = set()
-        matched_albums = set()  # (artist, album)
-        all_tracks = []         # all potential tracks
-
+        releases_by_dir = defaultdict(list)
         for row in rows:
-            artist = row["artist"]
-            album = row["album"]
-            matched_artists.add(artist)
-            matched_albums.add((artist, album))
-            all_tracks.append(row)
+            release_dir = self._get_release_dir(row["path"])
+            releases_by_dir[release_dir].append(row)
+
+        # Extract unique artists, albums, and tracks
+        matched_artists = set()
+        matched_releases = []  # List of dicts for releases
+        all_tracks = []
+
+        for release_dir, group in releases_by_dir.items():
+            # Derive release info from group (assume consistent album/artist where possible)
+            album_name = group[0]["album"]  # Assume uniform
+            artists = {r["artist"] for r in group}
+            is_compilation = len(artists) > 3
+            display_artist = "Various Artists" if is_compilation else group[0]["artist"]
+
+            matched_artists.update(artists)
+            matched_releases.append({
+                "display_artist": display_artist,
+                "album": album_name,
+                "is_compilation": is_compilation,
+                "release_dir": release_dir,
+            })
+            all_tracks.extend(group)
+
+        # Sort releases by album name
+        matched_releases.sort(key=lambda x: x["album"])
 
         # Determine which types to include based on tags
         include_artists = bool(parsed["artist"]) or not has_specific
@@ -280,57 +291,11 @@ class MusicCollection:
         if include_albums:
             # In tagged searches: suppress albums from shown artists
             excluded_artists = set(a["artist"] for a in artists) if has_specific and include_artists else set()
-
-            # Collect candidate (artist, album) pairs
-            candidate_albums = [(a, al) for a, al in matched_albums if a not in excluded_artists]
-            candidate_albums.sort(key=lambda x: x[1])  # Sort by album name
-
-            # Group candidates by album_name for efficient processing
-            from collections import defaultdict
-            albums_by_name = defaultdict(list)
-            for artist, album_name in candidate_albums:
-                albums_by_name[album_name].append(artist)
-
-            # Build unique albums with splitting logic
-            seen = set()
-            albums = []
-
-            for album_name, matched_artists in albums_by_name.items():
-                if self.is_multiple_separate_releases(album_name):
-                    # Split into separate releases; use matched artists that are dominant
-                    dominant_groups = self.get_artist_groups(album_name)
-                    dominant_artists = {g["artist"] for g in dominant_groups}
-
-                    matched_artists_set = set(matched_artists)
-                    for track_artist in sorted(matched_artists_set & dominant_artists):  # Only matched dominant ones
-                        unique_key = (track_artist, album_name)
-                        if unique_key in seen:
-                            continue
-                        seen.add(unique_key)
-                        albums.append({
-                            "artist": track_artist,
-                            "album": album_name,
-                            "is_compilation": False,
-                            "display_artist": track_artist,
-                        })
-                else:
-                    # Single release: compilation or not
-                    unique_count = self.get_unique_artist_count(album_name)
-                    is_comp = unique_count > 3
-                    display_artist = "Various Artists" if is_comp else self.get_main_artist(album_name)
-                    unique_key = album_name
-                    if unique_key in seen:
-                        continue
-                    seen.add(unique_key)
-                    albums.append({
-                        "artist": display_artist,  # For backward compat
-                        "album": album_name,
-                        "is_compilation": is_comp,
-                        "display_artist": display_artist,
-                    })
-
-            # Apply limit after building
-            albums = albums[:limit]
+            albums_to_show = [
+                r for r in matched_releases
+                if r["display_artist"] not in excluded_artists
+            ]
+            albums = albums_to_show[:limit]
 
         if include_tracks:
             # In tagged searches: suppress tracks from shown artists/albums
@@ -365,12 +330,10 @@ class MusicCollection:
                 """,
                 (artist,),
             )
-            albums_map = {}
+            releases_map = defaultdict(list)
             for row in cur:
-                album = row["album"]
-                if album not in albums_map:
-                    albums_map[album] = []
-                albums_map[album].append(
+                release_dir = self._get_release_dir(row["path"])
+                releases_map[release_dir].append(
                     {
                         "track": row["title"],
                         "path": self._relative_path(row["path"]),
@@ -379,90 +342,68 @@ class MusicCollection:
                     }
                 )
 
-            albums = [
-                {"album": album, "tracks": tracks}
-                for album, tracks in sorted(albums_map.items())
-            ]
+            albums = []
+            for release_dir, tracks in sorted(releases_map.items(), key=lambda x: x[0]["album"]):
+                album_name = tracks[0]["album"]  # Assume consistent
+                albums.append({"album": album_name, "tracks": tracks, "release_dir": release_dir})
 
             return {"artist": artist, "albums": albums}
 
-    def get_album_details(self, album: str) -> dict:
+    def get_album_details(self, release_dir: str) -> dict:
         """
-        Fetch full track list for an album (identified by name).
-        Includes per-track artist for multi-artist albums.
+        Fetch full track list for a release identified by its directory.
+        Includes per-track artist for multi-artist releases.
         """
         with self._get_conn() as conn:
+            # Use SQL expr to match directory (handles trailing / consistency)
             cur = conn.execute(
-                """
-                SELECT artist, title, path, filename, duration
+                f"""
+                SELECT artist, title, path, filename, duration, album
                 FROM tracks
-                WHERE album = ?
+                WHERE {self._sql_release_dir_expr()} = ?
                 ORDER BY discnumber, tracknumber, title COLLATE NOCASE
                 """,
-                (album,),
+                (f"{release_dir}/",),  # Add trailing / to match SQL expr
             )
-            tracks = [
+            tracks = cur.fetchall()
+
+            if not tracks:
+                return {"artist": "", "album": "", "tracks": [], "is_compilation": False}
+
+            # Assume album name is consistent per directory (take first)
+            album_name = tracks[0]["album"] if tracks else ""
+
+            # Per-track details
+            track_list = [
                 {
-                    "artist": row["artist"],  # per-track artist
+                    "artist": row["artist"],
                     "track": row["title"],
                     "path": self._relative_path(row["path"]),
                     "filename": row["filename"],
                     "duration": self._format_duration(row["duration"]),
                 }
-                for row in cur
+                for row in tracks
             ]
 
-            # Determine display artist
-            artists_in_album = {t["artist"] for t in tracks}
-            display_artist = (
-                "Various Artists"
-                if len(artists_in_album) > 3
-                else next(iter(artists_in_album))
-            )
+            # Determine display artist and compilation
+            artists_in_release = {t["artist"] for t in track_list}
+            is_compilation = len(artists_in_release) > 3
+            display_artist = "Various Artists" if is_compilation else next(iter(artists_in_release))
 
             return {
                 "artist": display_artist,
-                "album": album,
-                "tracks": tracks,
-                "is_compilation": len(artists_in_album) > 3,
+                "album": album_name,
+                "tracks": track_list,
+                "is_compilation": is_compilation,
+                "release_dir": release_dir,  # Include for reference
             }
 
-    def get_artist_groups(self, album: str, min_tracks_per_group: int = 3) -> list[dict]:
-        """Fetch artist clusters for an album name, filtered to dominant groups."""
-        with self._get_conn() as conn:
-            cur = conn.execute(
-                """
-                SELECT artist, COUNT(*) as cnt
-                FROM tracks
-                WHERE album = ?
-                GROUP BY artist
-                HAVING cnt >= ?
-                ORDER BY cnt DESC
-                """,
-                (album, min_tracks_per_group),
-            )
-            return [dict(row) for row in cur.fetchall()]
+    def _get_release_dir(self, path: str) -> str:
+        """Compute the release directory from a track path (relative to music_root)."""
+        full_path = Path(path)
+        relative_path = full_path.relative_to(self.music_root) if full_path.is_absolute() else full_path
+        return str(relative_path.parent)  # e.g., 'artist/album'
 
-    def is_multiple_separate_releases(self, album: str) -> bool:
-        """True if the album name has multiple dominant artist clusters (separate releases)."""
-        groups = self.get_artist_groups(album)
-        return len(groups) > 1
-
-    def get_unique_artist_count(self, album: str) -> int:
-        """Total unique artists for the album name."""
-        with self._get_conn() as conn:
-            cur = conn.execute(
-                "SELECT COUNT(DISTINCT artist) FROM tracks WHERE album = ?",
-                (album,)
-            )
-            return cur.fetchone()[0] or 0
-
-    def get_main_artist(self, album: str) -> str:
-        """Most common artist for the album name."""
-        with self._get_conn() as conn:
-            cur = conn.execute(
-                "SELECT artist, COUNT(*) as cnt FROM tracks WHERE album = ? GROUP BY artist ORDER BY cnt DESC LIMIT 1",
-                (album,)
-            )
-            row = cur.fetchone()
-            return row["artist"] if row else ""
+    def _sql_release_dir_expr(self) -> str:
+        """SQL expression to compute release_dir in queries."""
+        return "SUBSTR(path, 1, LENGTH(path) - LENGTH(filename))"  # e.g., 'artist/album/' (with trailing /)
