@@ -51,10 +51,10 @@ class MusicCollectionUI(MusicCollection):
             dict: Dictionary with formatted track details for UI display.
         """
         return {
-            "title": track["title"],
+            "title": track["track"],
             "duration": track.get("duration") or "?:??",
             "path": track["path"],
-            "filename": self._safe_filename(track["title"], track["path"]),
+            "filename": self._safe_filename(track["track"], track["path"]),
         }
 
     @staticmethod
@@ -201,7 +201,7 @@ class MusicCollectionUI(MusicCollection):
 
         # Tracks (fully populated, with clickable artist and album)
         for track in grouped["tracks"]:
-            track_title = track["title"]
+            track_title = track["track"]
             highlighted_track = self._highlight_text(track_title, all_terms)
             highlighted_artist = self._highlight_text(track["artist"], all_terms)
             highlighted_album = self._highlight_text(track["album"], all_terms)
