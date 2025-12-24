@@ -1,5 +1,5 @@
 // static/js/editor/search.js
-import { escapeHtml, highlightText } from "./utils.js";
+import { escapeHtml } from "./utils.js";
 import { addToPlaylist } from "./playlist.js";
 
 const searchInput = document.getElementById("searchInput");
@@ -118,7 +118,6 @@ function formatDuration(duration) {
 }
 
 // ---------- Rendering ----------
-// ---------- Rendering ----------
 function renderResults(data) {
     if (data.length === 0) {
         resultsDiv.innerHTML = '<p class="text-center text-muted my-5">No results.</p>';
@@ -183,7 +182,6 @@ function renderResults(data) {
         html += '<h5 class="mt-4 mb-2 text-muted">Albums</h5>';
         html += grouped.albums.map(entry => {
             const safeReleaseDir = safeId(entry.release_dir);
-            const artistText = entry.is_compilation ? "Various Artists" : entry.artist;
 
             // Extract number of tracks from reasons (fallback to 0)
             let trackCount = 0;
@@ -448,7 +446,7 @@ function attachPreviewButtons() {
     document.querySelectorAll('.preview-btn').forEach(btn => {
         btn.addEventListener('click', function () {
             const {path} = this.dataset;
-            const title = this.dataset.title || 'Preview';
+            const track_name = this.dataset.title || 'Preview';
 
             if (!path) return;
 

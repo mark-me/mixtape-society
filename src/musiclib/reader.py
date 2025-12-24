@@ -1043,7 +1043,7 @@ class MusicCollection:
             dict: Dictionary containing album details, track list, and compilation status.
         """
         # Construct the expected directory pattern with trailing slash
-        expected_dir = release_dir if release_dir.endswith("/") else release_dir + "/"
+        expected_dir = release_dir if release_dir.endswith("/") else f"{release_dir}/"
 
         with self._get_conn() as conn:
             cur = conn.execute(
@@ -1077,7 +1077,7 @@ class MusicCollection:
                     "path": self._relative_path(row["path"]),
                     "filename": row["filename"],
                     "duration": self._format_duration(row["duration"]),
-                    "album": row["album"],  # optional: include for consistency
+                    "album": row["album"],
                 }
                 for row in rows
             ]
