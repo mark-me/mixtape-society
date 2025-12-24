@@ -234,7 +234,23 @@ class MixtapeManager:
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
 
+        data = self._convert_old_mixtape(data)
         if "liner_notes" not in data:
             data["liner_notes"] = ""
         data["slug"] = slug
+        return data
+
+    def _convert_old_mixtape(self, data: dict) -> dict:
+        """Normalizes legacy mixtape data to the current schema.
+        Renames old track fields so that consumers can work with a consistent structure.
+
+        Args:
+            data: The mixtape data dictionary potentially using an older field format.
+
+        Returns:
+            dict: The updated mixtape data dictionary with normalized track keys.
+        """
+        for track in data["tracks"]:
+            if "title" in track:
+                track["track"] = track.pop("title")
         return data
