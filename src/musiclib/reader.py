@@ -450,47 +450,35 @@ class MusicCollection:
                 album = row["album"] or "Unknown Album"
                 release_dir = row["release_dir"]
 
-                # Artist grouping
-                if has_specific:
-                    if has_artist and any(a.lower() in artist.lower() for a in terms["artist"]):
-                        if artist not in artist_set:
-                            artists.append({"artist": artist})
-                            artist_set.add(artist)
-                    elif not has_artist and artist not in artist_set:
-                        artists.append({"artist": artist})
-                        artist_set.add(artist)
-                else:
-                    if artist not in artist_set:
-                        artists.append({"artist": artist})
-                        artist_set.add(artist)
+                # === Artist inclusion ===
+                include_artist = True
+                if has_specific and has_artist:
+                    include_artist = any(t.lower() in artist.lower() for t in terms["artist"])
 
-                # Album grouping
-                album_key = (artist, album, release_dir)
-                if has_specific:
-                    matches_album = has_album and any(a.lower() in album.lower() for a in terms["album"])
-                    matches_artist_for_album = has_artist and any(a.lower() in artist.lower() for a in terms["artist"])
-                    if matches_album or (not has_album and matches_artist_for_album):
-                        if album_key not in album_set:
-                            albums.append({
-                                "artist": artist,
-                                "display_artist": artist,
-                                "album": album,
-                                "release_dir": release_dir,
-                                "is_compilation": False,  # will be corrected later if needed
-                            })
-                            album_set.add(album_key)
-                else:
-                    if album_key not in album_set:
-                        albums.append({
-                            "artist": artist,
-                            "display_artist": artist,
-                            "album": album,
-                            "release_dir": release_dir,
-                            "is_compilation": False,
-                        })
-                        album_set.add(album_key)
+                if include_artist and artist not in artist_set:
+                    artists.append({"artist": artist})
+                    artist_set.add(artist)
 
-                # Track collection (limit total tracks)
+                # === Album inclusion ===
+                if has_artist:
+                    include_album = False  # Suppress top-level albums when searching by artist
+                else:
+                    include_album = True
+                    if has_specific and has_album:
+                        if not any(t.lower() in album.lower() for t in terms["album"]):
+                            include_album = False
+
+                if include_album and release_dir not in album_set:
+                    albums.append({
+                        "artist": artist,
+                        "display_artist": artist,
+                        "album": album,
+                        "release_dir": release_dir,
+                        "is_compilation": False,
+                    })
+                    album_set.add(release_dir)
+
+                # === Track collection ===
                 if len(track_list) < limit:
                     track_list.append(dict(row))
 
@@ -565,7 +553,7 @@ class MusicCollection:
             dict: Dictionary containing album details, track list, and compilation status.
         """
 # Construct the expected directory pattern with trailing slash
-        expected_dir = f"{release_dir}/"
+        expected_dir = release_dir if release_dir.endswith("/") else release_dir + "/"
 
         with self._get_conn() as conn:
             cur = conn.execute(
@@ -629,7 +617,7 @@ class MusicCollection:
         """
         full_path = Path(path)
         relative_path = full_path.relative_to(self.music_root) if full_path.is_absolute() else full_path
-        return str(relative_path.parent)  # e.g., 'artist/album'
+        return str(relative_path.parent) + "/" # e.g., 'artist/album'
 
     def _sql_release_dir_expr(self) -> str:
         """Returns the SQL expression to extract the release directory from a track's path.

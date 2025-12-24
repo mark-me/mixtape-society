@@ -27,24 +27,38 @@ function createBadge(tagType, value) {
     badge.role = "button";
     badge.ariaLabel = `Remove tag ${tagType}:${value}`;
 
+    // Create the close button
     const close = document.createElement("span");
     close.className = "ms-2";
     close.innerHTML = "&times;";
     close.style.cursor = "pointer";
-    close.onclick = (e) => {
-        e.stopPropagation();
+    close.style.userSelect = "none";  // Prevent text selection on double-click
+
+    // Click on × removes the badge
+    close.addEventListener("click", (e) => {
+        e.stopPropagation();  // Prevent triggering parent events (e.g. accordion)
         badge.remove();
         performSearch();
-    };
-    badge.appendChild(close);
+    });
 
+    // Also allow clicking the whole badge to remove it (optional UX improvement)
+    badge.addEventListener("click", (e) => {
+        // Don't remove if clicking the close button (already handled)
+        if (e.target === close) return;
+        badge.remove();
+        performSearch();
+    });
+
+    // Keyboard support: Space or Enter removes badge
     badge.addEventListener("keydown", (e) => {
         if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
             badge.remove();
             performSearch();
         }
     });
 
+    badge.appendChild(close);
     badgesContainer.appendChild(badge);
     badgesContainer.style.pointerEvents = "auto";
 }
@@ -388,8 +402,8 @@ export function initSearch() {
 
     searchInput.addEventListener("keydown", (e) => {
         if (e.key === "Backspace" && searchInput.value === "" && badgesContainer.children.length > 0) {
-            badgesContainer.lastChild.remove();
-            performSearch();
+                badgesContainer.lastChild.remove();
+                performSearch();
         }
     });
 
