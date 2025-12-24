@@ -72,6 +72,20 @@
     border-color: #86b7fe;
 }
 
+#searchBadges .badge {
+    font-size: 0.95em;
+    padding: 0.5em 0.9em;
+    pointer-events: auto;
+}
+
+#searchBadges .badge:hover {
+    opacity: 0.9;
+}
+
+.accordion-button.bg-success { background-color: #198754 !important; }
+.accordion-button.bg-warning { background-color: #ffc107 !important; color: #000 !important; }
+
+
 /* --- 2. Drag & Drop Handles --- */
 .drag-handle {
     cursor: grab;

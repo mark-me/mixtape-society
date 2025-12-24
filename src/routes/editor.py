@@ -6,17 +6,17 @@ from datetime import datetime
 from io import BytesIO
 from pathlib import Path
 
-from flask import Blueprint, current_app, jsonify, render_template, request
+from flask import Blueprint, Response, current_app, jsonify, render_template, request
 from PIL import Image
 
 from auth import require_auth
 from common.logging import Logger, NullLogger
 from mixtape_manager import MixtapeManager
-from musiclib import MusicCollection
+from musiclib import MusicCollectionUI
 
 
 def create_editor_blueprint(
-    collection: MusicCollection, logger: Logger | None = None
+    collection: MusicCollectionUI, logger: Logger | None = None
 ) -> Blueprint:
     """
     Creates and configures the Flask blueprint for the mixtape editor.
@@ -54,7 +54,7 @@ def create_editor_blueprint(
             "created_at": None,
             "saved_at": None,
         }
-        return render_template("editor.html")
+        return render_template("editor.html", preload_mixtape=empty_mixtape)
 
     @editor.route("/<slug>")
     @require_auth
@@ -92,23 +92,45 @@ def create_editor_blueprint(
         query = request.args.get("q", "").strip()
         if len(query) < 3:
             return jsonify([])
-        raw_results = collection.search_highlighting(query, limit=30)
-        results = raw_results #[_finalize_highlight(r) for r in raw_results]
+        results = collection.search_highlighting(query, limit=50)
         return jsonify(results)
 
-    def _finalize_highlight(item: dict) -> dict:
+    @editor.route("/artist_details")
+    @require_auth
+    def artist_details() -> Response:
         """
-        Finalizes the formatting of a highlighted search result item.
+        Retrieves and returns detailed information about an artist in JSON format.
 
-        Returns the item dictionary, potentially modified for display.
-
-        Args:
-            item: The search result item as a dictionary.
+        Fetches artist details from the music collection using the artist name from the request arguments and returns them as a JSON response.
+        Handles missing artist errors and returns an error response if necessary.
 
         Returns:
-            dict: The finalized item dictionary.
+            Response: A JSON response containing the artist's details or an error message.
         """
-        return item
+        artist = request.args.get("artist", "").strip()
+        if not artist:
+            return jsonify({"error": "Missing artist"}), 400
+        details = collection.get_artist_details(artist)
+        return jsonify(details)
+
+
+    @editor.route("/album_details")
+    @require_auth
+    def album_details() -> Response:
+        """
+        Retrieves and returns detailed information about an album in JSON format.
+
+        Fetches album details from the music collection using the release directory from the request arguments and returns them as a JSON response.
+        Handles missing release directory errors and returns an error response if necessary.
+
+        Returns:
+            Response: A JSON response containing the album's details or an error message.
+        """
+        release_dir = request.args.get("release_dir", "").strip()
+        if not release_dir:
+            return jsonify({"error": "Missing release_dir"}), 400
+        details = collection.get_album_details(release_dir)
+        return jsonify(details)
 
     @editor.route("/save", methods=["POST"])
     @require_auth

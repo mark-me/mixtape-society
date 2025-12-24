@@ -32,24 +32,24 @@
     <div class="row mb-4">
         <div class="col">
             <div class="position-relative">
-                <!-- 1️⃣ INPUT that the JS will listen to -->
                 <input
                     id="searchInput"
                     type="text"
                     class="form-control form-control-lg rounded-pill ps-5 pe-5"
                     placeholder="Zoeken…"
                     autocomplete="off"
-                    style="min-height: 58px; background: var(--bs-body-bg);"
+                    style="min-height: 58px; background: transparent; z-index: 2;"
                 />
 
-                <!-- 2️⃣ Container for the dynamic tags/badges -->
-                <div id="searchContainer"
-                    class="form-control form-control-lg rounded-pill ps-5 pe-5 d-flex flex-wrap align-items-center gap-2"
-                    style="min-height: 58px; background: var(--bs-body-bg); position:absolute; inset:0; pointer-events:none;">
-                    <!-- Tags will be injected here -->
+                <!-- Badges container -->
+                <div id="searchBadges"
+                    class="position-absolute start-0 top-0 h-100 d-flex flex-wrap align-items-center gap-2 ps-5 pe-5"
+                    style="z-index: 1; pointer-events: none;">
+                    <!-- Badges injected here -->
                 </div>
 
                 <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-4 text-muted pointer-events-none"></i>
+
                 <i class="bi bi-info-circle position-absolute top-50 end-0 translate-middle-y me-4 text-muted"
                 id="searchHint"
                 tabindex="0"
@@ -60,18 +60,28 @@
                 data-bs-html="true"
                 data-bs-title="Search Tips"
                 data-bs-content='
-                        <strong>Advanced search tags:</strong><br>
-                        • <code>artist:beatles</code> – search only artists<br>
-                        • <code>album:abbey</code> – search only albums<br>
-                        • <code>track:hey</code> or <code>song:jude</code> – search only song titles<br><br>
-                        Use quotes for phrases with spaces: <code>artist:"the beatles"</code><br><br>
-                        Multiple tags are combined with <strong>OR</strong>.
-                    '></i>
+                    <strong>Advanced search:</strong><br>
+                    • <code>artist:beatles</code> – only artists<br>
+                    • <code>album:abbey</code> – only albums<br>
+                    • <code>track:hey</code> or <code>song:jude</code> – only titles<br><br>
+                    Quotes for phrases: <code>artist:"The Beatles"</code><br>
+                    Combine: <code>artist:Radiohead album:"OK Computer"</code>
+                '></i>
 
                 <div id="loading" class="position-absolute top-50 end-0 translate-middle-y me-4 visually-hidden">
-                    <span class="spinner-border spinner-border-sm text-muted" role="status" aria-hidden="true"></span>
+                    <span class="spinner-border spinner-border-sm text-muted"></span>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Results -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-success text-white">
+            <h2 class="h5 mb-0">Library</h2>
+        </div>
+        <div class="card-body" id="results">
+            <p class="text-muted text-center my-5">Typ minimaal 2 tekens om te zoeken…</p>
         </div>
     </div>
 
