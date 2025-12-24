@@ -143,6 +143,7 @@ class MusicCollectionUI(MusicCollection):
             results.append(
                 {
                     "type": "artist",
+                    "raw_artist": artist_name,
                     "artist": highlighted_artist,
                     "reasons": reasons,
                     "albums": [],
@@ -183,7 +184,9 @@ class MusicCollectionUI(MusicCollection):
 
             results.append({
                 "type": "album",
+                "raw_artist": display_artist,
                 "artist": highlighted_artist,
+                "raw_album": album_name,
                 "album": highlighted_album,
                 "reasons": reasons,
                 "tracks": [],
@@ -206,7 +209,9 @@ class MusicCollectionUI(MusicCollection):
             results.append(
                 {
                     "type": "track",
+                    "raw_artist": track["artist"],
                     "artist": highlighted_artist,
+                    "raw_album": track["album"],
                     "album": highlighted_album,
                     "reasons": [{"type": "track", "text": track_title}],
                     "tracks": [self._track_display_dict(track)],

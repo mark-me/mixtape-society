@@ -220,7 +220,17 @@ class MusicCollection:
         Returns:
             str: The path relative to the music root directory.
         """
-        return str(Path(path).relative_to(self.music_root))
+        p = Path(path)
+        if p.is_absolute():
+            try:
+                return str(p.relative_to(self.music_root))
+            except ValueError:
+                # Fallback if not a subpath (shouldn't happen normally)
+                self._logger.warning(f"Path {path} not under music_root {self.music_root}")
+                return str(p)
+        else:
+            # Already relative – return unchanged
+            return str(p)
 
     def _parse_query(self, query: str) -> dict[str, list[str]]:
         """Parses a search query string into tagged and general search terms.
