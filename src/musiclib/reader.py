@@ -9,10 +9,7 @@ from threading import Thread
 from common.logging import NullLogger
 
 from ._extractor import CollectionExtractor
-from .indexing_status import clear_indexing_status, get_indexing_status
-
-_STARTUP_DONE = False
-
+from .indexing_status import get_indexing_status
 
 class MusicCollection:
     """Manages a music collection database and provides search and detail retrieval functionality.
@@ -48,16 +45,23 @@ class MusicCollection:
         self._background_task_running = False
         self._extractor.start_monitoring()
         self._start_background_startup_job()
+        if track_count == 0:
+            self._extractor.wait_for_indexing_start()
 
     def is_indexing(self) -> bool:
-        """Checks if the music collection is currently being indexed or resynced.
-        Returns True if a background indexing or resync operation is in progress.
-
-        Returns:
-            bool: True if indexing or resyncing is active, False otherwise.
-        """
         status = get_indexing_status(self.db_path.parent)
-        return status and status.get("status") in ("rebuilding", "resyncing")
+
+        # If status file exists and indicates active job → yes
+        if status and status.get("status") in ("rebuilding", "resyncing"):
+            return True
+
+        # If status file doesn't exist yet, but DB is empty → initial rebuild is queued
+        # and will start shortly → treat as indexing to allow waiting
+        if status is None and self.count() == 0:
+            return True
+
+        # Otherwise: either done, or no job needed
+        return False
 
     def _start_background_startup_job(self) -> None:
         """Starts a background thread to perform initial indexing or resync of the music collection.
@@ -66,23 +70,23 @@ class MusicCollection:
         Returns:
             None
         """
-        global _STARTUP_DONE
-        if _STARTUP_DONE or self._background_task_running:
+        if self._background_task_running:
             return
-        _STARTUP_DONE = self._background_task_running = True
+
+        # Only start initial rebuild if not already marked as done
+        if self._extractor.is_initial_indexing_done():
+            return
+
+        self._background_task_running = True
 
         def task():
             try:
-                (
-                    self._extractor.rebuild
-                    if self._startup_mode == "rebuild"
-                    else self._extractor.resync
-                )()
-                self._logger.info("Startup indexing scheduled")
+                self._extractor.rebuild()  # This will set status, etc.
+                self._extractor.set_initial_indexing_done()
+                self._logger.info("Initial indexing completed and marked as done")
             except Exception as e:
-                self._logger.error(f"Startup indexing failed: {e}", exc_info=True)
+                self._logger.error(f"Initial indexing failed: {e}", exc_info=True)
             finally:
-                clear_indexing_status(self.music_root)
                 self._background_task_running = False
 
         Thread(target=task, daemon=True).start()
@@ -463,6 +467,7 @@ class MusicCollection:
                 releases_map[release_dir].append(
                     {
                         "track": row["title"],
+                        "album": row["album"],
                         "path": self._relative_path(row["path"]),
                         "filename": row["filename"],
                         "duration": self._format_duration(row["duration"]),
@@ -470,8 +475,11 @@ class MusicCollection:
                 )
 
             albums = []
-            for release_dir, tracks in sorted(releases_map.items(), key=lambda x: x[0]["album"]):
-                album_name = tracks[0]["album"]  # Assume consistent
+            for release_dir, tracks in sorted(
+                releases_map.items(),
+                key=lambda x: x[1][0].get("album", "") if x[1] else ""
+            ):
+                album_name = tracks[0].get("album", "Unknown Album") if tracks else "Unknown Album"
                 albums.append({"album": album_name, "tracks": tracks, "release_dir": release_dir})
 
             return {"artist": artist, "albums": albums}
@@ -486,26 +494,34 @@ class MusicCollection:
         Returns:
             dict: Dictionary containing album details, track list, and compilation status.
         """
+# Construct the expected directory pattern with trailing slash
+        expected_dir = f"{release_dir}/"
+
         with self._get_conn() as conn:
-            # Use SQL expr to match directory (handles trailing / consistency)
             cur = conn.execute(
                 f"""
                 SELECT artist, title, path, filename, duration, album
                 FROM tracks
                 WHERE {self._sql_release_dir_expr()} = ?
-                ORDER BY discnumber, tracknumber, title COLLATE NOCASE
+                ORDER BY title COLLATE NOCASE
                 """,
-                (f"{release_dir}/",),  # Add trailing / to match SQL expr
+                (expected_dir,),
             )
-            tracks = cur.fetchall()
+            rows = cur.fetchall()
 
-            if not tracks:
-                return {"artist": "", "album": "", "tracks": [], "is_compilation": False}
+            if not rows:
+                return {
+                    "artist": "",
+                    "album": "",
+                    "tracks": [],
+                    "is_compilation": False,
+                    "release_dir": release_dir
+                }
 
-            # Assume album name is consistent per directory (take first)
-            album_name = tracks[0]["album"] if tracks else ""
+            # Album name from first row
+            album_name = rows[0]["album"] or "Unknown Album"
 
-            # Per-track details
+            # Build track list
             track_list = [
                 {
                     "artist": row["artist"],
@@ -513,21 +529,22 @@ class MusicCollection:
                     "path": self._relative_path(row["path"]),
                     "filename": row["filename"],
                     "duration": self._format_duration(row["duration"]),
+                    "album": row["album"],  # optional: include for consistency
                 }
-                for row in tracks
+                for row in rows
             ]
 
-            # Determine display artist and compilation
-            artists_in_release = {t["artist"] for t in track_list}
-            is_compilation = len(artists_in_release) > 3
-            display_artist = "Various Artists" if is_compilation else next(iter(artists_in_release))
+            # Detect compilation
+            artists = {t["artist"] for t in track_list if t["artist"]}
+            is_compilation = len(artists) > 3
+            display_artist = "Various Artists" if is_compilation else next(iter(artists))
 
             return {
                 "artist": display_artist,
                 "album": album_name,
                 "tracks": track_list,
                 "is_compilation": is_compilation,
-                "release_dir": release_dir,  # Include for reference
+                "release_dir": release_dir,
             }
 
     def _get_release_dir(self, path: str) -> str:

@@ -14,6 +14,7 @@ def main():
 
     # Wait while indexing is in progress
     while collection.is_indexing():
+
         status = get_indexing_status(data_root=data_root, logger=logger)
 
         if status is None:
@@ -24,8 +25,10 @@ def main():
             # Unexpected status, but not rebuilding/resyncing → stop waiting
             break
 
-        print(f"Indexing in progress: {status['status']} "
-              f"({status['current']}/{status['total']} – {status['progress']*100:.1f}%)")
+        if status['total'] == -1:
+            print(f"Scanning files: found {status['current']} so far...")
+        else:
+            print(f"Indexing in progress: {status['status']} ({status['current']}/{status['total']} – {status['progress']*100:.1f}%)")
 
     print("Indexing complete (or not needed). Searching...")
     result = collection.search_highlighting(query="artist:'Nick Cave'")
