@@ -1,33 +1,53 @@
-# Updated reader.py with lazy loading for both artists and albums
-# No automatic population of albums for artists or tracks for albums
 import re
 from collections import defaultdict
+from dataclasses import dataclass
 from pathlib import Path
 from sqlite3 import Connection
 from threading import Thread
+from time import time
 
 from common.logging import NullLogger
 
 from ._extractor import CollectionExtractor
 from .indexing_status import get_indexing_status
 
+
+@dataclass
+class SearchSession:
+    """Represents the state of a single search operation within the music collection.
+    Stores the original query, parsed terms, candidate results, and timing information for the search.
+
+    Attributes:
+        query: The raw search query string entered by the user.
+        terms: A dictionary of parsed search terms grouped by category (e.g., artist, album, track, general).
+        artist_candidates: A mapping of artist names to their computed relevance scores.
+        album_candidates: A mapping of album identifiers to their associated metadata and relevance scores.
+        track_candidates: A list of track candidate entries considered during scoring.
+        timestamp: The time at which the search session was created or last updated.
+    """
+    query: str
+    terms: dict
+    artist_candidates: dict
+    album_candidates: dict
+    track_candidates: list
+    timestamp: float
+
+
 class MusicCollection:
     """Manages a music collection database and provides search and detail retrieval functionality.
     Handles lazy loading, background indexing, and query parsing for artists, albums, and tracks.
     """
+
     def __init__(
         self, music_root: Path | str, db_path: Path | str, logger=None
     ) -> None:
-        """Initializes the MusicCollection with the given music root and database path.
-        Sets up logging, extraction, and schedules background indexing or resync as needed.
+        """Initializes a MusicCollection backed by a SQLite database and music root directory.
+        Sets up logging, collection extraction, and schedules any required initial indexing or resync operations.
 
         Args:
-            music_root: Path to the root directory containing music files.
-            db_path: Path to the SQLite database file.
-            logger: Optional logger instance.
-
-        Returns:
-            None
+            music_root: The root directory containing the music files to be indexed.
+            db_path: The path to the SQLite database file used to store collection metadata.
+            logger: Optional logger instance for recording informational and error messages.
         """
         self.music_root = Path(music_root).resolve()
         self.db_path = Path(db_path)
@@ -47,6 +67,8 @@ class MusicCollection:
         self._start_background_startup_job()
         if track_count == 0:
             self._extractor.wait_for_indexing_start()
+
+        self._last_search_session: SearchSession | None = None
 
     def is_indexing(self) -> bool:
         status = get_indexing_status(self.db_path.parent)
@@ -196,14 +218,14 @@ class MusicCollection:
 
     @staticmethod
     def _format_duration(duration: float | int | str | None) -> str:
-        """Formats a duration in seconds into a MM:SS string.
-        Returns a placeholder if the duration is not provided.
+        """Converts a duration value into a human-readable minutes and seconds string.
+        Handles numeric seconds, pre-formatted strings, and missing or invalid values gracefully.
 
         Args:
-            duration: The duration in seconds.
+            duration: The duration value as seconds, a pre-formatted string, or None.
 
         Returns:
-            str: The formatted duration as MM:SS or a placeholder if not available.
+            str: A string in the format 'M:SS' or a placeholder such as '?:??' when unknown.
         """
         if duration is None:
             return "?:??"
@@ -237,7 +259,9 @@ class MusicCollection:
                 return str(p.relative_to(self.music_root))
             except ValueError:
                 # Fallback if not a subpath (shouldn't happen normally)
-                self._logger.warning(f"Path {path} not under music_root {self.music_root}")
+                self._logger.warning(
+                    f"Path {path} not under music_root {self.music_root}"
+                )
                 return str(p)
         else:
             # Already relative – return unchanged
@@ -260,14 +284,14 @@ class MusicCollection:
         terms = {
             "artist": [],
             "album": [],
-            "track": [],   # also used for 'song:'
+            "track": [],  # also used for 'song:'
             "general": [],
         }
 
         # Regex to match: tag:"quoted phrase" or tag:word
         tag_pattern = re.compile(
             r'(artist|album|track|song):"([^"]+)"|(artist|album|track|song):([^\s]+)',
-            re.IGNORECASE
+            re.IGNORECASE,
         )
 
         # Find all tagged terms first
@@ -302,7 +326,7 @@ class MusicCollection:
                 j = remaining.find('"', i + 1)
                 if j == -1:
                     j = len(remaining)
-                phrase = remaining[i + 1:j]
+                phrase = remaining[i + 1 : j]
                 if phrase.strip():
                     parts.append(phrase.strip())
                 i = j + 1
@@ -335,7 +359,9 @@ class MusicCollection:
                 # Only remove if it's *alone* or leading * with nothing else
                 if term.startswith("*") and len(term) > 1:
                     term = term[1:]  # strip leading *, keep "les*" → "les*"
-                if term.endswith("*") or term.isalpha() or " " in term:  # phrases or normal words
+                if (
+                    term.endswith("*") or term.isalpha() or " " in term
+                ):  # phrases or normal words
                     cleaned.append(term)
                 elif term:  # fallback: include if not empty
                     cleaned.append(term)
@@ -363,102 +389,170 @@ class MusicCollection:
         has_general = bool(terms["general"])
         is_free_text = not (has_artist or has_album or has_track)
 
-        with self._get_conn() as conn:
-            use_fts = self._use_fts(conn)
+        # =========================================================
+        # Reuse decision (keystroke optimization)
+        # =========================================================
+        reuse_session = (
+            self._last_search_session
+            if self._can_reuse_session(self._last_search_session, query, terms)
+            else None
+        )
 
-            # --- fetch rows (same idea as before) ---
-            if use_fts:
-                fts_terms = terms["artist"] + terms["album"] + terms["track"] + terms["general"]
-                fts_query = " OR ".join(f"{self._fts_escape(t)}*" for t in fts_terms) or "1=0"
+        # =========================================================
+        # PASS 1 — collect & score candidates
+        # =========================================================
 
-                sql = """
-                    SELECT artist, album, title, path, filename, duration,
-                        SUBSTR(path, 1, LENGTH(path) - LENGTH(filename)) AS release_dir
-                    FROM tracks_fts
-                    WHERE tracks_fts MATCH ?
-                    ORDER BY rank
-                    LIMIT ?
-                """
-                rows = conn.execute(sql, (fts_query, limit * 6)).fetchall()
-            else:
-                rows = conn.execute(
+        artist_candidates: dict[str, int] = {}
+        album_candidates: dict[str, dict] = {}
+        track_candidates: list[dict] = []
+
+        # ---------- PATH A: reuse cached pass-1 ----------
+        if reuse_session:
+            # Artists
+            for artist, _old_score in reuse_session.artist_candidates.items():
+                score = 0
+                if has_artist:
+                    score = self._score_text(artist, terms["artist"]) + self._tag_bonus(True)
+                elif is_free_text:
+                    score = self._score_text(artist, terms["general"])
+
+                if score > 0:
+                    artist_candidates[artist] = score
+
+            # Albums
+            for release_dir, album in reuse_session.album_candidates.items():
+                score = 0
+                if has_album:
+                    score = self._score_text(album["album"], terms["album"]) + self._tag_bonus(True)
+                elif is_free_text:
+                    score = self._score_text(album["album"], terms["general"])
+
+                if score > 0:
+                    album_candidates[release_dir] = {
+                        **album,
+                        "score": score,
+                    }
+
+            # Tracks
+            for track in reuse_session.track_candidates:
+                score = self._score_text(
+                    track["track"],
+                    terms["track"] + terms["general"],
+                )
+                if score > 0:
+                    t = dict(track)
+                    t["score"] = score
+                    track_candidates.append(t)
+
+        # ---------- PATH B: DB search ----------
+        else:
+            with self._get_conn() as conn:
+                use_fts = self._use_fts(conn)
+
+                if use_fts:
+                    all_terms = (
+                        terms["artist"]
+                        + terms["album"]
+                        + terms["track"]
+                        + terms["general"]
+                    )
+                    fts_query = (
+                        " OR ".join(f"{self._fts_escape(t)}*" for t in all_terms)
+                        if all_terms
+                        else "1=0"
+                    )
+
+                    sql = """
+                        SELECT artist, album, title, path, filename, duration,
+                            SUBSTR(path, 1, LENGTH(path) - LENGTH(filename)) AS release_dir
+                        FROM tracks_fts
+                        WHERE tracks_fts MATCH ?
+                        ORDER BY rank
+                        LIMIT ?
                     """
-                    SELECT artist, album, title, path, filename, duration,
-                        SUBSTR(path, 1, LENGTH(path) - LENGTH(filename)) AS release_dir
-                    FROM tracks
-                    ORDER BY artist, album, title
-                    LIMIT ?
-                    """,
-                    (limit * 6,),
-                ).fetchall()
+                    rows = conn.execute(sql, (fts_query, limit * 6)).fetchall()
+                else:
+                    rows = conn.execute(
+                        """
+                        SELECT artist, album, title, path, filename, duration,
+                            SUBSTR(path, 1, LENGTH(path) - LENGTH(filename)) AS release_dir
+                        FROM tracks
+                        ORDER BY artist COLLATE NOCASE,
+                                album COLLATE NOCASE,
+                                title COLLATE NOCASE
+                        LIMIT ?
+                        """,
+                        (limit * 6,),
+                    ).fetchall()
 
-        # =========================================================
-        # PASS 1 — collect scored candidates
-        # =========================================================
+            for row in rows:
+                artist = row["artist"] or "Unknown Artist"
+                album = row["album"] or "Unknown Album"
+                title = row["title"] or ""
+                release_dir = row["release_dir"]
 
-        artist_candidates = {}
-        album_candidates = {}
-        track_candidates = []
+                # --- artist score ---
+                artist_score = 0
+                if has_artist:
+                    artist_score = self._score_text(artist, terms["artist"]) + self._tag_bonus(True)
+                elif is_free_text:
+                    artist_score = self._score_text(artist, terms["general"])
 
-        for row in rows:
-            artist = row["artist"] or "Unknown Artist"
-            album = row["album"] or "Unknown Album"
-            title = row["title"] or ""
-            release_dir = row["release_dir"]
+                if artist_score > 0:
+                    artist_candidates[artist] = max(
+                        artist_candidates.get(artist, 0), artist_score
+                    )
 
-            artist_score = 0
-            album_score = 0
-            track_score = 0
+                # --- album score ---
+                album_score = 0
+                if has_album:
+                    album_score = self._score_text(album, terms["album"]) + self._tag_bonus(True)
+                elif is_free_text:
+                    album_score = self._score_text(album, terms["general"])
 
-            # --- artist scoring ---
-            if has_artist:
-                artist_score = self._score_text(artist, terms["artist"]) + self._tag_bonus(True)
-            elif is_free_text:
-                artist_score = self._score_text(artist, terms["general"])
+                if album_score > 0:
+                    album_candidates[release_dir] = {
+                        "artist": artist,
+                        "album": album,
+                        "release_dir": release_dir,
+                        "score": max(
+                            album_candidates.get(release_dir, {}).get("score", 0),
+                            album_score,
+                        ),
+                    }
 
-            # --- album scoring ---
-            if has_album:
-                album_score = self._score_text(album, terms["album"]) + self._tag_bonus(True)
-            elif is_free_text:
-                album_score = self._score_text(album, terms["general"])
-
-            # --- track scoring ---
-            if has_track or has_general:
-                track_score = self._score_text(title, terms["track"] + terms["general"])
-
-            # Register artist
-            if artist_score > 0:
-                artist_candidates[artist] = max(
-                    artist_candidates.get(artist, 0), artist_score
+                # --- track score ---
+                track_score = self._score_text(
+                    title,
+                    terms["track"] + terms["general"],
                 )
 
-            # Register album
-            if album_score > 0:
-                album_candidates[release_dir] = {
-                    "artist": artist,
-                    "album": album,
-                    "release_dir": release_dir,
-                    "score": max(
-                        album_candidates.get(release_dir, {}).get("score", 0),
-                        album_score,
-                    ),
-                }
-
-            # Register track
-            if track_score > 0:
-                track_candidates.append({
-                    "artist": artist,
-                    "album": album,
-                    "track": title,
-                    "path": self._relative_path(row["path"]),
-                    "filename": row["filename"],
-                    "duration": self._format_duration(row["duration"]),
-                    "release_dir": release_dir,
-                    "score": track_score,
-                })
+                if track_score > 0:
+                    track_candidates.append({
+                        "artist": artist,
+                        "album": album,
+                        "track": title,
+                        "path": self._relative_path(row["path"]),
+                        "filename": row["filename"],
+                        "duration": self._format_duration(row["duration"]),
+                        "release_dir": release_dir,
+                        "score": track_score,
+                    })
 
         # =========================================================
-        # PASS 2 — hierarchy + suppression
+        # Cache Pass-1 for keystroke reuse
+        # =========================================================
+        self._last_search_session = SearchSession(
+            query=query,
+            terms=terms,
+            artist_candidates=artist_candidates,
+            album_candidates=album_candidates,
+            track_candidates=track_candidates,
+            timestamp=time(),
+        )
+
+        # =========================================================
+        # PASS 2 — hierarchy & suppression
         # =========================================================
 
         artists = []
@@ -512,6 +606,56 @@ class MusicCollection:
             "tracks": tracks,
         }, terms
 
+    def _terms_compatible(self, old: dict, new: dict) -> bool:
+        """Checks whether a new set of parsed search terms is compatible with a previous set.
+        Ensures the new terms only refine the old terms without introducing independent new prefixes.
+
+        Args:
+            old: The previous set of parsed terms grouped by category.
+            new: The new set of parsed terms to compare against the previous set.
+
+        Returns:
+            bool: True if the new terms are compatible refinements of the old terms, False otherwise.
+        """
+        for key in ("artist", "album", "track", "general"):
+            old_terms = old.get(key, [])
+            new_terms = new.get(key, [])
+
+            # cannot add new independent terms
+            if len(new_terms) < len(old_terms):
+                return False
+
+            for i, old_term in enumerate(old_terms):
+                if not new_terms[i].startswith(old_term):
+                    return False
+
+        return True
+
+    def _can_reuse_session(self, session: SearchSession, query: str, terms: dict) -> bool:
+        """Determines whether a previous search session can be reused for the current query.
+        Checks that the new query extends the previous one and that the term structure remains compatible.
+
+        Args:
+            session: The previous search session to compare against.
+            query: The new search query string.
+            terms: The parsed terms for the new query.
+
+        Returns:
+            bool: True if the previous session can be reused, False otherwise.
+        """
+        if not session:
+            return False
+
+        if not query.startswith(session.query):
+            return False
+
+        # Same tag structure
+        for key in ("artist", "album", "track"):
+            if bool(session.terms[key]) != bool(terms[key]):
+                return False
+
+        return self._terms_compatible(session.terms, terms)
+
     def _score_text(self, text: str, terms: list[str]) -> int:
         """Calculates a relevance score for text based on a list of search terms.
         Prioritizes exact, prefix, and substring matches to influence search ranking.
@@ -540,7 +684,6 @@ class MusicCollection:
                 best = max(best, 40)
 
         return best
-
 
     def _tag_bonus(self, has_tag: bool) -> int:
         """Calculates a score bonus when a search term is explicitly tagged.
@@ -590,10 +733,16 @@ class MusicCollection:
             albums = []
             for release_dir, tracks in sorted(
                 releases_map.items(),
-                key=lambda x: x[1][0].get("album", "") if x[1] else ""
+                key=lambda x: x[1][0].get("album", "") if x[1] else "",
             ):
-                album_name = tracks[0].get("album", "Unknown Album") if tracks else "Unknown Album"
-                albums.append({"album": album_name, "tracks": tracks, "release_dir": release_dir})
+                album_name = (
+                    tracks[0].get("album", "Unknown Album")
+                    if tracks
+                    else "Unknown Album"
+                )
+                albums.append(
+                    {"album": album_name, "tracks": tracks, "release_dir": release_dir}
+                )
 
             return {"artist": artist, "albums": albums}
 
@@ -607,7 +756,7 @@ class MusicCollection:
         Returns:
             dict: Dictionary containing album details, track list, and compilation status.
         """
-# Construct the expected directory pattern with trailing slash
+        # Construct the expected directory pattern with trailing slash
         expected_dir = release_dir if release_dir.endswith("/") else release_dir + "/"
 
         with self._get_conn() as conn:
@@ -628,7 +777,7 @@ class MusicCollection:
                     "album": "",
                     "tracks": [],
                     "is_compilation": False,
-                    "release_dir": release_dir
+                    "release_dir": release_dir,
                 }
 
             # Album name from first row
@@ -650,7 +799,9 @@ class MusicCollection:
             # Detect compilation
             artists = {t["artist"] for t in track_list if t["artist"]}
             is_compilation = len(artists) > 3
-            display_artist = "Various Artists" if is_compilation else next(iter(artists))
+            display_artist = (
+                "Various Artists" if is_compilation else next(iter(artists))
+            )
 
             return {
                 "artist": display_artist,
@@ -671,8 +822,12 @@ class MusicCollection:
             str: The release directory relative to the music root.
         """
         full_path = Path(path)
-        relative_path = full_path.relative_to(self.music_root) if full_path.is_absolute() else full_path
-        return str(relative_path.parent) + "/" # e.g., 'artist/album'
+        relative_path = (
+            full_path.relative_to(self.music_root)
+            if full_path.is_absolute()
+            else full_path
+        )
+        return str(relative_path.parent) + "/"  # e.g., 'artist/album'
 
     def _sql_release_dir_expr(self) -> str:
         """Returns the SQL expression to extract the release directory from a track's path.

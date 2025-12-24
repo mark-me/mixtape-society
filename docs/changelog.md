@@ -15,11 +15,12 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 ### 🚀 Added
 
 - Using tags while searching
-  - Artist
-  - Album
-  - Song
+    - Artist
+    - Album
+    - Song
 - Clickable search results so you can change the search to an artist or album
 - Logo in social card cover image
+- Cache pass-1 results between keystrokes, keep the results of Pass 1 (scored rows) around temporarily, so increasing the precision of your database doesn't need to hit the database again.
 
 ### 🔧 Changed
 
