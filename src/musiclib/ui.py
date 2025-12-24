@@ -51,26 +51,26 @@ class MusicCollectionUI(MusicCollection):
             dict: Dictionary with formatted track details for UI display.
         """
         return {
-            "title": track["track"],
+            "track": track["track"],
             "duration": track.get("duration") or "?:??",
             "path": track["path"],
             "filename": self._safe_filename(track["track"], track["path"]),
         }
 
     @staticmethod
-    def _safe_filename(title: str, path: str) -> str:
+    def _safe_filename(track: str, path: str) -> str:
         """Generates a safe filename for a track by sanitizing the title and preserving the file extension.
         Removes unsafe characters from the title and appends the original file extension.
 
         Args:
-            title: The track title to sanitize.
+            track: The track title to sanitize.
             path: The original file path to extract the extension.
 
         Returns:
             str: A safe filename suitable for saving or displaying.
         """
         ext = Path(path).suffix or ""
-        safe = "".join(c for c in title if c.isalnum() or c in " _-").strip()
+        safe = "".join(c for c in track if c.isalnum() or c in " _-").strip()
         return f"{safe}{ext}"
 
     @staticmethod
@@ -201,8 +201,8 @@ class MusicCollectionUI(MusicCollection):
 
         # Tracks (fully populated, with clickable artist and album)
         for track in grouped["tracks"]:
-            track_title = track["track"]
-            highlighted_track = self._highlight_text(track_title, all_terms)
+            track_name = track["track"]
+            highlighted_tracks = self._highlight_text(track_name, all_terms)
             highlighted_artist = self._highlight_text(track["artist"], all_terms)
             highlighted_album = self._highlight_text(track["album"], all_terms)
 
@@ -213,15 +213,15 @@ class MusicCollectionUI(MusicCollection):
                     "artist": highlighted_artist,
                     "raw_album": track["album"],
                     "album": highlighted_album,
-                    "reasons": [{"type": "track", "text": track_title}],
+                    "reasons": [{"type": "track", "text": track_name}],
                     "tracks": [self._track_display_dict(track)],
                     "highlighted_tracks": [
                         {
                             "original": {
-                                "title": track_title,
+                                "track": track_name,
                                 "duration": self._format_duration(track.get("duration")),
                             },
-                            "highlighted": highlighted_track,
+                            "highlighted": highlighted_tracks,
                             "match_type": "track",
                         }
                     ],

@@ -87,7 +87,7 @@ function performSearch() {
     localStorage.setItem(STORAGE_KEY, query);
 
     if (query.length < 2) {
-        resultsDiv.innerHTML = '<p class="text-muted text-center my-5">Typ minimaal 2 tekens…</p>';
+        resultsDiv.innerHTML = '<p class="text-muted text-center my-5">Type at least 3 characters to start searching…</p>';
         return;
     }
 
@@ -121,7 +121,7 @@ function formatDuration(duration) {
 // ---------- Rendering ----------
 function renderResults(data) {
     if (data.length === 0) {
-        resultsDiv.innerHTML = '<p class="text-center text-muted my-5">Geen resultaten gevonden.</p>';
+        resultsDiv.innerHTML = '<p class="text-center text-muted my-5">No results.</p>';
         return;
     }
 
@@ -230,14 +230,14 @@ function renderResults(data) {
                 <li class="list-group-item d-flex justify-content-between align-items-center mb-2 border rounded">
                     <div class="flex-grow-1">
                         <i class="bi bi-music-note-beamed me-2 text-primary"></i>
-                        <strong>${entry.highlighted_tracks ? entry.highlighted_tracks[0].highlighted : escapeHtml(track.title)}</strong><br>
+                        <strong>${entry.highlighted_tracks ? entry.highlighted_tracks[0].highlighted : escapeHtml(track.track)}</strong><br>
                         <small class="text-muted">
                             ${entry.artist} • ${entry.album}
                         </small>
                     </div>
                     <div class="d-flex align-items-center">
                         <span class="text-muted me-3">${formatDuration(track.duration || "?:??")}</span>
-                        <button class="btn btn-primary btn-sm preview-btn me-2" data-path="${escapeHtml(track.path)}" data-title="${escapeHtml(track.title)}">
+                        <button class="btn btn-primary btn-sm preview-btn me-2" data-path="${escapeHtml(track.path)}" data-title="${escapeHtml(track.track)}">
                             <i class="bi bi-play-fill"></i>
                         </button>
                         <button class="btn btn-success btn-sm add-btn" data-item='${escapeHtml(JSON.stringify(track))}'>
@@ -274,7 +274,7 @@ function attachAccordionListeners() {
 }
 
 function loadArtistDetails(collapse) {
-    const artist = collapse.dataset.artist;
+    const {artist} = collapse.dataset;
     const body = collapse.querySelector('.accordion-body');
 
     fetch(`/editor/artist_details?artist=${encodeURIComponent(artist)}`)
@@ -465,7 +465,7 @@ function attachPreviewButtons() {
             player.play().catch(e => console.error("Preview failed:", e));
             container.style.display = 'block';
 
-            document.getElementById('now-playing-title').textContent = title;
+            document.getElementById('now-playing-title').textContent = track_name;
             document.getElementById('now-playing-artist').textContent = 'Preview';
 
             // Visual feedback: change to pause icon

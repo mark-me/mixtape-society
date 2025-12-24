@@ -1009,6 +1009,7 @@ class MusicCollection:
                     {
                         "track": row["title"],
                         "album": row["album"],
+                        "artist": artist,
                         "path": self._relative_path(row["path"]),
                         "filename": row["filename"],
                         "duration": self._format_duration(row["duration"]),
