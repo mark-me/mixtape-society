@@ -219,7 +219,7 @@ class MusicCollectionUI(MusicCollection):
                         {
                             "original": {
                                 "title": track_title,
-                                "duration": track.get("duration") or "?:??",
+                                "duration": self._format_duration(track.get("duration")),
                             },
                             "highlighted": highlighted_track,
                             "match_type": "track",

@@ -98,6 +98,26 @@ function performSearch() {
         .finally(() => document.getElementById("loading").classList.add("visually-hidden"));
 }
 
+// Helper to create safe DOM IDs (replaces invalid chars with underscores)
+function safeId(str) {
+    if (!str) return 'unknown';
+    return str
+        .replace(/[^a-zA-Z0-9_-]/g, '_')     // Replace invalid chars
+        .replace(/_+/g, '_')                  // Collapse multiple underscores
+        .replace(/^_+|_+$/g, '');             // Trim leading/trailing underscores
+}
+
+// Helper to format duration from raw seconds or MM:SS
+function formatDuration(duration) {
+    if (typeof duration === 'string' && duration.includes(':')) return duration;  // Already formatted
+    const totalSeconds = parseFloat(duration);
+    if (isNaN(totalSeconds)) return "?:??";
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = Math.floor(totalSeconds % 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
+// ---------- Rendering ----------
 // ---------- Rendering ----------
 function renderResults(data) {
     if (data.length === 0) {
@@ -105,16 +125,33 @@ function renderResults(data) {
         return;
     }
 
-    resultsDiv.innerHTML = data.map(entry => {
-        // Helper: create a safe ID by replacing invalid chars with underscores
-        const safeId = (str) => str
-            .replace(/[^a-zA-Z0-9_-]/g, '_')     // Replace everything except letters, numbers, - and _
-            .replace(/_+/g, '_')                  // Collapse multiple underscores
-            .replace(/^_+/g, '')                  // Remove leading underscores
-            .replace(/_+$/g, '');                 // Remove trailing underscores
+    // Group by type to avoid repetition and sort
+    const grouped = { artists: [], albums: [], tracks: [] };
+    data.forEach(entry => {
+        if (entry.type === 'artist') grouped.artists.push(entry);
+        if (entry.type === 'album') grouped.albums.push(entry);
+        if (entry.type === 'track') grouped.tracks.push(entry);
+    });
 
-        if (entry.type === "artist") {
-            const safeArtist = safeId(entry.raw_artist);  // Use raw for safe ID
+    // Sort artists and albums alphabetically
+    grouped.artists.sort((a, b) => (a.raw_artist || a.artist).localeCompare(b.raw_artist || b.artist));
+    grouped.albums.sort((a, b) => (a.raw_album || a.album).localeCompare(b.raw_album || b.album));
+
+    // Render grouped sections with headings for clarity
+    let html = '';
+    if (grouped.artists.length > 0) {
+        html += '<h5 class="mt-4 mb-2 text-muted">Artists</h5>';
+        html += grouped.artists.map(entry => {
+            const safeArtist = safeId(entry.raw_artist || entry.artist);
+
+            // Extract number of albums from reasons (fallback to 0)
+            let albumCount = 0;
+            const albumReason = entry.reasons.find(r => r.text.includes('album'));
+            if (albumReason) {
+                const match = albumReason.text.match(/(\d+) album/);
+                albumCount = match ? parseInt(match[1], 10) : 0;
+            }
+
             return `
                 <div class="accordion mb-3" id="accordion-artist-${safeArtist}">
                     <div class="accordion-item">
@@ -122,26 +159,40 @@ function renderResults(data) {
                             <button class="accordion-button collapsed bg-success text-white" type="button"
                                     data-bs-toggle="collapse"
                                     data-bs-target="#collapse-artist-${safeArtist}"
-                                    data-raw-artist="${escapeHtml(entry.raw_artist)}">  <!-- Add for refinement -->
+                                    data-raw-artist="${escapeHtml(entry.raw_artist || entry.artist)}">
                                 <i class="bi bi-person-fill me-2"></i>
-                                Artist: ${entry.artist}  <!-- Highlighted for display -->
-                                <span class="ms-auto small opacity-75">${entry.reasons.map(r => r.text).join(" • ")}</span>
+                                Artist: ${entry.artist}
+                                <span class="ms-auto small opacity-75">
+                                    ${albumCount} album${albumCount !== 1 ? 's' : ''}
+                                </span>
                             </button>
                         </h2>
                         <div id="collapse-artist-${safeArtist}"
                              class="accordion-collapse collapse"
-                             data-artist="${escapeHtml(entry.raw_artist)}">  <!-- Use raw_artist here -->
+                             data-artist="${escapeHtml(entry.raw_artist || entry.artist)}">
                             <div class="accordion-body" data-loading="true">
                                 <p class="text-muted">Laden…</p>
                             </div>
                         </div>
                     </div>
                 </div>`;
-        }
+        }).join('');
+    }
 
-        if (entry.type === "album") {
+    if (grouped.albums.length > 0) {
+        html += '<h5 class="mt-4 mb-2 text-muted">Albums</h5>';
+        html += grouped.albums.map(entry => {
             const safeReleaseDir = safeId(entry.release_dir);
-            const artistText = entry.is_compilation ? "Various Artists" : entry.artist;  // Highlighted
+            const artistText = entry.is_compilation ? "Various Artists" : entry.artist;
+
+            // Extract number of tracks from reasons (fallback to 0)
+            let trackCount = 0;
+            const trackReason = entry.reasons.find(r => r.text.includes('nummer'));
+            if (trackReason) {
+                const match = trackReason.text.match(/(\d+) nummer/);
+                trackCount = match ? parseInt(match[1], 10) : 0;
+            }
+
             return `
                 <div class="accordion mb-3" id="accordion-album-${safeReleaseDir}">
                     <div class="accordion-item">
@@ -149,26 +200,56 @@ function renderResults(data) {
                             <button class="accordion-button collapsed bg-warning text-dark" type="button"
                                     data-bs-toggle="collapse"
                                     data-bs-target="#collapse-album-${safeReleaseDir}"
-                                    data-raw-album="${escapeHtml(entry.raw_album)}"
-                                    data-raw-artist="${escapeHtml(entry.raw_artist)}">  <!-- Add for consistency/refinement -->
+                                    data-raw-album="${escapeHtml(entry.raw_album || entry.album)}"
+                                    data-raw-artist="${escapeHtml(entry.raw_artist || entry.artist)}">
                                 <i class="bi bi-disc-fill me-2"></i>
-                                Album: ${entry.album} — ${artistText}  <!-- Highlighted for display -->
-                                <span class="ms-auto small opacity-75">${entry.reasons.map(r => r.text).join(" • ")}</span>
+                                Album: ${entry.album}
+                                <span class="ms-auto small opacity-75">
+                                    ${escapeHtml(entry.raw_artist)} • ${trackCount} nummer${trackCount !== 1 ? 's' : ''}
+                                </span>
                             </button>
                         </h2>
                         <div id="collapse-album-${safeReleaseDir}"
                              class="accordion-collapse collapse"
-                             data-release_dir="${escapeHtml(entry.release_dir)}">  <!-- Already plain -->
+                             data-release_dir="${escapeHtml(entry.release_dir)}">
                             <div class="accordion-body" data-loading="true">
                                 <p class="text-muted">Laden…</p>
                             </div>
                         </div>
                     </div>
                 </div>`;
-        }
+        }).join('');
+    }
 
-        // ... (rest of renderResults for tracks, etc., unchanged)
-    }).join("");
+    if (grouped.tracks.length > 0) {
+        html += '<h5 class="mt-4 mb-2 text-muted">Tracks</h5>';
+        html += '<ul class="list-group">';
+        html += grouped.tracks.map(entry => {
+            const track = entry.tracks[0];
+            return `
+                <li class="list-group-item d-flex justify-content-between align-items-center mb-2 border rounded">
+                    <div class="flex-grow-1">
+                        <i class="bi bi-music-note-beamed me-2 text-primary"></i>
+                        <strong>${entry.highlighted_tracks ? entry.highlighted_tracks[0].highlighted : escapeHtml(track.title)}</strong><br>
+                        <small class="text-muted">
+                            ${entry.artist} • ${entry.album}
+                        </small>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <span class="text-muted me-3">${formatDuration(track.duration || "?:??")}</span>
+                        <button class="btn btn-primary btn-sm preview-btn me-2" data-path="${escapeHtml(track.path)}" data-title="${escapeHtml(track.title)}">
+                            <i class="bi bi-play-fill"></i>
+                        </button>
+                        <button class="btn btn-success btn-sm add-btn" data-item='${escapeHtml(JSON.stringify(track))}'>
+                            <i class="bi bi-plus-circle"></i>
+                        </button>
+                    </div>
+                </li>`;
+        }).join('');
+        html += '</ul>';
+    }
+
+    resultsDiv.innerHTML = html;
 
     attachAccordionListeners();
     attachRefineLinks();
@@ -193,48 +274,74 @@ function attachAccordionListeners() {
 }
 
 function loadArtistDetails(collapse) {
-    const artist = collapse.dataset.artist;  // Now plain raw_artist
+    const artist = collapse.dataset.artist;
     const body = collapse.querySelector('.accordion-body');
 
     fetch(`/editor/artist_details?artist=${encodeURIComponent(artist)}`)
         .then(r => r.json())
         .then(details => {
-            let html = '';
-            details.albums.forEach(album => {
+            if (details.albums.length === 0) {
+                body.innerHTML = '<p class="text-muted">No albums found.</p>';
+                body.dataset.loading = 'false';
+                return;
+            }
+
+            let html = '<div class="accordion accordion-flush" id="artist-albums-accordion">';
+            details.albums.forEach((album, index) => {
+                const albumId = safeId(album.album + '-' + index);  // Unique ID using safeId
                 html += `
-                    <div class="mb-4">
-                        <h5>${escapeHtml(album.album)}</h5>
-                        <ul class="list-group">
-                            ${album.tracks.map(track => `
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <div>
-                                        ${escapeHtml(track.track)}
-                                        <small class="text-muted ms-2">(${track.duration || "?:??"})</small>
-                                    </div>
-                                    <div>
-                                        <button class="btn btn-primary btn-sm preview-btn me-2"
-                                                data-path="${escapeHtml(track.path)}"
-                                                data-title="${escapeHtml(track.track)}">
-                                            <i class="bi bi-play-fill"></i>
-                                        </button>
-                                        <button class="btn btn-success btn-sm add-btn"
-                                                data-item='${escapeHtml(JSON.stringify(track))}'>
-                                            <i class="bi bi-plus-circle"></i>
-                                        </button>
-                                    </div>
-                                </li>
-                            `).join('')}
-                        </ul>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed bg-dark text-light" type="button"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#collapse-album-${albumId}">
+                                <i class="bi bi-disc-fill me-2 text-warning"></i>
+                                <strong>${escapeHtml(album.album)}</strong>
+                            </button>
+                        </h2>
+                        <div id="collapse-album-${albumId}"
+                             class="accordion-collapse collapse">
+                            <div class="accordion-body">
+                                <button class="btn btn-success btn-sm mb-3 add-album-btn"
+                                        data-tracks='${escapeHtml(JSON.stringify(album.tracks))}'>
+                                    <i class="bi bi-plus-circle me-2"></i>Add whole album
+                                </button>
+                                <ul class="list-group">
+                                    ${album.tracks.map(track => `
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <div>
+                                                ${escapeHtml(track.track)}
+                                                <small class="text-muted ms-2">(${formatDuration(track.duration || "?:??")})</small>
+                                            </div>
+                                            <div>
+                                                <button class="btn btn-primary btn-sm preview-btn me-2"
+                                                        data-path="${escapeHtml(track.path)}"
+                                                        data-title="${escapeHtml(track.track)}">
+                                                    <i class="bi bi-play-fill"></i>
+                                                </button>
+                                                <button class="btn btn-success btn-sm add-btn"
+                                                        data-item='${escapeHtml(JSON.stringify(track))}'>
+                                                    <i class="bi bi-plus-circle"></i>
+                                                </button>
+                                            </div>
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                        </div>
                     </div>`;
             });
+            html += '</div>';
+
             body.innerHTML = html;
             body.dataset.loading = 'false';
 
+            // Re-attach buttons after dynamic content
             attachAddButtons();
             attachPreviewButtons();
         })
         .catch(err => {
-            body.innerHTML = '<p class="text-danger">Loading failed.</p>';
+            body.innerHTML = '<p class="text-danger">Failed to load albums.</p>';
             console.error(err);
         });
 }
@@ -257,7 +364,7 @@ function loadAlbumDetails(collapse) {
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <div>
                                 ${escapeHtml(track.track)}
-                                <small class="text-muted ms-2">(${track.duration || "?:??"})</small>
+                                <small class="text-muted ms-2">(${formatDuration(track.duration || "?:??")})</small>
                             </div>
                             <div>
                                 <button class="btn btn-primary btn-sm preview-btn me-2"
@@ -402,8 +509,8 @@ export function initSearch() {
 
     searchInput.addEventListener("keydown", (e) => {
         if (e.key === "Backspace" && searchInput.value === "" && badgesContainer.children.length > 0) {
-                badgesContainer.lastChild.remove();
-                performSearch();
+            badgesContainer.lastChild.remove();
+            performSearch();
         }
     });
 

@@ -195,20 +195,22 @@ class MusicCollection:
         ]
 
     @staticmethod
-    def _format_duration(seconds: float | None) -> str:
+    def _format_duration(duration: float | int | None) -> str:
         """Formats a duration in seconds into a MM:SS string.
         Returns a placeholder if the duration is not provided.
 
         Args:
-            seconds: The duration in seconds.
+            duration: The duration in seconds.
 
         Returns:
             str: The formatted duration as MM:SS or a placeholder if not available.
         """
-        if not seconds:
+        if not "duration":
             return "?:??"
-        m, s = divmod(int(seconds), 60)
-        return f"{m}:{s:02d}"
+        total_seconds = int(duration)  # Truncate decimals
+        minutes = total_seconds // 60
+        seconds = total_seconds % 60
+        return f"{minutes}:{seconds:02d}"
 
     def _relative_path(self, path: str) -> str:
         """Converts an absolute track path to a path relative to the music root directory.
@@ -450,23 +452,31 @@ class MusicCollection:
                 album = row["album"] or "Unknown Album"
                 release_dir = row["release_dir"]
 
-                # === Artist inclusion ===
-                include_artist = True
-                if has_specific and has_artist:
-                    include_artist = any(t.lower() in artist.lower() for t in terms["artist"])
+                # === Artist inclusion === (NEW FIX)
+                include_artist = False
+
+                if has_artist:
+                    if any(t.lower() in artist.lower() for t in terms["artist"]):
+                        include_artist = True
+                elif not has_album:  # Free-text: only if term matches artist name
+                    general_terms = terms["general"] + terms["track"]
+                    if any(t.lower() in artist.lower() for t in general_terms):
+                        include_artist = True
 
                 if include_artist and artist not in artist_set:
                     artists.append({"artist": artist})
                     artist_set.add(artist)
 
-                # === Album inclusion ===
-                if has_artist:
-                    include_album = False  # Suppress top-level albums when searching by artist
-                else:
-                    include_album = True
-                    if has_specific and has_album:
-                        if not any(t.lower() in album.lower() for t in terms["album"]):
-                            include_album = False
+                # === Album inclusion === (from previous fix, unchanged)
+                include_album = False
+
+                if has_album:
+                    if any(t.lower() in album.lower() for t in terms["album"]):
+                        include_album = True
+                elif not has_artist:
+                    general_terms = terms["general"] + terms["track"]
+                    if any(t.lower() in album.lower() for t in general_terms):
+                        include_album = True
 
                 if include_album and release_dir not in album_set:
                     albums.append({
@@ -479,6 +489,8 @@ class MusicCollection:
                     album_set.add(release_dir)
 
                 # === Track collection ===
+                if release_dir in album_set:
+                    continue
                 if len(track_list) < limit:
                     track_list.append(dict(row))
 
