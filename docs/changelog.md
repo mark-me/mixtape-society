@@ -36,6 +36,8 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 - Player does not adhere to light/dark theming
 - Possible mixtape collision
+- Loading at first start-up in musiclib
+- Progress report on loading in musiclib
 
 [v0.1.8-alpha](https://github.com/mark-me/mixtape-society/compare/v0.1.7-alpha...v0.1.8-alpha)
 
