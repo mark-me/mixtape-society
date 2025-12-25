@@ -39,6 +39,11 @@ class MusicCollection:
     Handles lazy loading, background indexing, and query parsing for artists, albums, and tracks.
     """
 
+    EXACT_MATCH_SCORE = 100
+    PREFIX_MATCH_SCORE = 70
+    SUBSTRING_MATCH_SCORE = 40
+    TAG_BONUS = 30
+
     def __init__(
         self, music_root: Path | str, db_path: Path | str, logger=None
     ) -> None:
@@ -251,6 +256,26 @@ class MusicCollection:
         minutes, seconds = divmod(total_seconds, 60)
         return f"{minutes}:{seconds:02d}"
 
+    def _build_track_dict(self, row: dict, artist: str | None = None, album: str | None = None) -> dict:
+        """Builds a track dictionary from a database row.
+
+        Args:
+            row: The database row.
+            artist: Optional artist override.
+            album: Optional album override.
+
+        Returns:
+            dict: The track dictionary.
+        """
+        return {
+            "artist": artist or row["artist"],
+            "track": row["title"],
+            "path": self._relative_path(row["path"]),
+            "filename": row["filename"],
+            "duration": self._format_duration(row["duration"]),
+            "album": album or row["album"],
+        }
+
     def _relative_path(self, path: str) -> str:
         """Converts an absolute track path to a path relative to the music root directory.
         Used to display or store paths in a consistent, relative format.
@@ -289,6 +314,24 @@ class MusicCollection:
         if not query:
             return {"artist": [], "album": [], "track": [], "general": []}
 
+        tagged_terms, remaining = self._parse_tagged_terms(query)
+        general_terms = self._parse_general_terms(remaining)
+        tagged_terms["general"].extend([p for p in general_terms if p])
+
+        for key in tagged_terms:
+            tagged_terms[key] = self._clean_term_list(tagged_terms[key])
+
+        return tagged_terms
+
+    def _parse_tagged_terms(self, query: str) -> tuple[dict[str, list[str]], str]:
+        """Extracts tagged terms from the query using regex and removes them, returning the terms and remaining query.
+
+        Args:
+            query: The search query string to parse.
+
+        Returns:
+            tuple[dict[str, list[str]], str]: Tagged terms grouped by category and the remaining query string.
+        """
         terms = {
             "artist": [],
             "album": [],
@@ -306,9 +349,7 @@ class MusicCollection:
         tagged_matches = list(tag_pattern.finditer(query))
 
         # Process tagged terms (from right to left to avoid index shifting)
-        last_end = len(query)
         for match in reversed(tagged_matches):
-            full_match = match.group(0)
             tag_type = (match.group(1) or match.group(3)).lower()
             value = match.group(2) or match.group(4)
 
@@ -322,10 +363,17 @@ class MusicCollection:
             start, end = match.span()
             query = query[:start] + query[end:]
 
-        # What's left is the free-text / general part
-        remaining = query.strip()
+        return terms, query.strip()
 
-        # Split remaining into words, but preserve quoted phrases
+    def _parse_general_terms(self, remaining: str) -> list[str]:
+        """Parses the remaining query into general terms, preserving quoted phrases and splitting words.
+
+        Args:
+            remaining: The remaining query string after tagged terms are removed.
+
+        Returns:
+            list[str]: List of general terms.
+        """
         parts = []
         i = 0
         while i < len(remaining):
@@ -349,38 +397,42 @@ class MusicCollection:
                 if word.strip():
                     parts.append(word.strip())
                 i = j
+        return parts
 
-        # Add non-empty general terms
-        terms["general"].extend([p for p in parts if p])
+    def _clean_term_list(self, term_list: list[str]) -> list[str]:
+        """Cleans a list of terms by stripping, removing invalid wildcards, and normalizing.
 
-        for key in terms:
-            cleaned = []
-            for term in terms[key]:
-                term = term.strip()
-                if not term:
-                    continue
-                # Remove standalone wildcard '*' or terms that are just '*'
-                if term == "*":
-                    continue
-                # Optionally: normalize wildcard usage:
-                # - Drop standalone '*' terms entirely (handled above)
-                # - Strip all leading '*' while keeping any trailing '*' (prefix search like "beat*")
-                # - Collapse multiple internal '*' into a single '*' to avoid surprising patterns
-                if term.startswith("*") and len(term) > 1:
-                    # strip all leading '*', keep "les*" → "les*", "**beat*" → "beat*"
-                    term = term.lstrip("*")
-                # collapse multiple '*' in the middle to a single '*', e.g. "be**at*" → "be*at*"
-                while "**" in term:
-                    term = term.replace("**", "*")
-                if (
-                    term.endswith("*") or term.isalpha() or " " in term
-                ):  # phrases or normal words
-                    cleaned.append(term)
-                elif term:  # fallback: include if not empty
-                    cleaned.append(term)
-            terms[key] = cleaned
+        Args:
+            term_list: List of terms to clean.
 
-        return terms
+        Returns:
+            list[str]: Cleaned list of terms.
+        """
+        cleaned = []
+        for term in term_list:
+            term = term.strip()
+            if not term:
+                continue
+            # Remove standalone wildcard '*' or terms that are just '*'
+            if term == "*":
+                continue
+            # Optionally: normalize wildcard usage:
+            # - Drop standalone '*' terms entirely (handled above)
+            # - Strip all leading '*' while keeping any trailing '*' (prefix search like "beat*")
+            # - Collapse multiple internal '*' into a single '*' to avoid surprising patterns
+            if term.startswith("*") and len(term) > 1:
+                # strip all leading '*', keep "les*" → "les*", "**beat*" → "beat*"
+                term = term.lstrip("*")
+            # collapse multiple '*' in the middle to a single '*', e.g. "be**at*" → "be*at*"
+            while "**" in term:
+                term = term.replace("**", "*")
+            if (
+                term.endswith("*") or term.isalpha() or " " in term
+            ):  # phrases or normal words
+                cleaned.append(term)
+            elif term:  # fallback: include if not empty
+                cleaned.append(term)
+        return cleaned
 
     def search_grouped(self, query: str, limit: int = 20) -> tuple[dict, dict]:
         """Searches the music collection and returns grouped artist, album, and track results.
@@ -531,27 +583,13 @@ class MusicCollection:
         album_candidates: dict[str, dict] = {}
         track_candidates: list[dict] = []
 
-        for artist, _old_score in reuse_session.artist_candidates.items():
-            score = 0
-            if has_artist:
-                score = self._score_text(artist, terms["artist"]) + self._tag_bonus(
-                    True
-                )
-            elif is_free_text:
-                score = self._score_text(artist, terms["general"])
-
+        for artist, _ in reuse_session.artist_candidates.items():
+            score = self._score_artist(artist, terms, has_artist, is_free_text)
             if score > 0:
                 artist_candidates[artist] = score
 
         for release_dir, album in reuse_session.album_candidates.items():
-            score = 0
-            if has_album:
-                score = self._score_text(
-                    album["album"], terms["album"]
-                ) + self._tag_bonus(True)
-            elif is_free_text:
-                score = self._score_text(album["album"], terms["general"])
-
+            score = self._score_album(album["album"], terms, has_album, is_free_text)
             if score > 0:
                 album_candidates[release_dir] = {
                     **album,
@@ -559,10 +597,7 @@ class MusicCollection:
                 }
 
         for track in reuse_session.track_candidates:
-            score = self._score_text(
-                track["track"],
-                terms["track"] + terms["general"],
-            )
+            score = self._score_track(track["track"], terms)
             if score > 0:
                 t = dict(track)
                 t["score"] = score
@@ -612,7 +647,7 @@ class MusicCollection:
 
         return artist_candidates, album_candidates, track_candidates
 
-    def _fetch_candidate_rows(self, terms: dict, limit: int):
+    def _fetch_candidate_rows(self, terms: dict, limit: int) -> list[dict[str, str | float]]:
         """Fetches raw candidate rows from the database for the first search pass.
         Uses full-text search when available, falling back to ordered scans otherwise.
 
@@ -621,7 +656,7 @@ class MusicCollection:
             limit: Base limit used to bound the number of rows fetched from the database.
 
         Returns:
-            Sequence: A sequence of database rows containing artist, album, title, path, filename, duration, and release_dir.
+            list[dict[str, str | float]]: A sequence of database rows containing artist, album, title, path, filename, duration, and release_dir.
         """
         with self._get_conn() as conn:
             if use_fts := self._use_fts(conn):
@@ -688,27 +723,13 @@ class MusicCollection:
         title = row["title"] or ""
         release_dir = row["release_dir"]
 
-        artist_score = 0
-        if has_artist:
-            artist_score = self._score_text(
-                artist, terms["artist"]
-            ) + self._tag_bonus(True)
-        elif is_free_text:
-            artist_score = self._score_text(artist, terms["general"])
-
+        artist_score = self._score_artist(artist, terms, has_artist, is_free_text)
         if artist_score > 0:
             artist_candidates[artist] = max(
                 artist_candidates.get(artist, 0), artist_score
             )
 
-        album_score = 0
-        if has_album:
-            album_score = self._score_text(album, terms["album"]) + self._tag_bonus(
-                True
-            )
-        elif is_free_text:
-            album_score = self._score_text(album, terms["general"])
-
+        album_score = self._score_album(album, terms, has_album, is_free_text)
         if album_score > 0:
             album_candidates[release_dir] = {
                 "artist": artist,
@@ -720,11 +741,7 @@ class MusicCollection:
                 ),
             }
 
-        track_score = self._score_text(
-            title,
-            terms["track"] + terms["general"],
-        )
-
+        track_score = self._score_track(title, terms)
         if track_score > 0:
             track_candidates.append(
                 {
@@ -957,13 +974,63 @@ class MusicCollection:
             term_l = term.lower()
 
             if text_l == term_l:
-                best = max(best, 100)
+                best = max(best, self.EXACT_MATCH_SCORE)
             elif text_l.startswith(term_l):
-                best = max(best, 70)
+                best = max(best, self.PREFIX_MATCH_SCORE)
             elif term_l in text_l:
-                best = max(best, 40)
+                best = max(best, self.SUBSTRING_MATCH_SCORE)
 
         return best
+
+    def _score_artist(self, artist: str, terms: dict, has_artist: bool, is_free_text: bool) -> int:
+        """Computes the score for an artist based on terms.
+
+        Args:
+            artist: The artist name to score.
+            terms: Parsed search terms.
+            has_artist: Whether explicit artist terms are present.
+            is_free_text: Whether the query is free-text.
+
+        Returns:
+            int: The computed score.
+        """
+        score = 0
+        if has_artist:
+            score = self._score_text(artist, terms["artist"]) + self._tag_bonus(True)
+        elif is_free_text:
+            score = self._score_text(artist, terms["general"])
+        return score
+
+    def _score_album(self, album_name: str, terms: dict, has_album: bool, is_free_text: bool) -> int:
+        """Computes the score for an album based on terms.
+
+        Args:
+            album_name: The album name to score.
+            terms: Parsed search terms.
+            has_album: Whether explicit album terms are present.
+            is_free_text: Whether the query is free-text.
+
+        Returns:
+            int: The computed score.
+        """
+        score = 0
+        if has_album:
+            score = self._score_text(album_name, terms["album"]) + self._tag_bonus(True)
+        elif is_free_text:
+            score = self._score_text(album_name, terms["general"])
+        return score
+
+    def _score_track(self, track_name: str, terms: dict) -> int:
+        """Computes the score for a track based on terms.
+
+        Args:
+            track_name: The track name to score.
+            terms: Parsed search terms.
+
+        Returns:
+            int: The computed score.
+        """
+        return self._score_text(track_name, terms["track"] + terms["general"])
 
     def _tag_bonus(self, has_tag: bool) -> int:
         """Calculates a score bonus when a search term is explicitly tagged.
@@ -975,7 +1042,7 @@ class MusicCollection:
         Returns:
             int: The bonus score to be added when a tag is present.
         """
-        return 30 if has_tag else 0
+        return self.TAG_BONUS if has_tag else 0
 
     def get_artist_details(self, artist: str) -> dict:
         """Retrieves detailed information about an artist, including their albums and tracks.
@@ -1001,14 +1068,7 @@ class MusicCollection:
             for row in cur:
                 release_dir = self._get_release_dir(row["path"])
                 releases_map[release_dir].append(
-                    {
-                        "track": row["title"],
-                        "album": row["album"],
-                        "artist": artist,
-                        "path": self._relative_path(row["path"]),
-                        "filename": row["filename"],
-                        "duration": self._format_duration(row["duration"]),
-                    }
+                    self._build_track_dict(row, artist=artist, album=row["album"])
                 )
 
             albums = []
@@ -1066,14 +1126,7 @@ class MusicCollection:
 
             # Build track list
             track_list = [
-                {
-                    "artist": row["artist"],
-                    "track": row["title"],
-                    "path": self._relative_path(row["path"]),
-                    "filename": row["filename"],
-                    "duration": self._format_duration(row["duration"]),
-                    "album": row["album"],
-                }
+                self._build_track_dict(row)
                 for row in rows
             ]
 
