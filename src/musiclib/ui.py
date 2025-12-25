@@ -140,7 +140,7 @@ class MusicCollectionUI(MusicCollection):
             if matched_albums:
                 reasons.append({"type": "album", "text": f"{matched_albums} album(s)"})
             if matched_tracks:
-                reasons.append({"type": "track", "text": f"{matched_tracks} nummer(s)"})
+                reasons.append({"type": "track", "text": f"{matched_tracks} track(s)"})
 
             results.append(
                 {
