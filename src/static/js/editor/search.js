@@ -143,14 +143,6 @@ function renderResults(data) {
         html += grouped.artists.map(entry => {
             const safeArtist = safeId(entry.raw_artist || entry.artist);
 
-            // Extract number of albums from reasons (fallback to 0)
-            let albumCount = 0;
-            const albumReason = entry.reasons.find(r => r.text.includes('album'));
-            if (albumReason) {
-                const match = albumReason.text.match(/(\d+) album/);
-                albumCount = match ? parseInt(match[1], 10) : 0;
-            }
-
             return `
                 <div class="accordion mb-3" id="accordion-artist-${safeArtist}">
                     <div class="accordion-item">
@@ -162,7 +154,7 @@ function renderResults(data) {
                                 <i class="bi bi-person-fill me-2"></i>
                                 Artist: ${entry.artist}
                                 <span class="ms-auto small opacity-75">
-                                    ${albumCount} album${albumCount !== 1 ? 's' : ''}
+                                    ${entry.num_albums || 0} album${(entry.num_albums || 0) !== 1 ? 's' : ''}
                                 </span>
                             </button>
                         </h2>
@@ -183,14 +175,6 @@ function renderResults(data) {
         html += grouped.albums.map(entry => {
             const safeReleaseDir = safeId(entry.release_dir);
 
-            // Extract number of tracks from reasons (fallback to 0)
-            let trackCount = 0;
-            const trackReason = entry.reasons.find(r => r.text.includes('nummer'));
-            if (trackReason) {
-                const match = trackReason.text.match(/(\d+) nummer/);
-                trackCount = match ? parseInt(match[1], 10) : 0;
-            }
-
             return `
                 <div class="accordion mb-3" id="accordion-album-${safeReleaseDir}">
                     <div class="accordion-item">
@@ -203,7 +187,7 @@ function renderResults(data) {
                                 <i class="bi bi-disc-fill me-2"></i>
                                 Album: ${entry.album}
                                 <span class="ms-auto small opacity-75">
-                                    ${escapeHtml(entry.raw_artist)} • ${trackCount} nummer${trackCount !== 1 ? 's' : ''}
+                                    ${entry.num_tracks || 0} track${(entry.num_tracks || 0) !== 1 ? 's' : ''}
                                 </span>
                             </button>
                         </h2>

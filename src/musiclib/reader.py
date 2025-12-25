@@ -792,6 +792,17 @@ class MusicCollection:
             covered_albums=covered_albums,
             limit=limit,
         )
+        with self._get_conn() as conn:
+            # Add album counts for each artist result
+            for artist in artists:
+                count_query = "SELECT COUNT(DISTINCT album) FROM tracks WHERE artist = ?"
+                artist['num_albums'] = conn.execute(count_query, (artist['artist'],)).fetchone()[0] or 0
+
+            # Add track counts for each album result
+            for album in albums:
+                expr = self._sql_release_dir_expr()  # Reuses your existing method for release_dir expression
+                count_query = f"SELECT COUNT(*) FROM tracks WHERE {expr} = ?"
+                album['num_tracks'] = conn.execute(count_query, (album['release_dir'],)).fetchone()[0] or 0
 
         return {
             "artists": artists,
