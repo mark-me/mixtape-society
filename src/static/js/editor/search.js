@@ -285,7 +285,7 @@ function loadArtistDetails(collapse) {
                             class="accordion-collapse collapse">
                             <div class="accordion-body">
                                 <button class="btn btn-success btn-sm mb-3 add-album-btn"
-                                        data-tracks="${htmlSafeJson(album.tracks)}">
+                                        data-tracks="${escapeHtml(JSON.stringify(album.tracks))}">
                                     <i class="bi bi-plus-circle me-2"></i>Add whole album
                                 </button>
                                 <ul class="list-group">
@@ -338,7 +338,7 @@ function loadAlbumDetails(collapse) {
             let html = `
                 <h5>${escapeHtml(details.album)} — ${escapeHtml(details.artist)}</h5>
                 <button class="btn btn-success mb-3 add-album-btn"
-                        data-tracks="${htmlSafeJson(details.tracks)}">
+                        data-tracks="${escapeHtml(JSON.stringify(details.tracks))}">
                     Add whole album
                 </button>
                 <ul class="list-group">
