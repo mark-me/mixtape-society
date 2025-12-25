@@ -1117,7 +1117,7 @@ class MusicCollection:
                 SELECT artist, title, path, filename, duration, album
                 FROM tracks
                 WHERE {self._sql_release_dir_expr()} = ?
-                ORDER BY title COLLATE NOCASE
+                ORDER BY disc_number, track_number, title COLLATE NOCASE
                 """,
                 (expected_dir,),
             )

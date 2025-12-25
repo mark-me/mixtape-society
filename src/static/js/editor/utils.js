@@ -146,3 +146,7 @@ export function renderTrackReferences(text, tracks) {
 
     return text;
 }
+
+export function htmlSafeJson(json) {
+    return JSON.stringify(JSON.stringify(json)).slice(1, -1); // removes outer quotes
+}

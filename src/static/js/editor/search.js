@@ -1,5 +1,5 @@
 // static/js/editor/search.js
-import { escapeHtml } from "./utils.js";
+import { escapeHtml, htmlSafeJson } from "./utils.js";
 import { addToPlaylist } from "./playlist.js";
 
 const searchInput = document.getElementById("searchInput");
@@ -282,10 +282,10 @@ function loadArtistDetails(collapse) {
                             </button>
                         </h2>
                         <div id="collapse-album-${albumId}"
-                             class="accordion-collapse collapse">
+                            class="accordion-collapse collapse">
                             <div class="accordion-body">
                                 <button class="btn btn-success btn-sm mb-3 add-album-btn"
-                                        data-tracks='${escapeHtml(JSON.stringify(album.tracks))}'>
+                                        data-tracks="${htmlSafeJson(album.tracks)}">
                                     <i class="bi bi-plus-circle me-2"></i>Add whole album
                                 </button>
                                 <ul class="list-group">
@@ -329,7 +329,7 @@ function loadArtistDetails(collapse) {
 }
 
 function loadAlbumDetails(collapse) {
-    const release_dir = collapse.dataset.release_dir;
+    const {release_dir} = collapse.dataset;
     const body = collapse.querySelector('.accordion-body');
 
     fetch(`/editor/album_details?release_dir=${encodeURIComponent(release_dir)}`)
@@ -338,7 +338,7 @@ function loadAlbumDetails(collapse) {
             let html = `
                 <h5>${escapeHtml(details.album)} — ${escapeHtml(details.artist)}</h5>
                 <button class="btn btn-success mb-3 add-album-btn"
-                        data-tracks='${escapeHtml(JSON.stringify(details.tracks))}'>
+                        data-tracks="${htmlSafeJson(details.tracks)}">
                     Add whole album
                 </button>
                 <ul class="list-group">
