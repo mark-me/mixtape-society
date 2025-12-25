@@ -222,7 +222,7 @@ function renderResults(data) {
                         <button class="btn btn-primary btn-sm preview-btn me-2" data-path="${escapeHtml(track.path)}" data-title="${escapeHtml(track.track)}">
                             <i class="bi bi-play-fill"></i>
                         </button>
-                        <button class="btn btn-success btn-sm add-btn" data-item='${escapeHtml(JSON.stringify(track))}'>
+                        <button class="btn btn-success btn-sm add-btn" data-item="${escapeHtml(JSON.stringify(track))}">
                             <i class="bi bi-plus-circle"></i>
                         </button>
                     </div>
@@ -233,10 +233,10 @@ function renderResults(data) {
 
     resultsDiv.innerHTML = html;
 
-    attachAccordionListeners();
-    attachRefineLinks();
     attachAddButtons();
     attachPreviewButtons();
+    attachAccordionListeners();
+    attachRefineLinks();
 }
 
 // ---------- Lazy loading for artists and albums ----------
@@ -302,7 +302,7 @@ function loadArtistDetails(collapse) {
                                                     <i class="bi bi-play-fill"></i>
                                                 </button>
                                                 <button class="btn btn-success btn-sm add-btn"
-                                                        data-item='${escapeHtml(JSON.stringify(track))}'>
+                                                        data-item="${escapeHtml(JSON.stringify(track))}">
                                                     <i class="bi bi-plus-circle"></i>
                                                 </button>
                                             </div>
@@ -355,7 +355,7 @@ function loadAlbumDetails(collapse) {
                                     <i class="bi bi-play-fill"></i>
                                 </button>
                                 <button class="btn btn-success btn-sm add-btn"
-                                        data-item='${escapeHtml(JSON.stringify(track))}'>
+                                        data-item="${escapeHtml(JSON.stringify(track))}">
                                     <i class="bi bi-plus-circle"></i>
                                 </button>
                             </div>
