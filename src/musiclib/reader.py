@@ -447,15 +447,15 @@ class MusicCollection:
         Returns:
             dict[str, list[str]]: Parsed terms grouped into artist, album, track, and general categories.
         """
-        query = query.strip()
-        if not query:
+        if query := query.strip():
+            return self._parse_query(query)
+        else:
             return {
                 "artist": [],
                 "album": [],
                 "track": [],
                 "general": [],
             }
-        return self._parse_query(query)
 
     def _get_pass_one_candidates(
         self,
@@ -627,9 +627,7 @@ class MusicCollection:
             Sequence: A sequence of database rows containing artist, album, title, path, filename, duration, and release_dir.
         """
         with self._get_conn() as conn:
-            use_fts = self._use_fts(conn)
-
-            if use_fts:
+            if use_fts := self._use_fts(conn):
                 all_terms = (
                     terms["artist"] + terms["album"] + terms["track"] + terms["general"]
                 )
