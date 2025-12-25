@@ -40,7 +40,7 @@ Below is a concise, high‑level walkthrough of the module’s responsibilities,
 1. **Startup** – `MusicCollection` creates a `CollectionExtractor`. The extractor initializes the SQLite schema and launches the writer thread.
 1. **Initial population** – If the DB is empty, `MusicCollection` schedules a rebuild. The rebuild walks the entire `music_root`, enqueues an `INDEX_FILE` event for every supported file, and updates `indexing_status.json` so the UI can show progress.
 1. **Live updates** – The `watchdog` observer fires on every create/modify/delete. `_Watcher` converts those into `IndexEvent`s, which the writer thread processes in order, keeping the DB and the FTS mirror perfectly aligned.
-1. **Search** – When the UI calls `search_highlighting`, `MusicCollection` parses the query, builds an FTS‑compatible expression (or a fallback `LIKE` query), runs it against the DB, groups rows by release directory, and returns a dictionary of artists, albums, and tracks plus the list of parsed terms.
+1. **Search** – When the UI calls `search_highlighting`, `MusicCollection` parses the query, builds an FTS‑compatible expression (or a fallback `LIKE` query), runs it against the DB, groups rows by release directory, and returns a dictionary of artists, albums, and tracks plus the list of parsed terms. Internally, searches use a multi-pass candidate scoring model with optional reuse of previous search sessions for fast refinements.
 1. **Presentation** – `MusicCollectionUI` highlights the terms, builds click‑queries (`artist:…`, `release_dir:…`), and hands the ready‑to‑render JSON back to the front‑end. Lazy‑loading of an artist’s full discography or an album’s track list is done by re‑issuing `search_grouped` with the stored click‑query.
 
 ---
@@ -92,14 +92,14 @@ The UI never talks directly to the filesystem; it always goes through MusicColle
 1. Instantiate the high‑level class:
 
     ```python
-    from musiclib.reader import MusicCollection
-    mc = MusicCollection(music_root="/path/to/music", db_path="/path/to/db.sqlite")
+    from musiclib import MusicCollectionUI
+    mc = MusicCollectionUI(music_root="/path/to/music", db_path="/path/to/db.sqlite")
     ```
 
 2. Run a query (the UI does this internally):
 
     ```python
-    results, terms = mc.search_grouped("artist:'Radiohead' love")
+    results, terms = mc.search_highlighting(qry="artist:'Radiohead' love")
     ```
 
 3. Monitor progress (useful for CLI tools):
@@ -131,256 +131,285 @@ That’s the complete picture of the `musiclib` module: a tightly coupled pipeli
 
 ## Searching the music collection
 
-The `musiclib` module has the `ui.py` and `reader.py` files which provide methods for searching artists, albums, and tracks.
+The music collection supports a flexible, tag-based search language that can return **artists, albums, and tracks** in a single request.
+Search results are **grouped, scored, highlighted**, and designed for **lazy navigation** via follow-up queries.
 
-### 1. Query Language (handled in `MusicCollection.parse_query`)
+Searching is implemented in two layers:
 
-| Element | Syntax | What it does |
-|---------|--------|--------------|
-| **Artist tag** | `artist:<value>` | Limits the search to a specific artist. `<value>` may be quoted (`"The Beatles"`), single‑quoted, or unquoted. |
-| **Album tag** | `album:<value>` | Limits the search to a specific album (or release directory). |
-| **Track/song tag** | `song:<value>` or `track:<value>` | Limits the search to a specific track title. |
-| **General terms** | Anything not preceded by a tag | Treated as free‑text that is searched across *artist*, *album* and *title* fields. |
-| **Quoting / escaping** | `"double‑quoted"` or `'single‑quoted'` – backslashes can escape characters inside the quotes. | Allows spaces or special characters inside a tag value. |
+* **Core search engine** – `MusicCollection.search_grouped(...)` (in `reader.py`)
+* **UI-facing API** – `MusicCollectionUI.search_highlighting(...)` (in `ui.py`)
 
-The parser returns a dictionary:
+Most applications should call the UI-facing method.
+
+---
+
+### 1. Entry points
+
+#### UI-facing search (recommended)
+
+```python
+results = mc_ui.search_highlighting(query, limit=30)
+```
+
+Returns a **single list of result objects**, ready for rendering in a UI.
+Each result object has a `type` field (`artist`, `album`, or `track`) and includes highlighted text and navigation metadata.
+
+#### Core grouped search (lower-level)
+
+```python
+grouped, terms = mc.search_grouped(query, limit=20)
+```
+
+Returns:
+
+1. A dictionary with three lists: `artists`, `albums`, `tracks`
+2. The parsed search terms, grouped by category
+
+This method is primarily used internally by the UI layer.
+
+---
+
+### 2. Query language
+
+The query parser recognizes **tagged terms** and **general free-text terms**.
+
+#### Supported tags
+
+| Tag                | Example                  | Meaning                               |
+| ------------------ | ------------------------ | ------------------------------------- |
+| `artist:`          | `artist:Prince`          | Restrict results to a specific artist |
+| `album:`           | `album:"Purple Rain"`    | Restrict results to a specific album  |
+| `track:` / `song:` | `track:"When Doves Cry"` | Restrict results to track titles      |
+
+#### Free-text terms
+
+Any term **not** prefixed by a tag is treated as free-text and matched against:
+
+* artist
+* album
+* track title
+
+Example:
+
+```
+love
+```
+
+#### Quoting and escaping
+
+* Single or double quotes allow multi-word values
+
+  ```
+  artist:"The Beatles"
+  ```
+* Backslashes can escape special characters inside quoted values
+
+---
+
+### 3. Parsed term structure
+
+The query is normalized into a dictionary:
 
 ```python
 {
-    "artist": [...],
-    "album":  [...],
-    "track":  [...],
+    "artist":  [...],
+    "album":   [...],
+    "track":   [...],
     "general": [...]
 }
 ```
 
-These lists are later used to build the actual search expression.
+This structure is returned alongside the search results and reused for:
+
+* scoring
+* highlighting
+* UI explanation (“why did this match?”)
 
 ---
 
-### 2. Building the Search Expression (`MusicCollection.search_grouped`)
+### 4. Search execution model
 
-1. **Full‑text‑search (FTS) path**
+#### Pass-one candidate collection
 
-    If the SQLite database contains a virtual table `tracks_fts`, the code uses it.
-    Otherwise it falls back to plain `LIKE` queries.
+The search engine performs a **first pass** to collect candidates:
 
-2. **Tag‑specific parts**
+* Artists are scored by how well they match artist terms
+* Albums are scored by album name and artist context
+* Tracks are scored by title and tag matches
 
-    For each tag (`artist`, `album`, `track`) the code creates a sub‑expression:
-    * Multi‑word values become an **AND** of wildcard tokens (`word*`).
-    * Multiple values for the same tag are combined with **OR**.
+The engine may **reuse candidates from the previous search session** if the new query is a refinement (e.g. clicking an artist).
 
-    Example: `artist:"The Beatles"` → `artist:(The* AND Beatles*)`.
+#### Scoring (simplified)
 
-3. **General terms**
+Matches are weighted using:
 
-    All free‑text terms are turned into a wildcard token (`term*`) and then searched in any of the three fields (`artist`, `album`, `title`). They are combined with OR.
+* Exact matches
+* Prefix matches
+* Substring matches
+* Tag bonuses (explicit `artist:`, `album:`, `track:`)
 
-4. **Combining tag groups**
-    * If at least one explicit tag is present → the different tag groups are joined with **AND** (result must satisfy every specified tag).
-    * If there are no explicit tags → everything is joined with **OR**, acting like a pure free‑text search.
-
-5. **Final expression**
-
-    The resulting string is passed to the FTS `MATCH` clause (or translated into a series of `LIKE` predicates).
-
-6. **Result buffering**
-
-    The query fetches `limit * 3` rows (the extra factor gives room for later grouping and deduplication).
+This produces ranked candidate sets for artists, albums, and tracks.
 
 ---
 
-### 3. Grouping & post‑processing (still in `search_grouped`)
+### 5. Result grouping and hierarchy
 
-After the raw rows are retrieved:
+After scoring, results are assembled into a hierarchical structure:
 
-| Step | What happens |
-|------|--------------|
-| **Release‑directory grouping** | Rows are bucketed by the directory that contains the track (`_get_release_dir`). This groups together all tracks belonging to the same album/release. |
-| **Artist aggregation** | A set of distinct artists appearing in the matched rows is collected. |
-| **Compilation detection** | If a release contains tracks from more than three different artists, it is marked as a *compilation* and displayed as “Various Artists”. |
-| **Sorting** | Releases are sorted alphabetically by album name; artists are sorted alphabetically as well. |
-| **Conditional inclusion** | Depending on whether the original query contained explicit tags, the method decides which sections to return: <br> • `include_artists` – true if an `artist:` tag was supplied **or** the query had no tags. <br> • `include_albums` – analogous for `album:`. <br> • `include_tracks` – analogous for `track:`. |
-| **Deduplication for tagged searches** | When a tag is present, the code tries to avoid showing the same information twice (e.g., an album that already appears under an artist will be omitted from the album list). |
-| **Final payload** | Returns a tuple: <br> 1️⃣ A dictionary with three top‑level keys (`artists`, `albums`, `tracks`) each holding a list of dictionaries ready for UI consumption. <br> 2️⃣ The `terms` dictionary (the parsed tag values) that the UI uses for highlighting. |
+* Artists
+* Albums
+* Tracks
 
----
+The engine decides which groups to include based on the query:
 
-### 4. UI layer – turning raw groups into a searchable result list (`MusicCollectionUI.search_highlighting`)
-
-1. **Highlighting**
-
-    `_highlight_text` receives a string and the full list of search terms (artist, album, track, and general).
-    It builds a case‑insensitive regular expression that wraps each occurrence in `<mark>…</mark>`.
-
-2. **Result construction**
-
-    The UI builds three kinds of result objects, each matching the shape expected by the front‑end:
-
-    a. Artist entries
-
-    ```json
-    {
-        "type": "artist",
-        "artist": "<highlighted name>",
-        "reasons": [{ "type": "...", "text": "…" }, …],
-        "albums": [],               // empty – loaded lazily
-        "load_on_demand": true,
-        "clickable": true,
-        "click_query": "artist:'Exact Name'"
-    }
-    ```
-
-    * Counts of matching albums and tracks are fetched on‑the‑fly (extra SQL queries).
-    * The click_query is a ready‑to‑use query string that the UI can send back to retrieve the artist’s detailed view.
-
-    b. Album entries
-
-    ```json
-    {
-        "type": "album",
-        "artist": "<highlighted artist>",
-        "album": "<highlighted album>",
-        "reasons": [{…}],
-        "tracks": [],               // empty – loaded lazily
-        "load_on_demand": true,
-        "is_compilation": true/false,
-        "clickable": true,
-        "click_query": "release_dir:'dir/path'",
-        "artist_click_query": "artist:'Exact Artist'"   // omitted for compilations
-    }
-    ```
-
-    * The UI also runs a small count query to know how many tracks within that release match the original term.
-
-    c. Track entries (fully materialised)
-
-    ```json
-    {
-        "type": "track",
-        "artist": "<highlighted artist>",
-        "album": "<highlighted album>",
-        "reasons": [{
-            "type": "track",
-            "text": "Track Title"
-            }],
-        "tracks": [ {
-            "title": "Track Title",
-            "duration": "3:45",
-            "path": "...",
-            "filename": "…"
-            } ],
-        "highlighted_tracks": [{
-            "original": {...},
-            "highlighted": "...",
-            "match_type": "track"
-            }],
-        "artist_click_query": "artist:'Exact Artist'",
-        "album_click_query": "album:'Exact Album'"
-    }
-    ```
-
-3. **Lazy‑loading strategy**
-
-    * **Artists** and **Albums** are returned without their child lists (`albums` or `tracks`). The front‑end can request the detailed view later using the generated `click_query`.
-    * **Tracks** are returned fully because they are already the leaf nodes of the result hierarchy.
-
-4. **Safe filename generation**
-
-    `_safe_filename` strips unsafe characters from a track title before appending the original file extension – useful when the UI offers a download or “save as” feature.
-
-5. **Query escaping**
-
-    `_escape_for_query` makes sure that generated query strings are correctly quoted, handling embedded single‑quotes by switching to double‑quotes and escaping them.
+| Query type        | Included sections               |
+| ----------------- | ------------------------------- |
+| Free-text only    | Artists, albums, and tracks     |
+| `artist:` present | Artists + related albums/tracks |
+| `album:` present  | Albums + tracks                 |
+| `track:` present  | Tracks only                     |
 
 ---
 
-### 5. Summary of the search options offered to a user
+### 6. UI result model (`search_highlighting`)
 
-| Option                | How you trigger it                                                                                     | What it does                                                                                                                                                     |
-|-----------------------|--------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Free‑text search**  | Any string **without** `artist:`, `album:` or `song:` tags                                            | Searches across all three fields (artist, album, title) using wildcards.                                                                                         |
-| **Artist filter**     | `artist:<name>` (quotes allowed)                                                                      | Restricts results to that artist; still returns matching albums and tracks.                                                                                       |
-| **Album filter**      | `album:<name>`                                                                                         | Restricts results to that album (or release directory).                                                                                                          |
-| **Track filter**      | `song:<name>` or `track:<name>`                                                                       | Restricts results to tracks whose title matches the term.                                                                                                         |
-| **Combined filters**  | Mix any of the above, e.g. `artist:"Radiohead" album:"OK Computer"`                                   | Results must satisfy **all** specified tags (AND semantics).                                                                                                      |
-| **Multi‑word values** | Quoted strings (`"The Dark Side of the Moon"`)                                                       | Each word becomes a mandatory wildcard (`The* AND Dark* AND Side* …`).                                                                                            |
-| **Escaping**          | Backslash before a special character (`\:`) inside a quoted value                                    | Allows literal colons, quotes, etc., inside a tag value.                                                                                                         |
-| **Result highlighting** | Automatic – the UI wraps any matched term in `<mark>` tags                                           | Highlights matching terms in the displayed results.                                                                                                               |
-| **Lazy loading**      | Clicking an artist or album entry sends the stored `click_query` back to the server                    | The server then calls `get_artist_details` or `get_album_details` to fetch the full track list on demand.                                                        |
-| **Compilation detection** | Implicit – if a release contains tracks from **> 3** distinct artists                                 | The release is shown as “Various Artists”.                                                                                                                       |
-| **Count hints**       | For each artist/album entry the UI runs extra count queries                                            | Shows how many matching albums/tracks were found for that artist or album, giving the user quick insight into the size of the result set.                           |
+The UI layer converts grouped results into a **single flat list** of result objects.
 
-All of these options are driven by the same core pipeline:
+Each object has a `type` field and a shape appropriate for rendering.
 
-1. Parse the user query → tag lists + general terms.
-2. Build an FTS (or LIKE) expression that respects tag‑specific AND/OR logic.
-3. Execute the query, fetch a buffered set of rows.
-4. Group rows by release directory, detect compilations, and decide which sections (artist/album/track) to include.
-5. Return structured data that the UI decorates with highlights and lazy‑load hooks.
+#### Artist results
 
----
-
-### End‑to‑end flow of a search request
-
-```mermaid
-sequenceDiagram
-    participant UI as Front‑end (MusicCollectionUI)
-    participant MC as MusicCollection (backend)
-    participant DB as SQLite DB (tracks / tracks_fts)
-
-    %% 1. User issues a search
-    UI->>UI: receive query string (e.g. `artist:"Radiohead" love`)
-    UI->>MC: search_highlighting(query, limit)
-
-    %% 2. Parse the query
-    MC->>MC: parse_query(query)
-    Note right of MC: Produces tags {artist, album, track, general}
-
-    %% 3. Build FTS / LIKE expression
-    MC->>MC: build search expression
-    alt FTS table exists
-        MC->>DB: SELECT … FROM tracks_fts MATCH <expr>
-    else No FTS
-        MC->>DB: SELECT … FROM tracks WHERE LIKE …
-    end
-
-    %% 4. Retrieve raw rows (buffered)
-    DB-->>MC: rows (limit*3)
-
-    %% 5. Group rows by release directory
-    MC->>MC: _get_release_dir() → group rows
-    MC->>MC: detect compilations (>3 artists)
-    MC->>MC: sort releases & artists alphabetically
-
-    %% 6. Decide which sections to include
-    MC->>MC: evaluate include_artists / include_albums / include_tracks
-    MC->>MC: deduplicate overlapping items
-
-    %% 7. Return grouped data + parsed terms
-    MC-->>UI: ({artists, albums, tracks}, terms)
-
-    %% 8. Highlight terms in UI
-    UI->>UI: _highlight_text() on each field
-    UI->>UI: build result objects (artist, album, track)
-
-    %% 9. Render results
-    UI-->>User: JSON/HTML with <mark> highlights
-    Note right of UI: Artists & albums have `click_query` for lazy loading
-
-    %% 10. Lazy‑load on demand (optional)
-    User->>UI: click on artist or album
-    UI->>MC: search_grouped(click_query, limit)
-    MC->>DB: (same flow as steps 3‑6)
-    DB-->>MC: rows
-    MC-->>UI: detailed artist/album data
-    UI-->>User: expanded view with full track list
+```json
+{
+  "type": "artist",
+  "artist": "<mark>Prince</mark>",
+  "raw_artist": "Prince",
+  "reasons": [
+    { "type": "album", "text": "3 album(s)" },
+    { "type": "track", "text": "12 nummer(s)" }
+  ],
+  "load_on_demand": true,
+  "clickable": true,
+  "click_query": "artist:'Prince'"
+}
 ```
 
+**Characteristics**
+
+* Summary only (no albums or tracks included)
+* Always lazy-loaded
+* Clicking triggers a new search using `click_query`
+
 ---
 
+#### Album results
+
+```json
+{
+  "type": "album",
+  "artist": "Prince",
+  "album": "<mark>Purple Rain</mark>",
+  "is_compilation": false,
+  "reasons": [
+    { "type": "track", "text": "5 nummer(s)" }
+  ],
+  "load_on_demand": true,
+  "clickable": true,
+  "click_query": "release_dir:'/Prince/Purple Rain'"
+}
+```
+
+**Characteristics**
+
+* Summary only
+* Tracks are loaded on demand
+* Albums with tracks by more than three artists are shown as **“Various Artists”**
+
+---
+
+#### Track results
+
+```json
+{
+  "type": "track",
+  "artist": "Prince",
+  "album": "Purple Rain",
+  "track": "<mark>When Doves Cry</mark>",
+  "duration": "5:54",
+  "path": "Prince/Purple Rain/01 - When Doves Cry.flac",
+  "artist_click_query": "artist:'Prince'",
+  "album_click_query": "album:'Purple Rain'"
+}
+```
+
+**Characteristics**
+
+* Fully populated (no lazy loading)
+* Includes navigation queries for artist and album
+
+---
+
+### 7. Lazy loading via `click_query`
+
+Artist and album results include a `click_query` field.
+
+When the user clicks such a result:
+
+1. The UI issues a **new search**
+2. Using the stored `click_query`
+3. Which returns a more specific result set
+
+This keeps the API stateless and avoids nested payloads.
+
+---
+
+### 8. Highlighting
+
+All matched terms are automatically highlighted:
+
+* Implemented in `_highlight_text(...)`
+* Case-insensitive
+* Wrapped in `<mark>...</mark>`
+
+Highlighting applies to:
+
+* Artist names
+* Album titles
+* Track titles
+
+This behavior is **UI-specific** and not part of the core search engine.
+
+---
+
+### 9. Match explanations (`reasons`)
+
+Each result may include a `reasons` list explaining *why* it matched:
+
+* Matching artist name
+* Number of matching albums
+* Number of matching tracks
+
+These are intended for UI hints, badges, or tooltips.
+
+---
+
+### 10. Summary
+
+In short, searching works as follows:
+
+1. Parse the query into tagged and free-text terms
+2. Collect and score artist, album, and track candidates
+3. Build hierarchical grouped results
+4. Flatten results into UI-friendly objects
+5. Highlight matches and attach navigation queries
+6. Support lazy exploration through follow-up searches
+
+This design allows the UI to deliver a fast, expressive, and navigable search experience without embedding deep hierarchies in a single response.
+
 ### API Searching
+
+Only the following methods are considered stable public APIs:
+`MusicCollection.search_grouped`, `MusicCollectionUI.search_highlighting`, `MusicCollection.rebuild`, `MusicCollection.resync`, `MusicCollection.close`.
 
 #### ::: src.musiclib.reader.MusicCollection
 
@@ -644,6 +673,21 @@ sequenceDiagram
     DB-->>EX: detailed rows
     EX-->>MC: detailed dic
 ```
+---
+
+
+### API extractor/loader
+
+#### ::: src.musiclib._extractor.EventType
+
+#### ::: src.musiclib._extractor.IndexEvent
+
+#### ::: src.musiclib._extractor.CollectionExtractor
+
+#### ::: src.musiclib.indexing_status
+
+#### ::: src.musiclib._extractor._Watcher
+
 
 ---
 
@@ -719,15 +763,3 @@ classDiagram
     _Watcher --> CollectionExtractor : holds reference
     indexing_status ..> Path : works with filesystem paths
 ```
-
-## API extractor/loader
-
-### ::: src.musiclib._extractor.EventType
-
-### ::: src.musiclib._extractor.IndexEvent
-
-### ::: src.musiclib._extractor.CollectionExtractor
-
-### ::: src.musiclib.indexing_status
-
-### ::: src.musiclib._extractor._Watcher
