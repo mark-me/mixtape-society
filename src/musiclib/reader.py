@@ -241,9 +241,6 @@ class MusicCollection:
                 # If everything was zeros (e.g. '00:00', '0:00'), fall back to a clear zero duration
                 return normalized or "0:00"
             # Non time-like strings are treated as unknown duration
-            return "?:??"
-        if isinstance(duration, str):
-            duration = duration.strip()
             return duration.lstrip("0") or "0:00" if ":" in duration else "?:??"
         # Numeric seconds
         try:
