@@ -409,6 +409,7 @@ function attachAddButtons() {
     document.querySelectorAll('.add-btn').forEach(btn => {
         btn.onclick = () => {
             const item = JSON.parse(btn.dataset.item);
+            console.log("Adding track to playlist:", item);
             addToPlaylist(item);
         };
     });

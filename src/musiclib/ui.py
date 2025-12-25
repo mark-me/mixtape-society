@@ -51,6 +51,8 @@ class MusicCollectionUI(MusicCollection):
             dict: Dictionary with formatted track details for UI display.
         """
         return {
+            "artist": track.get("artist", ""),
+            "album": track.get("album", ""),
             "track": track["track"],
             "duration": track.get("duration") or "?:??",
             "path": track["path"],
