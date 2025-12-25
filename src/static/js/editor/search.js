@@ -162,7 +162,7 @@ function renderResults(data) {
                              class="accordion-collapse collapse"
                              data-artist="${escapeHtml(entry.raw_artist || entry.artist)}">
                             <div class="accordion-body" data-loading="true">
-                                <p class="text-muted">Laden…</p>
+                                <p class="text-muted">Loading…</p>
                             </div>
                         </div>
                     </div>
@@ -195,7 +195,7 @@ function renderResults(data) {
                              class="accordion-collapse collapse"
                              data-release_dir="${escapeHtml(entry.release_dir)}">
                             <div class="accordion-body" data-loading="true">
-                                <p class="text-muted">Laden…</p>
+                                <p class="text-muted">Loading…</p>
                             </div>
                         </div>
                     </div>
