@@ -673,8 +673,8 @@ sequenceDiagram
     DB-->>EX: detailed rows
     EX-->>MC: detailed dic
 ```
----
 
+---
 
 ### API extractor/loader
 
