@@ -99,6 +99,28 @@ def create_app() -> Flask:
         """
         return {"now": datetime.now(timezone.utc)}
 
+    @app.template_filter('to_datetime')
+    def to_datetime_filter(s, fmt='%Y-%m-%d %H:%M:%S'):
+        """
+        Converts a string timestamp into a datetime object for template usage. Provides a robust parser that supports a custom format and ISO 8601 strings.
+
+        Attempts to parse the input string using the provided format first, then falls back to ISO format parsing if needed. Returns None when the input is empty or falsy.
+
+        Args:
+            s: The input timestamp string to convert.
+            fmt: The expected datetime format string used for initial parsing.
+
+        Returns:
+            datetime | None: A datetime object if parsing succeeds, otherwise None for empty input.
+        """
+        if not s:
+            return None
+        try:
+            return datetime.strptime(s, fmt)
+        except ValueError:
+            # Fallback: try ISO format
+            return datetime.fromisoformat(s.replace('Z', '+00:00'))
+
     # === Blueprints ===
     app.register_blueprint(
         create_authentication_blueprint(logger=logger, limiter=limiter),
