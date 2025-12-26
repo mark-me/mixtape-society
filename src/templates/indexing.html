@@ -64,17 +64,34 @@
 
 <script>
     const progressContainer = document.getElementById('progress-container');
-    const progressBar = document.createElement('div');
-    progressBar.className = 'progress';
-    progressBar.role = 'progressbar';
-    progressBar.innerHTML = `<div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%"></div>`;
+    const statsElement = document.getElementById('stats');
+    const etaElement = document.getElementById('eta');
+    const updateInfo = document.getElementById('update-info');
+
+    // Pre-create the progress bar structure
+    let progressWrapper = null;
+    let progressBarInner = null;
+
+    function createProgressBar() {
+        progressWrapper = document.createElement('div');
+        progressWrapper.className = 'progress';
+        progressWrapper.role = 'progressbar';
+        progressWrapper.style.height = '2.2rem';
+
+        progressBarInner = document.createElement('div');
+        progressBarInner.className = 'progress-bar progress-bar-striped progress-bar-animated';
+        progressBarInner.style.width = '100%';
+        progressBarInner.textContent = '';
+
+        progressWrapper.appendChild(progressBarInner);
+        return progressWrapper;
+    }
 
     function updateStatus() {
         fetch('{{ url_for("indexing_status_json") }}')
             .then(response => response.json())
             .then(data => {
                 if (data.done) {
-                    // Indexing finished → full page redirect to trigger normal landing logic
                     window.location.href = '{{ url_for("landing") }}';
                     return;
                 }
@@ -91,25 +108,28 @@
                         </div>
                         <p class="mt-4">Files are being counted and scanned… This may take a while for large collections.</p>
                     `;
-                    document.getElementById('stats').style.display = 'none';
-                    document.getElementById('eta').style.display = 'none';
+                    statsElement.style.display = 'none';
+                    etaElement.style.display = 'none';
                     return;
                 }
 
-                // Normal progress
-                const percent = (current / total * 100).toFixed(1);
-                if (!document.querySelector('.progress')) {
+                // Ensure progress bar exists
+                if (!progressWrapper || !progressContainer.contains(progressWrapper)) {
                     progressContainer.innerHTML = '';
-                    progressContainer.appendChild(progressBar);
+                    progressWrapper = createProgressBar();
+                    progressContainer.appendChild(progressWrapper);
                 }
-                progressBar.querySelector('.progress-bar').style.width = `${percent}%`;
-                progressBar.querySelector('.progress-bar').textContent = `${percent}%`;
+
+                // Update progress
+                const percent = (current / total * 100).toFixed(1);
+                progressBarInner.style.width = `${percent}%`;
+                progressBarInner.textContent = `${percent}%`;
 
                 // Update stats
                 document.getElementById('current').textContent = current.toLocaleString();
                 document.getElementById('total').textContent = total.toLocaleString();
 
-                // Speed calculation
+                // Speed
                 if (startedAt && current > 100) {
                     const elapsedMin = (Date.now() - startedAt) / 60000;
                     const speed = Math.round(current / elapsedMin);
@@ -118,40 +138,35 @@
                     document.getElementById('speed').textContent = '—';
                 }
 
-                document.getFluent('stats').style.display = 'flex';
-                document.getElementById('eta').style.display = 'block';
+                // Show stats and ETA
+                statsElement.style.display = 'flex';
+                etaElement.style.display = 'block';
 
                 // ETA
                 if (current > 50 && total > 100 && startedAt) {
                     const elapsedSec = (Date.now() - startedAt) / 1000;
-                    const speedPerSec = current / elapsedSec;
+                    const speedPerSec = elapsedSec > 0 ? current / elapsedSec : 0;
                     const remaining = total - current;
-                    const etaSec = remaining / speedPerSec;
+                    const etaSec = speedPerSec > 0 ? remaining / speedPerSec : 0;
                     const etaMin = Math.round(etaSec / 60);
-                    document.getElementById('eta').innerHTML = `
-                        About <strong>${etaMin} minute${etaMin !== 1 ? 's' : ''}</strong> to go
-                    `;
+                    etaElement.innerHTML = `About <strong>${etaMin} minute${etaMin !== 1 ? 's' : ''}</strong> to go`;
                 } else {
-                    document.getElementById('eta').textContent = 'Please be patient, indexation speed is being calculated…';
+                    etaElement.textContent = 'Please be patient, indexation speed is being calculated…';
                 }
 
-                document.getElementById('update-info').textContent = 'Updated just now';
+                updateInfo.textContent = 'Updated just now';
             })
             .catch(err => {
                 console.error('Failed to fetch indexing status', err);
-                document.getElementById('update-info').textContent = 'Update failed – retrying…';
+                updateInfo.textContent = 'Update failed – retrying…';
             });
     }
 
-    // Initial update
+    // Initial update and polling
     updateStatus();
-
-    // Poll every 30 seconds (only 120 requests/hour)
     setInterval(updateStatus, 30000);
 
-    // Fallback: reload if no progress for 2 minutes (in case of stalled backend)
-    setTimeout(() => {
-        window.location.reload();
-    }, 120000);
+    // Safety reload if stuck
+    setTimeout(() => window.location.reload(), 120000);
 </script>
 {% endblock %}
