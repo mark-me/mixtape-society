@@ -7,14 +7,44 @@
     <meta name="description" content="{{ mixtape.title }} – a mixtape with {{ mixtape.tracks|length }} tracks.">
 
     <!-- Open Graph / Facebook / LinkedIn -->
-    <meta property="og:title" content="{{ mixtape.title }}"/>
+    {% set full_title = mixtape.title ~ " – Curated Mixtape" ~ (" (" ~ mixtape.saved_at[:10] ~ ")" if mixtape.saved_at else "") ~ " | Mixtape Society" %}
+    {% set artists_list = mixtape.tracks | map(attribute='artist') | unique | list %}
+
+    {% set max_artists = 5 %}
+    {% if artists_list | length <= max_artists %}
+        {% set sample_artists = artists_list %}
+    {% else %}
+        {% set sample_artists = artists_list[:max_artists] %}
+    {% endif %}
+
+    {% set num_sample = sample_artists | length %}
+    {% if num_sample == 0 %}
+        {% set artists_str = '' %}
+    {% elif num_sample == 1 %}
+        {% set artists_str = sample_artists[0] %}
+    {% else %}
+        {% set artists_str = sample_artists[:-1] | join(', ') ~ ' and ' ~ sample_artists[-1] %}
+    {% endif %}
+
+    {% if artists_list | length > max_artists %}
+        {% set artists_str = artists_str ~ ' and more' %}
+    {% endif %}
+
+    {% set description_text = "Dive into '" ~ mixtape.title ~ "', a personal mixtape featuring " ~ mixtape.tracks|length ~ " tracks from " ~ artists_str ~ "." %}
+
+    {# Conditionally append the liner notes teaser #}
+    {% if mixtape.liner_notes and mixtape.liner_notes.strip() %}
+        {% set description_text = description_text ~ " With personal notes from the creator." %}
+    {% endif %}
+
+    <meta property="og:title" content="{{ full_title }} - A personal mixtape with {{ mixtape.tracks|length }} tracks."/>
     <meta property="og:type" content="music.playlist"/>
     <meta property="og:url" content="{{ url_for('play.public_play', slug=mixtape.slug, _external=True) }}"/>
-    <meta property="og:description" content="A personal mixtape with {{ mixtape.tracks|length }} tracks."/>
+    <meta property="og:description" content="{{ description_text }}"/>
     <meta property="og:site_name" content="Mixtape Society"/>
 
     {% if mixtape.cover %}
-        {% set og_url = url_for('og.cover_with_logo', filename=mixtape.cover, scale=0.15, corner='bottom_right', margin=10, _external=True) %}
+        {% set og_url = url_for('og.cover_with_logo', filename=mixtape.cover, scale=0.4, corner='bottom_right', margin=10, _external=True) %}
         {% set plain_cover_url = url_for('play.serve_cover', filename=mixtape.cover.split('/')[-1], _external=True) %}
 
         <meta property="og:image" content="{{ og_url }}">
@@ -32,8 +62,8 @@
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image"/>
-    <meta name="twitter:title" content="{{ mixtape.title }}"/>
-    <meta name="twitter:description" content="A personal mixtape with {{ mixtape.tracks|length }} tracks."/>
+    <meta name="twitter:title" content="{{ full_title }} - A personal mixtape with {{ mixtape.tracks|length }} tracks."/>
+    <meta name="twitter:description" content="{{ description_text }}"/>
     {% if mixtape.cover %}
         <meta name="twitter:image" content="{{ url_for('play.serve_cover', filename=mixtape.cover.split('/')[-1], _external=True) }}"/>
     {% else %}
