@@ -3,6 +3,9 @@ const statsElement = document.getElementById('stats');
 const etaElement = document.getElementById('eta');
 const updateInfo = document.getElementById('update-info');
 
+// Safety reload if stuck
+let lastCurrent = 0;
+
 // History for recent speed calculation
 let history = []; // array of {time: timestamp_ms, processed: number}
 const HISTORY_WINDOW_MS = 120000; // 2 minutes
@@ -125,7 +128,7 @@ function updateStatus() {
 
             updateInfo.textContent = 'Updated just now';
 
-            // Safety reload if stuck
+            // Safety reload if stuck (now works because lastCurrent is defined)
             if (data.current > lastCurrent) {
                 lastCurrent = data.current;
                 clearTimeout(window.noProgressTimeout);
@@ -143,6 +146,3 @@ function updateStatus() {
 // Initial update and polling
 updateStatus();
 setInterval(updateStatus, 5000);
-
-// Safety reload if stuck
-let lastCurrent = 0;
