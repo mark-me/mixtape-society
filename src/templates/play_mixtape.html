@@ -119,28 +119,21 @@
             <div class="fixed-bottom" id="bottom-player-container" style="display:none; z-index: 1000;">
                 <div class="bg-dark text-white shadow-lg border-top border-secondary" style="backdrop-filter: blur(10px);">
                     <div class="container py-2">
-                        <div class="d-flex align-items-center">
-                            <!-- Close button -->
-                            <button id="close-bottom-player" class="btn btn-sm btn-outline-light me-3 fs-4 lh-1" style="width:40px; height:40px;">
-                                ×
-                            </button>
-
-                            <!-- Current track info -->
-                            <div class="me-4 flex-shrink-0">
-                                <div class="fw-bold" id="bottom-now-title">–</div>
-                                <div class="small opacity-75" id="bottom-now-artist-album">–</div>
+                        <div class="d-flex align-items-center flex-wrap justify-content-between">
+                            <div class="d-flex align-items-center mb-2 mb-md-0">
+                                <button id="close-bottom-player" class="btn btn-sm btn-outline-light me-2"><i class="bi bi-x-lg"></i></button>
+                                <div class="me-2" style="max-width: 140px;">
+                                    <div class="fw-bold text-truncate" id="bottom-now-title">–</div>
+                                    <div class="small opacity-75 text-truncate" id="bottom-now-artist-album">–</div>
+                                </div>
                             </div>
 
-                            <!-- Audio player controls (full width) -->
-                            <audio id="main-player" controls class="flex-grow-1" style="height: 42px;"></audio>
+                            <div class="mb-2 mb-md-0">
+                                <button id="prev-btn-bottom" class="btn btn-sm btn-outline-light"><i class="bi bi-skip-backward-fill"></i></button>
+                                <button id="next-btn-bottom" class="btn btn-sm btn-outline-light ms-1"><i class="bi bi-skip-forward-fill"></i></button>
+                            </div>
 
-                            <!-- Optional: Prev/Next buttons inside player (feels more premium) -->
-                            <button id="prev-btn-bottom" class="btn btn-outline-light ms-3" title="Vorige">
-                                <i class="bi bi-skip-backward-fill"></i>
-                            </button>
-                            <button id="next-btn-bottom" class="btn btn-outline-light ms-2" title="Volgende">
-                                <i class="bi bi-skip-forward-fill"></i>
-                            </button>
+                            <audio id="main-player" controls class="w-100 flex-grow-1 mx-md-3" style="height: 38px;"></audio>
                         </div>
                     </div>
                 </div>
