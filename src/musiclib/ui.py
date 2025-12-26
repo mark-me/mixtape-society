@@ -114,10 +114,31 @@ class MusicCollectionUI(MusicCollection):
             + terms.get("general", [])
         )
         query_lower = query.lower()
+
+        # Strict filtering for tagged searches
+        if terms.get("track") or terms.get("song"):
+            grouped["artists"] = []
+            grouped["albums"] = []
+
         results = []
 
         # Artists (summary with match counts, clickable for artist)
         for artist in grouped["artists"]:
+            if terms.get("artist"):
+                artist_lower = artist["artist"].lower()
+                matched = False
+                for term in terms["artist"]:
+                    term_lower = term.lower()
+                    # Prefer exact quoted match
+                    if f'"{term_lower}"' in query_lower:
+                        if artist_lower == term_lower:
+                            matched = True
+                            break
+                    elif term_lower in artist_lower:
+                        matched = True
+                        break
+                if not matched:
+                    continue
             artist_name = artist["artist"]
             highlighted_artist = self._highlight_text(artist_name, all_terms)
 
@@ -158,6 +179,20 @@ class MusicCollectionUI(MusicCollection):
 
         # Albums (summary with match counts, no tracks, clickable for album)
         for album in grouped["albums"]:
+            if terms.get("album"):
+                album_lower = album["album"].lower()
+                matched = False
+                for term in terms["album"]:
+                    term_lower = term.lower()
+                    if f'"{term_lower}"' in query.lower():  # exact quoted
+                        if album_lower == term_lower:
+                            matched = True
+                            break
+                    elif term_lower in album_lower:
+                        matched = True
+                        break
+                if not matched:
+                    continue
             display_artist = album["display_artist"]
             album_name = album["album"]
             is_compilation = album["is_compilation"]
