@@ -1,3 +1,5 @@
+![Musiclib](../../images/musiclib_loading.png){ align=right width="90" }
+
 # Creating/maintaining the music collection database
 
 ## 1. High‑level picture

@@ -1,4 +1,4 @@
-![Musiclib](../images/music-library.png){ align=right width="90" }
+![Musiclib](../../images/music-library.png){ align=right width="90" }
 
 # 🎵 Musiclib - Music Collection handling
 

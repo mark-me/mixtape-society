@@ -1,3 +1,5 @@
+![Reading](../../images/musiclib_reading.png){ align=right width="90" }
+
 # Searching the music collection
 
 The music collection supports a flexible, tag-based search language that can return **artists, albums, and tracks** in a single request.
