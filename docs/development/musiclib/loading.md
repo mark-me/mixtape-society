@@ -4,8 +4,16 @@
 
 ## 1. High‑level picture
 
-```
-File system (music_root) ──► Watchdog events ──► IndexEvent queue ──► DB‑writer thread ──► SQLite DB (tracks + tracks_fts)
+```mermaid
+flowchart
+    direction LR
+    FS[File system<br>from *music_root*]
+    Watchdog[Watchdog events]
+    IndexEvent[IndexEvent queue]
+    DBWriter[DB‑writer thread]
+    DB[SQLite DB<br>*tracks* + *tracks_fts*]
+
+    FS --> Watchdog --> IndexEvent --> DBWriter --> DB
 ```
 
 * **Watchdog** watches the music directory for creations, modifications, and deletions.
