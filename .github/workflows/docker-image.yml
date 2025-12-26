@@ -15,6 +15,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -35,11 +37,53 @@ jobs:
             type=sha,format=short
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}  # :latest only for main
 
+      - name: Compute version for APP_VERSION
+        id: version
+        run: |
+          # If it's a proper tag like v1.2.3
+          if [[ ${{ github.ref }} == refs/tags/v*.*.* ]]; then
+            TAG=${GITHUB_REF#refs/tags/}
+            VERSION=${TAG#v}
+            echo "version=${VERSION}" >> $GITHUB_OUTPUT
+            echo "display_version=${VERSION}" >> $GITHUB_OUTPUT
+
+          # If on main branch
+          elif [[ ${{ github.ref }} == refs/heads/main ]]; then
+            LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+            BASE_VERSION=${LATEST_TAG#v}
+            COMMIT_DISTANCE=$(git rev-list --count ${LATEST_TAG}..HEAD 2>/dev/null || echo "0")
+            if [ "$COMMIT_DISTANCE" -eq 0 ]; then
+              echo "version=${BASE_VERSION}" >> $GITHUB_OUTPUT
+              echo "display_version=${BASE_VERSION}" >> $GITHUB_OUTPUT
+            else
+              SHORT_SHA=$(git rev-parse --short=8 HEAD)
+              echo "version=${BASE_VERSION}+dev.${COMMIT_DISTANCE}.${SHORT_SHA}" >> $GITHUB_OUTPUT
+              echo "display_version=${BASE_VERSION}+main.${COMMIT_DISTANCE}.${SHORT_SHA}" >> $GITHUB_OUTPUT
+            fi
+
+          # If on test branch
+          elif [[ ${{ github.ref }} == refs/heads/test ]]; then
+            LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+            BASE_VERSION=${LATEST_TAG#v}
+            SHORT_SHA=$(git rev-parse --short=8 HEAD)
+            echo "version=${BASE_VERSION}+test.${SHORT_SHA}" >> $GITHUB_OUTPUT
+            echo "display_version=${BASE_VERSION}+test.${SHORT_SHA}" >> $GITHUB_OUTPUT
+
+          # Fallback: PRs, feature branches, etc.
+          else
+            SHORT_SHA=$(git rev-parse --short=8 HEAD)
+            BRANCH=$(echo ${{ github.head_ref || github.ref_name }} | tr '/' '-')
+            echo "version=dev.${BRANCH}.${SHORT_SHA}" >> $GITHUB_OUTPUT
+            echo "display_version=dev.${BRANCH}.${SHORT_SHA}" >> $GITHUB_OUTPUT
+          fi
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: docker/Dockerfile
+          file: docker/Dockerfile  # or docker/Dockerfile if it's in a subfolder
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            APP_VERSION=${{ steps.version.outputs.display_version }}
