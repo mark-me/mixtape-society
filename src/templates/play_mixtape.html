@@ -7,7 +7,7 @@
     <meta name="description" content="{{ mixtape.title }} – a mixtape with {{ mixtape.tracks|length }} tracks.">
 
     <!-- Open Graph / Facebook / LinkedIn -->
-    {% set full_title = mixtape.title ~ " – Curated on:" ~ (mixtape.saved_at[:10] if mixtape.saved_at else "") %}
+    {% set full_title = mixtape.title ~ " – Curated on:c" ~ (mixtape.saved_at[:10] if mixtape.saved_at else "") %}
     {% set artists_list = mixtape.tracks | map(attribute='artist') | unique | list %}
 
     {% set max_artists = 5 %}
@@ -37,14 +37,14 @@
         {% set description_text = description_text ~ " With personal notes from the creator." %}
     {% endif %}
 
-    <meta property="og:title" content="{{ full_title }} - A personal mixtape with {{ mixtape.tracks|length }} tracks."/>
+    <meta property="og:title" content="{{ full_title }} - A mixtape with {{ mixtape.tracks|length }} tracks."/>
     <meta property="og:type" content="music.playlist"/>
     <meta property="og:url" content="{{ url_for('play.public_play', slug=mixtape.slug, _external=True) }}"/>
     <meta property="og:description" content="{{ description_text }}"/>
     <meta property="og:site_name" content="Mixtape Society"/>
 
     {% if mixtape.cover %}
-        {% set og_url = url_for('og.cover_with_logo', filename=mixtape.cover, scale=0.4, corner='bottom_right', margin=10, _external=True) %}
+        {% set og_url = url_for('og.cover_with_logo', filename=mixtape.cover, scale=0.20, corner='center', margin=20, _external=True) %}
         {% set plain_cover_url = url_for('play.serve_cover', filename=mixtape.cover.split('/')[-1], _external=True) %}
 
         <meta property="og:image" content="{{ og_url }}">
