@@ -14,14 +14,13 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 ### 🔧 Changed
 
--
+- OpenGraph image and added information to better comply with standards [https://opengraph.dev/](https://opengraph.dev/)
 
 ### 🐛 Fixed
 
 - Collapse of the navbar happens only on small screens
 - Better player display on smaller screens
 - Redundant JavaScript removed from editor.html
-- OpenGraph image and added information to better comply with standards [https://opengraph.dev/](https://opengraph.dev/)
 
 [v0.1.9-alpha](https://github.com/mark-me/mixtape-society/compare/v0.1.8-alpha...v0.1.9-alpha)
 
