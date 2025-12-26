@@ -32,11 +32,11 @@
             <div class="stats">
                 <div class="stat-item">
                     <div class="stat-value">{{ "{:,}".format(status.current) }}</div>
-                    <div>Verwerkt</div>
+                    <div>Processed</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-value">{{ "{:,}".format(status.total) }}</div>
-                    <div>Totaal</div>
+                    <div>Total</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-value">
@@ -47,7 +47,7 @@
                             —
                         {% endif %}
                     </div>
-                    <div>Snelheid</div>
+                    <div>Speed</div>
                 </div>
             </div>
 
@@ -57,7 +57,7 @@
                     {% set speed_per_sec = status.current / ((now - status.started_at|to_datetime).total_seconds()) if status.current > 0 else 0 %}
                     {% set eta_seconds = (remaining_tracks / speed_per_sec) if speed_per_sec > 0 else 0 %}
                     {% set eta_minutes = (eta_seconds / 60) | round(0) %}
-                    Nog ongeveer <strong>{{ eta_minutes }} minuut{{ 'en' if eta_minutes != 1 else '' }}</strong> te gaan
+                    About <strong>{{ eta_minutes }} minute{{ 's' if eta_minutes != 1 else '' }}</strong> to go
                 {% else %}
                     Please be patient, indexation speed is being calculated…
                 {% endif %}
