@@ -402,6 +402,6 @@ def _validate_query_params(logo_scale: float, corner: str, margin: int) -> None:
         abort(400, description="Scale must be positive")
     if margin < 0:
         abort(400, description="Margin must be non-negative")
-    allowed_corners = {"bottom_right", "bottom_left", "top_right", "top_left"}
+    allowed_corners = {"bottom_right", "bottom_left", "top_right", "top_left", "center"}
     if corner not in allowed_corners:
         abort(400, description=f"Corner must be one of {', '.join(allowed_corners)}")

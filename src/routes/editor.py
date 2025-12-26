@@ -149,60 +149,44 @@ def create_editor_blueprint(
             if not data or not data.get("tracks"):
                 return jsonify({"error": "Empty mixtape"}), 400
 
-            original_title = (
-                data.get("title", "Unnamed mixtape").strip() or "Unnamed mixtape"
-            )
-            liner_notes = data.get("liner_notes", "")  # New field
+            title = (data.get("title", "").strip() or "Unnamed Mixtape")
+            liner_notes = data.get("liner_notes", "")
+            slug = data.get("slug")  # Present only when editing
 
-            slug = data.get("slug")
+            # Prepare clean data for the manager
+            mixtape_data = {
+                "title": title,
+                "tracks": data.get("tracks", []),
+                "liner_notes": liner_notes,
+                "cover": data.get("cover"),  # May be data URL or existing path or None
+            }
+
+            # Add created_at only if it's a brand new mixtape
+            if not slug:
+                # Optional: pass current time or let manager handle it
+                mixtape_data["created_at"] = datetime.now().isoformat()
+
+            # Instantiate the manager
+            mixtape_manager = MixtapeManager(
+                path_mixtapes=current_app.config["MIXTAPE_DIR"]
+            )
+
             if slug:
-                # Editing existing mixtape
-                json_path = current_app.config["MIXTAPE_DIR"] / f"{slug}.json"
-                if not json_path.exists():
-                    return jsonify({"error": "Mixtape not found"}), 404
-
-                with open(json_path, "r", encoding="utf-8") as f:
-                    existing = json.load(f)
-
-                data.setdefault("created_at", existing.get("created_at"))
-
-                # Keep old cover unless new one uploaded
-                if data.get("cover") and data["cover"].startswith("data:image"):
-                    data["cover"] = _process_cover(data["cover"], slug)
-                else:
-                    data["cover"] = existing.get("cover")
-
-                # Keep existing liner notes if not sent
-                data["liner_notes"] = liner_notes or existing.get("liner_notes", "")
+                # Editing
+                final_slug = mixtape_manager.update(slug, mixtape_data)
             else:
-                # New mixtape
-                slug = _generate_slug(original_title)
-                json_path = current_app.config["MIXTAPE_DIR"] / f"{slug}.json"
+                # ──────────────── CREATING ────────────────
+                final_slug = mixtape_manager.save(mixtape_data)
 
-                if data.get("cover") and data["cover"].startswith("data:image"):
-                    data["cover"] = _process_cover(data["cover"], slug)
+            return jsonify({
+                "success": True,
+                "title": title,
+                "slug": final_slug,
+                "url": f"/editor/{final_slug}",
+            })
 
-                data["liner_notes"] = liner_notes
-
-            # Default cover fallback
-            if not data.get("cover") and data["tracks"]:
-                data["cover"] = _get_default_cover(data["tracks"][0]["path"], slug)
-
-            data["title"] = original_title
-            data["slug"] = slug
-            data["saved_at"] = datetime.now().isoformat()
-
-            _save_mixtape_json(json_path, data)
-
-            return jsonify(
-                {
-                    "success": True,
-                    "title": original_title,
-                    "slug": slug,
-                    "url": f"/editor/{slug}",
-                }
-            )
-
+        except FileNotFoundError:
+            return jsonify({"error": "Mixtape not found"}), 404
         except Exception as e:
             logger.exception(f"Error saving mixtape: {e}")
             return jsonify({"error": "Server error"}), 500
