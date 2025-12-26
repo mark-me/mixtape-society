@@ -10,7 +10,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 <span class="md-tag">Unreleased</span>
 
-**🗓️** 2025-12-18
+**🗓️** 2025-12-26
 
 ### 🚀 Added
 
@@ -22,6 +22,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 - Clickable search results so you can change the search to an artist or album
 - Logo in social card cover image
 - Cache pass-1 results between keystrokes, keep the results of Pass 1 (scored rows) around temporarily, so increasing the precision of your search  doesn't need to hit the database again.
+- Added robot.txt to disallow page indexing by search engines
 
 ### 🔧 Changed
 
@@ -33,6 +34,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 - Large cover files are scaled down to save bandwidth
 - Sped up searching
 - Better mixtape editing
+- When indexing the music library, Ajax reloading is used to reduce page reloads
 
 ### 🐛 Fixed
 
