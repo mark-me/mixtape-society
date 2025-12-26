@@ -55,7 +55,10 @@ nav:
         - Editor: development/editor.md
         - Playback: development/playback.md
       - Core:
-        - Music Library (musiclib): development/musiclib.md
+        - Music Library (musiclib):
+          - Introduction: development/musiclib/intro.md
+          - Reader: development/musiclib/reading.md
+          - Loader: development/musiclib/loading.md
         - Mixtape Manager: development/mixtape_manager.md
         - Configuration: development/configuration.md
         - Utilities: development/utilities.md
