@@ -341,7 +341,7 @@ def _get_cover_path(filename: str) -> Path:
     Returns:
         A Path object representing the cover image file location.
     """
-    return current_app.config["COVER_DIR"] / filename
+    return current_app.config["COVER_DIR"] / Path(filename).name
 
 
 def _validate_cover_path(cover_path: Path) -> None:
