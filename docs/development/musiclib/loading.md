@@ -5,8 +5,7 @@
 ## 1. High‑level picture
 
 ```mermaid
-flowchart
-    direction LR
+flowchart LR
     FS[File system<br>from *music_root*]
     Watchdog[Watchdog events]
     IndexEvent[IndexEvent queue]
