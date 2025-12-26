@@ -63,8 +63,8 @@
     {{ super() }}
 
     <script>
-        window.INDEXING_STATUS_URL = "{{ url_for('indexing_status_json')|tojson }}";
-        window.LANDING_URL = "{{ url_for('landing')|tojson }}";
+        window.INDEXING_STATUS_URL = {{ url_for('indexing_status_json')|tojson }};
+        window.LANDING_URL = {{ url_for('landing')|tojson }};
     </script>
     <script src="{{ url_for('static', filename='js/indexing/index.js') }}"></script>
 {% endblock %}
