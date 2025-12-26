@@ -6,7 +6,7 @@ A private, self-hosted web app to create and share beautiful music mixtapes from
 
 Create your own mixtapes from your music collection and share them with friends via public links. Recipients can listen to the mixtape directly in their web browser, no account or app required.
 
-Creating a mixtape is as simple as dragging and dropping songs into a playlist. Customize the look and feel with themes and cover art, then share the link with anyone.
+Creating a mixtape is as simple as dragging and dropping songs into a playlist. Customize the look and feel with cover art and liner notes, then share the link with anyone.
 
 ![Editing a Mixtape](images/screenshot-create.png)
 
