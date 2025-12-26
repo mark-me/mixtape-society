@@ -62,123 +62,124 @@
             ← Back to mixtape browser
         </a>
         {% endif %}
-
-        <div class="row g-5">
-            <!-- Cover + title -->
-            <div class="col-lg-4 text-center">
-                {% if mixtape.cover %}
-                <img src="{{ url_for('play.serve_cover', filename=mixtape.cover.split('/')[-1]) }}"
-                    class="img-fluid rounded shadow mb-4"
-                    style="max-height: 400px; object-fit: cover;"
-                    alt="Cover for {{ mixtape.title }}">
-                {% endif %}
-
-                <h1 class="display-6 mb-2">{{ mixtape.title }}</h1>
-                <p class="text-muted small mb-3">{{ mixtape.tracks|length }} tracks</p>
-
-                <div class="text-muted small">
-                    {% if mixtape.created_at %}
-                    <div><i class="bi bi-calendar-plus"></i> Created: {{ mixtape.created_at[:10] }}</div>
+        <div class="container-fluid overflow-hidden">
+            <div class="row g-5">
+                <!-- Cover + title -->
+                <div class="col-lg-4 text-center">
+                    {% if mixtape.cover %}
+                    <img src="{{ url_for('play.serve_cover', filename=mixtape.cover.split('/')[-1]) }}"
+                        class="img-fluid rounded shadow mb-4"
+                        style="max-height: 400px; object-fit: cover;"
+                        alt="Cover for {{ mixtape.title }}">
                     {% endif %}
-                    {% if mixtape.saved_at %}
-                    <div><i class="bi bi-save"></i> Last changes: {{ mixtape.saved_at[:10] }} om {{ mixtape.saved_at[11:16] }}</div>
+
+                    <h1 class="display-6 mb-2">{{ mixtape.title }}</h1>
+                    <p class="text-muted small mb-3">{{ mixtape.tracks|length }} tracks</p>
+
+                    <div class="text-muted small">
+                        {% if mixtape.created_at %}
+                        <div><i class="bi bi-calendar-plus"></i> Created: {{ mixtape.created_at[:10] }}</div>
+                        {% endif %}
+                        {% if mixtape.saved_at %}
+                        <div><i class="bi bi-save"></i> Last changes: {{ mixtape.saved_at[:10] }} om {{ mixtape.saved_at[11:16] }}</div>
+                        {% endif %}
+                    </div>
+                    <!-- Liner Notes Section -->
+                    {% if mixtape.liner_notes and mixtape.liner_notes.strip() %}
+                    <div class="mt-5">
+                        <h4 class="mb-3">
+                            <button class="btn btn-link text-decoration-none p-0 border-0 fw-bold collapsed"
+                                    type="button"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#linerNotesCollapse"
+                                    aria-expanded="false"
+                                    aria-controls="linerNotesCollapse"
+                                    style="font-size: inherit;">
+                                Tape Talk
+                                <i class="bi bi-chevron-down ms-2 transition-chevron"></i>
+                            </button>
+                        </h4>
+
+                        <div class="collapse" id="linerNotesCollapse">
+                            <div class="card card-body bg-body-tertiary border-0">
+                                <div id="rendered-liner-notes" class="markdown-body"></div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if not public %}
+                    <a href="/mixtapes" class="btn btn-outline-secondary btn-sm mt-4">Back to mixtape browser</a>
                     {% endif %}
                 </div>
-                <!-- Liner Notes Section -->
-                {% if mixtape.liner_notes and mixtape.liner_notes.strip() %}
-                <div class="mt-5">
-                    <h4 class="mb-3">
-                        <button class="btn btn-link text-decoration-none p-0 border-0 fw-bold collapsed"
-                                type="button"
-                                data-bs-toggle="collapse"
-                                data-bs-target="#linerNotesCollapse"
-                                aria-expanded="false"
-                                aria-controls="linerNotesCollapse"
-                                style="font-size: inherit;">
-                            Tape Talk
-                            <i class="bi bi-chevron-down ms-2 transition-chevron"></i>
-                        </button>
-                    </h4>
 
-                    <div class="collapse" id="linerNotesCollapse">
-                        <div class="card card-body bg-body-tertiary border-0">
-                            <div id="rendered-liner-notes" class="markdown-body"></div>
+                <!-- Player + tracklist -->
+                <div class="col-lg-8">
+
+                <!-- Music player -->
+                <div class="fixed-bottom" id="bottom-player-container" style="display:none; z-index: 1000;">
+                    <div class="bg-dark text-white shadow-lg border-top border-secondary" style="backdrop-filter: blur(10px);">
+                        <div class="container py-2">
+                            <div class="d-flex align-items-center flex-wrap justify-content-between">
+                                <div class="d-flex align-items-center mb-2 mb-md-0">
+                                    <button id="close-bottom-player" class="btn btn-sm btn-outline-light me-2"><i class="bi bi-x-lg"></i></button>
+                                    <div class="me-2" style="max-width: 140px;">
+                                        <div class="fw-bold text-truncate" id="bottom-now-title">–</div>
+                                        <div class="small opacity-75 text-truncate" id="bottom-now-artist-album">–</div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-2 mb-md-0">
+                                    <button id="prev-btn-bottom" class="btn btn-sm btn-outline-light"><i class="bi bi-skip-backward-fill"></i></button>
+                                    <button id="next-btn-bottom" class="btn btn-sm btn-outline-light ms-1"><i class="bi bi-skip-forward-fill"></i></button>
+                                </div>
+
+                                <audio id="main-player" controls class="w-100 flex-grow-1 mx-md-3" style="height: 38px;"></audio>
+                            </div>
                         </div>
                     </div>
                 </div>
-                {% endif %}
-                {% if not public %}
-                <a href="/mixtapes" class="btn btn-outline-secondary btn-sm mt-4">Back to mixtape browser</a>
-                {% endif %}
-            </div>
 
-            <!-- Player + tracklist -->
-            <div class="col-lg-8">
+                <!-- Keep the big play button at the top -->
+                <div class="text-center my-5">
+                    <div class="btn-group" role="group">
+                        <button id="big-play-btn"
+                                class="btn btn-lg rounded-pill px-5 py-3 shadow theme-outline-btn"
+                                style="border-width: 2px; font-weight: 600;">
+                            <i class="bi bi-play-fill me-2" style="font-size: 1.6rem; position:relative; top:2px;"></i>
+                            Play mixtape
+                        </button>
+                        <button id="big-share-btn" class="btn btn-outline-info btn-lg rounded-pill px-4 py-3 shadow ms-3 copy-share-btn"
+                                title="Copy public share link">
+                            <i class="bi bi-share-fill me-2" style="font-size: 1.4rem;"></i>
+                            Share
+                        </button>
+                    </div>
+                </div>
 
-            <!-- Music player -->
-            <div class="fixed-bottom" id="bottom-player-container" style="display:none; z-index: 1000;">
-                <div class="bg-dark text-white shadow-lg border-top border-secondary" style="backdrop-filter: blur(10px);">
-                    <div class="container py-2">
-                        <div class="d-flex align-items-center flex-wrap justify-content-between">
-                            <div class="d-flex align-items-center mb-2 mb-md-0">
-                                <button id="close-bottom-player" class="btn btn-sm btn-outline-light me-2"><i class="bi bi-x-lg"></i></button>
-                                <div class="me-2" style="max-width: 140px;">
-                                    <div class="fw-bold text-truncate" id="bottom-now-title">–</div>
-                                    <div class="small opacity-75 text-truncate" id="bottom-now-artist-album">–</div>
+                    <!-- Tracklist -->
+                    <h4 class="mb-3 text-white">Tracklist</h4>
+                    <div class="list-group list-group-numbered">
+                        {% for t in mixtape.tracks %}
+                        <li class="list-group-item track-item py-4 d-flex align-items-center"
+                            data-index="{{ loop.index0 }}"
+                            data-path="{{ url_for('play.stream_audio', file_path=t.path) }}"
+                            data-title="{{ t.title }}"
+                            data-artist="{{ t.artist }}"
+                            data-album="{{ t.album|default('Onbekend album') }}">
+
+                            <div class="flex-grow-1 pe-3">
+                                <div class="fw-bold">{{ t.title }}</div>
+                                <div class="small opacity-75">
+                                    {{ t.artist }}{% if t.album %} • {{ t.album }}{% endif %}
                                 </div>
                             </div>
 
-                            <div class="mb-2 mb-md-0">
-                                <button id="prev-btn-bottom" class="btn btn-sm btn-outline-light"><i class="bi bi-skip-backward-fill"></i></button>
-                                <button id="next-btn-bottom" class="btn btn-sm btn-outline-light ms-1"><i class="bi bi-skip-forward-fill"></i></button>
-                            </div>
-
-                            <audio id="main-player" controls class="w-100 flex-grow-1 mx-md-3" style="height: 38px;"></audio>
-                        </div>
+                            <button class="btn btn-light rounded-circle play-this-track" style="width: 40px; height: 40px;">
+                                <i class="bi bi-play-fill"></i>
+                            </button>
+                        </li>
+                        {% endfor %}
                     </div>
-                </div>
-            </div>
-
-            <!-- Keep the big play button at the top -->
-            <div class="text-center my-5">
-                <div class="btn-group" role="group">
-                    <button id="big-play-btn"
-                            class="btn btn-lg rounded-pill px-5 py-3 shadow theme-outline-btn"
-                            style="border-width: 2px; font-weight: 600;">
-                        <i class="bi bi-play-fill me-2" style="font-size: 1.6rem; position:relative; top:2px;"></i>
-                        Play mixtape
-                    </button>
-                    <button id="big-share-btn" class="btn btn-outline-info btn-lg rounded-pill px-4 py-3 shadow ms-3 copy-share-btn"
-                            title="Copy public share link">
-                        <i class="bi bi-share-fill me-2" style="font-size: 1.4rem;"></i>
-                        Share
-                    </button>
-                </div>
-            </div>
-
-                <!-- Tracklist -->
-                <h4 class="mb-3 text-white">Tracklist</h4>
-                <div class="list-group list-group-numbered">
-                    {% for t in mixtape.tracks %}
-                    <li class="list-group-item track-item py-4 d-flex align-items-center"
-                        data-index="{{ loop.index0 }}"
-                        data-path="{{ url_for('play.stream_audio', file_path=t.path) }}"
-                        data-title="{{ t.title }}"
-                        data-artist="{{ t.artist }}"
-                        data-album="{{ t.album|default('Onbekend album') }}">
-
-                        <div class="flex-grow-1 pe-3">
-                            <div class="fw-bold">{{ t.title }}</div>
-                            <div class="small opacity-75">
-                                {{ t.artist }}{% if t.album %} • {{ t.album }}{% endif %}
-                            </div>
-                        </div>
-
-                        <button class="btn btn-light rounded-circle play-this-track" style="width: 40px; height: 40px;">
-                            <i class="bi bi-play-fill"></i>
-                        </button>
-                    </li>
-                    {% endfor %}
                 </div>
             </div>
         </div>
