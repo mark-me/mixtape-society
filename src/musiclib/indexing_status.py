@@ -8,7 +8,7 @@ from common.logging import Logger, NullLogger
 
 
 def set_indexing_status(
-    data_root: Path | str, status: str, total: int, current: int
+    data_root: Path | str, status: str, total: int | None, current: int
 ) -> None:
     """Writes the current indexing status to a JSON file.
 
@@ -26,7 +26,10 @@ def set_indexing_status(
     data_root = Path(data_root)
     status_file = data_root / "indexing_status.json"
     status_file.parent.mkdir(parents=True, exist_ok=True)
-    progress = _calculate_progress(total, current)
+    if total is None or total < 0:
+        progress = 0.0
+    else:
+        progress = _calculate_progress(total, current)
     started_at = _get_started_at(status_file) or datetime.now(timezone.utc).isoformat()
     data = _build_status_data(status, started_at, total, current, progress)
     _atomic_write_json(status_file, data)

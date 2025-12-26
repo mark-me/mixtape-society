@@ -52,16 +52,53 @@ export function initPlaylist() {
  *   None.
  */
 export function addToPlaylist(item) {
-    // Duplicate check
+
+    // ──────────────────────────────────────────────────────────────
+    // 1. Safety net: if the item comes from a direct search result,
+    //    it might have a "tracks" array instead of being a flat track.
+    // ──────────────────────────────────────────────────────────────
+    if (item.tracks && Array.isArray(item.tracks) && item.tracks.length > 0) {
+        const sub = item.tracks[0];
+        item = {
+            artist: item.raw_artist || item.artist ||'',
+            album:  item.raw_album  || item.album || '',
+            track:  sub.track || '',
+            duration: sub.duration || '',
+            path:   sub.path || '',
+            filename: sub.filename || ''
+        };
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // 2. Normalization: guarantee the exact structure we need
+    //    Now that we have standardized on 'track' in the backend,
+    //    we no longer need the fallback to 'title'.
+    // ──────────────────────────────────────────────────────────────
+    const normalized = {
+        artist:   item.artist   || '',
+        album:    item.album    || '',
+        track:    item.track    || '',
+        duration: item.duration || '',
+        path:     item.path     || '',
+        filename: item.filename || ''
+    };
+
+    // ──────────────────────────────────────────────────────────────
+    // 3. Duplicate check using the normalized fields
+    // ──────────────────────────────────────────────────────────────
     const isDuplicate = playlist.some(t =>
-        t.artist === item.artist &&
-        t.album === item.album &&
-        t.title === item.title &&
-        t.path === item.path
+        t.artist === normalized.artist &&
+        t.album  === normalized.album &&
+        t.track  === normalized.track &&
+        t.path   === normalized.path
     );
+
     if (isDuplicate) return;
 
-    playlist.push(item);
+    // ──────────────────────────────────────────────────────────────
+    // 4. Add to playlist and refresh UI
+    // ──────────────────────────────────────────────────────────────
+    playlist.push(normalized);
     renderPlaylist();
     unsavedCallback();
 }
@@ -137,7 +174,7 @@ export function renderPlaylist() {
             </button>
 
             <div class="flex-grow-1">
-                <strong>${esc(item.title)}</strong><br>
+                <strong>${esc(item.track)}</strong><br>
                 <small class="text-muted">${esc(item.artist)} • ${esc(item.album)}</small>
             </div>
 
@@ -167,7 +204,7 @@ export function renderPlaylist() {
 
             // Update title + highlight
             const item = playlist[this.closest('.playlist-item').dataset.index];
-            document.getElementById('now-playing-title').textContent = item.title;
+            document.getElementById('now-playing-title').textContent = item.track;
             document.getElementById('now-playing-artist').textContent = `${item.artist} • ${item.album}`;
 
             document.querySelectorAll('.playlist-item').forEach(el =>

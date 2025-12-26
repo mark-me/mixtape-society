@@ -1,281 +1,420 @@
 // static/js/editor/search.js
-import { escapeHtml, highlightText } from "./utils.js";
+import { escapeHtml } from "./utils.js";
 import { addToPlaylist } from "./playlist.js";
 
-let timeoutId;
-let resultIndex;  // Add this declaration to avoid undeclared variable errors
 const searchInput = document.getElementById("searchInput");
-const resultsDiv   = document.getElementById("results");
+const resultsDiv = document.getElementById("results");
+let timeoutId;
 
-/**
- * Initializes the search input to trigger a debounced search request as the user types.
- * Ensures that search results are updated responsively while minimizing unnecessary requests.
- *
- * Args:
- *   None.
- *
- * Returns:
- *   None.
- */
-export function initSearch() {
-    searchInput.addEventListener("input", () => {
-        clearTimeout(timeoutId);
-        document.getElementById("loading").classList.remove("visually-hidden");
-        timeoutId = setTimeout(doSearch, 300);
-    });
+const STORAGE_KEY = "mixtape_editor_search_query";
+
+function getCurrentQuery() {
+    return searchInput.value.trim();
 }
 
-/**
- * Performs a search request based on the user's input and updates the results display.
- * Handles both the minimum query length requirement and the asynchronous fetch of search results.
- *
- * Args:
- *   None.
- *
- * Returns:
- *   None.
- */
-function doSearch() {
-    const q = searchInput.value.trim();
-    if (q.length < 2) {
-        resultsDiv.innerHTML = '<p class="text-muted text-center my-5">Typ minimaal 2 tekens om te zoeken…</p>';
-        document.getElementById("loading").classList.add("visually-hidden");
+// ---------- Search ----------
+function performSearch() {
+    const query = getCurrentQuery();
+    localStorage.setItem(STORAGE_KEY, query);
+
+    if (query.length < 2) {
+        resultsDiv.innerHTML = '<p class="text-muted text-center my-5">Type at least 3 characters to start searching…</p>';
         return;
     }
-    fetch(`/editor/search?q=${encodeURIComponent(q)}`)
+
+    document.getElementById("loading").classList.remove("visually-hidden");
+    fetch(`/editor/search?q=${encodeURIComponent(query)}`)
         .then(r => r.json())
-        .then(data => {
-            document.getElementById("loading").classList.add("visually-hidden");
-            renderResults(data);
-        })
-        .catch(err => {
-            console.error(err);
-            document.getElementById("loading").classList.add("visually-hidden");
-        });
+        .then(renderResults)
+        .finally(() => document.getElementById("loading").classList.add("visually-hidden"));
 }
 
-/**
- * Renders the search results in the UI and attaches add-to-playlist event listeners to result items.
- * Updates the results display based on the provided data and enables playlist management functionality.
- *
- * Args:
- *   data: The array of search result entries to render.
- *
- * Returns:
- *   None.
- */
-function renderResults(data) {
-    resultIndex = 0;
+// Helper to create safe DOM IDs (replaces invalid chars with underscores)
+function safeId(str) {
+    if (!str) return 'unknown';
+    return str
+        .replace(/[^a-zA-Z0-9_-]/g, '_')     // Replace invalid chars
+        .replace(/_+/g, '_')                  // Collapse multiple underscores
+        .replace(/^_+|_+$/g, '');             // Trim leading/trailing underscores
+}
 
+// Helper to format duration from raw seconds or MM:SS
+function formatDuration(duration) {
+    if (typeof duration === 'string' && duration.includes(':')) return duration;  // Already formatted
+    const totalSeconds = parseFloat(duration);
+    if (isNaN(totalSeconds)) return "?:??";
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = Math.floor(totalSeconds % 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
+// ---------- Rendering ----------
+function renderResults(data) {
     if (data.length === 0) {
-        resultsDiv.innerHTML = '<p class="text-center text-muted my-5">Geen resultaten gevonden.</p>';
+        resultsDiv.innerHTML = '<p class="text-center text-muted my-5">No results.</p>';
         return;
     }
 
-    resultsDiv.innerHTML = data.map(entry => {
-        resultIndex++;
-        const {type} = entry;
-        const query = searchInput.value;
-        const highlightedArtist = highlightText(entry.artist, query);
-        const icons = { artist: 'bi-person-fill', album: 'bi-disc-fill', track: 'bi-music-note' };
-        const colors = { artist: 'success', album: 'warning', track: 'primary' };
-        const badges = entry.reasons.map(r => {
-            return `<span class="badge bg-secondary me-1 mb-1">${escapeHtml(r)}</span>`;
+    // Group by type to avoid repetition and sort
+    const grouped = { artists: [], albums: [], tracks: [] };
+    data.forEach(entry => {
+        if (entry.type === 'artist') grouped.artists.push(entry);
+        if (entry.type === 'album') grouped.albums.push(entry);
+        if (entry.type === 'track') grouped.tracks.push(entry);
+    });
+
+    // Sort artists and albums alphabetically
+    grouped.artists.sort((a, b) => (a.raw_artist || a.artist).localeCompare(b.raw_artist || b.artist));
+    grouped.albums.sort((a, b) => (a.raw_album || a.album).localeCompare(b.raw_album || b.album));
+
+    // Render grouped sections with headings for clarity
+    let html = '';
+    if (grouped.artists.length > 0) {
+        html += '<h5 class="mt-4 mb-2 text-muted">Artists</h5>';
+        html += grouped.artists.map(entry => {
+            const safeArtist = safeId(entry.raw_artist || entry.artist);
+
+            return `
+                <div class="accordion mb-3" id="accordion-artist-${safeArtist}">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed bg-success text-white" type="button"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#collapse-artist-${safeArtist}"
+                                    data-raw-artist="${escapeHtml(entry.raw_artist || entry.artist)}">
+                                <i class="bi bi-person-fill me-2"></i>
+                                Artist: ${entry.artist}
+                                <span class="ms-auto small opacity-75">
+                                    ${entry.num_albums || 0} album${(entry.num_albums || 0) !== 1 ? 's' : ''}
+                                </span>
+                            </button>
+                        </h2>
+                        <div id="collapse-artist-${safeArtist}"
+                             class="accordion-collapse collapse"
+                             data-artist="${escapeHtml(entry.raw_artist || entry.artist)}">
+                            <div class="accordion-body" data-loading="true">
+                                <p class="text-muted">Loading…</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
         }).join('');
+    }
 
-        if (type === 'artist') {
+    if (grouped.albums.length > 0) {
+        html += '<h5 class="mt-4 mb-2 text-muted">Albums</h5>';
+        html += grouped.albums.map(entry => {
+            const safeReleaseDir = safeId(entry.release_dir);
+
             return `
-                <div class="card mb-3 shadow-sm">
-                    <div class="card-header bg-${colors.artist} text-white">
-                        <h3 class="h6 mb-0"><i class="bi ${icons.artist} me-1"></i>Artist: ${highlightedArtist}</h3>
-                    </div>
-                    <div class="card-body p-0">
-                        <ul class="list-group list-group-flush">
-                            ${entry.albums.map(album => {
-                                const highlightedAlbum = highlightText(album.album, query);
-                                return `
-                                    <li class="list-group-item">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <strong>${highlightedAlbum}</strong><br>
-                                                <small class="text-muted">${album.year || 'Unknown year'}</small>
-                                            </div>
-                                            <button class="btn btn-sm btn-${colors.album} add-album-btn" data-tracks='${escapeHtml(JSON.stringify(album.tracks))}'>
-                                                <i class="bi bi-plus-circle"></i> Add album
-                                            </button>
-                                        </div>
-                                        <ul class="list-group mt-2">
-                                            ${renderTracks(album.tracks, 'album')}
-                                        </ul>
-                                    </li>
-                                `;
-                            }).join('')}
-                        </ul>
-                    </div>
-                </div>
-            `;
-        } else if (type === 'album') {
-            const highlightedAlbum = highlightText(entry.album, query);
-            return `
-                <div class="card mb-3 shadow-sm">
-                    <div class="card-header bg-${colors.album} text-white">
-                        <h3 class="h6 mb-0"><i class="bi ${icons.album} me-1"></i>Album: ${highlightedAlbum} (${entry.year || 'Unknown year'}) – ${highlightedArtist}</h3>
-                    </div>
-                    <div class="card-body p-0">
-                        <ul class="list-group list-group-flush">
-                            ${renderTracks(entry.tracks, 'album')}
-                        </ul>
-                    </div>
-                </div>
-            `;
-        } else if (type === 'track') {
-            const highlightedTitle = highlightText(entry.track, query);
-            const highlightedAlbum = highlightText(entry.album, query);
-            const item = { artist: entry.artist, album: entry.album, title: entry.track, path: entry.path, duration: entry.duration };
-            return `
-                <div class="card mb-3 shadow-sm">
-                    <div class="card-header bg-${colors.track} text-white">
-                        <h3 class="h6 mb-0"><i class="bi ${icons.track} me-1"></i>Track: ${highlightedTitle} – ${highlightedArtist}</h3>
-                    </div>
-                    <div class="card-body d-flex justify-content-between align-items-center">
-                        <div>
-                            <small class="text-muted">From album: ${highlightedAlbum}</small><br>
-                            <small class="text-muted">Duration: ${entry.duration || "?:??"}</small>
-                        </div>
-                        <div>
-                            <button class="btn btn-sm btn-primary preview-btn"
-                                    data-path="${entry.path}"
-                                    data-title="${escapeHtml(entry.track)}">
-                                <i class="bi bi-play-fill"></i>
+                <div class="accordion mb-3" id="accordion-album-${safeReleaseDir}">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed bg-warning text-dark" type="button"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#collapse-album-${safeReleaseDir}"
+                                    data-raw-album="${escapeHtml(entry.raw_album || entry.album)}"
+                                    data-raw-artist="${escapeHtml(entry.raw_artist || entry.artist)}">
+                                <i class="bi bi-disc-fill me-2"></i>
+                                Album: ${entry.album}
+                                <span class="ms-auto small opacity-75">
+                                    ${entry.num_tracks || 0} track${(entry.num_tracks || 0) !== 1 ? 's' : ''}
+                                </span>
                             </button>
-                            <button class="btn btn-sm btn-success add-btn"
-                                    data-item='${escapeHtml(JSON.stringify(item))}'>
-                                <i class="bi bi-plus-circle"></i> Add
-                            </button>
+                        </h2>
+                        <div id="collapse-album-${safeReleaseDir}"
+                             class="accordion-collapse collapse"
+                             data-release_dir="${escapeHtml(entry.release_dir)}">
+                            <div class="accordion-body" data-loading="true">
+                                <p class="text-muted">Loading…</p>
+                            </div>
                         </div>
                     </div>
-                </div>
-            `;
-        }
-    }).join('');
+                </div>`;
+        }).join('');
+    }
 
-    // Attach add-to-playlist buttons (for individual tracks and albums)
-    document.querySelectorAll('.add-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const item = JSON.parse(btn.dataset.item);
-            addToPlaylist(item);
-        });
-    });
-
-    document.querySelectorAll('.add-album-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const tracks = JSON.parse(btn.dataset.tracks);
-            tracks.forEach(track => addToPlaylist(track));
-        });
-    });
-
-    // Local helper to render track lists (for albums)
-    function renderTracks(tracks, type) {
-        return tracks.map(track => {
-            const highlightedTitle = highlightText(track.title, searchInput.value);
-            const item = {
-                artist: track.artist,
-                album: track.album,
-                title: track.title,
-                path: track.path,
-                duration: track.duration
-            };
+    if (grouped.tracks.length > 0) {
+        html += '<h5 class="mt-4 mb-2 text-muted">Tracks</h5>';
+        html += '<ul class="list-group">';
+        html += grouped.tracks.map(entry => {
+            const track = entry.tracks[0];
             return `
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <div>
-                        <span class="track-title">${highlightedTitle}</span>
-                        <small class="text-muted">(${track.duration || "?:??"})</small>
+                <li class="list-group-item d-flex justify-content-between align-items-center mb-2 border rounded">
+                    <div class="flex-grow-1">
+                        <i class="bi bi-music-note-beamed me-2 text-primary"></i>
+                        <strong>${entry.highlighted_tracks ? entry.highlighted_tracks[0].highlighted : escapeHtml(track.track)}</strong><br>
+                        <small class="text-muted">
+                            ${entry.artist} • ${entry.album}
+                        </small>
                     </div>
-                    <div>
-                        <button class="btn btn-sm btn-primary preview-btn"
-                                data-path="${track.path}"
-                                data-title="${escapeHtml(track.title)}">
+                    <div class="d-flex align-items-center">
+                        <span class="text-muted me-3">${formatDuration(track.duration || "?:??")}</span>
+                        <button class="btn btn-primary btn-sm preview-btn me-2" data-path="${escapeHtml(track.path)}" data-title="${escapeHtml(track.track)}">
                             <i class="bi bi-play-fill"></i>
                         </button>
-                        <button class="btn btn-sm btn-success add-btn"
-                                data-item='${escapeHtml(JSON.stringify(item))}'>
+                        <button class="btn btn-success btn-sm add-btn" data-item="${escapeHtml(JSON.stringify(track))}">
                             <i class="bi bi-plus-circle"></i>
                         </button>
                     </div>
-                </li>
-            `;
+                </li>`;
         }).join('');
+        html += '</ul>';
     }
 
-    // Attach preview listeners
-    attachPreviewListeners();  // Call here to re-attach after rendering
+    resultsDiv.innerHTML = html;
+
+    attachAddButtons();
+    attachPreviewButtons();
+    attachAccordionListeners();
+    attachRefineLinks();
 }
 
-// Preview button handling
-function attachPreviewListeners() {
-    document.querySelectorAll('.preview-btn').forEach(btn => {
-        btn.addEventListener('click', function () {
-            const { path, title } = this.dataset;
-            if (!path) return;
+// ---------- Lazy loading for artists and albums ----------
+function attachAccordionListeners() {
+    document.querySelectorAll('.accordion-collapse').forEach(collapse => {
+        collapse.addEventListener('shown.bs.collapse', function () {
+            const body = this.querySelector('.accordion-body');
+            if (body.dataset.loading !== 'true') return;
 
-            // Toggle pause if the same button is already playing
-            if (currentPreviewBtn === this && !player.paused) {
-                stopPreview();
+            if (this.dataset.artist) {  // Artist details
+                loadArtistDetails(this);
+            } else if (this.dataset.release_dir) {  // Album details
+                loadAlbumDetails(this);
+            }
+        });
+    });
+}
+
+function loadArtistDetails(collapse) {
+    const {artist} = collapse.dataset;
+    const body = collapse.querySelector('.accordion-body');
+
+    fetch(`/editor/artist_details?artist=${encodeURIComponent(artist)}`)
+        .then(r => r.json())
+        .then(details => {
+            if (details.albums.length === 0) {
+                body.innerHTML = '<p class="text-muted">No albums found.</p>';
+                body.dataset.loading = 'false';
                 return;
             }
 
-            // Stop any other preview that might be playing
-            stopPreview();
+            let html = '<div class="accordion accordion-flush" id="artist-albums-accordion">';
+            details.albums.forEach((album, index) => {
+                const albumId = safeId(album.album + '-' + index);  // Unique ID using safeId
+                html += `
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed bg-dark text-light" type="button"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#collapse-album-${albumId}">
+                                <i class="bi bi-disc-fill me-2 text-warning"></i>
+                                <strong>${escapeHtml(album.album)}</strong>
+                            </button>
+                        </h2>
+                        <div id="collapse-album-${albumId}"
+                            class="accordion-collapse collapse">
+                            <div class="accordion-body">
+                                <button class="btn btn-success btn-sm mb-3 add-album-btn"
+                                        data-tracks="${escapeHtml(JSON.stringify(album.tracks))}">
+                                    <i class="bi bi-plus-circle me-2"></i>Add whole album
+                                </button>
+                                <ul class="list-group">
+                                    ${album.tracks.map(track => `
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <div>
+                                                ${escapeHtml(track.track)}
+                                                <small class="text-muted ms-2">(${formatDuration(track.duration || "?:??")})</small>
+                                            </div>
+                                            <div>
+                                                <button class="btn btn-primary btn-sm preview-btn me-2"
+                                                        data-path="${escapeHtml(track.path)}"
+                                                        data-title="${escapeHtml(track.track)}">
+                                                    <i class="bi bi-play-fill"></i>
+                                                </button>
+                                                <button class="btn btn-success btn-sm add-btn"
+                                                        data-item="${escapeHtml(JSON.stringify(track))}">
+                                                    <i class="bi bi-plus-circle"></i>
+                                                </button>
+                                            </div>
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+            html += '</div>';
 
-            // Start the new preview
+            body.innerHTML = html;
+            body.dataset.loading = 'false';
+
+            // Re-attach buttons after dynamic content
+            attachAddButtons();
+            attachPreviewButtons();
+        })
+        .catch(err => {
+            body.innerHTML = '<p class="text-danger">Failed to load albums.</p>';
+            console.error(err);
+        });
+}
+
+function loadAlbumDetails(collapse) {
+    const {release_dir} = collapse.dataset;
+    const body = collapse.querySelector('.accordion-body');
+
+    fetch(`/editor/album_details?release_dir=${encodeURIComponent(release_dir)}`)
+        .then(r => r.json())
+        .then(details => {
+            let html = `
+                <h5>${escapeHtml(details.album)} — ${escapeHtml(details.artist)}</h5>
+                <button class="btn btn-success mb-3 add-album-btn"
+                        data-tracks="${escapeHtml(JSON.stringify(details.tracks))}">
+                    Add whole album
+                </button>
+                <ul class="list-group">
+                    ${details.tracks.map(track => `
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                ${escapeHtml(track.track)}
+                                <small class="text-muted ms-2">(${formatDuration(track.duration || "?:??")})</small>
+                            </div>
+                            <div>
+                                <button class="btn btn-primary btn-sm preview-btn me-2"
+                                        data-path="${escapeHtml(track.path)}"
+                                        data-title="${escapeHtml(track.track)}">
+                                    <i class="bi bi-play-fill"></i>
+                                </button>
+                                <button class="btn btn-success btn-sm add-btn"
+                                        data-item="${escapeHtml(JSON.stringify(track))}">
+                                    <i class="bi bi-plus-circle"></i>
+                                </button>
+                            </div>
+                        </li>
+                    `).join('')}
+                </ul>`;
+            body.innerHTML = html;
+            body.dataset.loading = 'false';
+
+            attachAddButtons();
+            attachPreviewButtons();
+        })
+        .catch(err => {
+            body.innerHTML = '<p class="text-danger">Loading failed.</p>';
+            console.error(err);
+        });
+}
+
+// ---------- Refine search by clicking result headers ----------
+function attachRefineLinks() {
+    document.querySelectorAll('.accordion-button').forEach(btn => {
+        btn.style.cursor = "pointer";
+        btn.addEventListener("click", function (e) {
+            if (e.target.closest("[data-bs-toggle]")) return; // let accordion work
+            const isArtist = this.classList.contains("bg-success");
+            const isAlbum = this.classList.contains("bg-warning");
+
+            if (isArtist) {
+                const artist = this.dataset.rawArtist;  // Use raw_artist (handles spaces)
+                if (artist) {
+                    searchInput.value = "";
+                    performSearch();
+                }
+            } else if (isAlbum) {
+                const album = this.dataset.rawAlbum;  // Use raw_album (handles special chars/spaces)
+                if (album) {
+                    searchInput.value = "";
+                    performSearch();
+                }
+            }
+        });
+    });
+}
+
+// ---------- Add to playlist ----------
+function attachAddButtons() {
+    document.querySelectorAll('.add-btn').forEach(btn => {
+        btn.onclick = () => {
+            const item = JSON.parse(btn.dataset.item);
+            addToPlaylist(item);
+        };
+    });
+    document.querySelectorAll('.add-album-btn').forEach(btn => {
+        btn.onclick = () => {
+            const tracks = JSON.parse(btn.dataset.tracks);
+            tracks.forEach(addToPlaylist);
+        };
+    });
+}
+
+// Preview handling (unchanged, just re-attach)
+function attachPreviewButtons() {
+    document.querySelectorAll('.preview-btn').forEach(btn => {
+        // Remove any old listener to prevent duplicates
+        btn.replaceWith(btn.cloneNode(true));
+    });
+
+    document.querySelectorAll('.preview-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const {path} = this.dataset;
+            const track_name = this.dataset.title || 'Preview';
+
+            if (!path) return;
+
+            // Use your existing global player logic here
+            const player = document.getElementById('global-audio-player');
+            const container = document.getElementById('audio-player-container');
+
+            // Stop any currently playing preview
+            if (window.currentPreviewBtn && window.currentPreviewBtn !== this) {
+                stopPreview();
+            }
+
             player.src = `/play/${path}`;
-            player.play().catch(e => console.error("Preview mislukt:", e));
-
+            player.play().catch(e => console.error("Preview failed:", e));
             container.style.display = 'block';
 
-            // Change button appearance to “pause”
+            document.getElementById('now-playing-title').textContent = track_name;
+            document.getElementById('now-playing-artist').textContent = 'Preview';
+
+            // Visual feedback: change to pause icon
             this.innerHTML = '<i class="bi bi-pause-fill"></i>';
             this.classList.remove('btn-primary');
             this.classList.add('btn-warning');
 
-            currentPreviewBtn = this;
+            window.currentPreviewBtn = this;
 
-            // ------- FUTURE‑PROOF TITLE ----------
-            const nowPlayingTitle = title ||
-                (this.closest('li')?.querySelector('.track-title')?.textContent?.trim() ?? '');
-
-            document.getElementById('now-playing-title').textContent = nowPlayingTitle;
-            document.getElementById('now-playing-artist').textContent = 'Preview';
-
-            // Reset button when the preview finishes
-            player.onended = stopPreview;
+            player.onended = () => stopPreview();
         });
     });
 }
 
-const player = document.getElementById('global-audio-player');
-const container = document.getElementById('audio-player-container');
-let currentPreviewBtn = null;
-
-/**
- * Stops audio preview playback and resets the preview button state in the UI.
- * Ensures that any ongoing track preview is halted and the player interface is updated.
- *
- * Args:
- *   None.
- *
- * Returns:
- *   None.
- */
 function stopPreview() {
+    const player = document.getElementById('global-audio-player');
     player.pause();
     player.src = '';
-    if (currentPreviewBtn) {
-        currentPreviewBtn.innerHTML = '<i class="bi bi-play-fill"></i>';
-        currentPreviewBtn.classList.remove('btn-warning');
-        currentPreviewBtn.classList.add('btn-primary');
-        currentPreviewBtn = null;
+    if (window.currentPreviewBtn) {
+        window.currentPreviewBtn.innerHTML = '<i class="bi bi-play-fill"></i>';
+        window.currentPreviewBtn.classList.remove('btn-warning');
+        window.currentPreviewBtn.classList.add('btn-primary');
+        window.currentPreviewBtn = null;
     }
-    // Optional: hide player if no playlist track is playing
-    // (existing close button already handles pause/hide)
+}
+
+// ---------- Init ----------
+export function initSearch() {
+    // Restore persisted query
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+        searchInput.value = saved.replace(/^(.*?)\s*$/, ""); // extract free text
+        performSearch();
+    }
+
+    searchInput.addEventListener("input", () => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(performSearch, 300);
+    });
+
+    // Initial popover
+    new bootstrap.Popover(document.getElementById("searchHint"));
 }

@@ -12,7 +12,7 @@ from flask_limiter.util import get_remote_address
 from auth import check_auth
 from config import DevelopmentConfig, ProductionConfig, TestConfig, BaseConfig
 from logtools import get_logger, setup_logging
-from musiclib import MusicCollection, get_indexing_status
+from musiclib import MusicCollectionUI, get_indexing_status
 from mixtape_manager import MixtapeManager
 from routes import (
     create_browser_blueprint,
@@ -51,7 +51,7 @@ def create_app() -> Flask:
     logger = get_logger(name=__name__)
 
     # === Start collection extraction ===
-    collection = MusicCollection(
+    collection = MusicCollectionUI(
         music_root=config_cls.MUSIC_ROOT, db_path=config_cls.DB_PATH, logger=logger
     )
     mixtape_manager = MixtapeManager(path_mixtapes=config_cls.MIXTAPE_DIR)

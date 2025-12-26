@@ -118,7 +118,7 @@ export function initUI() {
             tracks: playlist.map(t => ({
                 artist: t.artist,
                 album: t.album,
-                title: t.title,
+                track: t.track,
                 duration: t.duration,
                 path: t.path,
                 filename: t.filename
