@@ -167,6 +167,15 @@
     setInterval(updateStatus, 5000);
 
     // Safety reload if stuck
-    setTimeout(() => window.location.reload(), 120000);
+    let lastCurrent = 0;
+    // Inside updateStatus, after fetching data:
+    if (data.current && data.current > lastCurrent) {
+        lastCurrent = data.current;
+        // Reset a "no progress" timer
+        clearTimeout(window.noProgressTimeout);
+        window.noProgressTimeout = setTimeout(() => {
+            window.location.reload();
+        }, 300000);  // 5 minutes no progress → reload
+    }
 </script>
 {% endblock %}
