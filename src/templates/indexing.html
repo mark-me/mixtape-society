@@ -10,66 +10,42 @@
 <div class="container">
     <div class="indexing-container bg-light-subtle rounded-4 shadow">
         <img src="{{ url_for('static', filename='logo.svg') }}"
-            alt="Spinning mixtape"
-            width="120"
-            height="120"
-            class="cassette-spinner">
+             alt="Spinning mixtape"
+             width="120"
+             height="120"
+             class="cassette-spinner">
 
         <h1 class="mb-3">Your music library is being indexed…</h1>
         <p class="lead text-muted mb-4">
             We are scanning your collection and reading metadata from all tracks. This only happens the first time or after major changes.
         </p>
 
-        {% if status.total > 0 %}
-            {% set progress_percent = (status.current / status.total * 100) | round(1) %}
-
-            <div class="progress" role="progressbar" aria-valuenow="{{ status.current }}" aria-valuemin="0" aria-valuemax="{{ status.total }}">
-                <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: {{ progress_percent }}%">
-                    {{ progress_percent }}%
-                </div>
-            </div>
-
-            <div class="stats">
-                <div class="stat-item">
-                    <div class="stat-value">{{ "{:,}".format(status.current) }}</div>
-                    <div>Processed</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value">{{ "{:,}".format(status.total) }}</div>
-                    <div>Total</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value">
-                        {% if status.current > 100 %}
-                            {% set speed = status.current / ((now - status.started_at|to_datetime).total_seconds() / 60) %}
-                            {{ speed | round(0) }} /min
-                        {% else %}
-                            —
-                        {% endif %}
-                    </div>
-                    <div>Speed</div>
-                </div>
-            </div>
-
-            <div class="eta fw-semibold text-success">
-                {% if status.current > 50 and status.total > 100 %}
-                    {% set remaining_tracks = status.total - status.current %}
-                    {% set speed_per_sec = status.current / ((now - status.started_at|to_datetime).total_seconds()) if status.current > 0 else 0 %}
-                    {% set eta_seconds = (remaining_tracks / speed_per_sec) if speed_per_sec > 0 else 0 %}
-                    {% set eta_minutes = (eta_seconds / 60) | round(0) %}
-                    About <strong>{{ eta_minutes }} minute{{ 's' if eta_minutes != 1 else '' }}</strong> to go
-                {% else %}
-                    Please be patient, indexation speed is being calculated…
-                {% endif %}
-            </div>
-        {% else %}
+        <div id="progress-container">
+            <!-- Initial fallback content (shown before JS loads) -->
             <div class="progress" style="height: 2.2rem;">
                 <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%"></div>
             </div>
-            <p class="mt-4">Files are being counted and scanned… This may take a while for large collections.</p>
-        {% endif %}
+            <p class="mt-4">Loading indexing status…</p>
+        </div>
 
-        <p class="tip">
+        <div id="stats" class="stats" style="display: none;">
+            <div class="stat-item">
+                <div class="stat-value" id="current">0</div>
+                <div>Processed</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="total">0</div>
+                <div>Total</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="speed">—</div>
+                <div>Speed</div>
+            </div>
+        </div>
+
+        <div id="eta" class="eta fw-semibold text-success" style="display: none;"></div>
+
+        <p class="tip mt-4">
             <small>
                 <i class="bi bi-info-circle"></i>
                 Tip: Grab a coffee or tea – we’ll be done soon! ☕
@@ -77,32 +53,105 @@
         </p>
 
         <div class="mt-4">
-            <small class="text-muted">
-                This page refreshes every 8 seconds.
-            </small>
+            <small class="text-muted" id="update-info">Updating automatically…</small>
         </div>
     </div>
 </div>
-
-<meta http-equiv="refresh" content="8">
 {% endblock %}
 
 {% block extra_js %}
 {{ super() }}
 
 <script>
-    // Fallback: force refresh if something goes wrong
+    const progressContainer = document.getElementById('progress-container');
+    const progressBar = document.createElement('div');
+    progressBar.className = 'progress';
+    progressBar.role = 'progressbar';
+    progressBar.innerHTML = `<div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%"></div>`;
+
+    function updateStatus() {
+        fetch('{{ url_for("indexing_status_json") }}')
+            .then(response => response.json())
+            .then(data => {
+                if (data.done) {
+                    // Indexing finished → full page redirect to trigger normal landing logic
+                    window.location.href = '{{ url_for("landing") }}';
+                    return;
+                }
+
+                const current = data.current || 0;
+                const total = data.total || 0;
+                const startedAt = data.started_at ? new Date(data.started_at) : null;
+
+                if (total === 0) {
+                    // Still counting files
+                    progressContainer.innerHTML = `
+                        <div class="progress" style="height: 2.2rem;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%"></div>
+                        </div>
+                        <p class="mt-4">Files are being counted and scanned… This may take a while for large collections.</p>
+                    `;
+                    document.getElementById('stats').style.display = 'none';
+                    document.getElementById('eta').style.display = 'none';
+                    return;
+                }
+
+                // Normal progress
+                const percent = (current / total * 100).toFixed(1);
+                if (!document.querySelector('.progress')) {
+                    progressContainer.innerHTML = '';
+                    progressContainer.appendChild(progressBar);
+                }
+                progressBar.querySelector('.progress-bar').style.width = `${percent}%`;
+                progressBar.querySelector('.progress-bar').textContent = `${percent}%`;
+
+                // Update stats
+                document.getElementById('current').textContent = current.toLocaleString();
+                document.getElementById('total').textContent = total.toLocaleString();
+
+                // Speed calculation
+                if (startedAt && current > 100) {
+                    const elapsedMin = (Date.now() - startedAt) / 60000;
+                    const speed = Math.round(current / elapsedMin);
+                    document.getElementById('speed').textContent = `${speed.toLocaleString()} /min`;
+                } else {
+                    document.getElementById('speed').textContent = '—';
+                }
+
+                document.getFluent('stats').style.display = 'flex';
+                document.getElementById('eta').style.display = 'block';
+
+                // ETA
+                if (current > 50 && total > 100 && startedAt) {
+                    const elapsedSec = (Date.now() - startedAt) / 1000;
+                    const speedPerSec = current / elapsedSec;
+                    const remaining = total - current;
+                    const etaSec = remaining / speedPerSec;
+                    const etaMin = Math.round(etaSec / 60);
+                    document.getElementById('eta').innerHTML = `
+                        About <strong>${etaMin} minute${etaMin !== 1 ? 's' : ''}</strong> to go
+                    `;
+                } else {
+                    document.getElementById('eta').textContent = 'Please be patient, indexation speed is being calculated…';
+                }
+
+                document.getElementById('update-info').textContent = 'Updated just now';
+            })
+            .catch(err => {
+                console.error('Failed to fetch indexing status', err);
+                document.getElementById('update-info').textContent = 'Update failed – retrying…';
+            });
+    }
+
+    // Initial update
+    updateStatus();
+
+    // Poll every 30 seconds (only 120 requests/hour)
+    setInterval(updateStatus, 30000);
+
+    // Fallback: reload if no progress for 2 minutes (in case of stalled backend)
     setTimeout(() => {
         window.location.reload();
-    }, 90000); // 90 seconds max without progress
+    }, 120000);
 </script>
-
-<!-- Custom filter to parse ISO datetime (needed for ETA calculation) -->
-{% macro to_datetime(iso_string) %}
-    {% if iso_string %}
-        {{ iso_string | strptime('%Y-%m-%dT%H:%M:%S.%f') }}
-    {% else %}
-        {{ now }}
-    {% endif %}
-{% endmacro %}
 {% endblock %}

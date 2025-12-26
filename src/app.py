@@ -57,7 +57,6 @@ def create_app() -> Flask:
     mixtape_manager = MixtapeManager(path_mixtapes=config_cls.MIXTAPE_DIR)
 
     @app.route("/")
-    @limiter.exempt
     def landing() -> Response:
         """
         Renders the landing page, indexing progress, or redirects authenticated users.
@@ -73,6 +72,25 @@ def create_app() -> Flask:
         if check_auth():
             return redirect("/mixtapes")
         return render_template("landing.html")
+
+    @app.route("/indexing-status")
+    def indexing_status_json():
+        """
+        Returns the current indexing status as JSON.
+        Used by the indexing page for AJAX polling.
+        """
+        status = get_indexing_status(config_cls.DATA_ROOT, logger=app.logger)
+        if not status:
+            # No indexing in progress → redirect to landing behavior
+            return {"done": True}
+
+        return {
+            "done": False,
+            "status": status.get("status"),
+            "current": status.get("current", 0),
+            "total": status.get("total", 0),
+            "started_at": status.get("started_at"),  # ISO string
+        }
 
     # === Context Processors ===
 
