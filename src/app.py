@@ -57,6 +57,7 @@ def create_app() -> Flask:
     mixtape_manager = MixtapeManager(path_mixtapes=config_cls.MIXTAPE_DIR)
 
     @app.route("/")
+    @limiter.exempt
     def landing() -> Response:
         """
         Renders the landing page, indexing progress, or redirects authenticated users.
