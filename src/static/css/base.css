@@ -5,6 +5,7 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    overflow-x: hidden;
 }
 main {
     flex: 1;
@@ -18,4 +19,9 @@ footer {
 .hover-shadow:hover {
     box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
     transition: all 0.3s;
+}
+
+.row {
+    margin-right: 0 !important;
+    margin-left: 0 !important;
 }
