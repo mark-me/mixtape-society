@@ -15,6 +15,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 ### 🔧 Changed
 
 - OpenGraph image and added information to better comply with standards [https://opengraph.dev/](https://opengraph.dev/)
+- Changing the title of the mixtape is independent of the filename of the stored mixtape. This ensures keeping the old shared URL alive when changing the title.
 
 ### 🐛 Fixed
 

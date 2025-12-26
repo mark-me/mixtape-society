@@ -73,21 +73,21 @@ class MixtapeManager:
 
         return self._save_with_slug(mixtape_data, title, slug)
 
-    def update(self, slug: str, updated_data: dict) -> str:
-        """
-        Update an existing mixtape by slug.
+    def update(self, slug: str, updated_data: dict, force_new_slug: bool = False) -> str:
+        """Updates an existing mixtape's data while preserving its slug.
+
+        Merges provided changes into the stored mixtape record, refreshes timestamps, and rewrites the mixtape file on disk.
 
         Args:
-            slug (str): Current slug of the mixtape to update.
-            updated_data (dict): Dictionary with fields to update.
-                          Must include 'title' if you want to change the title/slug.
-                          May include 'cover' (new base64 image), and any other fields.
+            slug: The slug of the mixtape to update.
+            updated_data: A dictionary of fields to update in the mixtape.
+            force_new_slug: Unused flag kept for backwards compatibility; the slug is always preserved.
 
         Returns:
-            str: The new slug (may be different if title changed).
+            str: The slug of the updated mixtape.
 
         Raises:
-            FileNotFoundError: If the mixtape doesn't exist.
+            FileNotFoundError: If no mixtape exists for the given slug.
         """
         old_json_path = self.path_mixtapes / f"{slug}.json"
         if not old_json_path.exists():
@@ -97,40 +97,22 @@ class MixtapeManager:
         with open(old_json_path, "r", encoding="utf-8") as f:
             existing_data = json.load(f)
 
-        # Determine new title and whether slug will change
-        new_title = updated_data.get("title", existing_data.get("title", "Untitled Mixtape"))
-        new_base_slug = self._sanitize_title(new_title)
-
-        # Generate potential new slug (allow reusing current one if title unchanged)
-        new_slug = self._generate_unique_slug(new_base_slug, current_slug=slug)
-
-        # Merge data
+        # Merge updates
         existing_data.update(updated_data)
 
-        # Ensure liner_notes exists (backward compatibility)
+        # Always preserve the original slug — do NOT regenerate based on title
+        final_slug = slug
+
+        # Ensure required fields
+        existing_data["title"] = updated_data.get("title", existing_data.get("title", "Untitled Mixtape"))
         if "liner_notes" not in existing_data:
             existing_data["liner_notes"] = ""
 
-        # Set final title (in case it was missing)
-        existing_data["title"] = new_title
-
-        # Add/update timestamp
         existing_data["updated_at"] = datetime.now().isoformat()
-        # Preserve original saved_at if it exists
         if "saved_at" not in existing_data:
             existing_data["saved_at"] = existing_data["updated_at"]
 
-        # Save with the (possibly new) slug
-        final_slug = self._save_with_slug(existing_data, new_title, new_slug)
-
-        # If slug changed, clean up old files
-        if new_slug != slug:
-            self._logger.info(f"Slug changed from '{slug}' to '{new_slug}'. Deleting old files.")
-            old_json_path.unlink(missing_ok=True)
-            old_cover_path = self.path_cover / f"{slug}.jpg"
-            old_cover_path.unlink(missing_ok=True)
-
-        return final_slug
+        return self._save_with_slug(existing_data, existing_data["title"], final_slug)
 
     def _save_with_slug(self, mixtape_data: dict, title: str, slug: str) -> str:
         """
@@ -148,28 +130,21 @@ class MixtapeManager:
         """
         json_path = self.path_mixtapes / f"{slug}.json"
 
-        # Handle cover
-        if cover_base64 := mixtape_data.pop("cover", None):  # Remove temp base64 field
-            try:
-                cover_bytes = b64decode(cover_base64.split(",")[1])
-                cover_path = self.path_cover / f"{slug}.jpg"
-                with open(cover_path, "wb") as f:
-                    f.write(cover_bytes)
-                mixtape_data["cover"] = f"covers/{slug}.jpg"
-            except Exception as e:
-                self._logger.error(f"Failed to save cover for {slug}: {e}")
-                mixtape_data.pop("cover", None)  # Remove broken cover reference
-        else:
-            # Preserve existing cover path if it exists
-            existing_cover = mixtape_data.get("cover")
-            if existing_cover and Path(existing_cover).name != f"{slug}.jpg":
-                # Old cover from previous slug — optionally rename or leave as-is
-                # Here we just keep the old path (simpler)
-                pass
-            elif not existing_cover:
-                # Ensure cover is None if not present
-                mixtape_data.pop("cover", None)
-
+        if cover_value := mixtape_data.pop("cover", None):
+            if cover_value.startswith("data:image"):
+                        # New uploaded image (base64 data URL)
+                try:
+                    cover_bytes = b64decode(cover_value.split(",", 1)[1])
+                    cover_path = self.path_cover / f"{slug}.jpg"
+                    with open(cover_path, "wb") as f:
+                        f.write(cover_bytes)
+                    mixtape_data["cover"] = f"covers/{slug}.jpg"
+                except Exception as e:
+                    self._logger.error(f"Failed to save new cover for {slug}: {e}")
+            else:
+                # It was either an old path like "covers/old-slug.jpg" or already correct
+                # We keep it exactly as-is (even if filename doesn't match slug)
+                mixtape_data["cover"] = cover_value
         # Final save
         with open(json_path, "w", encoding="utf-8") as f:
             json.dump(mixtape_data, f, indent=2)
