@@ -1,0 +1,17 @@
+services:
+  mixtape-test:  # Rename for clarity
+    image: ghcr.io/youruser/mixtape-society:test  # Use :test tag; replace with your repo
+    # build: commented out, since we pull from GHCR
+    container_name: mixtape-society-test
+    restart: unless-stopped
+    ports:
+      - "5001:5000"  # Different port
+    volumes:
+      - /home/mark/Music:/music:ro  # Shared music is fine if read-only
+      - ../collection-data-test:/app/collection-data  # Isolated data
+    environment:
+      - APP_ENV=test  # Or 'staging'
+      - LOG_LEVEL=INFO
+      - MUSIC_ROOT=/music
+      - DATA_ROOT=/app/collection-data  # But volume maps to -test dir
+      - PASSWORD=tst-password  # Different password
