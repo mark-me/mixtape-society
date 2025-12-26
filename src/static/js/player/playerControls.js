@@ -15,6 +15,13 @@ export function initPlayerControls() {
        Core playback logic (unchanged)
        ----------------------------------------------------------------- */
     function playTrack(index) {
+        // 1. If index is same as current, don't reload the source
+        if (index === currentIndex && player.src !== '') {
+            player.play().catch(e => console.log('Autoplay prevented:', e));
+            return;
+        }
+
+        // 2. Handle bounds and stopping
         if (index < 0 || index >= trackItems.length) {
             player.pause();
             player.src = '';
@@ -52,11 +59,22 @@ export function initPlayerControls() {
     player?.addEventListener('ended', () => playTrack(currentIndex + 1));
 
     trackItems.forEach((item, i) => {
-        item.addEventListener('click', () => playTrack(i));
-        item.querySelector('.play-this-track')?.addEventListener('click', e => {
+        const handleToggle = (e) => {
             e.stopPropagation();
-            playTrack(i);
-        });
+            // If this track is already playing/active, just toggle play/pause
+            if (i === currentIndex) {
+                if (player.paused) {
+                    player.play();
+                } else {
+                    player.pause();
+                }
+            } else {
+                // Otherwise, load and play the new track
+                playTrack(i);
+            }
+        };
+        item.addEventListener('click', handleToggle);
+        item.querySelector('.play-this-track')?.addEventListener('click', handleToggle);
     });
 
     closeBtn?.addEventListener('click', () => {
