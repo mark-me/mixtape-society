@@ -74,6 +74,7 @@ def create_app() -> Flask:
         return render_template("landing.html")
 
     @app.route("/indexing-status")
+    @limiter.exempt
     def indexing_status_json():
         """
         Returns the current indexing status as JSON.
