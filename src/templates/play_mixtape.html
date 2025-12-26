@@ -44,7 +44,7 @@
     <meta property="og:site_name" content="Mixtape Society"/>
 
     {% if mixtape.cover %}
-        {% set og_url = url_for('og.cover_with_logo', filename=mixtape.cover, scale=0.4, corner='bottom_right', margin=10, _external=True) %}
+        {% set og_url = url_for('og.cover_with_logo', filename=mixtape.cover, scale=0.20, corner='center', margin=20, _external=True) %}
         {% set plain_cover_url = url_for('play.serve_cover', filename=mixtape.cover.split('/')[-1], _external=True) %}
 
         <meta property="og:image" content="{{ og_url }}">

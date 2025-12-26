@@ -300,7 +300,9 @@ def _calculate_logo_position(
     """
     width_cover, height_cover = cover_size
     width_logo, height_logo = logo_size
-    if corner == "bottom_right":
+    if corner == "center":
+        return (width_cover - width_logo) // 2, (height_cover - height_logo) // 2
+    elif corner == "bottom_right":
         return width_cover - width_logo - margin, height_cover - height_logo - margin
     elif corner == "bottom_left":
         return margin, height_cover - height_logo - margin
