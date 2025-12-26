@@ -252,7 +252,7 @@ def create_editor_blueprint(
             logger.error(f"Cover opslaan mislukt voor {slug}: {e}")
             return None
 
-    def _cover_resize(image: Image, new_width: int=520) -> Image:
+    def _cover_resize(image: Image, new_width: int=1200) -> Image:
         """
         Resizes the given image to a specified width while maintaining aspect ratio.
 
@@ -260,7 +260,7 @@ def create_editor_blueprint(
 
         Args:
             image: The PIL Image object to resize.
-            new_width: The desired width of the resized image (default is 520).
+            new_width: The desired width of the resized image (default is 1200).
 
         Returns:
             Image: The resized PIL Image object.
