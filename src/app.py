@@ -93,6 +93,19 @@ def create_app() -> Flask:
             "started_at": status.get("started_at"),  # ISO string
         }
 
+    @app.route('/robots.txt')
+    def robots_txt():
+        """
+        Serves a robots.txt file that disallows all web crawlers. This helps prevent search engines from indexing the site.
+
+        Returns:
+            Response: A plain text HTTP response containing the robots.txt directives.
+        """
+        return Response(
+            "User-agent: *\nDisallow: /\n",
+            mimetype='text/plain'
+        )
+
     # === Context Processors ===
 
     @app.context_processor
