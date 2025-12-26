@@ -7,7 +7,7 @@
     <meta name="description" content="{{ mixtape.title }} – a mixtape with {{ mixtape.tracks|length }} tracks.">
 
     <!-- Open Graph / Facebook / LinkedIn -->
-    {% set full_title = mixtape.title ~ " – Curated Mixtape" ~ (" (" ~ mixtape.saved_at[:10] ~ ")" if mixtape.saved_at else "") ~ " | Mixtape Society" %}
+    {% set full_title = mixtape.title ~ " – Curated on:" ~ (mixtape.saved_at[:10] if mixtape.saved_at else "") %}
     {% set artists_list = mixtape.tracks | map(attribute='artist') | unique | list %}
 
     {% set max_artists = 5 %}

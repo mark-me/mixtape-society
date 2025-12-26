@@ -2,7 +2,7 @@
 import { playlist } from "./playlist.js";
 import { renderTrackReferences } from "./utils.js";
 
-const {EasyMDE, DOMPurify, marked} = window;
+const { EasyMDE, DOMPurify, marked } = window;
 
 export let easyMDE;
 
@@ -33,8 +33,8 @@ export function initEditorNotes(preloadNotes = null) {
         initialValue,
         spellChecker: false,
         toolbar: [
-            "bold","italic","heading","|","quote","unordered-list","ordered-list",
-            "|","link","image","|","preview","side-by-side","fullscreen","|","guide"
+            "bold", "italic", "heading", "|", "quote", "unordered-list", "ordered-list",
+            "|", "link", "image", "|", "preview", "side-by-side", "fullscreen", "|", "guide"
         ],
         previewRender: plain => DOMPurify.sanitize(marked.parse(plain))
     });
@@ -43,7 +43,7 @@ export function initEditorNotes(preloadNotes = null) {
     // Sync the *Preview* tab when the user switches to it.
     // -----------------------------------------------------------------
     const previewPane = document.getElementById("markdown-preview");
-    const previewTab  = document.getElementById("preview-tab");
+    const previewTab = document.getElementById("preview-tab");
     previewTab.addEventListener("shown.bs.tab", () => {
         previewPane.innerHTML = DOMPurify.sanitize(marked.parse(easyMDE.value()));
     });
@@ -59,7 +59,6 @@ export function initEditorNotes(preloadNotes = null) {
     // -----------------------------------------------------------------
     // Custom renderer – expands #1, #2‑4, etc. using the current playlist.
     // -----------------------------------------------------------------
-    const originalRender = easyMDE.options.previewRender;
     easyMDE.options.previewRender = (plain, preview) => {
         const processed = renderTrackReferences(plain, playlist);
         preview.innerHTML = DOMPurify.sanitize(marked.parse(processed));

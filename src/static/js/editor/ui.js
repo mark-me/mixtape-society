@@ -64,8 +64,8 @@ export function initUI() {
             return;
         }
 
-        // ---- Validate size (max 5 MiB) -----------------------------------------
-        const maxSize = 5 * 1024 * 1024; // 5 MiB
+        // ---- Validate size (max 5 MiB) -----------------------------------------
+        const maxSize = 5 * 1024 * 1024; // 5 MiB
         if (file.size > maxSize) {
             showAlert("Image is too large. Maximum size is 5 MiB.");
             coverInput.value = "";
@@ -175,7 +175,6 @@ export function initUI() {
 
             if (!response.ok) {
                 // Server responded with 4xx/5xx – try to extract a JSON error message or log raw text
-                let errMsg = `Server returned ${response.status}`;
                 try {
                     const errJson = await response.json();
                     // Only use a generic error message for users, but log details for debugging
