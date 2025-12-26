@@ -73,6 +73,39 @@ def create_app() -> Flask:
             return redirect("/mixtapes")
         return render_template("landing.html")
 
+    @app.route("/indexing-status")
+    @limiter.exempt
+    def indexing_status_json():
+        """
+        Returns the current indexing status as JSON.
+        Used by the indexing page for AJAX polling.
+        """
+        status = get_indexing_status(config_cls.DATA_ROOT, logger=app.logger)
+        if not status:
+            # No indexing in progress → redirect to landing behavior
+            return {"done": True}
+
+        return {
+            "done": False,
+            "status": status.get("status"),
+            "current": status.get("current", 0),
+            "total": status.get("total", 0),
+            "started_at": status.get("started_at"),  # ISO string
+        }
+
+    @app.route('/robots.txt')
+    def robots_txt():
+        """
+        Serves a robots.txt file that disallows all web crawlers. This helps prevent search engines from indexing the site.
+
+        Returns:
+            Response: A plain text HTTP response containing the robots.txt directives.
+        """
+        return Response(
+            "User-agent: *\nDisallow: /\n",
+            mimetype='text/plain'
+        )
+
     # === Context Processors ===
 
     @app.context_processor
@@ -98,6 +131,28 @@ def create_app() -> Flask:
             dict: A dictionary with the current UTC datetime under the key 'now'.
         """
         return {"now": datetime.now(timezone.utc)}
+
+    @app.template_filter('to_datetime')
+    def to_datetime_filter(s, fmt='%Y-%m-%d %H:%M:%S'):
+        """
+        Converts a string timestamp into a datetime object for template usage. Provides a robust parser that supports a custom format and ISO 8601 strings.
+
+        Attempts to parse the input string using the provided format first, then falls back to ISO format parsing if needed. Returns None when the input is empty or falsy.
+
+        Args:
+            s: The input timestamp string to convert.
+            fmt: The expected datetime format string used for initial parsing.
+
+        Returns:
+            datetime | None: A datetime object if parsing succeeds, otherwise None for empty input.
+        """
+        if not s:
+            return None
+        try:
+            return datetime.strptime(s, fmt)
+        except ValueError:
+            # Fallback: try ISO format
+            return datetime.fromisoformat(s.replace('Z', '+00:00'))
 
     # === Blueprints ===
     app.register_blueprint(
