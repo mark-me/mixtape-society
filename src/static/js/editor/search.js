@@ -1,84 +1,15 @@
 // static/js/editor/search.js
-import { escapeHtml, htmlSafeJson } from "./utils.js";
+import { escapeHtml } from "./utils.js";
 import { addToPlaylist } from "./playlist.js";
 
 const searchInput = document.getElementById("searchInput");
-const badgesContainer = document.getElementById("searchBadges");
 const resultsDiv = document.getElementById("results");
 let timeoutId;
 
-const TAG_COLORS = {
-    artist: "bg-success",
-    album:  "bg-warning",
-    track:  "bg-primary",
-    song:   "bg-primary"
-};
-
 const STORAGE_KEY = "mixtape_editor_search_query";
 
-// ---------- Badge management ----------
-function createBadge(tagType, value) {
-    const badge = document.createElement("span");
-    badge.className = `badge ${TAG_COLORS[tagType]} text-white me-1`;
-    badge.textContent = `${tagType}:${value}`;
-    badge.dataset.type = tagType;
-    badge.dataset.value = value;
-    badge.tabIndex = 0;
-    badge.role = "button";
-    badge.ariaLabel = `Remove tag ${tagType}:${value}`;
-
-    // Create the close button
-    const close = document.createElement("span");
-    close.className = "ms-2";
-    close.innerHTML = "&times;";
-    close.style.cursor = "pointer";
-    close.style.userSelect = "none";  // Prevent text selection on double-click
-
-    // Click on × removes the badge
-    close.addEventListener("click", (e) => {
-        e.stopPropagation();  // Prevent triggering parent events (e.g. accordion)
-        badge.remove();
-        performSearch();
-    });
-
-    // Also allow clicking the whole badge to remove it (optional UX improvement)
-    badge.addEventListener("click", (e) => {
-        // Don't remove if clicking the close button (already handled)
-        if (e.target === close) return;
-        badge.remove();
-        performSearch();
-    });
-
-    // Keyboard support: Space or Enter removes badge
-    badge.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            badge.remove();
-            performSearch();
-        }
-    });
-
-    badge.appendChild(close);
-    badgesContainer.appendChild(badge);
-    badgesContainer.style.pointerEvents = "auto";
-}
-
-function rebuildBadgesFromQuery(query) {
-    badgesContainer.innerHTML = "";
-    const tagRegex = /(artist|album|track|song):"([^"]+)"|(artist|album|track|song):([^\s]+)/g;
-    let match;
-    while ((match = tagRegex.exec(query))) {
-        const type = match[1] || match[3];
-        const value = match[2] || match[4];
-        createBadge(type, value);
-    }
-}
-
 function getCurrentQuery() {
-    const input = searchInput.value.trim();
-    const badges = Array.from(badgesContainer.querySelectorAll(".badge"));
-    const tagParts = badges.map(b => `${b.dataset.type}:"${b.dataset.value}"`);
-    return [...tagParts, input].filter(Boolean).join(" ");
+    return searchInput.value.trim();
 }
 
 // ---------- Search ----------
@@ -387,16 +318,12 @@ function attachRefineLinks() {
                 const artist = this.dataset.rawArtist;  // Use raw_artist (handles spaces)
                 if (artist) {
                     searchInput.value = "";
-                    badgesContainer.innerHTML = "";
-                    createBadge("artist", artist.trim());
                     performSearch();
                 }
             } else if (isAlbum) {
                 const album = this.dataset.rawAlbum;  // Use raw_album (handles special chars/spaces)
                 if (album) {
                     searchInput.value = "";
-                    badgesContainer.innerHTML = "";
-                    createBadge("album", album.trim());
                     performSearch();
                 }
             }
@@ -409,7 +336,6 @@ function attachAddButtons() {
     document.querySelectorAll('.add-btn').forEach(btn => {
         btn.onclick = () => {
             const item = JSON.parse(btn.dataset.item);
-            console.log("Adding track to playlist:", item);
             addToPlaylist(item);
         };
     });
@@ -481,20 +407,12 @@ export function initSearch() {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
         searchInput.value = saved.replace(/^(.*?)\s*$/, ""); // extract free text
-        rebuildBadgesFromQuery(saved);
         performSearch();
     }
 
     searchInput.addEventListener("input", () => {
         clearTimeout(timeoutId);
         timeoutId = setTimeout(performSearch, 300);
-    });
-
-    searchInput.addEventListener("keydown", (e) => {
-        if (e.key === "Backspace" && searchInput.value === "" && badgesContainer.children.length > 0) {
-            badgesContainer.lastChild.remove();
-            performSearch();
-        }
     });
 
     // Initial popover

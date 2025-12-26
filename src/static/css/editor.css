@@ -54,12 +54,6 @@
     border-radius: 0.2em;
 }
 
-/* Tagged search badges */
-#searchContainer .badge {
-    font-size: 0.9em;
-    padding: 0.4em 0.8em;
-}
-
 /* Specific colors - light backgrounds for readability */
 #searchContainer .bg-info    { background-color: #cff4fc !important; color: #055160 !important; }
 #searchContainer .bg-warning { background-color: #fff3cd !important; color: #856404 !important; }
@@ -70,16 +64,6 @@
 #searchContainer:focus-within {
     box-shadow: 0 0 0 0.25rem rgba(13,110,253,.25);
     border-color: #86b7fe;
-}
-
-#searchBadges .badge {
-    font-size: 0.95em;
-    padding: 0.5em 0.9em;
-    pointer-events: auto;
-}
-
-#searchBadges .badge:hover {
-    opacity: 0.9;
 }
 
 .accordion-button.bg-success { background-color: #198754 !important; }
