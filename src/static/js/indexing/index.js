@@ -55,11 +55,24 @@ function calculateRecentSpeed(current, now) {
 }
 
 function updateStatus() {
-    fetch('{{ url_for("indexing_status_json") }}')
-        .then(response => response.json())
+    // Safety check — helps debugging if something goes wrong
+    if (!window.INDEXING_STATUS_URL) {
+        console.error('INDEXING_STATUS_URL is not defined. Check the template.');
+        updateInfo.textContent = 'Error: Status URL missing';
+        return;
+    }
+
+    fetch(window.INDEXING_STATUS_URL)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.done) {
-                window.location.href = '{{ url_for("landing") }}';
+                // Use the pre-rendered landing URL, fall back to '/' if missing
+                window.location.href = window.LANDING_URL || '/';
                 return;
             }
 
@@ -97,7 +110,7 @@ function updateStatus() {
             document.getElementById('current').textContent = current.toLocaleString();
             document.getElementById('total').textContent = total.toLocaleString();
 
-            // Overall speed (for display, optional)
+            // Overall speed (for display)
             let displaySpeed = '—';
             if (startedAt && current > 100) {
                 const elapsedMin = (now - startedAt) / 60000;
@@ -128,7 +141,7 @@ function updateStatus() {
 
             updateInfo.textContent = 'Updated just now';
 
-            // Safety reload if stuck (now works because lastCurrent is defined)
+            // Safety reload if stuck
             if (data.current > lastCurrent) {
                 lastCurrent = data.current;
                 clearTimeout(window.noProgressTimeout);
