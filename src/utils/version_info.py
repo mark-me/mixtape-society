@@ -6,13 +6,18 @@ from logtools import get_logger
 logger = get_logger(__name__)
 
 def get_version() -> str:
-    """
-    Returns the application version.
+    """Get the application version string for the current environment.
 
-    Priority:
-    1. APP_VERSION environment variable (set at build time) → used in Docker
-    2. Fallback to git describe (only useful in local dev)
-    3. Default to "dev"
+    This function prefers a pre-baked version from the environment and falls
+    back to querying Git metadata when available.
+
+    Args:
+        APP_VERSION: Optional environment variable containing a pre-baked
+            version string.
+
+    Returns:
+        The resolved version string, or "dev" when no version information can
+        be determined.
     """
     if baked_version := os.getenv("APP_VERSION"):
         return baked_version
@@ -25,21 +30,34 @@ def get_version() -> str:
             text=True,
             timeout=5,
         ).strip():
-            return _parse_and_format_version(result)
+            version = _parse_and_format_version(result)
+            os.environ["APP_VERSION"] = version
+            return version
     except Exception as e:
-        logger.debug(f"Git version detection failed: {e}")
+        logger.warning(f"Git version detection failed: {e}")
 
     return "dev"
 
 
 def _parse_and_format_version(result: str) -> str:
-    # Keep your existing parsing logic, but simplified since we mostly rely on baked version
+    """Normalize a raw version string into a standardized application format.
+
+    This helper focuses on cleaning tag prefixes and encoding additional build
+    metadata into a consistent representation.
+
+    Args:
+        result: The raw version string, typically produced by Git describe.
+
+    Returns:
+        A normalized version string that adheres to the application's expected
+        version format.
+    """
     version_pattern = re.compile(r"^v?\d+\.\d+\.\d+([-\+].*)?$")
     version = result
     if version.startswith("v"):
         match = version_pattern.match(version)
         if match:
-            version = version[1:]  # strip leading v only if it's a proper tag
+            version = version[1:]
 
     if "-" in version:
         parts = version.split("-")
