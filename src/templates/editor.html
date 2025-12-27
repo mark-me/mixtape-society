@@ -235,7 +235,7 @@
                 tracks: {{ preload_mixtape.tracks | default([]) | tojson | safe }},
                 slug: {{ preload_mixtape.slug | default(null) | tojson | safe }},
                 created_at: {{ preload_mixtape.created_at | default(null) | tojson | safe }},
-                saved_at: {{ preload_mixtape.saved_at | default(null) | tojson | safe }}
+                updated_at: {{ preload_mixtape.updated_at | default(null) | tojson | safe }}
             };
     </script>
 

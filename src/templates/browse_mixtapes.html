@@ -31,8 +31,8 @@
                 <h3 class="mixtape-title">{{ m.title }}</h3>
                 <p class="mixtape-meta">
                     {{ m.tracks|length }} tracks
-                    {% if m.saved_at %}
-                        • Modified {{ m.saved_at[:10] }} at {{ m.saved_at[11:16] }}
+                    {% if m.updated_at %}
+                        • Modified {{ m.updated_at[:10] }} at {{ m.updated_at[11:16] }}
                     {% endif %}
                 </p>
             </div>
