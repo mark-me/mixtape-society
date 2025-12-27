@@ -376,8 +376,8 @@ def _get_query_params():
         Aborts with a 400 error if query parameters are invalid.
     """
     try:
-        logo_scale = float(request.args.get("scale", 0.15))
-        corner = request.args.get("corner", "bottom_right")
+        logo_scale = float(request.args.get("scale", 0.4))
+        corner = request.args.get("corner", "center")
         margin = int(request.args.get("margin", 10))
     except ValueError:
         abort(400, description="Invalid query parameters")
