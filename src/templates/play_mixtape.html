@@ -7,7 +7,7 @@
     <meta name="description" content="{{ mixtape.title }} – a mixtape with {{ mixtape.tracks|length }} tracks.">
 
     <!-- Open Graph / Facebook / LinkedIn -->
-    {% set full_title = mixtape.title ~ " – Curated on:c" ~ (mixtape.saved_at[:10] if mixtape.saved_at else "") %}
+    {% set full_title = mixtape.title ~ " – A personal mixtape with " ~ (mixtape.tracks|length) ~ " tracks." %}
     {% set artists_list = mixtape.tracks | map(attribute='artist') | unique | list %}
 
     {% set max_artists = 5 %}
@@ -30,7 +30,7 @@
         {% set artists_str = artists_str ~ ' and more' %}
     {% endif %}
 
-    {% set description_text = "Dive into '" ~ mixtape.title ~ "', a personal mixtape featuring " ~ mixtape.tracks|length ~ " tracks from " ~ artists_str ~ "." %}
+    {% set description_text = "Dive into '" ~ mixtape.title ~ "', a mixtape featuring " ~ mixtape.tracks|length ~ " tracks from " ~ artists_str ~ "." %}
 
     {# Conditionally append the liner notes teaser #}
     {% if mixtape.liner_notes and mixtape.liner_notes.strip() %}
