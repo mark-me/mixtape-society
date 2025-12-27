@@ -93,7 +93,7 @@ def create_app() -> Flask:
             "started_at": status.get("started_at"),  # ISO string
         }
 
-    @app.route('/robots.txt')
+    @app.route("/robots.txt")
     def robots_txt():
         """
         Serves a robots.txt file that disallows all web crawlers. This helps prevent search engines from indexing the site.
@@ -101,10 +101,7 @@ def create_app() -> Flask:
         Returns:
             Response: A plain text HTTP response containing the robots.txt directives.
         """
-        return Response(
-            "User-agent: *\nDisallow: /\n",
-            mimetype='text/plain'
-        )
+        return Response("User-agent: *\nDisallow: /\n", mimetype="text/plain")
 
     # === Context Processors ===
 
@@ -132,8 +129,8 @@ def create_app() -> Flask:
         """
         return {"now": datetime.now(timezone.utc)}
 
-    @app.template_filter('to_datetime')
-    def to_datetime_filter(s, fmt='%Y-%m-%d %H:%M:%S'):
+    @app.template_filter("to_datetime")
+    def to_datetime_filter(s, fmt="%Y-%m-%d %H:%M:%S"):
         """
         Converts a string timestamp into a datetime object for template usage. Provides a robust parser that supports a custom format and ISO 8601 strings.
 
@@ -152,7 +149,7 @@ def create_app() -> Flask:
             return datetime.strptime(s, fmt)
         except ValueError:
             # Fallback: try ISO format
-            return datetime.fromisoformat(s.replace('Z', '+00:00'))
+            return datetime.fromisoformat(s.replace("Z", "+00:00"))
 
     # === Blueprints ===
     app.register_blueprint(
