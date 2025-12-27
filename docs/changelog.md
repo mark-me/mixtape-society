@@ -17,6 +17,10 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 - Possibility to expand the tracks/liner notes for easier reordering and writing notes.
 - Duration of playlist items added
 
+### 🔧 Changed
+
+- Playback track layout so it looks better on mobile devices
+
 ### 🐛 Fixed
 
 - Track title also added to playlist.
