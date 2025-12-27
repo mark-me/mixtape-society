@@ -1068,10 +1068,10 @@ class MusicCollection:
         with self._get_conn() as conn:
             cur = conn.execute(
                 """
-                SELECT album, title, path, filename, duration
+                SELECT album, title, path, filename, duration, disc_number, track_number
                 FROM tracks
                 WHERE artist = ?
-                ORDER BY album COLLATE NOCASE, title COLLATE NOCASE
+                ORDER BY album, disc_number, track_number COLLATE NOCASE, title COLLATE NOCASE
                 """,
                 (artist,),
             )
