@@ -228,4 +228,9 @@ class MixtapeManager:
         for track in data["tracks"]:
             if "title" in track:
                 track["track"] = track.pop("title")
+        # Add missing timestamps
+        if "created_at" not in data:
+            data["created_at"] = None
+        if "saved_at" not in data:
+            data["saved_at"] = data.get("updated_at", data.get("created_at"))
         return data

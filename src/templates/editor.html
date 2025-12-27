@@ -227,16 +227,16 @@
 
     <script>
         window.PRELOADED_MIXTAPE = {
-            title: {{ preload_mixtape.title | tojson | safe }},
-            cover: {% if preload_mixtape.cover %}
-                    '/mixtapes/files/{{ preload_mixtape.cover }}'
-                {% else %}null{% endif %},
-            liner_notes: {{ preload_mixtape.liner_notes | tojson | safe }},
-            tracks: {{ preload_mixtape.tracks | tojson | safe }},
-            slug: {{ preload_mixtape.slug | tojson | safe }},
-            created_at: {{ preload_mixtape.created_at | tojson | safe }},
-            saved_at: {{ preload_mixtape.saved_at | tojson | safe }}
-        };
+                title: {{ preload_mixtape.title | default('') | tojson | safe }},
+                cover: {% if preload_mixtape.cover %}
+                        '/mixtapes/files/{{ preload_mixtape.cover }}'
+                    {% else %}null{% endif %},
+                liner_notes: {{ preload_mixtape.liner_notes | default('') | tojson | safe }},
+                tracks: {{ preload_mixtape.tracks | default([]) | tojson | safe }},
+                slug: {{ preload_mixtape.slug | default(null) | tojson | safe }},
+                created_at: {{ preload_mixtape.created_at | default(null) | tojson | safe }},
+                saved_at: {{ preload_mixtape.saved_at | default(null) | tojson | safe }}
+            };
     </script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
