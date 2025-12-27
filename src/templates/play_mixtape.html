@@ -183,24 +183,31 @@
                     <h4 class="mb-3 text-white">Tracklist</h4>
                     <div class="list-group list-group-numbered">
                         {% for t in mixtape.tracks %}
-                        <li class="list-group-item track-item py-4 d-flex align-items-center"
-                            data-index="{{ loop.index0 }}"
-                            data-path="{{ url_for('play.stream_audio', file_path=t.path) }}"
-                            data-title="{{ t.title }}"
-                            data-artist="{{ t.artist }}"
-                            data-album="{{ t.album|default('Onbekend album') }}">
+                            <li class="list-group-item track-item py-4 d-flex align-items-center justify-content-between"
+                                data-index="{{ loop.index0 }}"
+                                data-path="{{ url_for('play.stream_audio', file_path=t.path) }}"
+                                data-title="{{ t.track }}"
+                                data-artist="{{ t.artist }}"
+                                data-album="{{ t.album|default('Onbekend album') }}"
+                                data-duration="{{ t.duration|default('') }}">  <!-- Add this if duration is available in model -->
 
-                            <div class="flex-grow-1 pe-3">
-                                <div class="fw-bold">{{ t.title }}</div>
-                                <div class="small opacity-75">
-                                    {{ t.artist }}{% if t.album %} • {{ t.album }}{% endif %}
+                                <div class="flex-grow-1 pe-3 min-width-0">  <!-- min-width-0 helps truncation -->
+                                    <div class="fw-bold text-truncate" style="font-size: 1.1rem;">{{ t.track }}</div>
+                                    <div class="small opacity-75 text-truncate">
+                                        {{ t.artist }}{% if t.album %} • {{ t.album }}{% endif %}
+                                    </div>
                                 </div>
-                            </div>
 
-                            <button class="btn btn-light rounded-circle play-this-track" style="width: 40px; height: 40px;">
-                                <i class="bi bi-play-fill"></i>
-                            </button>
-                        </li>
+                                <div class="d-flex align-items-center gap-4">
+                                    <span class="text-muted small text-nowrap tabular-nums">
+                                        {{ t.duration }}
+                                    </span>
+                                    <button class="btn btn-light rounded-circle play-this-track shadow-sm"
+                                            style="width: 44px; height: 44px;">
+                                        <i class="bi bi-play-fill" style="font-size: 1.3rem;"></i>
+                                    </button>
+                                </div>
+                            </li>
                         {% endfor %}
                     </div>
                 </div>

@@ -108,6 +108,35 @@ h4.text-white {
     justify-content: center;
 }
 
+/* Better truncation for track info */
+.track-item .min-width-0 {
+    min-width: 0;  /* Allows flex child to shrink and truncate */
+}
+
+/* Duration styling */
+.track-item .text-nowrap {
+    opacity: 0.7;
+    min-width: 45px;  /* Enough space for ~10:00 */
+    text-align: right;
+}
+
+/* Slightly more pronounced title */
+.track-item .fw-bold {
+    font-size: 1.1rem;
+    line-height: 1.3;
+}
+
+/* Mobile: stack duration above play button if space is tight */
+@media (max-width: 576px) {
+    .track-item .d-flex.gap-3 {
+        flex-direction: column;
+        gap: 0.5rem !important;
+    }
+    .track-item .text-nowrap {
+        text-align: center;
+    }
+}
+
 /* --- 4. Track States (Hover & Active) --- */
 .track-item:hover {
     background-color: var(--bs-secondary-bg) !important;
