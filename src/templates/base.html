@@ -26,37 +26,32 @@
   </head>
   <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-success shadow-sm">
+    <nav class="navbar navbar-expand-md navbar-dark bg-success shadow-sm sticky-top">
       <div class="container">
         <a class="navbar-brand position-relative d-flex align-items-center" href="/mixtapes" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Version v{{ app_version }}">
           <img src="{{ url_for('static', filename='logo.svg') }}" alt="Mixtape Society" width="47" height="30" class="me-2" />
           Mixtape Society
         </a>
 
-        <ul class="navbar-nav ms-auto align-items-center">
-          <!-- Theme switcher -->
-          <li class="nav-item dropdown ms-3">
-            <button class="btn btn-outline-light dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" id="themeNavbarButton"><i class="bi bi-sun-fill" id="themeNavbarIcon"></i></button>
+        <div class="d-flex align-items-center ms-auto">
+          <div class="dropdown ms-3">
+            <button class="btn btn-outline-light dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" id="themeNavbarButton">
+              <i class="bi bi-sun-fill" id="themeNavbarIcon"></i>
+            </button>
             <ul class="dropdown-menu dropdown-menu-end">
-              <li>
-                <button class="dropdown-item d-flex align-items-center gap-2" data-theme="light"><i class="bi bi-sun-fill"></i> Light</button>
-              </li>
-              <li>
-                <button class="dropdown-item d-flex align-items-center gap-2" data-theme="dark"><i class="bi bi-moon-stars-fill"></i> Dark</button>
-              </li>
-              <li>
-                <hr class="dropdown-divider" />
-              </li>
-              <li>
-                <button class="dropdown-item d-flex align-items-center gap-2 active" data-theme="auto"><i class="bi bi-circle-half"></i> System</button>
-              </li>
+              <li><button class="dropdown-item d-flex align-items-center gap-2" data-theme="light"><i class="bi bi-sun-fill"></i> Light</button></li>
+              <li><button class="dropdown-item d-flex align-items-center gap-2" data-theme="dark"><i class="bi bi-moon-stars-fill"></i> Dark</button></li>
+              <li><hr class="dropdown-divider" /></li>
+              <li><button class="dropdown-item d-flex align-items-center gap-2 active" data-theme="auto"><i class="bi bi-circle-half"></i> System</button></li>
             </ul>
-          </li>
-          <!-- New: GitHub link -->
-          <li class="nav-item ms-3">
-            <a class="nav-link text-white" href="https://github.com/mark-me/mixtape-society" target="_blank" rel="noopener noreferrer" data-bs-toggle="tooltip" data-bs-placement="bottom" title="View source on GitHub"><i class="bi bi-github fs-4"></i></a>
-          </li>
-        </ul>
+          </div>
+
+          <div class="ms-3">
+            <a class="nav-link text-white" href="https://github.com/mark-me/mixtape-society" target="_blank" rel="noopener noreferrer" data-bs-toggle="tooltip" data-bs-placement="bottom" title="View source on GitHub">
+              <i class="bi bi-github fs-4"></i>
+            </a>
+          </div>
+        </div>
       </div>
     </nav>
 
@@ -69,7 +64,7 @@
     <!-- Footer -->
     <footer class="bg-dark text-white-50 py-4 mt-5">
       <div class="container text-center">
-        <small>{{ now.year }} Mixtape Society</small>
+        <small>{{ now.year }} • Mixtape Society</small>
       </div>
     </footer>
 

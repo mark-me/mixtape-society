@@ -9,6 +9,9 @@ RUN apt-get update && \
 
 WORKDIR /app
 
+ARG APP_VERSION=dev
+ENV APP_VERSION=$APP_VERSION
+
 RUN mkdir /music
 
 # Now we can copy from the context (project root)

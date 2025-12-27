@@ -29,146 +29,150 @@
     </h1>
 
     <!-- Search bar -->
-    <div class="row mb-4">
-        <div class="col">
-            <div class="position-relative">
-                <input
-                    id="searchInput"
-                    type="text"
-                    class="form-control form-control-lg rounded-pill ps-5"
-                    placeholder="Search…"
-                    autocomplete="off"
-                    style="min-height: 58px;"
-                />
+    <div class="container-fluid overflow-hidden">
+        <div class="row mb-4">
+            <div class="col">
+                <div class="position-relative">
+                    <input
+                        id="searchInput"
+                        type="text"
+                        class="form-control form-control-lg rounded-pill ps-5"
+                        placeholder="Search…"
+                        autocomplete="off"
+                        style="min-height: 58px;"
+                    />
 
-                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-4 text-muted pointer-events-none"></i>
+                    <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-4 text-muted pointer-events-none"></i>
 
-                <i class="bi bi-info-circle position-absolute top-50 end-0 translate-middle-y me-4 text-muted"
-                id="searchHint"
-                tabindex="0"
-                role="button"
-                data-bs-toggle="popover"
-                data-bs-placement="bottom"
-                data-bs-trigger="focus"
-                data-bs-html="true"
-                data-bs-title="Search Tips"
-                data-bs-content='
-                    <strong>Advanced search:</strong><br>
-                    • <code>artist:beatles</code> – only artists<br>
-                    • <code>album:abbey</code> – only albums<br>
-                    • <code>track:hey</code> or <code>song:jude</code> – only titles<br><br>
-                    Quotes for phrases: <code>artist:"The Beatles"</code><br>
-                    Combine: <code>artist:Radiohead album:"OK Computer"</code>
-                '></i>
+                    <i class="bi bi-info-circle position-absolute top-50 end-0 translate-middle-y me-4 text-muted"
+                    id="searchHint"
+                    tabindex="0"
+                    role="button"
+                    data-bs-toggle="popover"
+                    data-bs-placement="bottom"
+                    data-bs-trigger="focus"
+                    data-bs-html="true"
+                    data-bs-title="Search Tips"
+                    data-bs-content='
+                        <strong>Advanced search:</strong><br>
+                        • <code>artist:beatles</code> – only artists<br>
+                        • <code>album:abbey</code> – only albums<br>
+                        • <code>track:hey</code> or <code>song:jude</code> – only titles<br><br>
+                        Quotes for phrases: <code>artist:"The Beatles"</code><br>
+                        Combine: <code>artist:Radiohead album:"OK Computer"</code>
+                    '></i>
 
-                <div id="loading" class="position-absolute top-50 end-0 translate-middle-y me-4 visually-hidden">
-                    <span class="spinner-border spinner-border-sm text-muted"></span>
+                    <div id="loading" class="position-absolute top-50 end-0 translate-middle-y me-4 visually-hidden">
+                        <span class="spinner-border spinner-border-sm text-muted"></span>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row g-4">
-        <!-- Results -->
-        <div class="col-lg-7">
-            <div class="card shadow-sm">
-                <div class="card-header bg-success text-white">
-                    <h2 class="h5 mb-0">Library</h2>
-                </div>
-                <div class="card-body" id="results">
-                    <p class="text-muted text-center my-5">Type at least 2 characters to search…</p>
+    <div class="container-fluid overflow-hidden">
+        <div class="row g-4">
+            <!-- Results -->
+            <div class="col-lg-7">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-success text-white">
+                        <h2 class="h5 mb-0">Library</h2>
+                    </div>
+                    <div class="card-body" id="results">
+                        <p class="text-muted text-center my-5">Type at least 2 characters to search…</p>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Mixtape -->
-        <div class="col-lg-5">
-            <div class="card shadow-sm">
-                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-                    <h2 class="h5 mb-0">
-                        My Mixtape <span id="playlist-count">(0)</span>
-                    </h2>
-                    <button id="save-playlist" class="btn btn-light btn-sm" title="Playlist opslaan">
-                        <span id="save-text">Save</span>
-                    </button>
+            <!-- Mixtape -->
+            <div class="col-lg-5">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                        <h2 class="h5 mb-0">
+                            My Mixtape <span id="playlist-count">(0)</span>
+                        </h2>
+                        <button id="save-playlist" class="btn btn-light btn-sm" title="Playlist opslaan">
+                            <span id="save-text">Save</span>
+                        </button>
 
-                    <!-- Hidden input to know if we're editing -->
-                    <input type="hidden" id="editing-slug" value="{{ editing_slug|default('') }}">
-                </div>
-                <div class="card-body d-flex flex-column">
-                    <div class="text-center mb-4">
-                        <div class="position-relative d-inline-block">
-                            <img id="playlist-cover"
-                                src="{{ url_for('static', filename='image.jpg') }}"
-                                class="rounded shadow-sm img-fluid"
-                                style="max-width: 260px; aspect-ratio: 1; object-fit: cover; border: 3px solid rgba(255,255,255,0.1);">
-
-                            <label id="cover-upload-btn" class="position-absolute bottom-0 end-0 mb-3 me-3 cursor-pointer">
-                                <input type="file" id="cover-upload" accept="image/*" class="d-none">
-                                <span class="btn btn-dark btn-sm rounded-circle shadow-lg d-flex align-items-center justify-content-center"
-                                    style="width: 48px; height: 48px; border: 3px solid rgba(255,255,255,0.2);">
-                                    <i class="bi bi-camera-fill text-white" style="font-size: 1.3rem;"></i>
-                                </span>
-                            </label>
-                        </div>
-
-                        <input type="text" id="playlist-title"
-                            class="form-control form-control-lg text-center mt-4 bg-transparent border-0 text-white fw-light"
-                            style="font-size: 1.8rem;"
-                            placeholder="Name your mixtape..."
-                            value="My Mixtape">
+                        <!-- Hidden input to know if we're editing -->
+                        <input type="hidden" id="editing-slug" value="{{ editing_slug|default('') }}">
                     </div>
+                    <div class="card-body d-flex flex-column">
+                        <div class="text-center mb-4">
+                            <div class="position-relative d-inline-block">
+                                <img id="playlist-cover"
+                                    src="{{ url_for('static', filename='image.jpg') }}"
+                                    class="rounded shadow-sm img-fluid"
+                                    style="max-width: 260px; aspect-ratio: 1; object-fit: cover; border: 3px solid rgba(255,255,255,0.1);">
 
-                    <!-- New: Tabs for Tracks and Liner Notes -->
-                    <ul class="nav nav-tabs mb-3" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="tracks-tab" data-bs-toggle="tab" data-bs-target="#tracks-pane" type="button">Tracks</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="notes-tab" data-bs-toggle="tab" data-bs-target="#notes-pane" type="button">Liner Notes</button>
-                        </li>
-                    </ul>
-
-                    <div class="tab-content flex-grow-1 d-flex flex-column">
-                        <!-- Tracks tab -->
-                        <div class="tab-pane fade show active" id="tracks-pane" role="tabpanel">
-                            <ol id="playlist" class="list-unstyled mb-3 flex-grow-1 overflow-auto" style="max-height: 400px;"></ol>
-                            <div class="mt-auto">
-                                <button id="clear-playlist" class="btn btn-outline-danger w-100 mb-2">
-                                    Empty mixtape
-                                </button>
+                                <label id="cover-upload-btn" class="position-absolute bottom-0 end-0 mb-3 me-3 cursor-pointer">
+                                    <input type="file" id="cover-upload" accept="image/*" class="d-none">
+                                    <span class="btn btn-dark btn-sm rounded-circle shadow-lg d-flex align-items-center justify-content-center"
+                                        style="width: 48px; height: 48px; border: 3px solid rgba(255,255,255,0.2);">
+                                        <i class="bi bi-camera-fill text-white" style="font-size: 1.3rem;"></i>
+                                    </span>
+                                </label>
                             </div>
+
+                            <input type="text" id="playlist-title"
+                                class="form-control form-control-lg text-center mt-4 bg-transparent border-0 text-white fw-light"
+                                style="font-size: 1.8rem;"
+                                placeholder="Name your mixtape..."
+                                value="My Mixtape">
                         </div>
 
-                        <!-- Liner Notes tab -->
-                        <div class="tab-pane fade" id="notes-pane" role="tabpanel">
-                            <div class="d-flex flex-column h-100">
-                                <small class="text-muted d-block mb-2">
-                                    Tip: Use <code>#1</code>, <code>#5</code>, or <code>#2-4</code> to auto-link to tracks!
-                                </small>
-                                <!-- Sub-tabs: Write / Preview -->
-                                <ul class="nav nav-pills mb-3" id="notesSubTabs" role="tablist">
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link active" id="write-tab" data-bs-toggle="pill" data-bs-target="#write-pane" type="button">Write</button>
-                                    </li>
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link" id="preview-tab" data-bs-toggle="pill" data-bs-target="#preview-pane" type="button">Preview</button>
-                                    </li>
-                                </ul>
+                        <!-- New: Tabs for Tracks and Liner Notes -->
+                        <ul class="nav nav-tabs mb-3" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="tracks-tab" data-bs-toggle="tab" data-bs-target="#tracks-pane" type="button">Tracks</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="notes-tab" data-bs-toggle="tab" data-bs-target="#notes-pane" type="button">Liner Notes</button>
+                            </li>
+                        </ul>
 
-                                <div class="tab-content flex-grow-1 overflow-hidden">
-                                    <div class="tab-pane fade show active h-100" id="write-pane">
-                                        <textarea id="liner-notes"></textarea>
-                                    </div>
-                                    <div class="tab-pane fade h-100 overflow-auto p-3 bg-light" id="preview-pane">
-                                    <!--
-                                         The preview pane should blend with the current Bootstrap
-                                         colour scheme (dark or light).  `bg-body` applies the
-                                         appropriate background colour, and `border` adds a thin
-                                         border that also respects the theme.
-                                    -->
-                                    <div id="markdown-preview"
-                                         class="markdown-body bg-body border rounded p-2"></div>
+                        <div class="tab-content flex-grow-1 d-flex flex-column">
+                            <!-- Tracks tab -->
+                            <div class="tab-pane fade show active" id="tracks-pane" role="tabpanel">
+                                <ol id="playlist" class="list-unstyled mb-3 flex-grow-1 overflow-auto" style="max-height: 400px;"></ol>
+                                <div class="mt-auto">
+                                    <button id="clear-playlist" class="btn btn-outline-danger w-100 mb-2">
+                                        Empty mixtape
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Liner Notes tab -->
+                            <div class="tab-pane fade" id="notes-pane" role="tabpanel">
+                                <div class="d-flex flex-column h-100">
+                                    <small class="text-muted d-block mb-2">
+                                        Tip: Use <code>#1</code>, <code>#5</code>, or <code>#2-4</code> to auto-link to tracks!
+                                    </small>
+                                    <!-- Sub-tabs: Write / Preview -->
+                                    <ul class="nav nav-pills mb-3" id="notesSubTabs" role="tablist">
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link active" id="write-tab" data-bs-toggle="pill" data-bs-target="#write-pane" type="button">Write</button>
+                                        </li>
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link" id="preview-tab" data-bs-toggle="pill" data-bs-target="#preview-pane" type="button">Preview</button>
+                                        </li>
+                                    </ul>
+
+                                    <div class="tab-content flex-grow-1 overflow-hidden">
+                                        <div class="tab-pane fade show active h-100" id="write-pane">
+                                            <textarea id="liner-notes"></textarea>
+                                        </div>
+                                        <div class="tab-pane fade h-100 overflow-auto p-3 bg-light" id="preview-pane">
+                                        <!--
+                                            The preview pane should blend with the current Bootstrap
+                                            colour scheme (dark or light).  `bg-body` applies the
+                                            appropriate background colour, and `border` adds a thin
+                                            border that also respects the theme.
+                                        -->
+                                        <div id="markdown-preview"
+                                            class="markdown-body bg-body border rounded p-2"></div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -177,12 +181,6 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <div class="text-center my-5">
-        <a href="/mixtapes" class="btn btn-outline-primary btn-lg">
-            Preview your mixtape
-        </a>
     </div>
 </div>
 
@@ -204,7 +202,7 @@
     <div class="fixed-bottom bg-dark text-white p-3 shadow-lg" id="audio-player-container" style="display:none;">
         <div class="container">
             <div class="d-flex align-items-center">
-                <button id="close-player" class="btn btn-sm btn-outline-light me-3">×</button>
+                <button id="close-player" class="btn btn-sm btn-outline-light me-3"><i class="bi bi-x-lg"></i></button>
                 <div class="me-3">
                     <strong id="now-playing-title">Nothing playes</strong><br>
                     <small id="now-playing-artist">Select a track</small>
@@ -223,122 +221,7 @@
             </div>
         </div>
     </div>
-
-<script>
-// === 1. Your main rendering function ===
-let resultIndex = 0;
-
-function renderResults(data) {
-    resultIndex = 0;
-
-    const resultsDiv = document.getElementById('results');
-    resultsDiv.innerHTML = '';
-
-    if (data.length === 0) {
-        resultsDiv.innerHTML = '<p class="text-center text-muted my-5">No results.</p>';
-        return;
-    }
-
-    const ul = document.createElement('ul');
-    ul.className = 'list-unstyled';
-
-    data.forEach(item => {
-        const li = document.createElement('li');
-        li.className = 'mb-4 p-3 border rounded hover-shadow';
-        li.dataset.index = resultIndex++;  // if you use this elsewhere
-
-        let content = '';
-
-        if (item.type === 'artist') {
-            content = `
-                <div>
-                    <a href="#" class="search-refine-link text-decoration-none fw-bold"
-                       data-type="artist" data-value="${escapeHtml(item.artist)}">
-                        ${escapeHtml(item.artist)}
-                    </a>
-                    <small class="text-muted ms-2">(${item.albums?.length || 0} albums)</small>
-                </div>
-            `;
-
-        } else if (item.type === 'album') {
-            content = `
-                <div>
-                    <a href="#" class="search-refine-link text-decoration-none"
-                       data-type="album" data-value="${escapeHtml(item.album)}">
-                        <em>${escapeHtml(item.album)}</em>
-                    </a>
-                    <span class="text-muted"> door </span>
-                    <strong>${escapeHtml(item.artist)}</strong>
-                </div>
-            `;
-
-        } else if (item.type === 'track') {
-            content = `
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <span class="track-title">${escapeHtml(item.title || item.track)}</span><br>
-                        <small class="text-muted">
-                            ${escapeHtml(item.artist)} • ${escapeHtml(item.album)}
-                        </small>
-                    </div>
-                    <button class="btn btn-primary btn-sm preview-btn" data-path="${escapeHtml(item.path)}">
-                        <i class="bi bi-play-fill"></i>
-                    </button>
-                </div>
-            `;
-        }
-
-        li.innerHTML = content;
-        ul.appendChild(li);
-    });
-
-    resultsDiv.appendChild(ul);
-
-    // === IMPORTANT: Re-attach preview buttons and refine links ===
-    attachPreviewListeners();
-    attachRefineLinkListeners();  // We'll define this next
-}
-
-// === 2. Helper: Safe HTML escaping ===
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-// === 3. Listener for clickable artist/album refinement (add this too) ===
-function attachRefineLinkListeners() {
-    document.querySelectorAll('.search-refine-link').forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const type = this.dataset.type;
-            let value = this.dataset.value.trim();
-            if (value.includes(' ')) value = `"${value}"`;
-
-            // Clear existing badges
-            searchContainer.querySelectorAll('.badge').forEach(b => b.remove());
-
-            // Add new exclusive tag
-            createBadge(`${type}:${value}`);
-            tagInput.value = '';
-            performSearch();
-        });
-    });
-}
-
-// === 4. Override to ensure listeners are re-attached on every render ===
-// (This is safe even if renderResults is redefined above)
-if (typeof originalRenderResults === 'undefined') {
-    const originalRenderResults = window.renderResults;
-    window.renderResults = function(data) {
-        originalRenderResults(data);
-        // No need to do anything extra here — listeners are already attached inside renderResults
-    };
-}
-</script>
 {% endblock %}
-
-
 
 {% block extra_js %}
 

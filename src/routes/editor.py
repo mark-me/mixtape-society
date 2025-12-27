@@ -149,82 +149,50 @@ def create_editor_blueprint(
             if not data or not data.get("tracks"):
                 return jsonify({"error": "Empty mixtape"}), 400
 
-            original_title = (
-                data.get("title", "Unnamed mixtape").strip() or "Unnamed mixtape"
-            )
-            liner_notes = data.get("liner_notes", "")  # New field
+            title = (data.get("title", "").strip() or "Unnamed Mixtape")
+            liner_notes = data.get("liner_notes", "")
+            slug = data.get("slug") # Present only when editing
 
-            slug = data.get("slug")
+            # Prepare clean data for the manager
+            mixtape_data = {
+                "title": title,
+                "tracks": data.get("tracks", []),
+                "liner_notes": liner_notes,
+                "cover": data.get("cover"),
+            }
+
+            # Instantiate the manager
+            mixtape_manager = MixtapeManager(
+                path_mixtapes=current_app.config["MIXTAPE_DIR"]
+            )
+
             if slug:
-                # Editing existing mixtape
-                json_path = current_app.config["MIXTAPE_DIR"] / f"{slug}.json"
-                if not json_path.exists():
+                # Editing
+                existing = mixtape_manager.get(slug)
+                if not existing:
                     return jsonify({"error": "Mixtape not found"}), 404
 
-                with open(json_path, "r", encoding="utf-8") as f:
-                    existing = json.load(f)
+                mixtape_data.setdefault("created_at", existing.get("created_at"))
+                if mixtape_data["cover"] is None:  # Preserve old cover if no new one
+                    mixtape_data["cover"] = existing.get("cover")
 
-                data.setdefault("created_at", existing.get("created_at"))
-
-                # Keep old cover unless new one uploaded
-                if data.get("cover") and data["cover"].startswith("data:image"):
-                    data["cover"] = _process_cover(data["cover"], slug)
-                else:
-                    data["cover"] = existing.get("cover")
-
-                # Keep existing liner notes if not sent
-                data["liner_notes"] = liner_notes or existing.get("liner_notes", "")
+                final_slug = mixtape_manager.update(slug, mixtape_data)
             else:
-                # New mixtape
-                slug = _generate_slug(original_title)
-                json_path = current_app.config["MIXTAPE_DIR"] / f"{slug}.json"
+                # Creating
+                mixtape_data["created_at"] = datetime.now().isoformat()
+                final_slug = mixtape_manager.save(mixtape_data)
 
-                if data.get("cover") and data["cover"].startswith("data:image"):
-                    data["cover"] = _process_cover(data["cover"], slug)
-
-                data["liner_notes"] = liner_notes
-
-            # Default cover fallback
-            if not data.get("cover") and data["tracks"]:
-                data["cover"] = _get_default_cover(data["tracks"][0]["path"], slug)
-
-            data["title"] = original_title
-            data["slug"] = slug
-            data["saved_at"] = datetime.now().isoformat()
-
-            _save_mixtape_json(json_path, data)
-
-            return jsonify(
-                {
-                    "success": True,
-                    "title": original_title,
-                    "slug": slug,
-                    "url": f"/editor/{slug}",
-                }
-            )
-
+            return jsonify({
+                "success": True,
+                "title": title,
+                "slug": final_slug,
+                "url": f"/editor/{final_slug}",
+            })
         except Exception as e:
             logger.exception(f"Error saving mixtape: {e}")
             return jsonify({"error": "Server error"}), 500
 
-    def _generate_slug(title: str) -> str:
-        """
-        Generates a unique slug for a mixtape based on its title.
-
-        Creates a safe, URL-friendly string using the title, current date, and a random token.
-
-        Args:
-            title: The title of the mixtape.
-
-        Returns:
-            str: The generated slug.
-        """
-        safe = "".join(c if c.isalnum() or c in " -_" else "_" for c in title.strip())
-        safe = safe.strip("_- ") or "mixtape"
-        token = secrets.token_urlsafe(8)
-        timestamp = datetime.now().strftime("%Y%m%d")
-        return f"{safe}_{timestamp}_{token}"
-
+    # TODO: Either remove or move to MixtapeManager
     def _process_cover(cover_data: str, slug: str) -> str | None:
         """
         Processes and saves a cover image from base64-encoded data.
@@ -252,7 +220,8 @@ def create_editor_blueprint(
             logger.error(f"Cover opslaan mislukt voor {slug}: {e}")
             return None
 
-    def _cover_resize(image: Image, new_width: int=520) -> Image:
+    # TODO: Either remove or move to MixtapeManager
+    def _cover_resize(image: Image, new_width: int=1200) -> Image:
         """
         Resizes the given image to a specified width while maintaining aspect ratio.
 
@@ -260,7 +229,7 @@ def create_editor_blueprint(
 
         Args:
             image: The PIL Image object to resize.
-            new_width: The desired width of the resized image (default is 520).
+            new_width: The desired width of the resized image (default is 1200).
 
         Returns:
             Image: The resized PIL Image object.
@@ -270,6 +239,7 @@ def create_editor_blueprint(
         image = image.resize((new_width, new_height), Image.LANCZOS)
         return image
 
+    # TODO: Either remove or move to MixtapeManager
     def _get_default_cover(track_path: str, slug: str) -> str | None:
         """
         Attempts to find and copy a default cover image from the track's album directory.
@@ -304,21 +274,5 @@ def create_editor_blueprint(
                 shutil.copy(src, dest)
                 return f"covers/{slug}.jpg"
         return None
-
-    def _save_mixtape_json(json_path: Path, data: dict) -> None:
-        """
-        Saves mixtape data to a JSON file.
-
-        Writes the provided mixtape data dictionary to the specified file path in JSON format.
-
-        Args:
-            json_path: The path where the JSON file will be saved.
-            data: The mixtape data to be saved.
-
-        Returns:
-            None
-        """
-        with open(json_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
 
     return editor

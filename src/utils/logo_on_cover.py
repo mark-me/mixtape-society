@@ -4,7 +4,7 @@ from pathlib import Path
 
 import cairosvg
 from flask import Blueprint, abort, current_app, request, send_file
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFilter
 
 from common.logging import Logger, NullLogger
 
@@ -52,7 +52,7 @@ def create_og_cover_blueprint(
         _validate_query_params(logo_scale, corner, margin)
         # TODO: Add redis caching
         # Use cover file modification time for cache key
-        #cover_mtime = cover_path.stat().st_mtime
+        # cover_mtime = cover_path.stat().st_mtime
         # cache_key = f"{filename}:{cover_mtime}:{logo_scale}:{corner}:{margin}"
         # if cached := current_app.cache.get(cache_key):
         #     return send_file(BytesIO(cached), mimetype="image/png")
@@ -70,30 +70,11 @@ def create_og_cover_blueprint(
 
     return og
 
-
-def _svg_to_png(svg_bytes: bytes, width: int, height: int) -> bytes:
-    """Converts an SVG image to PNG format with the specified width and height.
-
-    This function takes SVG image data as bytes and returns PNG image data as bytes.
-
-    Args:
-        svg_bytes: The SVG image data as bytes.
-        width: The desired output width in pixels.
-        height: The desired output height in pixels.
-
-    Returns:
-        PNG image data as bytes.
-    """
-    return cairosvg.svg2png(
-        bytestring=svg_bytes, output_width=width, output_height=height
-    )
-
-
 def overlay_logo_bytes(
     cover_bytes: bytes,
     svg_bytes: bytes,
     *,
-    logo_scale: float = 0.15,
+    logo_scale: float = 0.4,
     corner: str = "bottom_right",
     margin: int = 10,
 ) -> bytes:
@@ -114,17 +95,93 @@ def overlay_logo_bytes(
     Raises:
         ValueError: If an unsupported corner is specified.
     """
-    cover = _load_cover_image(cover_bytes)
-    img_logo = _load_logo_image(svg_bytes, cover.size, logo_scale)
-    img_logo = _add_logo_backdrop(
-        img_logo=img_logo
-    )
-    x, y = _calculate_logo_position(cover.size, img_logo.size, corner, margin)
+    cover = _prepare_cover(cover_bytes)
+    canvas = _create_blurred_canvas(cover)
+
+    orig_width, orig_height = cover.size
+    img_logo = _prepare_logo(svg_bytes, (orig_width, orig_height), logo_scale)
+    x, y = _calculate_logo_position(canvas.size, img_logo.size, corner, margin)
+
     # Ensure logo has an alpha channel for use as mask
     if img_logo.mode != "RGBA":
         img_logo = img_logo.convert("RGBA")
-    cover.paste(img_logo, (x, y), img_logo)
-    return _save_image_to_bytes(cover)
+
+    canvas.paste(img_logo, (x, y), img_logo)
+
+    return _save_image_to_bytes(canvas)
+
+
+def _prepare_cover(cover_bytes: bytes) -> Image.Image:
+    """Prepares a cover image for use as an Open Graph image background.
+
+    This function loads the cover image from bytes, resizes it to cover the target dimensions,
+    and center-crops it to the fixed Open Graph aspect ratio.
+
+    Args:
+        cover_bytes: The raw cover image data as bytes.
+
+    Returns:
+        A PIL Image object resized and cropped to the Open Graph target size.
+    """
+    TARGET_WIDTH = 1200
+    TARGET_HEIGHT = 630
+    TARGET_RATIO = TARGET_WIDTH / TARGET_HEIGHT  # ~1.90476
+
+    cover = _load_cover_image(cover_bytes)
+    orig_width, orig_height = cover.size
+    orig_ratio = orig_width / orig_height
+
+    # Resize to cover the target (scale so smaller side matches or exceeds target)
+    if orig_ratio > TARGET_RATIO:  # Original is wider → match height
+        new_height = TARGET_HEIGHT
+        new_width = int(round(new_height * orig_ratio))
+    else:  # Original is taller or square → match width
+        new_width = TARGET_WIDTH
+        new_height = int(round(new_width / orig_ratio))
+
+    cover = cover.resize((new_width, new_height), Image.LANCZOS)
+
+    # Center crop to exactly 1200x630
+    left = (new_width - TARGET_WIDTH) // 2
+    top = (new_height - TARGET_HEIGHT) // 2
+    return cover.crop((left, top, left + TARGET_WIDTH, top + TARGET_HEIGHT))
+
+
+def _create_blurred_canvas(cover: Image.Image) -> Image.Image:
+    """Creates a blurred background canvas from a cover image.
+
+    This function blurs a copy of the cover image and overlays the original image on top to create a subtle background effect.
+
+    Args:
+        cover: The PIL Image object representing the prepared cover.
+
+    Returns:
+        A PIL Image object with the blurred background and sharp cover overlay.
+    """
+    blurred = cover.copy()
+    blurred = blurred.filter(ImageFilter.GaussianBlur(radius=30))
+    canvas = blurred
+    canvas.paste(cover, (0, 0), cover)
+    return canvas
+
+
+def _prepare_logo(
+    svg_bytes: bytes, cover_size: tuple[int, int], logo_scale: float
+) -> Image.Image:
+    """Prepares a logo image for overlay on a cover.
+
+    This function loads the logo from SVG bytes, scales it relative to the cover size, and adds a visual backdrop for better contrast.
+
+    Args:
+        svg_bytes: The SVG logo image data as bytes.
+        cover_size: The (width, height) of the cover image the logo will be placed on.
+        logo_scale: The scale of the logo relative to the shortest side of the cover image.
+
+    Returns:
+        A PIL Image object of the prepared logo with backdrop applied.
+    """
+    img_logo = _load_logo_image(svg_bytes, cover_size, logo_scale)
+    return _add_logo_backdrop(img_logo=img_logo)
 
 
 def _load_cover_image(cover_bytes: bytes) -> Image.Image:
@@ -172,7 +229,10 @@ def _load_logo_image(
     logo_img = Image.open(BytesIO(logo_png)).convert("RGBA")
     return logo_img
 
-def _add_logo_backdrop(img_logo: Image, backdrop_opacity: float = 0.6, backdrop_padding: int = 2 ):
+
+def _add_logo_backdrop(
+    img_logo: Image, backdrop_opacity: float = 0.6, backdrop_padding: int = 2
+):
     """
     Adds a semi-transparent white backdrop behind a logo image.
 
@@ -221,7 +281,9 @@ def _calculate_logo_position(
     """
     width_cover, height_cover = cover_size
     width_logo, height_logo = logo_size
-    if corner == "bottom_right":
+    if corner == "center":
+        return (width_cover - width_logo) // 2, (height_cover - height_logo) // 2
+    elif corner == "bottom_right":
         return width_cover - width_logo - margin, height_cover - height_logo - margin
     elif corner == "bottom_left":
         return margin, height_cover - height_logo - margin
@@ -262,7 +324,7 @@ def _get_cover_path(filename: str) -> Path:
     Returns:
         A Path object representing the cover image file location.
     """
-    return current_app.config["COVER_DIR"] / filename
+    return current_app.config["COVER_DIR"] / Path(filename).name
 
 
 def _validate_cover_path(cover_path: Path) -> None:
@@ -295,8 +357,8 @@ def _get_query_params():
         Aborts with a 400 error if query parameters are invalid.
     """
     try:
-        logo_scale = float(request.args.get("scale", 0.15))
-        corner = request.args.get("corner", "bottom_right")
+        logo_scale = float(request.args.get("scale", 0.4))
+        corner = request.args.get("corner", "center")
         margin = int(request.args.get("margin", 10))
     except ValueError:
         abort(400, description="Invalid query parameters")
@@ -321,6 +383,6 @@ def _validate_query_params(logo_scale: float, corner: str, margin: int) -> None:
         abort(400, description="Scale must be positive")
     if margin < 0:
         abort(400, description="Margin must be non-negative")
-    allowed_corners = {"bottom_right", "bottom_left", "top_right", "top_left"}
+    allowed_corners = {"bottom_right", "bottom_left", "top_right", "top_left", "center"}
     if corner not in allowed_corners:
         abort(400, description=f"Corner must be one of {', '.join(allowed_corners)}")
