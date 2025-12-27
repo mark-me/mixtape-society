@@ -12,6 +12,7 @@ class MixtapeManager:
 
     Provides functionality to create, update, delete, list, and retrieve mixtapes stored on disk.
     """
+
     def __init__(self, path_mixtapes: Path, logger: Logger | None = None) -> None:
         """Initializes the MixtapeManager with paths for mixtapes and covers.
 
@@ -31,7 +32,9 @@ class MixtapeManager:
         """Convert title to a filesystem-safe slug."""
         return "".join(c if c.isalnum() or c in "-_ " else "_" for c in title).strip()
 
-    def _generate_unique_slug(self, base_slug: str, current_slug: Optional[str] = None) -> str:
+    def _generate_unique_slug(
+        self, base_slug: str, current_slug: Optional[str] = None
+    ) -> str:
         """Generates a unique slug for a mixtape based on the provided base slug.
 
         Ensures the slug does not conflict with existing mixtape files, allowing reuse of the current slug if updating.
@@ -56,83 +59,124 @@ class MixtapeManager:
             counter += 1
 
     def save(self, mixtape_data: dict) -> str:
-        """
-        Saves a new mixtape to disk and generates a unique slug for it.
+        """Creates a new mixtape or updates an existing one based on client identity.
 
-        Creates a new mixtape JSON file and cover image if provided, returning the slug used for storage.
+        Reuses an existing mixtape when a matching client_id is found, otherwise generates a fresh mixtape entry.
 
         Args:
-            mixtape_data: Dictionary containing mixtape information, including title and optional cover.
+            mixtape_data: Dictionary containing mixtape information, including optional client_id, title, and tracks.
 
         Returns:
-            str: The slug used to save the mixtape.
+            str: The slug of the created or updated mixtape.
         """
+        client_id = mixtape_data.get("client_id")
+        now = datetime.now().isoformat()
+
+        if existing := self._find_by_client_id(client_id):
+            slug = existing["slug"]
+            self._logger.info(
+                f"Found existing mixtape for client_id {client_id}, updating slug {slug}"
+            )
+            return self.update(slug, mixtape_data)
+
+        # New creation
         title = mixtape_data.get("title", "Untitled Mixtape")
         base_slug = self._sanitize_title(title)
         slug = self._generate_unique_slug(base_slug)
 
-        return self._save_with_slug(mixtape_data, title, slug)
+        # Preserve the client_id in the saved data
+        if client_id:
+            mixtape_data["client_id"] = client_id
 
-    def update(self, slug: str, updated_data: dict, force_new_slug: bool = False) -> str:
-        """Updates an existing mixtape's data while preserving its slug.
+        # Set both timestamps on first save
+        mixtape_data["created_at"] = now
+        mixtape_data["updated_at"] = now
 
-        Merges provided changes into the stored mixtape record, refreshes timestamps, and rewrites the mixtape file on disk.
+        return self._save_with_slug(mixtape_data=mixtape_data, title=title, slug=slug)
+
+    def _find_by_client_id(self, client_id: str | None) -> dict | None:
+        """Finds the first mixtape associated with a given client identifier.
+
+        Scans stored mixtapes to locate a matching client_id and returns its data in a convenient format.
+
+        Args:
+            client_id: The identifier used to associate a client with a mixtape.
+
+        Returns:
+            dict | None: The mixtape data including its slug if found, otherwise None.
+        """
+        if not client_id:
+            return None
+
+        for file in self.path_mixtapes.glob("*.json"):
+            try:
+                with open(file, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                if data.get("client_id") == client_id:
+                    data["slug"] = file.stem
+                    return data
+            except (json.JSONDecodeError, OSError) as e:
+                self._logger.warning(f"Skipping corrupted mixtape file {file}: {e}")
+                continue
+        return None
+
+    def update(self, slug: str, updated_data: dict) -> str:
+        """Updates an existing mixtape with new data while preserving its identity.
+
+        Maintains the original slug and important metadata so clients can safely refresh mixtape content.
 
         Args:
             slug: The slug of the mixtape to update.
-            updated_data: A dictionary of fields to update in the mixtape.
-            force_new_slug: Unused flag kept for backwards compatibility; the slug is always preserved.
+            updated_data: Dictionary containing fields to update on the mixtape.
 
         Returns:
             str: The slug of the updated mixtape.
-
-        Raises:
-            FileNotFoundError: If no mixtape exists for the given slug.
         """
         old_json_path = self.path_mixtapes / f"{slug}.json"
         if not old_json_path.exists():
             raise FileNotFoundError(f"Mixtape with slug '{slug}' not found.")
 
-        # Load existing data
         with open(old_json_path, "r", encoding="utf-8") as f:
             existing_data = json.load(f)
 
+        # Preserve client_id
+        if "client_id" not in updated_data and "client_id" in existing_data:
+            updated_data["client_id"] = existing_data["client_id"]
+
         # Merge updates
         existing_data.update(updated_data)
-
-        # Always preserve the original slug — do NOT regenerate based on title
-        final_slug = slug
 
         # Ensure required fields
         existing_data["title"] = updated_data.get("title", existing_data.get("title", "Untitled Mixtape"))
         if "liner_notes" not in existing_data:
             existing_data["liner_notes"] = ""
 
+        # Only update updated_at
         existing_data["updated_at"] = datetime.now().isoformat()
-        if "saved_at" not in existing_data:
-            existing_data["saved_at"] = existing_data["updated_at"]
 
-        return self._save_with_slug(existing_data, existing_data["title"], final_slug)
+        return self._save_with_slug(
+            mixtape_data=existing_data,
+            title=existing_data["title"],
+            slug=slug
+        )
 
     def _save_with_slug(self, mixtape_data: dict, title: str, slug: str) -> str:
-        """
-        Saves mixtape data and cover image to disk using the provided slug.
+        """Saves mixtape data and its cover image using a specific slug.
 
-        Writes the mixtape JSON file and handles cover image encoding and storage.
+        Persists the mixtape JSON file and optional cover image to disk so it can be retrieved later.
 
         Args:
-            mixtape_data: Dictionary containing mixtape information.
-            title: Title of the mixtape.
-            slug: Slug to use for saving the mixtape.
+            mixtape_data: The mixtape metadata and track information to be stored.
+            title: The human-readable title of the mixtape used for logging.
+            slug: The filesystem-safe identifier used as the mixtape filename.
 
         Returns:
-            str: The slug used to save the mixtape.
+            str: The slug under which the mixtape was saved.
         """
         json_path = self.path_mixtapes / f"{slug}.json"
 
         if cover_value := mixtape_data.pop("cover", None):
             if cover_value.startswith("data:image"):
-                        # New uploaded image (base64 data URL)
                 try:
                     cover_bytes = b64decode(cover_value.split(",", 1)[1])
                     cover_path = self.path_cover / f"{slug}.jpg"
@@ -142,12 +186,10 @@ class MixtapeManager:
                 except Exception as e:
                     self._logger.error(f"Failed to save new cover for {slug}: {e}")
             else:
-                # It was either an old path like "covers/old-slug.jpg" or already correct
-                # We keep it exactly as-is (even if filename doesn't match slug)
                 mixtape_data["cover"] = cover_value
-        # Final save
+
         with open(json_path, "w", encoding="utf-8") as f:
-            json.dump(mixtape_data, f, indent=2)
+            json.dump(mixtape_data, f, indent=2, ensure_ascii=False)
 
         self._logger.info(f"Saved mixtape '{title}' as '{slug}'")
         return slug
@@ -178,54 +220,102 @@ class MixtapeManager:
         """
         mixtapes = []
         for file in self.path_mixtapes.glob("*.json"):
-            with open(file, "r", encoding="utf-8") as f:
-                data = json.load(f)
+            try:
+                with open(file, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+            except (json.JSONDecodeError, OSError) as e:
+                self._logger.warning(f"Skipping corrupted mixtape file {file}: {e}")
+                continue
 
             slug = file.stem
             data["slug"] = slug
             if "liner_notes" not in data:
                 data["liner_notes"] = ""
+            if "client_id" not in data:
+                data["client_id"] = None
+
+            # Normalize timestamps (will also handle legacy saved_at)
+            data = self._normalize_timestamps(data)
+
             mixtapes.append(data)
 
-        mixtapes.sort(key=lambda x: x.get("updated_at", x.get("saved_at", "")), reverse=True)
+        # Sort by most recently updated first
+        mixtapes.sort(key=lambda x: x.get("updated_at") or x.get("created_at") or "", reverse=True)
         return mixtapes
 
     def get(self, slug: str) -> dict | None:
-        """
-        Retrieves a mixtape's data by its slug.
+        """Retrieves a single mixtape by its slug.
 
-        Returns the mixtape data dictionary if found, or None if the mixtape does not exist.
+        Normalizes legacy data and fills in missing fields so callers receive a consistent mixtape structure.
 
         Args:
             slug: The slug of the mixtape to retrieve.
 
         Returns:
-            dict | None: The mixtape data dictionary, or None if not found.
+            dict | None: The mixtape data dictionary if found, otherwise None.
         """
         path = self.path_mixtapes / f"{slug}.json"
         if not path.exists():
             return None
 
-        with open(path, "r", encoding="utf-8") as f:
-            data = json.load(f)
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except (json.JSONDecodeError, OSError) as e:
+            self._logger.error(f"Failed to read mixtape {slug}: {e}")
+            return None
 
         data = self._convert_old_mixtape(data)
         if "liner_notes" not in data:
             data["liner_notes"] = ""
+        if "client_id" not in data:
+            data["client_id"] = None
+
+        # Final timestamp normalization
+        data = self._normalize_timestamps(data)
+
         data["slug"] = slug
         return data
 
-    def _convert_old_mixtape(self, data: dict) -> dict:
-        """Normalizes legacy mixtape data to the current schema.
-        Renames old track fields so that consumers can work with a consistent structure.
+    def _normalize_timestamps(self, data: dict) -> dict:
+        """Normalizes timestamp fields on mixtape data for consistency.
+
+        Fills in missing created_at and updated_at values and migrates legacy fields to the current schema.
 
         Args:
-            data: The mixtape data dictionary potentially using an older field format.
+            data: The mixtape data dictionary whose timestamps should be normalized.
 
         Returns:
-            dict: The updated mixtape data dictionary with normalized track keys.
+            dict: The updated mixtape data dictionary with normalized timestamps.
         """
-        for track in data["tracks"]:
+        now = datetime.now().isoformat()
+
+        # Migrate legacy saved_at → updated_at
+        if "saved_at" in data and "updated_at" not in data:
+            data["updated_at"] = data.pop("saved_at")
+
+        # Ensure created_at exists
+        if "created_at" not in data:
+            data["created_at"] = None
+
+        # Ensure updated_at exists
+        if "updated_at" not in data:
+            data["updated_at"] = data["created_at"] or now
+
+        return data
+
+    def _convert_old_mixtape(self, data: dict) -> dict:
+        """Converts legacy mixtape data into the current schema.
+
+        Renames outdated track fields so older mixtapes can be handled consistently with newer ones.
+
+        Args:
+            data: The raw mixtape data dictionary that may use legacy field names.
+
+        Returns:
+            dict: The updated mixtape data dictionary using the current field names.
+        """
+        for track in data.get("tracks", []):
             if "title" in track:
                 track["track"] = track.pop("title")
         return data

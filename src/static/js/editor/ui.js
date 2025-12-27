@@ -97,7 +97,7 @@ export function initUI() {
     titleInput.addEventListener("input", markUnsaved);
 
     // -----------------------------------------------------------------
-    // 4️⃣  SAVE button – send mixtape JSON to the backend
+    // 4️⃣  SAVE button – improved with clientId for idempotent creates
     // -----------------------------------------------------------------
     saveBtn.addEventListener("click", async () => {
         if (playlist.length === 0) {
@@ -110,9 +110,25 @@ export function initUI() {
 
         const title = titleInput.value.trim() || "Unnamed Mixtape";
 
+        // -----------------------------------------------------------------
+        // Get or generate a clientId for new mixtapes
+        // -----------------------------------------------------------------
+        let clientId = null;
+        const preload = window.PRELOADED_MIXTAPE || {};
+        if (editingSlug) {
+            // We're editing → use the existing slug, no need for clientId
+            clientId = preload.client_id || null;
+        } else {
+            // We're creating a new one
+            clientId = preload.client_id || localStorage.getItem("current_mixtape_client_id");
+            if (!clientId) {
+                clientId = crypto.randomUUID();  // Generate fresh UUID
+                localStorage.setItem("current_mixtape_client_id", clientId);
+            }
+        }
+
         const playlistData = {
             title: title,
-            created_at: new Date().toISOString(),
             cover: coverDataUrl,
             liner_notes: easyMDE ? easyMDE.value() : "",
             tracks: playlist.map(t => ({
@@ -122,125 +138,113 @@ export function initUI() {
                 duration: t.duration,
                 path: t.path,
                 filename: t.filename
-            }))
+            })),
+            client_id: clientId  // ← This is the key addition
         };
 
+        // If editing, include the slug
         if (editingSlug) {
             const confirmOverwrite = await showConfirm({
                 title: "Overwrite mixtape",
-                message: `Are you sure you want to overwrite <strong>${escapeHtml(
-                    title
-                )}</strong>?`,
+                message: `Are you sure you want to overwrite <strong>${escapeHtml(title)}</strong>?`,
                 confirmText: "Overwrite"
             });
             if (!confirmOverwrite) return;
+
             playlistData.slug = editingSlug;
         }
 
+        // -----------------------------------------------------------------
+        // UI state during save
+        // -----------------------------------------------------------------
         isSaving = true;
+        saveBtn.disabled = true;
         saveText.textContent = "Saving...";
 
-        // Add a timeout for the fetch request (e.g., 10 seconds)
-        const FETCH_TIMEOUT = 10000;
-        let timeoutId;
-        let didTimeout = false;
+        const FETCH_TIMEOUT = 30000;  // 30 seconds
+        const MAX_RETRIES = 2;
 
-        try {
-            const fetchPromise = fetch("/editor/save", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(playlistData)
-            });
+        let attempt = 0;
+        let success = false;
+        let lastError = null;
 
-            // Create a timeout promise that rejects after FETCH_TIMEOUT ms
-            const timeoutPromise = new Promise((_, reject) => {
-                timeoutId = setTimeout(() => {
-                    didTimeout = true;
-                    reject(new Error("Network timeout: The server took too long to respond."));
-                }, FETCH_TIMEOUT);
-            });
-
-            let response;
+        while (attempt <= MAX_RETRIES && !success) {
+            attempt++;
             try {
-                response = await Promise.race([fetchPromise, timeoutPromise]);
-            } catch (err) {
-                if (didTimeout) {
-                    throw err; // Timeout error
-                } else {
-                    throw new Error("Network error: Could not reach the server.");
-                }
-            } finally {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+
+                const response = await fetch("/editor/save", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(playlistData),
+                    signal: controller.signal
+                });
+
                 clearTimeout(timeoutId);
-            }
 
-            if (!response.ok) {
-                // Server responded with 4xx/5xx – try to extract a JSON error message or log raw text
-                try {
-                    const errJson = await response.json();
-                    // Only use a generic error message for users, but log details for debugging
-                    if (errJson && typeof errJson.error === "string") {
-                        // Log the actual error for debugging, but do not show it to the user
-                        console.error("Server error:", errJson.error);
-                    }
-                } catch (_) {
-                    let rawText = await response.text();
-                    // Log the raw response text for debugging, but do not show it to the user
-                    console.error("Non-JSON error response:", rawText);
+                if (!response.ok) {
+                    const text = await response.text();
+                    throw new Error(`Server error ${response.status}: ${text}`);
                 }
-                // Always show a sanitized, generic error message to the user
-                throw new Error("An error occurred while processing your request. Please try again later.");
+
+                const data = await response.json();
+
+                if (data.success) {
+                    success = true;
+                    hasUnsavedChanges = false;
+                    updateSaveButton();
+
+                    // Success feedback
+                    showAlert({
+                        title: "Saved!",
+                        message: `Mixtape "${data.title}" saved successfully.`,
+                        buttonText: "OK"
+                    });
+
+                    // If this was a new mixtape, update URL and hidden field
+                    if (!editingSlug) {
+                        window.history.replaceState({}, "", `/editor/${data.slug}`);
+                        document.getElementById("editing-slug").value = data.slug;
+
+                        // Persist clientId for future retries (optional, but safe)
+                        if (data.client_id) {
+                            localStorage.setItem("current_mixtape_client_id", data.client_id);
+                        } else {
+                            localStorage.setItem("current_mixtape_client_id", clientId);
+                        }
+
+                        saveText.textContent = "Save changes";
+                    }
+                } else {
+                    throw new Error(data.error || "Unknown save error");
+                }
+            } catch (e) {
+                lastError = e;
+                console.error(`Save attempt ${attempt} failed:`, e);
+
+                if (attempt <= MAX_RETRIES) {
+                    // Wait before retry (2s, 4s)
+                    await new Promise(r => setTimeout(r, 2000 * attempt));
+                }
             }
+        }
 
-            const data = await response.json();
+        // -----------------------------------------------------------------
+        // Final cleanup
+        // -----------------------------------------------------------------
+        isSaving = false;
+        saveBtn.disabled = false;
+        saveText.textContent = editingSlug ? "Save changes" : "Save";
 
-            // --------------------------------------------------------------
-            // SUCCESS path
-            // --------------------------------------------------------------
-            hasUnsavedChanges = false;
-            updateSaveButton();
-
-            if (editingSlug) {
-                saveText.textContent = "Save changes";
-            }
-
-            const finalSlug = data.slug || editingSlug;
-
-            // ---- SUCCESS TOAST -------------------------------------------------
-            const toast = document.createElement("div");
-            toast.className =
-                "toast align-items-center text-bg-success border-0 position-fixed bottom-0 end-0 m-4";
-            toast.style.zIndex = "1090";
-            toast.innerHTML = `
-                <div class="d-flex">
-                    <div class="toast-body">
-                        Mixtape ${editingSlug ? "updated" : "saved"} as <strong>${escapeHtml(
-                data.title
-            )}</strong><br>
-                        <a href="/play/share/${finalSlug}" class="text-white text-decoration-underline" target="_blank">Open public link →</a>
-                    </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-                </div>`;
-            document.body.appendChild(toast);
-            new bootstrap.Toast(toast).show();
-
-            // ---- UPDATE URL after a *new* mixtape -----------------------------
-            if (!editingSlug) {
-                window.history.replaceState({}, "", `/editor/${data.slug}`);
-                document.getElementById("editing-slug").value = data.slug;
-                saveText.textContent = "Save changes";
-            }
-        } catch (e) {
-            // --------------------------------------------------------------
-            // FAILURE path – show a friendly alert
-            // --------------------------------------------------------------
-            console.error("Save error:", e);
+        if (!success) {
             showAlert({
                 title: "Save failed",
-                message: escapeHtml(e.message || "Unexpected error")
+                message: `Could not save after ${MAX_RETRIES + 1} attempts.<br><br>
+                        Error: ${escapeHtml(lastError?.message || "Network error")}<br><br>
+                        Your changes are still here — you can try again.`,
+                buttonText: "OK"
             });
-        } finally {
-            isSaving = false;
-            saveText.textContent = editingSlug ? "Save changes" : "Save";
         }
     });
 
