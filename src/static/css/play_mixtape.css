@@ -137,6 +137,59 @@ h4.text-white {
     }
 }
 
+/* Mobile: Ensure full-width text and better spacing */
+@media (max-width: 767.98px) {  /* Targets mobile/tablet */
+    .track-item {
+        padding: 1.25rem 1.5rem !important;  /* More vertical/horizontal padding */
+    }
+
+    .track-item .fw-bold {
+        font-size: 1.2rem;  /* Slightly larger title on mobile for prominence */
+        line-height: 1.35;
+    }
+
+    .track-item .small.text-muted {
+        font-size: 0.9rem;  /* Artist/album a touch larger */
+    }
+
+    /* Center the controls block slightly for aesthetics */
+    .track-item > .d-flex.align-items-center {
+        align-self: flex-end;  /* Pushes to the right on mobile */
+    }
+}
+
+/* Tabular nums for perfect duration alignment */
+.track-item .tabular-nums {
+    font-variant-numeric: tabular-nums;
+    min-width: 50px;
+    opacity: 0.8;
+}
+
+/* Hover effect on play button */
+.track-item .play-this-track:hover {
+    transform: scale(1.08);
+    background-color: var(--bs-primary) !important;
+    color: white !important;
+}
+
+/* Ensure duration is clearly visible above button */
+.track-item .tabular-nums {
+    font-variant-numeric: tabular-nums;
+    opacity: 0.85;
+    font-size: 0.9rem;
+}
+
+/* Mobile: extra breathing room */
+@media (max-width: 767.98px) {
+    .track-item {
+        padding: 1.5rem 1.5rem !important;
+    }
+
+    .track-item .fw-bold {
+        font-size: 1.25rem;
+    }
+}
+
 /* --- 4. Track States (Hover & Active) --- */
 .track-item:hover {
     background-color: var(--bs-secondary-bg) !important;
