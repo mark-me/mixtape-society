@@ -52,7 +52,7 @@ def create_editor_blueprint(
             "tracks": [],
             "slug": None,
             "created_at": None,
-            "saved_at": None,
+            "updated_at": None,
         }
         return render_template("editor.html", preload_mixtape=empty_mixtape)
 
@@ -186,6 +186,7 @@ def create_editor_blueprint(
                 "success": True,
                 "title": title,
                 "slug": final_slug,
+                "client_id": mixtape_data.get("client_id"),
                 "url": f"/editor/{final_slug}",
             })
         except Exception as e:

@@ -103,8 +103,8 @@
                         {% if mixtape.created_at %}
                         <div><i class="bi bi-calendar-plus"></i> Created: {{ mixtape.created_at[:10] }}</div>
                         {% endif %}
-                        {% if mixtape.saved_at %}
-                        <div><i class="bi bi-save"></i> Last changes: {{ mixtape.saved_at[:10] }} om {{ mixtape.saved_at[11:16] }}</div>
+                        {% if mixtape.updated_at %}
+                        <div><i class="bi bi-save"></i> Last changes: {{ mixtape.updated_at[:10] }} om {{ mixtape.updated_at[11:16] }}</div>
                         {% endif %}
                     </div>
                     <!-- Liner Notes Section -->

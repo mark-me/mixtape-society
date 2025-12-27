@@ -19,6 +19,12 @@ document.addEventListener("DOMContentLoaded", () => {
         titleInput.value = preloadMixtape.title || "";
     }
 
+    if (!preloadMixtape || !preloadMixtape.slug) {
+        // This is a brand-new mixtape (no slug → not loaded from disk)
+        // Remove any stale client_id from a previous abandoned session
+        localStorage.removeItem("current_mixtape_client_id");
+    }
+
     // ---------------------------------------------------------------
     // 2️⃣  Initialise EasyMDE (the editor) – the tabs are already rendered,
     //     so the editor will be visible and will receive the correct
