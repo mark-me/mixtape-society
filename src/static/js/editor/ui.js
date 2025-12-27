@@ -56,9 +56,18 @@ export function initUI() {
         const file = e.target.files[0];
         if (!file) return;
 
-        // ---- Validate MIME type -------------------------------------------------
-        const validTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
-        if (!validTypes.includes(file.type)) {
+        // ---- Validate image type (best-effort, UX only – server must re-validate) ----
+        const allowedExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
+        const allowedMimeTypes  = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+
+        const fileName = (file.name || "").toLowerCase();
+        const hasValidExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
+
+        // note: file.type can be empty or incorrect in some browsers
+        const mimeType = (file.type || "").toLowerCase();
+        const hasValidMime = mimeType && allowedMimeTypes.includes(mimeType);
+
+        if (!hasValidExtension && !hasValidMime) {
             showAlert("Please upload a valid image file (jpg, png, gif, webp).");
             coverInput.value = "";
             return;
