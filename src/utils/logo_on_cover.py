@@ -70,25 +70,6 @@ def create_og_cover_blueprint(
 
     return og
 
-
-def _svg_to_png(svg_bytes: bytes, width: int, height: int) -> bytes:
-    """Converts an SVG image to PNG format with the specified width and height.
-
-    This function takes SVG image data as bytes and returns PNG image data as bytes.
-
-    Args:
-        svg_bytes: The SVG image data as bytes.
-        width: The desired output width in pixels.
-        height: The desired output height in pixels.
-
-    Returns:
-        PNG image data as bytes.
-    """
-    return cairosvg.svg2png(
-        bytestring=svg_bytes, output_width=width, output_height=height
-    )
-
-
 def overlay_logo_bytes(
     cover_bytes: bytes,
     svg_bytes: bytes,
