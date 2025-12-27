@@ -1071,7 +1071,7 @@ class MusicCollection:
                 SELECT album, title, path, filename, duration, disc_number, track_number
                 FROM tracks
                 WHERE artist = ?
-                ORDER BY album, disc_number, track_number COLLATE NOCASE, title COLLATE NOCASE
+                ORDER BY album COLLATE NOCASE, disc_number, track_number, title COLLATE NOCASE
                 """,
                 (artist,),
             )
@@ -1172,7 +1172,7 @@ class MusicCollection:
             if full_path.is_absolute()
             else full_path
         )
-        return str(relative_path.parent) + "/"  # e.g., 'artist/album'
+        return f"{str(relative_path.parent)}/"
 
     def _sql_release_dir_expr(self) -> str:
         """Returns the SQL expression to extract the release directory from a track's path.

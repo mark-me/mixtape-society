@@ -12,17 +12,13 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 **🗓️** 2025-12-28
 
-### 🔧 Changed
-
-- OpenGraph image and added information to better comply with standards [https://opengraph.dev/](https://opengraph.dev/)
-- Changing the title of the mixtape is independent of the filename of the stored mixtape. This ensures keeping the old shared URL alive when changing the title.
-- Navbar to sticky-top
-
 ### 🐛 Fixed
 
-- Track order for albums within artists
+- Mixtapes editing made more uniform and robust against network failures, resulted in fatal crash
+- Fixed album sorting for artists to case insensitive
+- Made cover validation more robust
 
-[v0.2.](https://github.com/mark-me/mixtape-society/compare/v0.2.0...v0.2.1)
+[v0.2.0](https://github.com/mark-me/mixtape-society/compare/v0.2.0...v0.2.1)
 
 ---
 
