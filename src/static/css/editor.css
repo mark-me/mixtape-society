@@ -86,6 +86,35 @@
     border: 2px dashed var(--bs-primary);
 }
 
+body.reorder-mode .col-lg-7 { display: none !important; } /* Hide search */
+body.reorder-mode .col-lg-5 { flex: 0 0 100%; max-width: 100%; } /* Full width */
+body.reorder-mode #playlist {
+    max-height: calc(100vh - 300px) !important; /* Adjust based on header/player height */
+    min-height: 60vh;
+}
+body.reorder-mode .playlist-item {
+    padding: 1rem; /* More space for dragging */
+    margin-bottom: 0.5rem;
+}
+
+/* Reorder mode: Hide cover art and title to maximize track list space */
+body.reorder-mode .text-center.mb-4.position-relative.d-inline-block,  /* The cover wrapper */
+body.reorder-mode #cover-title {                                     /* The title input */
+    display: none !important;
+}
+body.reorder-mode #search-bar {                                     /* The title input */
+    display: none !important;
+}
+
+#toggle-reorder-mode {
+    font-size: 1.2rem;  /* Slightly larger icon */
+}
+#toggle-reorder-mode:hover {
+    background-color: var(--bs-primary-bg-subtle);
+}
+
+#toggle-reorder-mode.active { background-color: var(--bs-primary); color: white; }
+
 /* --- 3. Cover Upload Button --- */
 #cover-upload-btn:hover span {
     background-color: #0d6efd !important;

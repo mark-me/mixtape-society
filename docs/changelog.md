@@ -18,6 +18,24 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 - Fixed album sorting for artists to case insensitive
 - Made cover validation more robust
 
+[v0.2.2](https://github.com/mark-me/mixtape-society/compare/v0.2.1...v0.2.2)
+
+---
+
+## 📦 v0.2.1
+
+<span class="md-tag">Release</span>
+
+**🗓️** 2025-12-27
+
+### 🔧 Changed
+
+- Possibility to expand the tracks/liner notes for easier reordering and writing notes.
+
+### 🐛 Fixed
+
+- Track title also added to playlist.
+
 [v0.2.0](https://github.com/mark-me/mixtape-society/compare/v0.2.0...v0.2.1)
 
 ---
