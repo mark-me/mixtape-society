@@ -186,7 +186,7 @@ body.reorder-mode #search-bar {                                     /* The title
 /* Position count badges to the far right, before the chevron */
 .accordion-button {
     position: relative;
-    padding-right: 7rem !important; /* Make space for pill badge + chevron */
+    padding-right: 4.5rem !important; /* Make space for pill badge */
     white-space: normal; /* Allow text to wrap */
     text-align: left; /* Keep text left-aligned */
     min-height: 3rem; /* Ensure minimum height */
@@ -194,7 +194,7 @@ body.reorder-mode #search-bar {                                     /* The title
 
 .accordion-button .ms-auto {
     position: absolute;
-    right: 2.5rem; /* Leave space for the chevron icon */
+    right: 0.5rem; /* Closer to right edge to match left padding */
     top: 50%;
     transform: translateY(-50%); /* Center vertically */
     margin-left: 0 !important; /* Override ms-auto margin */
@@ -306,6 +306,71 @@ body.reorder-mode #search-bar {                                     /* The title
 
 
 @media (max-width: 576px) {
+    /* Maximize horizontal space on mobile for search results */
+    .container-fluid.overflow-hidden {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+
+    /* Reduce card padding on mobile */
+    .card-body#results {
+        padding: 0.5rem !important;
+    }
+
+    /* Remove side padding from the card itself on mobile */
+    .col-lg-7 .card {
+        margin-left: -0.5rem;
+        margin-right: -0.5rem;
+    }
+
+    /* Maximize space for mixtape/tracks card on mobile */
+    .col-lg-5 .card {
+        margin-left: -0.5rem;
+        margin-right: -0.5rem;
+    }
+
+    .col-lg-5 .card-body {
+        padding: 0.5rem !important;
+    }
+
+    /* Reduce padding on playlist items on mobile */
+    .playlist-item {
+        padding: 0.5rem !important;
+        margin-bottom: 0.25rem !important;
+    }
+
+    /* In reorder mode, maximize space even more */
+    body.reorder-mode .col-lg-5 .card {
+        margin-left: -0.75rem;
+        margin-right: -0.75rem;
+        border-radius: 0; /* Remove rounded corners to go edge-to-edge */
+    }
+
+    body.reorder-mode .card-body {
+        padding: 0.25rem !important;
+    }
+
+    body.reorder-mode .playlist-item {
+        padding: 0.5rem 0.25rem !important;
+    }
+
+    /* Reduce accordion margins */
+    .accordion.mb-3 {
+        margin-bottom: 0.5rem !important;
+    }
+
+    /* Make badges smaller and push closer to right edge on mobile */
+    .accordion-button .ms-auto {
+        right: 0.5rem !important; /* Much closer to right edge */
+        padding: 0.15rem 0.5rem !important; /* Smaller padding */
+        font-size: 0.75rem !important; /* Smaller text */
+    }
+
+    /* Reduce padding-right on accordion buttons to give more space for text */
+    .accordion-button {
+        padding-right: 4rem !important; /* Less space needed with badge at edge */
+    }
+
     /* 1. Make the whole button behave like normal block text */
     .accordion-button {
         align-items: flex-start   !important;   /* stop vertical centering */
@@ -361,5 +426,83 @@ body.reorder-mode #search-bar {                                     /* The title
     .list-group-item .text-muted.me-3 {
         margin-right: .5rem !important;
         white-space: nowrap;             /* keep “mm:ss” on one line */
+    }
+}
+
+/* --- 8. Bottom Audio Player Styles (from play_mixtape.css) --- */
+
+/* Player panel background fixes */
+#global-audio-player {
+    background: var(--bs-body-bg);
+}
+
+#global-audio-player::-webkit-media-controls-panel {
+    background-color: var(--bs-body-bg);
+}
+
+/* Bottom player background – translucent blur */
+#audio-player-container .bg-dark {
+    background-color: rgba(var(--bs-body-bg-rgb), 0.95) !important;
+    backdrop-filter: blur(10px);
+}
+
+/* Bottom Player Text Truncation & Layout */
+#now-playing-title,
+#now-playing-artist {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Limit the width of the track info section so it doesn't push controls off-screen */
+#audio-player-container .me-2 {
+    min-width: 0;
+    max-width: 50vw;
+    flex: 1 1 150px;
+}
+
+#audio-player-container .d-flex {
+    min-width: 0;
+}
+
+/* Mobile font size adjustments for bottom player */
+@media (max-width: 576px) {
+    #now-playing-title {
+        font-size: 0.9rem;
+    }
+
+    #now-playing-artist {
+        font-size: 0.75rem;
+    }
+
+    /* Make the close button smaller on phones */
+    #audio-player-container #close-player {
+        padding: 0.25rem 0.4rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* Allow info block to grow and take remaining width */
+#audio-player-container #now-playing-title,
+#audio-player-container #now-playing-artist {
+    width: 100%;
+}
+
+/* Reduce horizontal margin on audio element */
+#audio-player-container audio#global-audio-player {
+    margin-left: 0.5rem !important;
+    margin-right: 0.5rem !important;
+}
+
+/* On very small screens allow wrapping */
+@media (max-width: 480px) {
+    #audio-player-container .d-flex.align-items-center.flex-wrap {
+        flex-wrap: wrap;
+    }
+
+    #audio-player-container .d-flex.align-items-center.mb-2.mb-md-0,
+    #audio-player-container .mb-2.mb-md-0,
+    #audio-player-container audio#global-audio-player {
+        margin-bottom: 0.4rem;
     }
 }
