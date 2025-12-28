@@ -166,6 +166,17 @@ body.reorder-mode #search-bar {                                     /* The title
     transition: height 0.3s ease;
 }
 
+/* Position count badges to the far right, before the chevron */
+.accordion-button {
+    position: relative;
+}
+
+.accordion-button .ms-auto {
+    position: absolute;
+    right: 2.5rem; /* Leave space for the chevron icon */
+    margin-left: 0 !important; /* Override ms-auto margin */
+}
+
 /* --- 7. EasyMDE Markdown Editor Custom Styling --- */
 
 /* Main editor container */
