@@ -428,3 +428,81 @@ body.reorder-mode #search-bar {                                     /* The title
         white-space: nowrap;             /* keep “mm:ss” on one line */
     }
 }
+
+/* --- 8. Bottom Audio Player Styles (from play_mixtape.css) --- */
+
+/* Player panel background fixes */
+#global-audio-player {
+    background: var(--bs-body-bg);
+}
+
+#global-audio-player::-webkit-media-controls-panel {
+    background-color: var(--bs-body-bg);
+}
+
+/* Bottom player background – translucent blur */
+#audio-player-container .bg-dark {
+    background-color: rgba(var(--bs-body-bg-rgb), 0.95) !important;
+    backdrop-filter: blur(10px);
+}
+
+/* Bottom Player Text Truncation & Layout */
+#now-playing-title,
+#now-playing-artist {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Limit the width of the track info section so it doesn't push controls off-screen */
+#audio-player-container .me-2 {
+    min-width: 0;
+    max-width: 50vw;
+    flex: 1 1 150px;
+}
+
+#audio-player-container .d-flex {
+    min-width: 0;
+}
+
+/* Mobile font size adjustments for bottom player */
+@media (max-width: 576px) {
+    #now-playing-title {
+        font-size: 0.9rem;
+    }
+
+    #now-playing-artist {
+        font-size: 0.75rem;
+    }
+
+    /* Make the close button smaller on phones */
+    #audio-player-container #close-player {
+        padding: 0.25rem 0.4rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* Allow info block to grow and take remaining width */
+#audio-player-container #now-playing-title,
+#audio-player-container #now-playing-artist {
+    width: 100%;
+}
+
+/* Reduce horizontal margin on audio element */
+#audio-player-container audio#global-audio-player {
+    margin-left: 0.5rem !important;
+    margin-right: 0.5rem !important;
+}
+
+/* On very small screens allow wrapping */
+@media (max-width: 480px) {
+    #audio-player-container .d-flex.align-items-center.flex-wrap {
+        flex-wrap: wrap;
+    }
+
+    #audio-player-container .d-flex.align-items-center.mb-2.mb-md-0,
+    #audio-player-container .mb-2.mb-md-0,
+    #audio-player-container audio#global-audio-player {
+        margin-bottom: 0.4rem;
+    }
+}

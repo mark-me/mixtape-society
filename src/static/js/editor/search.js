@@ -151,7 +151,11 @@ function renderResults(data) {
                     <div class="d-flex align-items-center">
                         <div class="track-actions d-flex align-items-center gap-2">
                             <span class="text-muted me-3">${formatDuration(track.duration || "?:??")}</span>
-                            <button class="btn btn-primary btn-sm preview-btn" data-path="${escapeHtml(track.path)}" data-title="${escapeHtml(track.track)}">
+                            <button class="btn btn-primary btn-sm preview-btn" 
+                                    data-path="${escapeHtml(track.path)}" 
+                                    data-title="${escapeHtml(track.track)}"
+                                    data-artist="${escapeHtml(entry.artist)}"
+                                    data-album="${escapeHtml(entry.album)}">
                                 <i class="bi bi-play-fill"></i>
                             </button>
                             <button class="btn btn-success btn-sm add-btn" data-item="${escapeHtml(JSON.stringify(track))}">
@@ -232,7 +236,9 @@ function loadArtistDetails(collapse) {
                                                 <div class="track-actions d-flex align-items-center gap-2">
                                                     <button class="btn btn-primary btn-sm preview-btn me-2"
                                                             data-path="${escapeHtml(track.path)}"
-                                                            data-title="${escapeHtml(track.track)}">
+                                                            data-title="${escapeHtml(track.track)}"
+                                                            data-artist="${escapeHtml(track.artist)}"
+                                                            data-album="${escapeHtml(track.album)}">
                                                         <i class="bi bi-play-fill"></i>
                                                     </button>
                                                     <button class="btn btn-success btn-sm add-btn"
@@ -287,7 +293,9 @@ function loadAlbumDetails(collapse) {
                                 <div class="track-actions d-flex align-items-center gap-2">
                                     <button class="btn btn-primary btn-sm preview-btn me-2"
                                             data-path="${escapeHtml(track.path)}"
-                                            data-title="${escapeHtml(track.track)}">
+                                            data-title="${escapeHtml(track.track)}"
+                                            data-artist="${escapeHtml(track.artist)}"
+                                            data-album="${escapeHtml(track.album)}">
                                         <i class="bi bi-play-fill"></i>
                                     </button>
                                     <button class="btn btn-success btn-sm add-btn"
@@ -353,7 +361,7 @@ function attachAddButtons() {
     });
 }
 
-// Preview handling (unchanged, just re-attach)
+// Preview handling
 function attachPreviewButtons() {
     document.querySelectorAll('.preview-btn').forEach(btn => {
         // Remove any old listener to prevent duplicates
@@ -362,8 +370,9 @@ function attachPreviewButtons() {
 
     document.querySelectorAll('.preview-btn').forEach(btn => {
         btn.addEventListener('click', function () {
-            const {path} = this.dataset;
-            const track_name = this.dataset.title || 'Preview';
+            const {path, title, artist, album} = this.dataset;
+            const trackName = title || 'Preview';
+            const artistAlbum = (artist && album) ? `${artist} • ${album}` : (artist || album || 'Preview');
 
             if (!path) return;
 
@@ -380,8 +389,14 @@ function attachPreviewButtons() {
             player.play().catch(e => console.error("Preview failed:", e));
             container.style.display = 'block';
 
-            document.getElementById('now-playing-title').textContent = track_name;
-            document.getElementById('now-playing-artist').textContent = 'Preview';
+            // Use the helper function from ui.js to update track info
+            if (window.updatePlayerTrackInfo) {
+                window.updatePlayerTrackInfo(trackName, artistAlbum);
+            } else {
+                // Fallback if the helper function isn't available yet
+                document.getElementById('now-playing-title').textContent = trackName;
+                document.getElementById('now-playing-artist').textContent = artistAlbum;
+            }
 
             // Visual feedback: change to pause icon
             this.innerHTML = '<i class="bi bi-pause-fill"></i>';

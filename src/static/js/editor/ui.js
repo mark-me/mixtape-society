@@ -263,6 +263,8 @@ export function initUI() {
     const audioPlayer    = document.getElementById("global-audio-player");
     const playerContainer = document.getElementById("audio-player-container");
     const closeBtn       = document.getElementById("close-player");
+    const nowPlayingTitle = document.getElementById("now-playing-title");
+    const nowPlayingArtist = document.getElementById("now-playing-artist");
 
     // When any track (including preview tracks) starts playing, show the player.
     audioPlayer?.addEventListener("play", () => {
@@ -274,6 +276,13 @@ export function initUI() {
         audioPlayer?.pause();
         playerContainer.style.display = "none";
     });
+
+    // Helper function to update track info in the player
+    // This can be called from search.js or other modules when previewing tracks
+    window.updatePlayerTrackInfo = function(title, artist) {
+        if (nowPlayingTitle) nowPlayingTitle.textContent = title || "—";
+        if (nowPlayingArtist) nowPlayingArtist.textContent = artist || "—";
+    };
 
     // -----------------------------------------------------------------
     // 6️⃣  “Track added” toast (re‑used for any playlist mutation)
