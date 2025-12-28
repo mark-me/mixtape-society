@@ -59,53 +59,53 @@ h4.text-white {
 }
 
 /* --- 3. Track List – Layout & Numbering --- */
-.list-group-numbered {
-    counter-reset: track-counter;
-    padding-left: 0;
-    /* Remove Bootstrap's default padding */
-    list-style: none;
-    /* Ensure no fallback numbers */
+
+.track-item {
+    padding: 1rem 1.5rem !important;
 }
 
-.list-group-numbered .list-group-item {
-    position: relative;
-    padding: 1rem 1rem 1rem 3.5rem !important;
-    /* Left padding for number + content */
-    border: none;
-    background-color: var(--bs-tertiary-bg);
-    border-bottom: 1px solid var(--bs-border-color);
+/* Text truncation */
+.track-item .min-width-0 {
+    min-width: 0;
 }
 
-.list-group-numbered .list-group-item::before {
-    content: counter(track-counter) ".";
-    counter-increment: track-counter;
-    position: absolute;
-    left: 1.2rem;
-    top: 50%;
-    transform: translateY(-50%);
-    font-weight: 600;
-    font-size: 1.1rem;
-    color: var(--bs-secondary-color);
-    width: 2rem;
-    text-align: right;
+/* Title */
+.track-item .fw-bold {
+    font-size: 1.15rem;
+    line-height: 1.35;
 }
 
-/* Rounded corners for first/last track */
-.list-group-numbered .list-group-item:first-child {
-    border-top-left-radius: 0.5rem;
-    border-top-right-radius: 0.5rem;
+/* Artist/album line */
+.track-item .opacity-85 {
+    opacity: 0.85;
+    font-size: 0.95rem;
 }
 
-.list-group-numbered .list-group-item:last-child {
-    border-bottom-left-radius: 0.5rem;
-    border-bottom-right-radius: 0.5rem;
-    border-bottom: none;
+/* Play button hover (turns primary color) */
+.track-item .play-this-track:hover {
+    background-color: var(--bs-primary) !important;
+    color: white !important;
+    transform: scale(1.08);
 }
 
-.play-this-track {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+/* Mobile tweaks */
+@media (max-width: 767.98px) {
+    .track-item {
+        padding: 1rem 1.5rem !important;
+    }
+
+    .track-item .fw-bold {
+        font-size: 1.25rem;  /* Bigger title on small screens */
+    }
+
+    .track-item .play-this-track {
+        width: 52px;
+        height: 52px;
+    }
+
+    .track-item .play-this-track i {
+        font-size: 1.5rem;
+    }
 }
 
 /* --- 4. Track States (Hover & Active) --- */

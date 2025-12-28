@@ -181,26 +181,30 @@
 
                     <!-- Tracklist -->
                     <h4 class="mb-3 text-white">Tracklist</h4>
-                    <div class="list-group list-group-numbered">
+                    <div class="list-group">
                         {% for t in mixtape.tracks %}
-                        <li class="list-group-item track-item py-4 d-flex align-items-center"
-                            data-index="{{ loop.index0 }}"
-                            data-path="{{ url_for('play.stream_audio', file_path=t.path) }}"
-                            data-title="{{ t.title }}"
-                            data-artist="{{ t.artist }}"
-                            data-album="{{ t.album|default('Onbekend album') }}">
+                            <li class="list-group-item track-item py-3 d-flex align-items-center gap-3 gap-md-4"
+                                data-path="{{ url_for('play.stream_audio', file_path=t.path) }}"
+                                data-title="{{ t.track }}"
+                                data-artist="{{ t.artist }}"
+                                data-album="{{ t.album|default('') }}">
 
-                            <div class="flex-grow-1 pe-3">
-                                <div class="fw-bold">{{ t.title }}</div>
-                                <div class="small opacity-75">
-                                    {{ t.artist }}{% if t.album %} • {{ t.album }}{% endif %}
+                                <!-- Play button on the left -->
+                                <button class="btn btn-light rounded-circle play-this-track shadow-sm flex-shrink-0"
+                                        style="width: 48px; height: 48px;">
+                                    <i class="bi bi-play-fill" style="font-size: 1.4rem;"></i>
+                                </button>
+
+                                <!-- Text block (takes remaining space) -->
+                                <div class="flex-grow-1 min-width-0">
+                                    <div class="fw-bold text-truncate" style="font-size: 1.15rem; line-height: 1.35;">
+                                        {{ t.track }}
+                                    </div>
+                                    <div class="small text-muted text-truncate opacity-85">
+                                        {{ t.artist }}{% if t.album %} • {{ t.album }}{% endif %}
+                                    </div>
                                 </div>
-                            </div>
-
-                            <button class="btn btn-light rounded-circle play-this-track" style="width: 40px; height: 40px;">
-                                <i class="bi bi-play-fill"></i>
-                            </button>
-                        </li>
+                            </li>
                         {% endfor %}
                     </div>
                 </div>

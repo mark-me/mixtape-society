@@ -343,6 +343,31 @@ export function initUI() {
         });
     });
 
+    // -----------------------------------------------------------------
+    // Reorder mode toggle
+    // -----------------------------------------------------------------
+    const reorderBtn = document.getElementById('toggle-reorder-mode');
+    if (reorderBtn) {
+        reorderBtn.addEventListener('click', () => {
+            document.body.classList.toggle('reorder-mode');
+
+            // Toggle between expand and collapse icons
+            const icon = reorderBtn.querySelector('i');
+            if (document.body.classList.contains('reorder-mode')) {
+                icon.classList.replace('bi-arrows-angle-expand', 'bi-arrows-angle-contract');
+                reorderBtn.title = 'Exit expanded reordering';
+            } else {
+                icon.classList.replace('bi-arrows-angle-contract', 'bi-arrows-angle-expand');
+                reorderBtn.title = 'Expand for reordering';
+            }
+
+            // Optional: re-render to adapt heights
+            if (window.renderPlaylist) {
+                window.renderPlaylist();
+            }
+        });
+    }
+
     // 9b. Browser‑level navigation (back/forward, tab close, refresh)
     window.addEventListener("beforeunload", e => {
         if (hasUnsavedChanges && !isSaving) {
