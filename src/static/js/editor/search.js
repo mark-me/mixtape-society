@@ -83,7 +83,7 @@ function renderResults(data) {
                                     data-bs-target="#collapse-artist-${safeArtist}"
                                     data-raw-artist="${escapeHtml(entry.raw_artist || entry.artist)}">
                                 <i class="bi bi-person-fill me-2"></i>
-                                Artist: ${entry.artist}
+                                ${entry.artist}
                                 <span class="ms-auto small opacity-75">
                                     ${entry.num_albums || 0} album${(entry.num_albums || 0) !== 1 ? 's' : ''}
                                 </span>
@@ -116,7 +116,7 @@ function renderResults(data) {
                                     data-raw-album="${escapeHtml(entry.raw_album || entry.album)}"
                                     data-raw-artist="${escapeHtml(entry.raw_artist || entry.artist)}">
                                 <i class="bi bi-disc-fill me-2"></i>
-                                Album: ${entry.album}
+                                ${entry.album}
                                 <span class="ms-auto small opacity-75">
                                     ${entry.num_tracks || 0} track${(entry.num_tracks || 0) !== 1 ? 's' : ''}
                                 </span>
