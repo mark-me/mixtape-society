@@ -186,7 +186,7 @@ body.reorder-mode #search-bar {                                     /* The title
 /* Position count badges to the far right, before the chevron */
 .accordion-button {
     position: relative;
-    padding-right: 7rem !important; /* Make space for pill badge + chevron */
+    padding-right: 4.5rem !important; /* Make space for pill badge */
     white-space: normal; /* Allow text to wrap */
     text-align: left; /* Keep text left-aligned */
     min-height: 3rem; /* Ensure minimum height */
@@ -194,7 +194,7 @@ body.reorder-mode #search-bar {                                     /* The title
 
 .accordion-button .ms-auto {
     position: absolute;
-    right: 2.5rem; /* Leave space for the chevron icon */
+    right: 0.5rem; /* Closer to right edge to match left padding */
     top: 50%;
     transform: translateY(-50%); /* Center vertically */
     margin-left: 0 !important; /* Override ms-auto margin */
@@ -306,6 +306,40 @@ body.reorder-mode #search-bar {                                     /* The title
 
 
 @media (max-width: 576px) {
+    /* Maximize horizontal space on mobile for search results */
+    .container-fluid.overflow-hidden {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+
+    /* Reduce card padding on mobile */
+    .card-body#results {
+        padding: 0.5rem !important;
+    }
+
+    /* Remove side padding from the card itself on mobile */
+    .col-lg-7 .card {
+        margin-left: -0.5rem;
+        margin-right: -0.5rem;
+    }
+
+    /* Reduce accordion margins */
+    .accordion.mb-3 {
+        margin-bottom: 0.5rem !important;
+    }
+
+    /* Make badges smaller and push closer to right edge on mobile */
+    .accordion-button .ms-auto {
+        right: 0.5rem !important; /* Much closer to right edge */
+        padding: 0.15rem 0.5rem !important; /* Smaller padding */
+        font-size: 0.75rem !important; /* Smaller text */
+    }
+
+    /* Reduce padding-right on accordion buttons to give more space for text */
+    .accordion-button {
+        padding-right: 4rem !important; /* Less space needed with badge at edge */
+    }
+
     /* 1. Make the whole button behave like normal block text */
     .accordion-button {
         align-items: flex-start   !important;   /* stop vertical centering */
