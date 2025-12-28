@@ -84,7 +84,7 @@ function renderResults(data) {
                                     data-raw-artist="${escapeHtml(entry.raw_artist || entry.artist)}">
                                 <i class="bi bi-person-fill me-2"></i>
                                 ${entry.artist}
-                                <span class="ms-auto small opacity-75 text-warning">
+                                <span class="ms-auto small opacity-75 text-dark">
                                     <i class="bi bi-disc-fill me-2"></i>#${entry.num_albums || 0}
                                 </span>
                             </button>
@@ -117,7 +117,7 @@ function renderResults(data) {
                                     data-raw-artist="${escapeHtml(entry.raw_artist || entry.artist)}">
                                 <i class="bi bi-disc-fill me-2"></i>
                                 ${entry.album}
-                                <span class="ms-auto small opacity-75 text-primary">
+                                <span class="ms-auto small opacity-75 text-white">
                                     <i class="bi bi-music-note-beamed me-2"></i>#${entry.num_tracks || 0}
                                 </span>
                             </button>
