@@ -54,6 +54,23 @@
     border-radius: 0.2em;
 }
 
+/* Fix highlighting in accordion buttons to keep text inline */
+.accordion-button mark {
+    background-color: #ffeb3b;
+    color: #000;
+    padding: 0 0.2em; /* Remove vertical padding, keep horizontal */
+    border-radius: 0.2em;
+    display: inline;
+    line-height: inherit;
+    vertical-align: baseline;
+}
+
+/* Use contrasting orange highlight for album accordions (yellow background) */
+.accordion-button.bg-warning mark {
+    background-color: #ff6b35; /* Bright orange for contrast */
+    color: #fff; /* White text for readability */
+}
+
 /* Specific colors - light backgrounds for readability */
 #searchContainer .bg-info    { background-color: #cff4fc !important; color: #055160 !important; }
 #searchContainer .bg-warning { background-color: #fff3cd !important; color: #856404 !important; }
@@ -166,6 +183,39 @@ body.reorder-mode #search-bar {                                     /* The title
     transition: height 0.3s ease;
 }
 
+/* Position count badges to the far right, before the chevron */
+.accordion-button {
+    position: relative;
+    padding-right: 4.5rem !important; /* Make space for pill badge */
+    white-space: normal; /* Allow text to wrap */
+    text-align: left; /* Keep text left-aligned */
+    min-height: 3rem; /* Ensure minimum height */
+}
+
+.accordion-button .ms-auto {
+    position: absolute;
+    right: 0.5rem; /* Closer to right edge to match left padding */
+    top: 50%;
+    transform: translateY(-50%); /* Center vertically */
+    margin-left: 0 !important; /* Override ms-auto margin */
+    padding: 0.25rem 0.75rem;
+    border-radius: 50rem; /* Pill shape */
+    font-weight: 500;
+    white-space: nowrap; /* Prevent pill content from wrapping */
+}
+
+/* Artist accordion (bg-success) - pill should be warning color with success text */
+.accordion-button.bg-success .ms-auto {
+    background-color: #ffc107; /* warning color */
+    color: #198754; /* success color */
+}
+
+/* Album accordion (bg-warning) - pill should be primary color with warning text */
+.accordion-button.bg-warning .ms-auto {
+    background-color: #0d6efd; /* primary color */
+    color: #ffc107; /* warning color */
+}
+
 /* --- 7. EasyMDE Markdown Editor Custom Styling --- */
 
 /* Main editor container */
@@ -252,4 +302,207 @@ body.reorder-mode #search-bar {                                     /* The title
     border: 1px solid var(--bs-border-color);
     border-radius: 0.5rem;
     overflow-y: auto;
+}
+
+
+@media (max-width: 576px) {
+    /* Maximize horizontal space on mobile for search results */
+    .container-fluid.overflow-hidden {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+
+    /* Reduce card padding on mobile */
+    .card-body#results {
+        padding: 0.5rem !important;
+    }
+
+    /* Remove side padding from the card itself on mobile */
+    .col-lg-7 .card {
+        margin-left: -0.5rem;
+        margin-right: -0.5rem;
+    }
+
+    /* Maximize space for mixtape/tracks card on mobile */
+    .col-lg-5 .card {
+        margin-left: -0.5rem;
+        margin-right: -0.5rem;
+    }
+
+    .col-lg-5 .card-body {
+        padding: 0.5rem !important;
+    }
+
+    /* Reduce padding on playlist items on mobile */
+    .playlist-item {
+        padding: 0.5rem !important;
+        margin-bottom: 0.25rem !important;
+    }
+
+    /* In reorder mode, maximize space even more */
+    body.reorder-mode .col-lg-5 .card {
+        margin-left: -0.75rem;
+        margin-right: -0.75rem;
+        border-radius: 0; /* Remove rounded corners to go edge-to-edge */
+    }
+
+    body.reorder-mode .card-body {
+        padding: 0.25rem !important;
+    }
+
+    body.reorder-mode .playlist-item {
+        padding: 0.5rem 0.25rem !important;
+    }
+
+    /* Reduce accordion margins */
+    .accordion.mb-3 {
+        margin-bottom: 0.5rem !important;
+    }
+
+    /* Make badges smaller and push closer to right edge on mobile */
+    .accordion-button .ms-auto {
+        right: 0.5rem !important; /* Much closer to right edge */
+        padding: 0.15rem 0.5rem !important; /* Smaller padding */
+        font-size: 0.75rem !important; /* Smaller text */
+    }
+
+    /* Reduce padding-right on accordion buttons to give more space for text */
+    .accordion-button {
+        padding-right: 4rem !important; /* Less space needed with badge at edge */
+    }
+
+    /* 1. Make the whole button behave like normal block text */
+    .accordion-button {
+        align-items: flex-start   !important;   /* stop vertical centering */
+        white-space: normal       !important;   /* allow line breaks */
+        flex-wrap: wrap           !important;   /* let the inner flex items wrap */
+        text-align: left;                       /* left‑align the label */
+        padding-top: .75rem;                    /* a little extra vertical breathing room */
+        padding-bottom: .75rem;
+    }
+
+    /* 2. Keep the icon (the <i class="bi …">) from forcing extra space */
+   .accordion-button .bi {
+        flex: 0 0 auto;                 /* keep its natural size */
+        margin-top: .125rem;            /* nudge it to line‑up with the first line of text */
+        margin-right: .5rem;            /* space between icon and text */
+    }
+
+    /* 3. The textual part of the button is everything *except* the icon.
+        We force it to take the remaining width and wrap naturally. */
+    .accordion-button .accordion-button-text,
+    .accordion-button > span:not(.bi),          /* catches plain text nodes */
+    .accordion-button > div:not(.bi) {
+        flex: 1 1 0%;                   /* grow‑shrink, start at 0% width */
+        min-width: 0;                   /* crucial – lets the text shrink inside flex */
+        word-break: break-word;         /* break long words sensibly */
+        overflow-wrap: anywhere;        /* extra safety for ultra‑long strings */
+    }
+
+    /* 4. If you happen to have <strong> or <h5> inside the button
+        (some of the templates do), make sure they inherit the same
+        wrapping behaviour. */
+    .accordion-button strong,
+    .accordion-button h5 {
+        display: inline;                /* keep them inline with the surrounding text */
+        font-weight: normal;            /* optional – you can keep the bold if you wish */
+    }
+
+    /* Ensure the right‑hand button group stays on one line */
+    .list-group-item > .d-flex.align-items-center {
+        flex-wrap: nowrap;               /* never wrap */
+        gap: .5rem;                      /* consistent spacing */
+    }
+
+    /* Give the buttons a predictable size – they’ll shrink only a little */
+    .list-group-item .preview-btn,
+    .list-group-item .add-btn {
+        min-width: 2.2rem;               /* enough for the icon */
+        padding: .35rem .5rem;           /* tighter padding on mobile */
+        line-height: 1;                  /* removes extra vertical space */
+    }
+
+    /* Align the duration label with the buttons */
+    .list-group-item .text-muted.me-3 {
+        margin-right: .5rem !important;
+        white-space: nowrap;             /* keep “mm:ss” on one line */
+    }
+}
+
+/* --- 8. Bottom Audio Player Styles (from play_mixtape.css) --- */
+
+/* Player panel background fixes */
+#global-audio-player {
+    background: var(--bs-body-bg);
+}
+
+#global-audio-player::-webkit-media-controls-panel {
+    background-color: var(--bs-body-bg);
+}
+
+/* Bottom player background – translucent blur */
+#audio-player-container .bg-dark {
+    background-color: rgba(var(--bs-body-bg-rgb), 0.95) !important;
+    backdrop-filter: blur(10px);
+}
+
+/* Bottom Player Text Truncation & Layout */
+#now-playing-title,
+#now-playing-artist {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Limit the width of the track info section so it doesn't push controls off-screen */
+#audio-player-container .me-2 {
+    min-width: 0;
+    max-width: 50vw;
+    flex: 1 1 150px;
+}
+
+#audio-player-container .d-flex {
+    min-width: 0;
+}
+
+/* Mobile font size adjustments for bottom player */
+@media (max-width: 576px) {
+    #now-playing-title {
+        font-size: 0.9rem;
+    }
+
+    #now-playing-artist {
+        font-size: 0.75rem;
+    }
+
+    /* Make the close button smaller on phones */
+    #audio-player-container #close-player {
+        padding: 0.25rem 0.4rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* Allow info block to grow and take remaining width */
+#audio-player-container #now-playing-title,
+#audio-player-container #now-playing-artist {
+    width: 100%;
+}
+
+/* Reduce horizontal margin on audio element */
+#audio-player-container audio#global-audio-player {
+    margin-left: 0.5rem !important;
+    margin-right: 0.5rem !important;
+}
+
+/* On very small screens allow wrapping */
+@media (max-width: 480px) {
+    #audio-player-container .d-flex.align-items-center.flex-wrap {
+        flex-wrap: wrap;
+    }
+
+    #audio-player-container .d-flex.align-items-center.mb-2.mb-md-0,
+    #audio-player-container .mb-2.mb-md-0,
+    #audio-player-container audio#global-audio-player {
+        margin-bottom: 0.4rem;
+    }
 }

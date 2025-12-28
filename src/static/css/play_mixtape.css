@@ -242,15 +242,46 @@ html[data-bs-theme="dark"] .theme-outline-btn:hover {
 }
 
 @media (max-width: 576px) {
+    /* Reduce spacing above Tape Talk section on mobile */
+    .mt-5 {
+        margin-top: 2rem !important;
+    }
+
+    /* Reduce spacing around the button area on mobile */
+    .text-center.my-5 {
+        margin-top: 1.5rem !important;
+        margin-bottom: 1.5rem !important;
+    }
+
+    /* Keep buttons on same row, hide text, show only icons */
     .btn-group {
-        flex-direction: column;
-        gap: 0.75rem;
+        flex-direction: row;
+        gap: 0.5rem;
+        justify-content: center;
     }
 
     .btn-group .btn {
-        width: 100%;
-        max-width: 300px;
+        width: auto;
         margin-left: 0 !important;
+        padding: 0.75rem 1.25rem;
+    }
+
+    /* Hide button text on mobile */
+    #big-play-btn .btn-text,
+    #big-share-btn .btn-text {
+        display: none;
+    }
+
+    /* Make icons slightly larger since there's no text */
+    #big-play-btn i {
+        font-size: 1.8rem !important;
+        margin: 0 !important;
+        top: 0 !important;
+    }
+
+    #big-share-btn i {
+        font-size: 1.6rem !important;
+        margin: 0 !important;
     }
 
     #big-share-btn {

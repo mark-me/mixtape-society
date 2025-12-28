@@ -83,9 +83,9 @@ function renderResults(data) {
                                     data-bs-target="#collapse-artist-${safeArtist}"
                                     data-raw-artist="${escapeHtml(entry.raw_artist || entry.artist)}">
                                 <i class="bi bi-person-fill me-2"></i>
-                                Artist: ${entry.artist}
-                                <span class="ms-auto small opacity-75">
-                                    ${entry.num_albums || 0} album${(entry.num_albums || 0) !== 1 ? 's' : ''}
+                                ${entry.artist}
+                                <span class="ms-auto small opacity-75 text-dark">
+                                    <i class="bi bi-disc-fill me-2"></i>#${entry.num_albums || 0}
                                 </span>
                             </button>
                         </h2>
@@ -116,9 +116,9 @@ function renderResults(data) {
                                     data-raw-album="${escapeHtml(entry.raw_album || entry.album)}"
                                     data-raw-artist="${escapeHtml(entry.raw_artist || entry.artist)}">
                                 <i class="bi bi-disc-fill me-2"></i>
-                                Album: ${entry.album}
-                                <span class="ms-auto small opacity-75">
-                                    ${entry.num_tracks || 0} track${(entry.num_tracks || 0) !== 1 ? 's' : ''}
+                                ${entry.album}
+                                <span class="ms-auto small opacity-75 text-white">
+                                    <i class="bi bi-music-note-beamed me-2"></i>#${entry.num_tracks || 0}
                                 </span>
                             </button>
                         </h2>
@@ -149,13 +149,19 @@ function renderResults(data) {
                         </small>
                     </div>
                     <div class="d-flex align-items-center">
-                        <span class="text-muted me-3">${formatDuration(track.duration || "?:??")}</span>
-                        <button class="btn btn-primary btn-sm preview-btn me-2" data-path="${escapeHtml(track.path)}" data-title="${escapeHtml(track.track)}">
-                            <i class="bi bi-play-fill"></i>
-                        </button>
-                        <button class="btn btn-success btn-sm add-btn" data-item="${escapeHtml(JSON.stringify(track))}">
-                            <i class="bi bi-plus-circle"></i>
-                        </button>
+                        <div class="track-actions d-flex align-items-center gap-2">
+                            <span class="text-muted me-3">${formatDuration(track.duration || "?:??")}</span>
+                            <button class="btn btn-primary btn-sm preview-btn" 
+                                    data-path="${escapeHtml(track.path)}" 
+                                    data-title="${escapeHtml(track.track)}"
+                                    data-artist="${escapeHtml(entry.artist)}"
+                                    data-album="${escapeHtml(entry.album)}">
+                                <i class="bi bi-play-fill"></i>
+                            </button>
+                            <button class="btn btn-success btn-sm add-btn" data-item="${escapeHtml(JSON.stringify(track))}">
+                                <i class="bi bi-plus-circle"></i>
+                            </button>
+                        </div>
                     </div>
                 </li>`;
         }).join('');
@@ -227,15 +233,19 @@ function loadArtistDetails(collapse) {
                                                 <small class="text-muted ms-2">(${formatDuration(track.duration || "?:??")})</small>
                                             </div>
                                             <div>
-                                                <button class="btn btn-primary btn-sm preview-btn me-2"
-                                                        data-path="${escapeHtml(track.path)}"
-                                                        data-title="${escapeHtml(track.track)}">
-                                                    <i class="bi bi-play-fill"></i>
-                                                </button>
-                                                <button class="btn btn-success btn-sm add-btn"
-                                                        data-item="${escapeHtml(JSON.stringify(track))}">
-                                                    <i class="bi bi-plus-circle"></i>
-                                                </button>
+                                                <div class="track-actions d-flex align-items-center gap-2">
+                                                    <button class="btn btn-primary btn-sm preview-btn me-2"
+                                                            data-path="${escapeHtml(track.path)}"
+                                                            data-title="${escapeHtml(track.track)}"
+                                                            data-artist="${escapeHtml(track.artist)}"
+                                                            data-album="${escapeHtml(track.album)}">
+                                                        <i class="bi bi-play-fill"></i>
+                                                    </button>
+                                                    <button class="btn btn-success btn-sm add-btn"
+                                                            data-item="${escapeHtml(JSON.stringify(track))}">
+                                                        <i class="bi bi-plus-circle"></i>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </li>
                                     `).join('')}
@@ -280,15 +290,19 @@ function loadAlbumDetails(collapse) {
                                 <small class="text-muted ms-2">(${formatDuration(track.duration || "?:??")})</small>
                             </div>
                             <div>
-                                <button class="btn btn-primary btn-sm preview-btn me-2"
-                                        data-path="${escapeHtml(track.path)}"
-                                        data-title="${escapeHtml(track.track)}">
-                                    <i class="bi bi-play-fill"></i>
-                                </button>
-                                <button class="btn btn-success btn-sm add-btn"
-                                        data-item="${escapeHtml(JSON.stringify(track))}">
-                                    <i class="bi bi-plus-circle"></i>
-                                </button>
+                                <div class="track-actions d-flex align-items-center gap-2">
+                                    <button class="btn btn-primary btn-sm preview-btn me-2"
+                                            data-path="${escapeHtml(track.path)}"
+                                            data-title="${escapeHtml(track.track)}"
+                                            data-artist="${escapeHtml(track.artist)}"
+                                            data-album="${escapeHtml(track.album)}">
+                                        <i class="bi bi-play-fill"></i>
+                                    </button>
+                                    <button class="btn btn-success btn-sm add-btn"
+                                            data-item="${escapeHtml(JSON.stringify(track))}">
+                                        <i class="bi bi-plus-circle"></i>
+                                    </button>
+                                </div>
                             </div>
                         </li>
                     `).join('')}
@@ -347,7 +361,7 @@ function attachAddButtons() {
     });
 }
 
-// Preview handling (unchanged, just re-attach)
+// Preview handling
 function attachPreviewButtons() {
     document.querySelectorAll('.preview-btn').forEach(btn => {
         // Remove any old listener to prevent duplicates
@@ -356,8 +370,9 @@ function attachPreviewButtons() {
 
     document.querySelectorAll('.preview-btn').forEach(btn => {
         btn.addEventListener('click', function () {
-            const {path} = this.dataset;
-            const track_name = this.dataset.title || 'Preview';
+            const {path, title, artist, album} = this.dataset;
+            const trackName = title || 'Preview';
+            const artistAlbum = (artist && album) ? `${artist} • ${album}` : (artist || album || 'Preview');
 
             if (!path) return;
 
@@ -374,8 +389,14 @@ function attachPreviewButtons() {
             player.play().catch(e => console.error("Preview failed:", e));
             container.style.display = 'block';
 
-            document.getElementById('now-playing-title').textContent = track_name;
-            document.getElementById('now-playing-artist').textContent = 'Preview';
+            // Use the helper function from ui.js to update track info
+            if (window.updatePlayerTrackInfo) {
+                window.updatePlayerTrackInfo(trackName, artistAlbum);
+            } else {
+                // Fallback if the helper function isn't available yet
+                document.getElementById('now-playing-title').textContent = trackName;
+                document.getElementById('now-playing-artist').textContent = artistAlbum;
+            }
 
             // Visual feedback: change to pause icon
             this.innerHTML = '<i class="bi bi-pause-fill"></i>';
