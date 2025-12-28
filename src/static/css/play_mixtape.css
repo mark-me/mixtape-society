@@ -258,4 +258,60 @@ html[data-bs-theme="dark"] .theme-outline-btn:hover {
     }
 }
 
+/* --- 9. Audio player --- */
+/* --------------------------------------------------------------
+   Bottom player – make the track‑info area use all available space
+   -------------------------------------------------------------- */
+
+/* 1️⃣ Remove the 140 px cap and let the info grow */
+#bottom-player-container .me-2 {
+    max-width: none !important;           /* override the inline max‑width */
+}
+
+/* 2️⃣ Let the info block flex‑grow so it takes the remaining width */
+#bottom-player-container #bottom-now-title,
+#bottom-player-container #bottom-now-artist-album {
+    /* These already have .text-truncate, keep it */
+    width: 100%;                          /* ensure they fill the container */
+}
+
+/* 3️⃣ Make the wrapper that holds the close‑button + info a flex item
+    that can grow, but keep the close button at its natural size. */
+#bottom-player-container .d-flex.align-items-center.mb-2.mb-md-0 {
+    flex: 1 1 auto;                      /* allow it to expand */
+    min-width: 0;                         /* enable truncation */
+}
+
+/* 4️⃣ Reduce the horizontal margin on the native <audio> element
+    so it doesn’t steal space from the info block. */
+#bottom-player-container audio#w-main-player,
+#bottom-player-container audio#main-player {
+    margin-left: 0.5rem !important;
+    margin-right: 0.5rem !important;
+}
+
+/* 5️⃣ On phones the three groups (info, controls, audio) can wrap.
+    Force them onto a single line when there’s enough width, but
+    allow wrapping only when the viewport is < 480 px. */
+@media (max-width: 480px) {
+    #bottom-player-container .d-flex.align-items-center.flex-wrap {
+        flex-wrap: wrap;                 /* let them stack on very small screens */
+    }
+
+    /* Give each group a little bottom margin when stacked */
+    #bottom-player-container .d-flex.align-items-center.mb-2.mb-md-0,
+    #bottom-player-container .mb-2.mb-md-0,
+    #bottom-player-container audio#main-player {
+        margin-bottom: 0.4rem;
+    }
+}
+
+/* 6️⃣ Optional – make the close button a bit smaller on phones
+    so the info gets a few extra pixels. */
+@media (max-width: 576px) {
+    #bottom-player-container #close-bottom-player {
+        padding: 0.25rem 0.4rem;
+        font-size: 0.9rem;
+    }
+}
 
