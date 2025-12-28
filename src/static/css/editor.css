@@ -54,6 +54,17 @@
     border-radius: 0.2em;
 }
 
+/* Fix highlighting in accordion buttons to keep text inline */
+.accordion-button mark {
+    background-color: #ffeb3b;
+    color: #000;
+    padding: 0 0.2em; /* Remove vertical padding, keep horizontal */
+    border-radius: 0.2em;
+    display: inline;
+    line-height: inherit;
+    vertical-align: baseline;
+}
+
 /* Specific colors - light backgrounds for readability */
 #searchContainer .bg-info    { background-color: #cff4fc !important; color: #055160 !important; }
 #searchContainer .bg-warning { background-color: #fff3cd !important; color: #856404 !important; }
