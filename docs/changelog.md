@@ -21,12 +21,12 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 - Mixtape player page:
     - Playback track layout so it looks better on mobile devices
-    - Lessen space for controls on mobile devices
+    - Decreased space for controls on mobile devices
     - More track information in the audio player
 - Mixtape editor page
     - Search results layout in editor looks better on mobile devices
     - Removed redundant labels from artist and album search results
-    - Made player in editor consistent with player_mixtappe
+    - Made player in editor consistent with player_mixtape
 
 ### 🐛 Fixed
 
