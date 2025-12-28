@@ -65,6 +65,12 @@
     vertical-align: baseline;
 }
 
+/* Use contrasting orange highlight for album accordions (yellow background) */
+.accordion-button.bg-warning mark {
+    background-color: #ff6b35; /* Bright orange for contrast */
+    color: #fff; /* White text for readability */
+}
+
 /* Specific colors - light backgrounds for readability */
 #searchContainer .bg-info    { background-color: #cff4fc !important; color: #055160 !important; }
 #searchContainer .bg-warning { background-color: #fff3cd !important; color: #856404 !important; }
