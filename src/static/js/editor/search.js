@@ -85,7 +85,7 @@ function renderResults(data) {
                                 <i class="bi bi-person-fill me-2"></i>
                                 ${entry.artist}
                                 <span class="ms-auto small opacity-75 text-warning">
-                                    <i class="bi bi-disc-fill me-2"> -${entry.num_albums || 0}</i>
+                                    <i class="bi bi-disc-fill me-2">#${entry.num_albums || 0}</i>
                                 </span>
                             </button>
                         </h2>
@@ -118,7 +118,7 @@ function renderResults(data) {
                                 <i class="bi bi-disc-fill me-2"></i>
                                 ${entry.album}
                                 <span class="ms-auto small opacity-75 text-primary">
-                                    <i class="bi bi-music-note-beamed"></i>-${entry.num_tracks || 0}
+                                    <i class="bi bi-music-note-beamed"></i>#${entry.num_tracks || 0}
                                 </span>
                             </button>
                         </h2>
