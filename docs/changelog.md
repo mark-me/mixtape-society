@@ -21,6 +21,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 - Playback track layout so it looks better on mobile devices
 - Plackback items made more mobile friendly
+- More track information in the audio player
 
 ### 🐛 Fixed
 
