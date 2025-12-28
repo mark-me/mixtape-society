@@ -171,11 +171,108 @@
                             <i class="bi bi-play-fill me-2" style="font-size: 1.6rem; position:relative; top:2px;"></i>
                             <span class="btn-text">Play mixtape</span>
                         </button>
+                        <button id="big-download-btn" 
+                                class="btn btn-outline-success btn-lg rounded-pill px-4 py-3 shadow ms-3"
+                                data-bs-toggle="modal" 
+                                data-bs-target="#downloadModal"
+                                title="Download for offline">
+                            <i class="bi bi-download me-2" style="font-size: 1.4rem;"></i>
+                            <span class="btn-text">Download</span>
+                        </button>
                         <button id="big-share-btn" class="btn btn-outline-info btn-lg rounded-pill px-4 py-3 shadow ms-3 copy-share-btn"
                                 title="Copy public share link">
                             <i class="bi bi-share-fill me-2" style="font-size: 1.4rem;"></i>
                             <span class="btn-text">Share</span>
                         </button>
+                    </div>
+                </div>
+
+                <!-- Download Modal -->
+                <div class="modal fade" id="downloadModal" tabindex="-1" aria-labelledby="downloadModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="downloadModalLabel">
+                                    <i class="bi bi-download me-2"></i>Download Mixtape
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p class="text-muted small mb-4">Choose how you'd like to download this mixtape:</p>
+                                
+                                <!-- Mobile Streaming Option -->
+                                <a href="{{ url_for('download.download_playlist', slug=mixtape.slug) }}" 
+                                   class="btn btn-primary btn-lg w-100 mb-3 text-start d-flex align-items-center"
+                                   download="{{ mixtape.slug }}.m3u">
+                                    <div class="flex-shrink-0 me-3">
+                                        <i class="bi bi-phone" style="font-size: 2rem;"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="fw-bold">Mobile - Stream</div>
+                                        <small class="text-white-50">Instant access, streams on-demand (needs internet each time)</small>
+                                    </div>
+                                    <div class="flex-shrink-0">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </div>
+                                </a>
+
+                                <!-- Mobile Offline Download Option -->
+                                <a href="{{ url_for('download.download_playlist_offline', slug=mixtape.slug) }}" 
+                                   class="btn btn-outline-primary btn-lg w-100 mb-3 text-start d-flex align-items-center"
+                                   download="{{ mixtape.slug }}-offline.m3u">
+                                    <div class="flex-shrink-0 me-3">
+                                        <i class="bi bi-cloud-download" style="font-size: 2rem;"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="fw-bold">Mobile - Save for Offline</div>
+                                        <small class="opacity-75">Downloads tracks individually to your device ({{ mixtape.tracks|length }} files)</small>
+                                    </div>
+                                    <div class="flex-shrink-0">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </div>
+                                </a>
+
+                                <hr class="my-4">
+
+                                <!-- Desktop Option (ZIP) -->
+                                <a href="{{ url_for('download.download_mixtape', slug=mixtape.slug) }}" 
+                                   class="btn btn-outline-secondary btn-lg w-100 mb-3 text-start d-flex align-items-center"
+                                   id="desktop-download-btn">
+                                    <div class="flex-shrink-0 me-3">
+                                        <i class="bi bi-laptop" style="font-size: 2rem;"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="fw-bold">Desktop - Complete Package</div>
+                                        <small class="opacity-75">ZIP with all tracks + offline web player (takes 1-2 min)</small>
+                                    </div>
+                                    <div class="flex-shrink-0">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </div>
+                                </a>
+
+                                <!-- Loading state for desktop download -->
+                                <div id="download-progress" class="alert alert-warning d-none" role="alert">
+                                    <div class="d-flex align-items-center">
+                                        <div class="spinner-border spinner-border-sm me-3" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        <div>
+                                            <strong>Preparing your mixtape...</strong><br>
+                                            <small>Converting FLAC files to MP3 and packaging everything. This may take 1-2 minutes.</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Info box -->
+                                <div class="alert alert-info d-flex align-items-start mt-4" role="alert">
+                                    <i class="bi bi-info-circle me-2 flex-shrink-0" style="font-size: 1.2rem;"></i>
+                                    <div class="small" id="download-info-text">
+                                        <strong>On mobile?</strong> Choose "Stream" for instant playback, or "Save for Offline" 
+                                        to download tracks. Opens in VLC, Apple Music, or your preferred music app.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

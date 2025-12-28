@@ -260,7 +260,8 @@ html[data-bs-theme="dark"] .theme-outline-btn:hover {
         justify-content: center;
     }
 
-    .btn-group .btn {
+    .btn-group .btn,
+    .btn-group a.btn {
         width: auto;
         margin-left: 0 !important;
         padding: 0.75rem 1.25rem;
@@ -268,7 +269,8 @@ html[data-bs-theme="dark"] .theme-outline-btn:hover {
 
     /* Hide button text on mobile */
     #big-play-btn .btn-text,
-    #big-share-btn .btn-text {
+    #big-share-btn .btn-text,
+    .btn-group a.btn .btn-text {
         display: none;
     }
 
@@ -279,7 +281,8 @@ html[data-bs-theme="dark"] .theme-outline-btn:hover {
         top: 0 !important;
     }
 
-    #big-share-btn i {
+    #big-share-btn i,
+    .btn-group a.btn i {
         font-size: 1.6rem !important;
         margin: 0 !important;
     }

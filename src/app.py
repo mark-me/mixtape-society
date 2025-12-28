@@ -18,6 +18,7 @@ from routes import (
     create_browser_blueprint,
     create_editor_blueprint,
     create_play_blueprint,
+    create_download_blueprint,
     create_authentication_blueprint,
 )
 from utils import get_version, create_og_cover_blueprint
@@ -167,6 +168,10 @@ def create_app() -> Flask:
     app.register_blueprint(
         create_play_blueprint(mixtape_manager=mixtape_manager, logger=logger),
         url_prefix="/play",
+    )
+    app.register_blueprint(
+        create_download_blueprint(mixtape_manager=mixtape_manager, logger=logger),
+        url_prefix="/download",
     )
     app.register_blueprint(
         create_editor_blueprint(collection=collection, logger=logger),

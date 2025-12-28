@@ -33,10 +33,10 @@ def create_download_blueprint(
     @download.route("/<slug>/playlist.m3u")
     def download_playlist(slug: str) -> Response:
         """
-        Generates an M3U playlist file for mobile music apps.
+        Generates an M3U playlist file for streaming.
         
-        This is the streaming option - tracks are fetched on-demand.
-        Whether tracks are cached depends on the music app's behavior.
+        Uses extended M3U format with full metadata for maximum compatibility
+        with desktop and mobile music players.
 
         Args:
             slug: The unique identifier for the mixtape.
@@ -44,24 +44,67 @@ def create_download_blueprint(
         Returns:
             Response: An M3U playlist file with streaming URLs.
         """
-        mode = request.args.get('mode', 'stream')  # 'stream', 'download', or 'auto'
-        return _generate_m3u_playlist(slug, mode)
+        return _generate_m3u_playlist(slug, mode='stream')
 
     @download.route("/<slug>/playlist-offline.m3u")
     def download_playlist_offline(slug: str) -> Response:
         """
-        Generates an M3U playlist with local file references.
+        Generates an M3U playlist that triggers individual track downloads.
         
-        This prompts the music app to download all tracks for offline use.
-        The app will download each track and store it locally.
+        This creates a special playlist where each track is a direct download link.
+        When opened in a music app, it will prompt to download each track.
 
         Args:
             slug: The unique identifier for the mixtape.
 
         Returns:
-            Response: An M3U playlist configured for offline use.
+            Response: An M3U playlist configured for offline downloads.
         """
         return _generate_m3u_playlist(slug, mode='download')
+
+    @download.route("/<slug>/bulk-download")
+    def bulk_download_tracks(slug: str) -> Response:
+        """
+        Creates a ZIP of all tracks (without the offline player).
+        
+        This is for users who want just the music files to import into
+        their desktop music library (iTunes, Rhythmbox, etc.)
+
+        Args:
+            slug: The mixtape identifier.
+
+        Returns:
+            Response: A ZIP file containing just the audio tracks.
+        """
+        mixtape = mixtape_manager.get(slug)
+        if not mixtape:
+            abort(404)
+
+        try:
+            zip_buffer = io.BytesIO()
+            
+            with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+                # Add all tracks (with conversion)
+                _add_tracks_to_zip(
+                    zip_file, 
+                    mixtape, 
+                    Path(current_app.config["MUSIC_ROOT"]),
+                    logger
+                )
+            
+            zip_buffer.seek(0)
+            
+            filename = f"{slug}-tracks.zip"
+            return send_file(
+                zip_buffer,
+                mimetype="application/zip",
+                as_attachment=True,
+                download_name=filename,
+            )
+            
+        except Exception as e:
+            logger.error(f"Failed to create track package for {slug}: {e}")
+            abort(500)
 
     def _generate_m3u_playlist(slug: str, mode: str = 'stream') -> Response:
         """
@@ -69,10 +112,9 @@ def create_download_blueprint(
         
         Args:
             slug: The mixtape identifier.
-            mode: 'stream' (default), 'download', or 'auto'
-                - stream: URLs point to streaming endpoint
-                - download: URLs use download disposition, prompting save
-                - auto: Let the music app decide (same as stream but with cache hints)
+            mode: 'stream' (default) or 'download'
+                - stream: URLs point to streaming endpoint with inline disposition
+                - download: URLs point to download endpoint with attachment disposition
         
         Returns:
             Response: An M3U playlist file.
@@ -81,24 +123,41 @@ def create_download_blueprint(
         if not mixtape:
             abort(404)
 
-        # Create M3U playlist with direct URLs
+        # Use EXTM3U format for better compatibility
         m3u_content = "#EXTM3U\n"
-        m3u_content += f"#PLAYLIST:{mixtape.get('title', 'Mixtape')}\n\n"
         
-        for track in mixtape.get("tracks", []):
+        # Add playlist-level metadata
+        m3u_content += f"#PLAYLIST:{mixtape.get('title', 'Mixtape')}\n"
+        
+        # Add extended info for better player compatibility
+        if mixtape.get('liner_notes'):
+            # Some players show this as description
+            m3u_content += f"#EXTINFO:{mixtape.get('title')} - A personal mixtape\n"
+        
+        m3u_content += "\n"
+        
+        for idx, track in enumerate(mixtape.get("tracks", []), 1):
             title = track.get("track", "Unknown")
             artist = track.get("artist", "Unknown")
+            album = track.get("album", "")
             
-            # Add metadata for the track
+            # Extended info format: #EXTINF:duration,artist - title
+            # Duration -1 means unknown (will be calculated by player)
             m3u_content += f"#EXTINF:-1,{artist} - {title}\n"
+            
+            # Add extended metadata tags for players that support them
+            if artist:
+                m3u_content += f"#EXTART:{artist}\n"
+            if album:
+                m3u_content += f"#EXTALB:{album}\n"
             
             # Build URL based on mode
             if mode == 'download':
-                # This URL will trigger a download prompt
-                track_url = f"{request.url_root}download/{slug}/track-file/{track.get('path')}"
+                # Attachment disposition - forces download
+                track_url = f"{request.url_root.rstrip('/')}download/{slug}/track-file/{track.get('path')}"
             else:
-                # This URL is for streaming (but apps may cache)
-                track_url = f"{request.url_root}download/{slug}/track/{track.get('path')}"
+                # Inline disposition - allows streaming
+                track_url = f"{request.url_root.rstrip('/')}download/{slug}/track/{track.get('path')}"
             
             m3u_content += f"{track_url}\n\n"
         
@@ -108,7 +167,8 @@ def create_download_blueprint(
             m3u_content,
             mimetype="audio/x-mpegurl",
             headers={
-                "Content-Disposition": f'attachment; filename="{filename}"'
+                "Content-Disposition": f'attachment; filename="{filename}"',
+                "Content-Type": "audio/x-mpegurl; charset=utf-8"
             }
         )
 
@@ -311,32 +371,228 @@ def create_download_blueprint(
         Args:
             zip_file: The ZIP archive to add the player to.
         """
-        # Read the offline player template from the static directory
-        player_path = Path(__file__).parent / "templates" / "offline_player.html"
+        # Embed the offline player HTML directly (since we created it)
+        # This ensures it's always included regardless of file structure
+        player_html = """<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="mixtape-title">Mixtape Player</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+        }
+        .player-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .track-item {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .track-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .track-item.active {
+            background-color: rgba(74, 144, 226, 0.3);
+            border-left: 4px solid #4a90e2;
+        }
+        .cover-img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        #liner-notes {
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <div class="row g-4">
+            <!-- Left Column: Cover & Info -->
+            <div class="col-lg-4">
+                <div class="player-card rounded-3 shadow-lg p-4 text-center">
+                    <img id="cover-image" src="" alt="Cover" class="cover-img mb-4" style="display: none;">
+                    <h1 class="h3 mb-2" id="mixtape-title-display">Loading...</h1>
+                    <p class="text-muted small mb-4" id="track-count"></p>
+                    
+                    <div class="d-grid gap-2 mb-4">
+                        <button class="btn btn-primary btn-lg" id="play-all">
+                            <i class="bi bi-play-fill"></i> Play All
+                        </button>
+                    </div>
+
+                    <!-- Liner Notes -->
+                    <div class="mt-4" id="liner-notes-section" style="display: none;">
+                        <h5 class="mb-3">Tape Talk</h5>
+                        <div class="text-start" id="liner-notes"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Tracklist -->
+            <div class="col-lg-8">
+                <div class="player-card rounded-3 shadow-lg p-4">
+                    <h4 class="mb-4">Tracklist</h4>
+                    <div class="list-group" id="tracklist"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Player -->
+        <div class="fixed-bottom" id="bottom-player" style="display: none;">
+            <div class="bg-dark shadow-lg border-top">
+                <div class="container py-3">
+                    <div class="d-flex align-items-center gap-3 flex-wrap">
+                        <div class="flex-grow-1">
+                            <div class="fw-bold" id="now-playing-title">—</div>
+                            <div class="small text-muted" id="now-playing-artist">—</div>
+                        </div>
+                        <div>
+                            <button class="btn btn-sm btn-outline-light" id="prev-btn">
+                                <i class="bi bi-skip-backward-fill"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-light ms-1" id="play-pause-btn">
+                                <i class="bi bi-play-fill"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-light ms-1" id="next-btn">
+                                <i class="bi bi-skip-forward-fill"></i>
+                            </button>
+                        </div>
+                        <audio id="audio-player" controls class="flex-grow-1" style="max-width: 400px;"></audio>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let mixtapeData = null;
+        let currentTrackIndex = -1;
+        const audioPlayer = document.getElementById('audio-player');
+        const tracklist = document.getElementById('tracklist');
+        const bottomPlayer = document.getElementById('bottom-player');
+        const nowPlayingTitle = document.getElementById('now-playing-title');
+        const nowPlayingArtist = document.getElementById('now-playing-artist');
+
+        // Load mixtape metadata
+        fetch('mixtape.json')
+            .then(r => r.json())
+            .then(data => {
+                mixtapeData = data;
+                renderMixtape();
+            })
+            .catch(err => {
+                console.error('Failed to load mixtape:', err);
+                alert('Error loading mixtape data');
+            });
+
+        function renderMixtape() {
+            // Set title
+            document.getElementById('mixtape-title').textContent = mixtapeData.title;
+            document.getElementById('mixtape-title-display').textContent = mixtapeData.title;
+            document.getElementById('track-count').textContent = `${mixtapeData.tracks.length} tracks`;
+
+            // Show cover if exists
+            const coverImg = document.getElementById('cover-image');
+            if (mixtapeData.cover !== undefined) {
+                const coverPath = 'cover.jpg';
+                coverImg.src = coverPath;
+                coverImg.style.display = 'block';
+                coverImg.onerror = () => {
+                    coverImg.src = 'cover.png';
+                    coverImg.onerror = () => coverImg.style.display = 'none';
+                };
+            }
+
+            // Show liner notes if present
+            if (mixtapeData.liner_notes && mixtapeData.liner_notes.trim()) {
+                document.getElementById('liner-notes-section').style.display = 'block';
+                document.getElementById('liner-notes').textContent = mixtapeData.liner_notes;
+            }
+
+            // Render tracklist
+            mixtapeData.tracks.forEach((track, index) => {
+                const trackEl = document.createElement('div');
+                trackEl.className = 'list-group-item track-item d-flex align-items-center gap-3';
+                trackEl.innerHTML = `
+                    <button class="btn btn-light rounded-circle" style="width: 48px; height: 48px;">
+                        <i class="bi bi-play-fill"></i>
+                    </button>
+                    <div class="flex-grow-1">
+                        <div class="fw-bold">${track.track}</div>
+                        <div class="small text-muted">${track.artist}${track.album ? ' • ' + track.album : ''}</div>
+                    </div>
+                `;
+                trackEl.onclick = () => playTrack(index);
+                tracklist.appendChild(trackEl);
+            });
+        }
+
+        function playTrack(index) {
+            if (index < 0 || index >= mixtapeData.tracks.length) return;
+
+            const track = mixtapeData.tracks[index];
+            audioPlayer.src = track.filename;
+            audioPlayer.play();
+            
+            currentTrackIndex = index;
+            bottomPlayer.style.display = 'block';
+            
+            nowPlayingTitle.textContent = track.track;
+            nowPlayingArtist.textContent = `${track.artist}${track.album ? ' • ' + track.album : ''}`;
+
+            // Update UI
+            document.querySelectorAll('.track-item').forEach((el, i) => {
+                el.classList.toggle('active', i === index);
+                const icon = el.querySelector('i');
+                icon.className = i === index ? 'bi bi-pause-fill' : 'bi bi-play-fill';
+            });
+        }
+
+        // Controls
+        document.getElementById('play-all').onclick = () => playTrack(0);
+        document.getElementById('prev-btn').onclick = () => playTrack(currentTrackIndex - 1);
+        document.getElementById('next-btn').onclick = () => playTrack(currentTrackIndex + 1);
         
-        if player_path.exists():
-            with open(player_path, "r", encoding="utf-8") as f:
-                player_html = f.read()
-            zip_file.writestr("index.html", player_html)
-        else:
-            # Fallback: create a basic README if template is missing
-            readme = """# Mixtape Offline Package
+        document.getElementById('play-pause-btn').onclick = () => {
+            if (currentTrackIndex === -1) {
+                playTrack(0);
+            } else if (audioPlayer.paused) {
+                audioPlayer.play();
+            } else {
+                audioPlayer.pause();
+            }
+        };
 
-This package contains your mixtape for offline playback.
+        // Auto-play next track
+        audioPlayer.addEventListener('ended', () => {
+            if (currentTrackIndex < mixtapeData.tracks.length - 1) {
+                playTrack(currentTrackIndex + 1);
+            }
+        });
 
-## Contents:
-- mixtape.json: Metadata about your mixtape
-- Audio files: All tracks in MP3 format
-- cover.jpg/png: Cover artwork (if available)
-
-To play:
-1. Extract this ZIP file
-2. Open the audio files in your preferred music player
-3. Refer to mixtape.json for track order and information
-
-Enjoy your music!
-"""
-            zip_file.writestr("README.txt", readme)
+        // Update play/pause button icon
+        audioPlayer.addEventListener('play', () => {
+            document.querySelector('#play-pause-btn i').className = 'bi bi-pause-fill';
+        });
+        audioPlayer.addEventListener('pause', () => {
+            document.querySelector('#play-pause-btn i').className = 'bi bi-play-fill';
+        });
+    </script>
+</body>
+</html>"""
+        
+        zip_file.writestr("index.html", player_html)
 
     def _add_cover_to_zip(
         zip_file: zipfile.ZipFile, mixtape: dict, cover_dir: Path
@@ -423,7 +679,7 @@ Enjoy your music!
         """
         Converts a FLAC file to MP3 format using FFmpeg.
 
-        Preserves metadata tags and uses high-quality encoding (320kbps).
+        Preserves metadata tags and uses high-quality encoding (320 kbps).
 
         Args:
             flac_path: Path to the FLAC file.
