@@ -89,22 +89,71 @@ h4.text-white {
 }
 
 /* Mobile tweaks */
-@media (max-width: 767.98px) {
+@media (max-width: 576px) {
+
+    /* 1️⃣ Bootstrap .container and .container‑fluid have 15 px side padding.
+        We strip that padding on phones so the inner columns can reach the
+        very edge of the viewport. */
+    .container,
+    .container-fluid {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* 2️⃣ The row that holds the two columns (.row.g‑5) adds a horizontal
+        gap (the “g‑5” gutter). We already removed the gap in the previous
+        snippet, but we also need to force the row itself to be full‑width. */
+    .row.g-5 {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        width: 100% !important;
+    }
+
+    /* 3️⃣ Force the column that contains the track list to occupy the
+        full width of its parent (the row). This also removes the default
+        15 px column padding that Bootstrap applies. */
+    .col-lg-8,
+    .col-lg-4 {                     /* also affects the left‑hand column
+                                      so the whole page aligns */
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        flex: 0 0 100% !important;   /* 100 % of the row */
+        max-width: 100% !important;
+    }
+
+    /* 4️⃣ The list that actually renders the tracks – make it flush. */
+    .list-group {
+        width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    /* 5️⃣ Individual track rows – already full‑width, but we tighten the
+        side padding a little more (feel free to adjust the .5rem value). */
     .track-item {
-        padding: 1rem 1.5rem !important;
+        width: 100%;
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+        box-sizing: border-box;
     }
 
-    .track-item .fw-bold {
-        font-size: 1.25rem;  /* Bigger title on small screens */
-    }
-
+    /* 6️⃣ Small tweak: shrink the play button so the text gets even more
+        room on very narrow screens. */
     .track-item .play-this-track {
-        width: 52px;
-        height: 52px;
+        width: 44px;
+        height: 44px;
+        margin-right: 0.4rem;
     }
 
-    .track-item .play-this-track i {
-        font-size: 1.5rem;
+    /* 7️⃣ Ensure the text block can truncate correctly. */
+    .track-item .flex-grow-1 {
+        min-width: 0;
     }
 }
 
