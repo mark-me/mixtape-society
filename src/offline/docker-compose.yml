@@ -1,0 +1,36 @@
+services:
+  mixtape:
+    image: mixtape-society:latest
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    container_name: mixtape-society
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    volumes:
+      # Your music collection (read-only)
+      - /home/mark/Music:/music:ro
+      # App-generated data (includes database, covers, logs)
+      - ../collection-data:/app/collection-data
+    environment:
+      - APP_ENV=production
+      - LOG_LEVEL=INFO
+
+      # These override everything — required in production
+      - MUSIC_ROOT=/music
+      - DATA_ROOT=/app/collection-data
+
+      # Strong password!
+      - PASSWORD=supergeheim123
+    
+    # Optional: Resource limits to prevent FFmpeg from using too much CPU
+    # Uncomment if you experience high CPU usage during downloads
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '2.0'
+    #       memory: 2G
+    #     reservations:
+    #       cpus: '0.5'
+    #       memory: 512M
