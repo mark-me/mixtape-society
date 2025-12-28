@@ -149,13 +149,15 @@ function renderResults(data) {
                         </small>
                     </div>
                     <div class="d-flex align-items-center">
-                        <span class="text-muted me-3">${formatDuration(track.duration || "?:??")}</span>
-                        <button class="btn btn-primary btn-sm preview-btn me-2" data-path="${escapeHtml(track.path)}" data-title="${escapeHtml(track.track)}">
-                            <i class="bi bi-play-fill"></i>
-                        </button>
-                        <button class="btn btn-success btn-sm add-btn" data-item="${escapeHtml(JSON.stringify(track))}">
-                            <i class="bi bi-plus-circle"></i>
-                        </button>
+                        <div class="track-actions d-flex align-items-center gap-2">
+                            <span class="text-muted me-3">${formatDuration(track.duration || "?:??")}</span>
+                            <button class="btn btn-primary btn-sm preview-btn" data-path="${escapeHtml(track.path)}" data-title="${escapeHtml(track.track)}">
+                                <i class="bi bi-play-fill"></i>
+                            </button>
+                            <button class="btn btn-success btn-sm add-btn" data-item="${escapeHtml(JSON.stringify(track))}">
+                                <i class="bi bi-plus-circle"></i>
+                            </button>
+                        </div>
                     </div>
                 </li>`;
         }).join('');
@@ -227,15 +229,17 @@ function loadArtistDetails(collapse) {
                                                 <small class="text-muted ms-2">(${formatDuration(track.duration || "?:??")})</small>
                                             </div>
                                             <div>
-                                                <button class="btn btn-primary btn-sm preview-btn me-2"
-                                                        data-path="${escapeHtml(track.path)}"
-                                                        data-title="${escapeHtml(track.track)}">
-                                                    <i class="bi bi-play-fill"></i>
-                                                </button>
-                                                <button class="btn btn-success btn-sm add-btn"
-                                                        data-item="${escapeHtml(JSON.stringify(track))}">
-                                                    <i class="bi bi-plus-circle"></i>
-                                                </button>
+                                                <div class="track-actions d-flex align-items-center gap-2">
+                                                    <button class="btn btn-primary btn-sm preview-btn me-2"
+                                                            data-path="${escapeHtml(track.path)}"
+                                                            data-title="${escapeHtml(track.track)}">
+                                                        <i class="bi bi-play-fill"></i>
+                                                    </button>
+                                                    <button class="btn btn-success btn-sm add-btn"
+                                                            data-item="${escapeHtml(JSON.stringify(track))}">
+                                                        <i class="bi bi-plus-circle"></i>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </li>
                                     `).join('')}
@@ -280,15 +284,17 @@ function loadAlbumDetails(collapse) {
                                 <small class="text-muted ms-2">(${formatDuration(track.duration || "?:??")})</small>
                             </div>
                             <div>
-                                <button class="btn btn-primary btn-sm preview-btn me-2"
-                                        data-path="${escapeHtml(track.path)}"
-                                        data-title="${escapeHtml(track.track)}">
-                                    <i class="bi bi-play-fill"></i>
-                                </button>
-                                <button class="btn btn-success btn-sm add-btn"
-                                        data-item="${escapeHtml(JSON.stringify(track))}">
-                                    <i class="bi bi-plus-circle"></i>
-                                </button>
+                                <div class="track-actions d-flex align-items-center gap-2">
+                                    <button class="btn btn-primary btn-sm preview-btn me-2"
+                                            data-path="${escapeHtml(track.path)}"
+                                            data-title="${escapeHtml(track.track)}">
+                                        <i class="bi bi-play-fill"></i>
+                                    </button>
+                                    <button class="btn btn-success btn-sm add-btn"
+                                            data-item="${escapeHtml(JSON.stringify(track))}">
+                                        <i class="bi bi-plus-circle"></i>
+                                    </button>
+                                </div>
                             </div>
                         </li>
                     `).join('')}

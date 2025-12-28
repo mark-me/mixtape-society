@@ -253,3 +253,63 @@ body.reorder-mode #search-bar {                                     /* The title
     border-radius: 0.5rem;
     overflow-y: auto;
 }
+
+
+@media (max-width: 576px) {
+    /* 1. Make the whole button behave like normal block text */
+    .accordion-button {
+        align-items: flex-start   !important;   /* stop vertical centering */
+        white-space: normal       !important;   /* allow line breaks */
+        flex-wrap: wrap           !important;   /* let the inner flex items wrap */
+        text-align: left;                       /* left‑align the label */
+        padding-top: .75rem;                    /* a little extra vertical breathing room */
+        padding-bottom: .75rem;
+    }
+
+    /* 2. Keep the icon (the <i class="bi …">) from forcing extra space */
+   .accordion-button .bi {
+        flex: 0 0 auto;                 /* keep its natural size */
+        margin-top: .125rem;            /* nudge it to line‑up with the first line of text */
+        margin-right: .5rem;            /* space between icon and text */
+    }
+
+    /* 3. The textual part of the button is everything *except* the icon.
+        We force it to take the remaining width and wrap naturally. */
+    .accordion-button .accordion-button-text,
+    .accordion-button > span:not(.bi),          /* catches plain text nodes */
+    .accordion-button > div:not(.bi) {
+        flex: 1 1 0%;                   /* grow‑shrink, start at 0% width */
+        min-width: 0;                   /* crucial – lets the text shrink inside flex */
+        word-break: break-word;         /* break long words sensibly */
+        overflow-wrap: anywhere;        /* extra safety for ultra‑long strings */
+    }
+
+    /* 4. If you happen to have <strong> or <h5> inside the button
+        (some of the templates do), make sure they inherit the same
+        wrapping behaviour. */
+    .accordion-button strong,
+    .accordion-button h5 {
+        display: inline;                /* keep them inline with the surrounding text */
+        font-weight: normal;            /* optional – you can keep the bold if you wish */
+    }
+
+    /* Ensure the right‑hand button group stays on one line */
+    .list-group-item > .d-flex.align-items-center {
+        flex-wrap: nowrap;               /* never wrap */
+        gap: .5rem;                      /* consistent spacing */
+    }
+
+    /* Give the buttons a predictable size – they’ll shrink only a little */
+    .list-group-item .preview-btn,
+    .list-group-item .add-btn {
+        min-width: 2.2rem;               /* enough for the icon */
+        padding: .35rem .5rem;           /* tighter padding on mobile */
+        line-height: 1;                  /* removes extra vertical space */
+    }
+
+    /* Align the duration label with the buttons */
+    .list-group-item .text-muted.me-3 {
+        margin-right: .5rem !important;
+        white-space: nowrap;             /* keep “mm:ss” on one line */
+    }
+}
