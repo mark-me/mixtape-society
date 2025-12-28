@@ -62,15 +62,12 @@ h4.text-white {
 .list-group-numbered {
     counter-reset: track-counter;
     padding-left: 0;
-    /* Remove Bootstrap's default padding */
     list-style: none;
-    /* Ensure no fallback numbers */
 }
 
 .list-group-numbered .list-group-item {
     position: relative;
     padding: 1rem 1rem 1rem 3.5rem !important;
-    /* Left padding for number + content */
     border: none;
     background-color: var(--bs-tertiary-bg);
     border-bottom: 1px solid var(--bs-border-color);
@@ -90,7 +87,7 @@ h4.text-white {
     text-align: right;
 }
 
-/* Rounded corners for first/last track */
+/* Rounded corners */
 .list-group-numbered .list-group-item:first-child {
     border-top-left-radius: 0.5rem;
     border-top-right-radius: 0.5rem;
@@ -102,91 +99,50 @@ h4.text-white {
     border-bottom: none;
 }
 
-.play-this-track {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Better truncation for track info */
+/* Better truncation */
 .track-item .min-width-0 {
-    min-width: 0;  /* Allows flex child to shrink and truncate */
+    min-width: 0;
 }
 
-/* Duration styling */
-.track-item .text-nowrap {
-    opacity: 0.7;
-    min-width: 45px;  /* Enough space for ~10:00 */
-    text-align: right;
-}
-
-/* Slightly more pronounced title */
+/* Title styling */
 .track-item .fw-bold {
-    font-size: 1.1rem;
-    line-height: 1.3;
+    font-size: 1.15rem;
+    line-height: 1.4;
 }
 
-/* Mobile: stack duration above play button if space is tight */
-@media (max-width: 576px) {
-    .track-item .d-flex.gap-3 {
-        flex-direction: column;
-        gap: 0.5rem !important;
-    }
-    .track-item .text-nowrap {
-        text-align: center;
-    }
-}
-
-/* Mobile: Ensure full-width text and better spacing */
-@media (max-width: 767.98px) {  /* Targets mobile/tablet */
-    .track-item {
-        padding: 1.25rem 1.5rem !important;  /* More vertical/horizontal padding */
-    }
-
-    .track-item .fw-bold {
-        font-size: 1.2rem;  /* Slightly larger title on mobile for prominence */
-        line-height: 1.35;
-    }
-
-    .track-item .small.text-muted {
-        font-size: 0.9rem;  /* Artist/album a touch larger */
-    }
-
-    /* Center the controls block slightly for aesthetics */
-    .track-item > .d-flex.align-items-center {
-        align-self: flex-end;  /* Pushes to the right on mobile */
-    }
-}
-
-/* Tabular nums for perfect duration alignment */
-.track-item .tabular-nums {
-    font-variant-numeric: tabular-nums;
-    min-width: 50px;
-    opacity: 0.8;
-}
-
-/* Hover effect on play button */
-.track-item .play-this-track:hover {
-    transform: scale(1.08);
-    background-color: var(--bs-primary) !important;
-    color: white !important;
-}
-
-/* Ensure duration is clearly visible above button */
+/* Duration styling (global) */
 .track-item .tabular-nums {
     font-variant-numeric: tabular-nums;
     opacity: 0.85;
     font-size: 0.9rem;
 }
 
-/* Mobile: extra breathing room */
+/* Play button hover */
+.track-item .play-this-track:hover {
+    transform: scale(1.08);
+    background-color: var(--bs-primary) !important;
+    color: white !important;
+}
+
+/* Mobile layout: vertical stack with centered duration + button */
 @media (max-width: 767.98px) {
     .track-item {
-        padding: 1.5rem 1.5rem !important;
+        padding: 1.5rem 1.5rem !important; /* More breathing room */
+        flex-direction: column !important;
+        align-items: flex-start !important;
+    }
+
+    .track-item > .d-flex.flex-column.align-items-center {
+        align-self: center;     /* True centering */
+        margin-top: 0.75rem;
     }
 
     .track-item .fw-bold {
-        font-size: 1.25rem;
+        font-size: 1.25rem;     /* Larger title on mobile */
+    }
+
+    .track-item .tabular-nums {
+        font-size: 0.85rem;
     }
 }
 
