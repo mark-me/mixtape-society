@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="mixtape-title">Mixtape Player</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+        }
+        .player-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .track-item {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .track-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .track-item.active {
+            background-color: rgba(74, 144, 226, 0.3);
+            border-left: 4px solid #4a90e2;
+        }
+        .cover-img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        #liner-notes {
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <div class="row g-4">
+            <!-- Left Column: Cover & Info -->
+            <div class="col-lg-4">
+                <div class="player-card rounded-3 shadow-lg p-4 text-center">
+                    <img id="cover-image" src="" alt="Cover" class="cover-img mb-4" style="display: none;">
+                    <h1 class="h3 mb-2" id="mixtape-title-display">Loading...</h1>
+                    <p class="text-muted small mb-4" id="track-count"></p>
+                    
+                    <div class="d-grid gap-2 mb-4">
+                        <button class="btn btn-primary btn-lg" id="play-all">
+                            <i class="bi bi-play-fill"></i> Play All
+                        </button>
+                    </div>
+
+                    <!-- Liner Notes -->
+                    <div class="mt-4" id="liner-notes-section" style="display: none;">
+                        <h5 class="mb-3">Tape Talk</h5>
+                        <div class="text-start" id="liner-notes"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Tracklist -->
+            <div class="col-lg-8">
+                <div class="player-card rounded-3 shadow-lg p-4">
+                    <h4 class="mb-4">Tracklist</h4>
+                    <div class="list-group" id="tracklist"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Player -->
+        <div class="fixed-bottom" id="bottom-player" style="display: none;">
+            <div class="bg-dark shadow-lg border-top">
+                <div class="container py-3">
+                    <div class="d-flex align-items-center gap-3 flex-wrap">
+                        <div class="flex-grow-1">
+                            <div class="fw-bold" id="now-playing-title">—</div>
+                            <div class="small text-muted" id="now-playing-artist">—</div>
+                        </div>
+                        <div>
+                            <button class="btn btn-sm btn-outline-light" id="prev-btn">
+                                <i class="bi bi-skip-backward-fill"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-light ms-1" id="play-pause-btn">
+                                <i class="bi bi-play-fill"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-light ms-1" id="next-btn">
+                                <i class="bi bi-skip-forward-fill"></i>
+                            </button>
+                        </div>
+                        <audio id="audio-player" controls class="flex-grow-1" style="max-width: 400px;"></audio>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let mixtapeData = null;
+        let currentTrackIndex = -1;
+        const audioPlayer = document.getElementById('audio-player');
+        const tracklist = document.getElementById('tracklist');
+        const bottomPlayer = document.getElementById('bottom-player');
+        const nowPlayingTitle = document.getElementById('now-playing-title');
+        const nowPlayingArtist = document.getElementById('now-playing-artist');
+
+        // Load mixtape metadata
+        fetch('mixtape.json')
+            .then(r => r.json())
+            .then(data => {
+                mixtapeData = data;
+                renderMixtape();
+            })
+            .catch(err => {
+                console.error('Failed to load mixtape:', err);
+                alert('Error loading mixtape data');
+            });
+
+        function renderMixtape() {
+            // Set title
+            document.getElementById('mixtape-title').textContent = mixtapeData.title;
+            document.getElementById('mixtape-title-display').textContent = mixtapeData.title;
+            document.getElementById('track-count').textContent = `${mixtapeData.tracks.length} tracks`;
+
+            // Show cover if exists
+            const coverImg = document.getElementById('cover-image');
+            if (mixtapeData.cover !== undefined) {
+                // Look for cover.jpg or cover.png
+                const coverPath = 'cover.jpg';
+                coverImg.src = coverPath;
+                coverImg.style.display = 'block';
+                coverImg.onerror = () => {
+                    // Try .png if .jpg fails
+                    coverImg.src = 'cover.png';
+                    coverImg.onerror = () => coverImg.style.display = 'none';
+                };
+            }
+
+            // Show liner notes if present
+            if (mixtapeData.liner_notes && mixtapeData.liner_notes.trim()) {
+                document.getElementById('liner-notes-section').style.display = 'block';
+                document.getElementById('liner-notes').textContent = mixtapeData.liner_notes;
+            }
+
+            // Render tracklist
+            mixtapeData.tracks.forEach((track, index) => {
+                const trackEl = document.createElement('div');
+                trackEl.className = 'list-group-item track-item d-flex align-items-center gap-3';
+                trackEl.innerHTML = `
+                    <button class="btn btn-light rounded-circle" style="width: 48px; height: 48px;">
+                        <i class="bi bi-play-fill"></i>
+                    </button>
+                    <div class="flex-grow-1">
+                        <div class="fw-bold">${track.track}</div>
+                        <div class="small text-muted">${track.artist}${track.album ? ' • ' + track.album : ''}</div>
+                    </div>
+                `;
+                trackEl.onclick = () => playTrack(index);
+                tracklist.appendChild(trackEl);
+            });
+        }
+
+        function playTrack(index) {
+            if (index < 0 || index >= mixtapeData.tracks.length) return;
+
+            const track = mixtapeData.tracks[index];
+            audioPlayer.src = track.filename;
+            audioPlayer.play();
+            
+            currentTrackIndex = index;
+            bottomPlayer.style.display = 'block';
+            
+            nowPlayingTitle.textContent = track.track;
+            nowPlayingArtist.textContent = `${track.artist}${track.album ? ' • ' + track.album : ''}`;
+
+            // Update UI
+            document.querySelectorAll('.track-item').forEach((el, i) => {
+                el.classList.toggle('active', i === index);
+                const icon = el.querySelector('i');
+                icon.className = i === index ? 'bi bi-pause-fill' : 'bi bi-play-fill';
+            });
+        }
+
+        // Controls
+        document.getElementById('play-all').onclick = () => playTrack(0);
+        document.getElementById('prev-btn').onclick = () => playTrack(currentTrackIndex - 1);
+        document.getElementById('next-btn').onclick = () => playTrack(currentTrackIndex + 1);
+        
+        document.getElementById('play-pause-btn').onclick = () => {
+            if (currentTrackIndex === -1) {
+                playTrack(0);
+            } else if (audioPlayer.paused) {
+                audioPlayer.play();
+            } else {
+                audioPlayer.pause();
+            }
+        };
+
+        // Auto-play next track
+        audioPlayer.addEventListener('ended', () => {
+            if (currentTrackIndex < mixtapeData.tracks.length - 1) {
+                playTrack(currentTrackIndex + 1);
+            }
+        });
+
+        // Update play/pause button icon
+        audioPlayer.addEventListener('play', () => {
+            document.querySelector('#play-pause-btn i').className = 'bi bi-pause-fill';
+        });
+        audioPlayer.addEventListener('pause', () => {
+            document.querySelector('#play-pause-btn i').className = 'bi bi-play-fill';
+        });
+    </script>
+</body>
+</html>
