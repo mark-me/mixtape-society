@@ -169,15 +169,22 @@ body.reorder-mode #search-bar {                                     /* The title
 /* Position count badges to the far right, before the chevron */
 .accordion-button {
     position: relative;
+    padding-right: 7rem !important; /* Make space for pill badge + chevron */
+    white-space: normal; /* Allow text to wrap */
+    text-align: left; /* Keep text left-aligned */
+    min-height: 3rem; /* Ensure minimum height */
 }
 
 .accordion-button .ms-auto {
     position: absolute;
     right: 2.5rem; /* Leave space for the chevron icon */
+    top: 50%;
+    transform: translateY(-50%); /* Center vertically */
     margin-left: 0 !important; /* Override ms-auto margin */
     padding: 0.25rem 0.75rem;
     border-radius: 50rem; /* Pill shape */
     font-weight: 500;
+    white-space: nowrap; /* Prevent pill content from wrapping */
 }
 
 /* Artist accordion (bg-success) - pill should be warning color with success text */
