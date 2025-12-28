@@ -20,6 +20,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 ### 🔧 Changed
 
 - Playback track layout so it looks better on mobile devices
+- Plackback items made more mobile friendly
 
 ### 🐛 Fixed
 
