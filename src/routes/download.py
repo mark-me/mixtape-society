@@ -34,7 +34,7 @@ def create_download_blueprint(
     def download_playlist(slug: str) -> Response:
         """
         Generates an M3U playlist file for streaming.
-        
+
         Uses extended M3U format with full metadata for maximum compatibility
         with desktop and mobile music players.
 
@@ -50,7 +50,7 @@ def create_download_blueprint(
     def download_playlist_offline(slug: str) -> Response:
         """
         Generates an M3U playlist that triggers individual track downloads.
-        
+
         This creates a special playlist where each track is a direct download link.
         When opened in a music app, it will prompt to download each track.
 
@@ -66,7 +66,7 @@ def create_download_blueprint(
     def bulk_download_tracks(slug: str) -> Response:
         """
         Creates a ZIP of all tracks (without the offline player).
-        
+
         This is for users who want just the music files to import into
         their desktop music library (iTunes, Rhythmbox, etc.)
 
@@ -82,18 +82,18 @@ def create_download_blueprint(
 
         try:
             zip_buffer = io.BytesIO()
-            
+
             with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
                 # Add all tracks (with conversion)
                 _add_tracks_to_zip(
-                    zip_file, 
-                    mixtape, 
+                    zip_file,
+                    mixtape,
                     Path(current_app.config["MUSIC_ROOT"]),
                     logger
                 )
-            
+
             zip_buffer.seek(0)
-            
+
             filename = f"{slug}-tracks.zip"
             return send_file(
                 zip_buffer,
@@ -101,7 +101,7 @@ def create_download_blueprint(
                 as_attachment=True,
                 download_name=filename,
             )
-            
+
         except Exception as e:
             logger.error(f"Failed to create track package for {slug}: {e}")
             abort(500)
@@ -109,13 +109,13 @@ def create_download_blueprint(
     def _generate_m3u_playlist(slug: str, mode: str = 'stream') -> Response:
         """
         Internal helper to generate M3U playlists with different caching strategies.
-        
+
         Args:
             slug: The mixtape identifier.
             mode: 'stream' (default) or 'download'
                 - stream: URLs point to streaming endpoint with inline disposition
                 - download: URLs point to download endpoint with attachment disposition
-        
+
         Returns:
             Response: An M3U playlist file.
         """
@@ -125,32 +125,32 @@ def create_download_blueprint(
 
         # Use EXTM3U format for better compatibility
         m3u_content = "#EXTM3U\n"
-        
+
         # Add playlist-level metadata
         m3u_content += f"#PLAYLIST:{mixtape.get('title', 'Mixtape')}\n"
-        
+
         # Add extended info for better player compatibility
         if mixtape.get('liner_notes'):
             # Some players show this as description
             m3u_content += f"#EXTINFO:{mixtape.get('title')} - A personal mixtape\n"
-        
+
         m3u_content += "\n"
-        
+
         for idx, track in enumerate(mixtape.get("tracks", []), 1):
             title = track.get("track", "Unknown")
             artist = track.get("artist", "Unknown")
             album = track.get("album", "")
-            
+
             # Extended info format: #EXTINF:duration,artist - title
             # Duration -1 means unknown (will be calculated by player)
             m3u_content += f"#EXTINF:-1,{artist} - {title}\n"
-            
+
             # Add extended metadata tags for players that support them
             if artist:
                 m3u_content += f"#EXTART:{artist}\n"
             if album:
                 m3u_content += f"#EXTALB:{album}\n"
-            
+
             # Build URL based on mode
             if mode == 'download':
                 # Attachment disposition - forces download
@@ -158,11 +158,11 @@ def create_download_blueprint(
             else:
                 # Inline disposition - allows streaming
                 track_url = f"{request.url_root.rstrip('/')}download/{slug}/track/{track.get('path')}"
-            
+
             m3u_content += f"{track_url}\n\n"
-        
+
         filename = f"{slug}-offline.m3u" if mode == 'download' else f"{slug}.m3u"
-        
+
         return Response(
             m3u_content,
             mimetype="audio/x-mpegurl",
@@ -176,7 +176,7 @@ def create_download_blueprint(
     def download_track(slug: str, track_path: str) -> Response:
         """
         Streams a single track, converting FLAC to MP3 if needed.
-        
+
         This endpoint serves tracks with 'inline' disposition, meaning the browser/app
         will try to play it directly. The response includes long cache headers so
         music apps can cache it for offline use.
@@ -194,7 +194,7 @@ def create_download_blueprint(
     def download_track_file(slug: str, track_path: str) -> Response:
         """
         Downloads a single track as a file, converting FLAC to MP3 if needed.
-        
+
         This endpoint serves tracks with 'attachment' disposition, forcing the
         browser/app to download the file rather than streaming it. This is used
         by the "offline" M3U playlist.
@@ -211,19 +211,19 @@ def create_download_blueprint(
     def _serve_track(slug: str, track_path: str, as_attachment: bool = False) -> Response:
         """
         Internal helper to serve or stream a track.
-        
+
         Args:
             slug: The mixtape identifier.
             track_path: The relative path to the audio file.
             as_attachment: If True, force download. If False, allow inline playback.
-            
+
         Returns:
             Response: The audio file response.
         """
         mixtape = mixtape_manager.get(slug)
         if not mixtape:
             abort(404)
-        
+
         # Verify this track belongs to this mixtape
         track_found = False
         track_metadata = None
@@ -232,19 +232,19 @@ def create_download_blueprint(
                 track_found = True
                 track_metadata = track
                 break
-        
+
         if not track_found:
             abort(404)
-        
+
         music_root = Path(current_app.config["MUSIC_ROOT"])
         full_path = music_root / track_path
-        
+
         if not full_path.exists():
             abort(404)
-        
+
         # Generate safe filename
         safe_name = _get_safe_track_name(0, track_metadata)
-        
+
         # Convert FLAC to MP3 on-the-fly
         if full_path.suffix.lower() == ".flac":
             try:
@@ -252,9 +252,9 @@ def create_download_blueprint(
                 if not mp3_data:
                     logger.error(f"Failed to convert {full_path}")
                     abort(500)
-                
+
                 disposition = 'attachment' if as_attachment else 'inline'
-                
+
                 return Response(
                     mp3_data,
                     mimetype="audio/mpeg",
@@ -268,7 +268,7 @@ def create_download_blueprint(
             except Exception as e:
                 logger.error(f"Error converting track {track_path}: {e}")
                 abort(500)
-        
+
         # For non-FLAC, serve the file directly
         return send_file(
             full_path,
@@ -282,7 +282,7 @@ def create_download_blueprint(
     def download_mixtape(slug: str) -> Response:
         """
         Creates and streams a ZIP package containing the mixtape's audio files and metadata.
-        
+
         This is the desktop option - for users who want everything in one file.
         Converts FLAC files to MP3 on-the-fly to reduce download size, preserving metadata.
         The ZIP includes all tracks, cover image, and a JSON metadata file.
@@ -300,27 +300,27 @@ def create_download_blueprint(
         try:
             # Create in-memory ZIP file
             zip_buffer = io.BytesIO()
-            
+
             with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
                 # Add metadata JSON
                 _add_metadata_to_zip(zip_file, mixtape)
-                
+
                 # Add offline player HTML
                 _add_offline_player(zip_file)
-                
+
                 # Add cover image if exists
                 _add_cover_to_zip(zip_file, mixtape, current_app.config["COVER_DIR"])
-                
+
                 # Add all tracks (with conversion)
                 _add_tracks_to_zip(
-                    zip_file, 
-                    mixtape, 
+                    zip_file,
+                    mixtape,
                     Path(current_app.config["MUSIC_ROOT"]),
                     logger
                 )
-            
+
             zip_buffer.seek(0)
-            
+
             filename = f"{slug}.zip"
             return send_file(
                 zip_buffer,
@@ -328,7 +328,7 @@ def create_download_blueprint(
                 as_attachment=True,
                 download_name=filename,
             )
-            
+
         except Exception as e:
             logger.error(f"Failed to create mixtape package for {slug}: {e}")
             abort(500)
@@ -344,7 +344,7 @@ def create_download_blueprint(
             mixtape: The mixtape data dictionary.
         """
         import json
-        
+
         # Create clean metadata (remove server paths)
         clean_metadata = {
             "title": mixtape.get("title"),
@@ -361,7 +361,7 @@ def create_download_blueprint(
                 for t in mixtape.get("tracks", [])
             ],
         }
-        
+
         zip_file.writestr("mixtape.json", json.dumps(clean_metadata, indent=2))
 
     def _add_offline_player(zip_file: zipfile.ZipFile) -> None:
@@ -423,7 +423,7 @@ def create_download_blueprint(
                     <img id="cover-image" src="" alt="Cover" class="cover-img mb-4" style="display: none;">
                     <h1 class="h3 mb-2" id="mixtape-title-display">Loading...</h1>
                     <p class="text-muted small mb-4" id="track-count"></p>
-                    
+
                     <div class="d-grid gap-2 mb-4">
                         <button class="btn btn-primary btn-lg" id="play-all">
                             <i class="bi bi-play-fill"></i> Play All
@@ -544,10 +544,10 @@ def create_download_blueprint(
             const track = mixtapeData.tracks[index];
             audioPlayer.src = track.filename;
             audioPlayer.play();
-            
+
             currentTrackIndex = index;
             bottomPlayer.style.display = 'block';
-            
+
             nowPlayingTitle.textContent = track.track;
             nowPlayingArtist.textContent = `${track.artist}${track.album ? ' • ' + track.album : ''}`;
 
@@ -563,7 +563,7 @@ def create_download_blueprint(
         document.getElementById('play-all').onclick = () => playTrack(0);
         document.getElementById('prev-btn').onclick = () => playTrack(currentTrackIndex - 1);
         document.getElementById('next-btn').onclick = () => playTrack(currentTrackIndex + 1);
-        
+
         document.getElementById('play-pause-btn').onclick = () => {
             if (currentTrackIndex === -1) {
                 playTrack(0);
@@ -591,7 +591,7 @@ def create_download_blueprint(
     </script>
 </body>
 </html>"""
-        
+
         zip_file.writestr("index.html", player_html)
 
     def _add_cover_to_zip(
@@ -627,14 +627,14 @@ def create_download_blueprint(
         """
         for idx, track in enumerate(mixtape.get("tracks", []), 1):
             track_path = music_root / track.get("path", "")
-            
+
             if not track_path.exists():
                 logger.warning(f"Track not found: {track_path}")
                 continue
-            
+
             # Generate safe filename
             safe_name = _get_safe_track_name(idx, track)
-            
+
             try:
                 if track_path.suffix.lower() == ".flac":
                     # Convert FLAC to MP3
@@ -646,7 +646,7 @@ def create_download_blueprint(
                 else:
                     # Add file as-is (already compressed format)
                     zip_file.write(track_path, arcname=safe_name)
-                    
+
             except Exception as e:
                 logger.error(f"Failed to add track {track_path}: {e}")
 
@@ -679,7 +679,7 @@ def create_download_blueprint(
         """
         Converts a FLAC file to MP3 format using FFmpeg.
 
-        Preserves metadata tags and uses high-quality encoding (320 kbps).
+        Preserves metadata tags and uses high-quality encoding (VBR ~245 kbps).
 
         Args:
             flac_path: Path to the FLAC file.
@@ -690,30 +690,69 @@ def create_download_blueprint(
             bytes | None: The MP3 file data, or None if conversion failed.
         """
         try:
+            # Sanitize metadata to prevent command injection
+            def sanitize_metadata(value: str) -> str:
+                if not value:
+                    return ""
+                # Remove problematic characters
+                return value.replace('"', '\\"').replace("'", "\\'").replace('\n', ' ').strip()
+
+            title = sanitize_metadata(track_metadata.get('track', ''))
+            artist = sanitize_metadata(track_metadata.get('artist', ''))
+            album = sanitize_metadata(track_metadata.get('album', ''))
+
             # Use FFmpeg to convert with metadata preservation
             cmd = [
                 "ffmpeg",
+                "-hide_banner",  # Don't show banner in stderr
+                "-loglevel", "error",  # Only show errors, not warnings
                 "-i", str(flac_path),
-                "-codec:a", "libmp3lame",
-                "-b:a", "320k",  # High quality
-                "-metadata", f"title={track_metadata.get('track', '')}",
-                "-metadata", f"artist={track_metadata.get('artist', '')}",
-                "-metadata", f"album={track_metadata.get('album', '')}",
                 "-f", "mp3",
-                "-"  # Output to stdout
             ]
-            
+
+            # Add metadata only if present
+            if title:
+                cmd.extend(["-metadata", f"title={title}"])
+            if artist:
+                cmd.extend(["-metadata", f"artist={artist}"])
+            if album:
+                cmd.extend(["-metadata", f"album={album}"])
+
+            # Output to stdout (pipe)
+            cmd.extend(["-", "-y"])  # Force overwrite
+
+            logger.info(f"Converting {flac_path} to MP3...")
+
             result = subprocess.run(
                 cmd,
                 capture_output=True,
                 check=True,
                 timeout=300,  # 5 minute timeout
             )
-            
+
+            # Verify we got valid output
+            if not result.stdout:
+                logger.error(f"FFmpeg produced no output for {flac_path}")
+                return None
+
+            if len(result.stdout) < 1000:
+                logger.error(f"FFmpeg produced suspiciously small output for {flac_path}: {len(result.stdout)} bytes")
+                if result.stderr:
+                    stderr_text = result.stderr.decode('utf-8', errors='ignore')
+                    logger.error(f"FFmpeg stderr: {stderr_text}")
+                return None
+
+            # Check if output starts with valid MP3 header (ID3 or frame sync)
+            if not (result.stdout[:3] == b'ID3' or result.stdout[0:2] == b'\xff\xfb'):
+                logger.error(f"FFmpeg output doesn't look like valid MP3 for {flac_path} (first bytes: {result.stdout[:10].hex()})")
+                return None
+
+            logger.info(f"Successfully converted {flac_path} to MP3 ({len(result.stdout)} bytes)")
             return result.stdout
-            
+
         except subprocess.CalledProcessError as e:
-            logger.error(f"FFmpeg conversion failed for {flac_path}: {e.stderr}")
+            stderr_text = e.stderr.decode('utf-8', errors='ignore') if e.stderr else 'No error output'
+            logger.error(f"FFmpeg conversion failed for {flac_path}: {stderr_text}")
             return None
         except subprocess.TimeoutExpired:
             logger.error(f"FFmpeg conversion timed out for {flac_path}")
@@ -735,19 +774,19 @@ def create_download_blueprint(
         """
         original_path = track.get("path", "")
         extension = Path(original_path).suffix.lower()
-        
+
         # Convert FLAC to MP3 extension
         if extension == ".flac":
             extension = ".mp3"
-        
+
         # Create safe filename from metadata
         artist = track.get("artist", "Unknown")
         title = track.get("track", "Unknown")
-        
+
         # Sanitize
         safe_artist = "".join(c for c in artist if c.isalnum() or c in " -_")[:50]
         safe_title = "".join(c for c in title if c.isalnum() or c in " -_")[:50]
-        
+
         return f"{index:02d} - {safe_artist} - {safe_title}{extension}"
 
     def _get_converted_filename(original_path: str) -> str:
