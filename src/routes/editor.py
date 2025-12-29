@@ -1,5 +1,3 @@
-import json
-import secrets
 import shutil
 from base64 import b64decode
 from datetime import datetime
@@ -13,6 +11,9 @@ from auth import require_auth
 from common.logging import Logger, NullLogger
 from mixtape_manager import MixtapeManager
 from musiclib import MusicCollectionUI
+
+# ✨ NEW: Import cache worker for pre-caching
+from audio_cache import schedule_mixtape_caching
 
 
 def create_editor_blueprint(
@@ -113,7 +114,6 @@ def create_editor_blueprint(
         details = collection.get_artist_details(artist)
         return jsonify(details)
 
-
     @editor.route("/album_details")
     @require_auth
     def album_details() -> Response:
@@ -149,9 +149,9 @@ def create_editor_blueprint(
             if not data or not data.get("tracks"):
                 return jsonify({"error": "Empty mixtape"}), 400
 
-            title = (data.get("title", "").strip() or "Unnamed Mixtape")
+            title = data.get("title", "").strip() or "Unnamed Mixtape"
             liner_notes = data.get("liner_notes", "")
-            slug = data.get("slug") # Present only when editing
+            slug = data.get("slug")  # Present only when editing
 
             # Prepare clean data for the manager
             mixtape_data = {
@@ -163,7 +163,7 @@ def create_editor_blueprint(
 
             # Instantiate the manager
             mixtape_manager = MixtapeManager(
-                path_mixtapes=current_app.config["MIXTAPE_DIR"]
+                path_mixtapes=current_app.config["MIXTAPE_DIR"], logger=logger
             )
 
             if slug:
@@ -182,16 +182,90 @@ def create_editor_blueprint(
                 mixtape_data["created_at"] = datetime.now().isoformat()
                 final_slug = mixtape_manager.save(mixtape_data)
 
-            return jsonify({
-                "success": True,
-                "title": title,
-                "slug": final_slug,
-                "client_id": mixtape_data.get("client_id"),
-                "url": f"/editor/{final_slug}",
-            })
+            # Trigger background audio caching after successful save
+            _trigger_audio_caching(final_slug, mixtape_manager, is_update=bool(slug))
+
+            return jsonify(
+                {
+                    "success": True,
+                    "title": title,
+                    "slug": final_slug,
+                    "client_id": mixtape_data.get("client_id"),
+                    "url": f"/editor/{final_slug}",
+                }
+            )
         except Exception as e:
             logger.exception(f"Error saving mixtape: {e}")
             return jsonify({"error": "Server error"}), 500
+
+    def _trigger_audio_caching(
+        slug: str, mixtape_manager: MixtapeManager, is_update: bool = False
+    ) -> None:
+        """
+        Triggers background audio caching for a mixtape's tracks.
+
+        Checks if pre-caching is enabled and initiates parallel transcoding of FLAC files
+        to reduce bandwidth requirements during playback.
+
+        Args:
+            slug: The unique identifier for the mixtape.
+            mixtape_manager: The MixtapeManager instance to retrieve mixtape data.
+            is_update: Whether this is an update to an existing mixtape.
+        """
+        # Check if caching is enabled
+        if not current_app.config.get("AUDIO_CACHE_PRECACHE_ON_UPLOAD", False):
+            return
+
+        # Check if audio_cache is available
+        if not hasattr(current_app, "audio_cache"):
+            logger.warning("Audio cache not initialized, skipping pre-caching")
+            return
+
+        try:
+            # Get the saved mixtape data
+            saved_mixtape = mixtape_manager.get(slug)
+
+            if not saved_mixtape or not saved_mixtape.get("tracks"):
+                logger.debug(f"No tracks to cache for mixtape: {slug}")
+                return
+
+            # Get configuration
+            qualities = current_app.config.get(
+                "AUDIO_CACHE_PRECACHE_QUALITIES", ["medium"]
+            )
+            music_root = Path(current_app.config["MUSIC_ROOT"])
+
+            # Start pre-caching in the background
+            logger.info(
+                f"Starting pre-cache for mixtape '{slug}' "
+                f"({'update' if is_update else 'new'}) with {len(saved_mixtape['tracks'])} tracks"
+            )
+
+            results = schedule_mixtape_caching(
+                mixtape_tracks=saved_mixtape["tracks"],
+                music_root=music_root,
+                audio_cache=current_app.audio_cache,
+                logger=logger,
+                qualities=qualities,
+                async_mode=True,  # Use parallel processing
+            )
+
+            # Log results summary
+            total_files = len(results)
+            successful = sum(
+                bool(not isinstance(r, dict) or r.get("skipped") or any(r.values()))
+                for r in results.values()
+            )
+
+            logger.info(
+                f"Pre-caching completed for '{slug}': "
+                f"{successful}/{total_files} files processed"
+            )
+
+        except Exception as e:
+            # Don't fail the save operation if caching fails
+            logger.error(f"Pre-caching failed for mixtape '{slug}': {e}")
+            logger.exception("Detailed error:")
 
     # TODO: Either remove or move to MixtapeManager
     def _process_cover(cover_data: str, slug: str) -> str | None:
@@ -222,7 +296,7 @@ def create_editor_blueprint(
             return None
 
     # TODO: Either remove or move to MixtapeManager
-    def _cover_resize(image: Image, new_width: int=1200) -> Image:
+    def _cover_resize(image: Image, new_width: int = 1200) -> Image:
         """
         Resizes the given image to a specified width while maintaining aspect ratio.
 

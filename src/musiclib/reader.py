@@ -83,8 +83,6 @@ class MusicCollection:
         if status and status.get("status") in ("rebuilding", "resyncing"):
             return True
 
-        # If status file doesn't exist yet, but DB is empty → initial rebuild is queued
-        # and will start shortly → treat as indexing to allow waiting
         if status is None and self.count() == 0:
             return True
 
