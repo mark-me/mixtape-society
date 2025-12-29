@@ -54,6 +54,7 @@ nav:
         - Browser: development/routes/browse_mixtapes.md
         - Editor: development/routes/editor.md
         - Playback: development/routes/playback.md
+        - Authentication: development/routes/authentication.md
         - OpenGraph: development/routes/opengraph_images.md
       - Core:
         - Music Library (musiclib):
