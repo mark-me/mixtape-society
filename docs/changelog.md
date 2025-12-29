@@ -8,7 +8,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 ## 📦 v0.3.0
 
-<span class="md-tag">Release</span>
+<span class="md-tag">On backlog</span>
 
 **🗓️** 2025-12-xx
 
@@ -30,7 +30,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 ## 📦 v0.2.5
 
-<span class="md-tag">Release</span>
+<span class="md-tag">On backlog</span>
 
 **🗓️** 2025-12-30
 
