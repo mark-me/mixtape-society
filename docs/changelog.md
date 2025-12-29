@@ -18,11 +18,11 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 ### 🔧 Changed
 
-- On-the-fly Transcoding for playback of flac files
+-
 
 ### 🐛 Fixed
 
-- When searching with multiple words the results narrows down
+-
 
 [v0.3.0](https://github.com/mark-me/mixtape-society/compare/v0.2.2...v0.3.0)
 
@@ -46,8 +46,10 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 ### 🐛 Fixed
 
 - When searching with multiple words the results narrows down
+- Player control text is illegible in the white theme
+- Android notification track progress not in sync
 
-[v0.3.0](https://github.com/mark-me/mixtape-society/compare/v0.2.2...v0.2.5)
+[v0.2.5](https://github.com/mark-me/mixtape-society/compare/v0.2.2...v0.2.5)
 
 ---
 
