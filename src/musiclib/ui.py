@@ -9,7 +9,7 @@ class MusicCollectionUI(MusicCollection):
     """Extends MusicCollection to provide UI-specific search and highlighting features.
     Adds methods for formatting, escaping, and highlighting search results for user interfaces.
     """
-    def __init__(self, music_root: Path, db_path: Logger, logger=None) -> None:
+    def __init__(self, music_root: Path, db_path: Path, logger: Logger=None) -> None:
         """Initializes the MusicCollectionUI with the given music root, database path, and optional logger.
         Sets up the UI-specific extension of the music collection functionality.
 

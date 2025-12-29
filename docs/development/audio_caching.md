@@ -17,7 +17,7 @@ When streaming large FLAC files over the web, bandwidth becomes a significant co
 - **Parallel processing** - Fast batch transcoding with thread pools
 - **Cache management** - Size tracking and cleanup utilities
 
-### Bandwidth Savings
+### Main Purpose: Bandwidth Savings
 
 | Format | Bitrate | Size/minute | Savings vs FLAC |
 | ------ | ------- | ----------- | --------------- |
@@ -28,7 +28,7 @@ When streaming large FLAC files over the web, bandwidth becomes a significant co
 
 ## Architecture
 
-The system consists of two main components:
+The system consists of three main components:
 
 ### `audio_cache.py` - Core Caching Module
 
@@ -51,6 +51,38 @@ Provides batch processing and parallel transcoding capabilities.
 - Parallel processing with thread pools
 - Progress tracking and callbacks
 - Cache verification and regeneration
+
+### `progress_tracker.py` - Progress Tracking System
+
+The progress tracking system provides real-time Server-Sent Events (SSE) based progress updates for audio file transcoding. It enables the frontend to display live progress information to users during background tasks.
+
+**Key responsibilities:**
+
+- Progress tracking
+- Reporting progress to the front end
+
+#### Progress tracker structure
+
+```mermaid
+    graph TD
+        A[Frontend (Browser)]
+        B[EventSource Connection (SSE)]
+        C[Flask Backend]
+        D[Progress Tracker (Singleton)]
+        E[Task Queues (dict)]
+        F[Background Worker Thread]
+
+        A -->|SSE Stream| B
+        B --> C
+        C --> D
+        D --> E
+        C --> F
+        F -->|Calls tracker.emit() during processing| D
+        F -->|Events queued for SSE delivery| B
+        E -->|task_1: Queue[ProgressEvent]| D
+        E -->|task_2: Queue[ProgressEvent]| D
+        E -->|task_3: Queue[ProgressEvent]| D
+```
 
 ## How It Works
 
@@ -216,36 +248,25 @@ results = worker.cache_mixtape_async(
 
 ### ::: src.audio_cache.cache_worker.CacheWorker
 
----
-
-### Helper Function
-
 ### ::: src.audio_cache.cache_worker.schedule_mixtape_caching
 
+---
+
+### Progress Tracking
+
+### ::: src.audio_cache.progress_tracker.get_progress_tracker
+
+### ::: src.audio_cache.progress_tracker.ProgressTracker
+
+### ::: src.audio_cache.progress_tracker.ProgressStatus
+
+### ::: src.audio_cache.progress_tracker.ProgressEvent
+
+### ::: src.audio_cache.progress_tracker.ProgressCallback
+
+---
+
 ## Configuration
-
-Add these settings to your Flask configuration:
-
-```python
-from pathlib import Path
-
-# Audio caching
-AUDIO_CACHE_DIR = Path("collection-data/cache/audio")
-AUDIO_CACHE_ENABLED = True
-AUDIO_CACHE_DEFAULT_QUALITY = "medium"
-AUDIO_CACHE_MAX_WORKERS = 4
-
-# Pre-caching
-AUDIO_CACHE_PRECACHE_ON_UPLOAD = True
-AUDIO_CACHE_PRECACHE_QUALITIES = ["medium"]
-
-# Quality settings (advanced)
-AUDIO_QUALITY_BITRATES = {
-    "high": "256k",
-    "medium": "192k",
-    "low": "128k",
-}
-```
 
 ### Configuration Options
 
