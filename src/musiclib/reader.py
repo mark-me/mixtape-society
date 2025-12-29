@@ -975,21 +975,33 @@ class MusicCollection:
         Returns:
             int: The highest relevance score assigned based on the best matching term.
         """
-        if not text:
+        if not text or not terms:
             return 0
 
         text_l = text.lower()
         best = 0
+        matched_terms = 0
 
         for term in terms:
             term_l = term.lower()
+            term_matched = False
 
             if text_l == term_l:
                 best = max(best, self.EXACT_MATCH_SCORE)
+                term_matched = True
             elif text_l.startswith(term_l):
                 best = max(best, self.PREFIX_MATCH_SCORE)
+                term_matched = True
             elif term_l in text_l:
                 best = max(best, self.SUBSTRING_MATCH_SCORE)
+                term_matched = True
+
+            if term_matched:
+                matched_terms += 1
+
+        # For multi-word queries, ALL terms must match
+        if len(terms) > 1 and matched_terms < len(terms):
+            return 0
 
         return best
 
