@@ -14,13 +14,15 @@ from config import DevelopmentConfig, ProductionConfig, TestConfig, BaseConfig
 from logtools import get_logger, setup_logging
 from musiclib import MusicCollectionUI, get_indexing_status
 from mixtape_manager import MixtapeManager
+from audio_cache import AudioCache
 from routes import (
     create_browser_blueprint,
     create_editor_blueprint,
     create_play_blueprint,
     create_authentication_blueprint,
+    create_og_cover_blueprint,
 )
-from utils import get_version, create_og_cover_blueprint
+from utils import get_version
 
 
 def create_app() -> Flask:
@@ -54,6 +56,14 @@ def create_app() -> Flask:
     collection = MusicCollectionUI(
         music_root=config_cls.MUSIC_ROOT, db_path=config_cls.DB_PATH, logger=logger
     )
+
+    # Initialize audio cache
+    audio_cache = AudioCache(
+        cache_dir=app.config['AUDIO_CACHE_DIR'],
+        logger=logger
+    )
+    app.audio_cache = audio_cache
+
     mixtape_manager = MixtapeManager(path_mixtapes=config_cls.MIXTAPE_DIR)
 
     @app.route("/")
@@ -165,7 +175,7 @@ def create_app() -> Flask:
         url_prefix="/mixtapes",
     )
     app.register_blueprint(
-        create_play_blueprint(mixtape_manager=mixtape_manager, logger=logger),
+        create_play_blueprint(mixtape_manager=mixtape_manager, path_audio_cache=app.config['AUDIO_CACHE_DIR'], logger=logger),
         url_prefix="/play",
     )
     app.register_blueprint(

@@ -28,14 +28,26 @@ class BaseConfig:
     MIXTAPE_DIR = DATA_ROOT / "mixtapes"
     COVER_DIR = MIXTAPE_DIR / "covers"
 
+    # Cache directory audio
+    AUDIO_CACHE_DIR = DATA_ROOT / "cache" / "audio"
+
     # Keep password handling clean
     PASSWORD = os.getenv("PASSWORD", "dev-password")
+
+    # Audio caching settings
+    AUDIO_CACHE_ENABLED = True
+    AUDIO_CACHE_DEFAULT_QUALITY = "medium"
+    AUDIO_CACHE_MAX_WORKERS = 4
+    AUDIO_CACHE_PRECACHE_ON_UPLOAD = True
+    AUDIO_CACHE_PRECACHE_QUALITIES = ["medium"]  # Can add ["low", "medium", "high"]
+
 
     @classmethod
     def ensure_dirs(cls):
         cls.DATA_ROOT.mkdir(parents=True, exist_ok=True)
         cls.MIXTAPE_DIR.mkdir(parents=True, exist_ok=True)
         cls.COVER_DIR.mkdir(parents=True, exist_ok=True)
+        cls.AUDIO_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 
 class DevelopmentConfig(BaseConfig):
