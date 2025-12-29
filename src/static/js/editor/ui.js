@@ -2,6 +2,7 @@
 import { showAlert, showConfirm, escapeHtml } from "./utils.js";
 import { playlist, registerUnsavedCallback } from "./playlist.js";
 import { easyMDE } from "./editorNotes.js";
+import { showProgressModal } from './progressModal.js';
 
 export let hasUnsavedChanges = false;
 let isSaving = false;
@@ -204,12 +205,8 @@ export function initUI() {
                     hasUnsavedChanges = false;
                     updateSaveButton();
 
-                    // Success feedback
-                    showAlert({
-                        title: "Saved!",
-                        message: `Mixtape "${data.title}" saved successfully.`,
-                        buttonText: "OK"
-                    });
+                    // Show progress modal for caching
+                    showProgressModal(data.slug);
 
                     // If this was a new mixtape, update URL and hidden field
                     if (!editingSlug) {

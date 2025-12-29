@@ -17,7 +17,7 @@ from common.logging import Logger, NullLogger
 class CacheWorker:
     """
     Worker for pre-caching audio files in the background.
-    
+
     Provides methods to cache individual files or entire mixtapes at specified
     quality levels using thread pools for parallel processing.
     """
@@ -196,14 +196,14 @@ class CacheWorker:
         Returns:
             Dictionary mapping file paths to cache availability status.
         """
-        results = {}
-
-        for path in track_paths:
-            if not self.audio_cache.should_transcode(path):
-                results[str(path)] = True  # Original file, no cache needed
-            else:
-                results[str(path)] = self.audio_cache.is_cached(path, quality)
-
+        results = {
+            str(path): (
+                True
+                if not self.audio_cache.should_transcode(path)
+                else self.audio_cache.is_cached(path, quality)
+            )
+            for path in track_paths
+        }
         return results
 
     def regenerate_outdated_cache(
@@ -263,6 +263,7 @@ def schedule_mixtape_caching(
     logger: Logger | None = None,
     qualities: list[QualityLevel] = None,
     async_mode: bool = True,
+    progress_callback: Callable[[int, int], None] | None = None,
 ) -> dict:
     """
     Convenience function to schedule caching for a mixtape's tracks.
@@ -274,6 +275,7 @@ def schedule_mixtape_caching(
         logger: Optional logger.
         qualities: Quality levels to cache. Defaults to ["medium"].
         async_mode: If True, use parallel processing.
+        progress_callback: Optional callback function(current, total) for progress updates.
 
     Returns:
         Dictionary with caching results.
@@ -296,6 +298,6 @@ def schedule_mixtape_caching(
     worker = CacheWorker(audio_cache, logger)
 
     if async_mode:
-        return worker.cache_mixtape_async(valid_paths, qualities)
+        return worker.cache_mixtape_async(valid_paths, qualities, progress_callback)
     else:
-        return worker.cache_mixtape(valid_paths, qualities)
+        return worker.cache_mixtape(valid_paths, qualities, progress_callback)
