@@ -13,7 +13,7 @@ Mixtape Society is a self-hosted web application that lets you create, manage, a
 
 ## 🧔🏼‍♂️ Who Built This?
 
-Hi, I'm Mark Zwart (e.g., mark-me on GitHub), a I'm a Dutch developer and music enthusiast based in The Netherlands. I created Mixtape Society because I wanted a simple way to share curated playlists from my personal collection without relying on big streaming services.
+Hi, I'm Mark Zwart (e.g., mark-me on GitHub), a Dutch developer and music enthusiast based in The Netherlands. I created Mixtape Society because I wanted a simple way to share curated playlists from my personal collection without relying on big streaming services.
 
 If you'd like to connect:
 
