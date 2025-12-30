@@ -204,28 +204,37 @@ function esc(value) {
 export function renderPlaylist() {
     // Build the markup safely — every dynamic piece goes through `esc()`.
     playlistOl.innerHTML = playlist.map((item, idx) => `
-        <li class="d-flex align-items-center rounded p-3 mb-2 shadow-sm playlist-item
-            bg-body-tertiary border" data-index="${esc(idx)}">
+        <li class="d-flex align-items-center rounded p-3 mb-2 shadow-sm playlist-item bg-body-tertiary border"
+            data-index="${esc(idx)}">
+
             <div class="drag-handle me-3 text-muted">⋮⋮</div>
 
-            <!-- Track cover -->
-            ${item.cover ? `<img src="/${esc(item.cover)}" alt="Cover" class="me-3 rounded" style="width: 50px; height: 50px; object-fit: cover;">` : '<div class="me-3" style="width: 50px; height: 50px; background: #ddd; border-radius: 0.25rem;"></div>'}
-
-            <!-- Play button -->
-            <button class="btn btn-success btn-sm me-2 play-track-btn"
-                    data-path="${esc(encodeURIComponent(item.path || ""))}"
-                    ${item.path ? "" : 'disabled title="No file"'}>
-                <i class="bi ${item.path ? "bi-play-fill" : "bi-ban"}"></i>
-            </button>
-
-            <div class="flex-grow-1">
-                <strong>${esc(item.track)}</strong><br>
-                <small class="text-muted">${esc(item.artist)} • ${esc(item.album)}</small>
+            <!-- Cover wrapper -->
+            <div class="track-cover-wrapper me-3">
+                ${item.cover
+                    ? `<img src="/${esc(item.cover)}" alt="Cover" class="track-cover">`
+                    : `<div class="track-cover-placeholder"></div>`
+                }
+                <button class="btn play-overlay-btn"
+                        data-path="${esc(encodeURIComponent(item.path || ""))}"
+                        ${item.path ? "" : 'disabled'}>
+                    <i class="bi bi-play-fill"></i>
+                </button>
             </div>
 
-            <span class="text-muted me-3">${esc(item.duration) || "?:??"}</span>
+            <!-- Text content — critical: min-w-0 enables truncation in flex -->
+            <div class="flex-grow-1 min-w-0 me-3">
+                <strong class="text-truncate">${esc(item.track)}</strong>
+                <small class="text-muted text-truncate">${esc(item.artist)} • ${esc(item.album)}</small>
+            </div>
 
-            <button class="btn btn-danger btn-sm remove-btn" data-index="${esc(idx)}">
+            <!-- Duration — fixed width to prevent squeeze -->
+            <span class="text-muted me-3 flex-shrink-0" style="min-width: 50px; text-align: right;">
+                ${esc(item.duration) || "?:??"}
+            </span>
+
+            <!-- Delete button — always visible -->
+            <button class="btn btn-danger btn-sm flex-shrink-0 remove-btn" data-index="${esc(idx)}">
                 <i class="bi bi-trash-fill"></i>
             </button>
         </li>
@@ -233,6 +242,71 @@ export function renderPlaylist() {
 
     playlistCount.textContent = `(${playlist.length})`;
 
+    document.querySelectorAll('.play-overlay-btn').forEach(btn => {
+        btn.onclick = function (e) {
+            e.stopPropagation();
+
+            const path = this.dataset.path;
+            if (!path) return;
+
+            const player = document.getElementById('global-audio-player');
+            const container = document.getElementById('audio-player-container');
+            const playlistItem = this.closest('.playlist-item');
+            const icon = this.querySelector('i');
+
+            // Get current source (safely)
+            const currentSrc = player.src ? player.src.split('/').pop() : '';
+            const isThisTrack = currentSrc === path;
+
+            // Remove 'playing' class from all items
+            document.querySelectorAll('.playlist-item.playing').forEach(el => {
+                el.classList.remove('playing');
+                // Reset icon to play when not playing
+                const btnIcon = el.querySelector('.play-overlay-btn i');
+                if (btnIcon) {
+                    btnIcon.classList.replace('bi-pause-fill', 'bi-play-fill');
+                }
+            });
+
+            if (isThisTrack) {
+                // Same track clicked
+                if (player.paused) {
+                    // Was paused → resume
+                    player.play().catch(err => console.error("Resume failed:", err));
+                    playlistItem.classList.add('playing');
+                    icon.classList.replace('bi-play-fill', 'bi-pause-fill');
+                } else {
+                    // Was playing → pause
+                    player.pause();
+                    playlistItem.classList.remove('playing');
+                    icon.classList.replace('bi-pause-fill', 'bi-play-fill');
+                }
+            } else {
+                // Different track → load and play
+                player.src = `/play/${path}`;
+                player.play().catch(err => console.error("Play failed:", err));
+                container.style.display = 'block';
+
+                // Mark as playing
+                playlistItem.classList.add('playing');
+                icon.classList.replace('bi-play-fill', 'bi-pause-fill');
+
+                // Update now-playing info
+                const item = playlist[playlistItem.dataset.index];
+                document.getElementById('now-playing-title').textContent = item.track;
+                document.getElementById('now-playing-artist').textContent = `${item.artist} • ${item.album}`;
+
+                // Update player cover
+                const playerCover = document.getElementById('now-playing-cover');
+                if (item.cover) {
+                    playerCover.src = `/${item.cover}`;
+                    playerCover.style.display = 'block';
+                } else {
+                    playerCover.style.display = 'none';
+                }
+            }
+        };
+    });
     // === PLAY/PAUSE BUTTONS ===
     document.querySelectorAll('.play-track-btn').forEach(btn => {
         btn.onclick = function () {
