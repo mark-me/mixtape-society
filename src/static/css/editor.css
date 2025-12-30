@@ -506,3 +506,155 @@ body.reorder-mode #search-bar {                                     /* The title
         margin-bottom: 0.4rem;
     }
 }
+
+/* Progress Modal Styling - Add to editor.css */
+
+/* --- 9. Progress Modal --- */
+
+/* Log container - theme-aware background */
+#progress-log {
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    border-radius: 0;
+}
+
+/* Log entries - theme-aware */
+#progress-log > div {
+    background-color: var(--bs-body-bg);
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+/* Last entry - no border */
+#progress-log > div:last-child {
+    border-bottom: none;
+}
+
+/* Hover effect for log entries */
+#progress-log > div:hover {
+    background-color: var(--bs-tertiary-bg);
+}
+
+/* Progress modal - ensure proper theming on card */
+#progressModal .card {
+    background-color: var(--bs-body-bg);
+    border-color: var(--bs-border-color);
+}
+
+#progressModal .card-header {
+    background-color: var(--bs-tertiary-bg);
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+/* Mobile-specific adjustments for progress modal */
+@media (max-width: 576px) {
+    /* Modal takes full screen on mobile */
+    #progressModal .modal-dialog {
+        margin: 0;
+        max-width: 100%;
+    }
+
+    /* Reduce padding on mobile */
+    #progressModal .modal-body {
+        padding: 1rem 0.75rem;
+    }
+
+    /* Smaller progress bar on mobile */
+    #progressModal .progress {
+        height: 20px !important;
+    }
+
+    /* More compact log entries on mobile */
+    #progress-log > div {
+        padding: 0.5rem !important;
+        font-size: 0.75rem;
+    }
+
+    /* Smaller timestamp on mobile */
+    #progress-log small {
+        font-size: 0.65rem;
+    }
+
+    /* Make log container taller on mobile (more vertical space) */
+    #progress-log {
+        max-height: 400px !important;
+    }
+
+    /* Smaller clear button on mobile */
+    #progress-clear-log {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    /* Progress percentage - smaller on mobile */
+    #progress-percentage {
+        font-size: 0.875rem;
+    }
+
+    /* Main label - wrap if needed */
+    #progress-main-label {
+        word-break: break-word;
+    }
+}
+
+/* Landscape mobile optimization */
+@media (max-width: 768px) and (orientation: landscape) {
+    /* Reduce log height in landscape to fit screen */
+    #progress-log {
+        max-height: 200px !important;
+    }
+
+    /* Smaller modal body padding */
+    #progressModal .modal-body {
+        padding: 0.75rem 0.5rem;
+    }
+}
+
+/* Very small screens (< 360px) */
+@media (max-width: 360px) {
+    /* Even more compact */
+    #progress-log > div {
+        padding: 0.375rem !important;
+        font-size: 0.7rem;
+    }
+
+    #progress-log small {
+        display: block; /* Stack timestamp on its own line */
+        margin-bottom: 0.125rem;
+    }
+
+    /* Hide clear button icon text on tiny screens */
+    #progress-clear-log i {
+        margin: 0;
+    }
+}
+
+/* Dark mode specific adjustments (when data-bs-theme="dark") */
+[data-bs-theme="dark"] #progress-log {
+    /* Slightly lighter background for better contrast */
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-bs-theme="dark"] #progress-log > div:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Light mode specific adjustments */
+[data-bs-theme="light"] #progress-log {
+    /* Slightly darker background for better contrast */
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+[data-bs-theme="light"] #progress-log > div:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Ensure text wraps properly in log entries */
+#progress-log span {
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+}
+
+/* Smooth scroll for log */
+#progress-log {
+    scroll-behavior: smooth;
+}
