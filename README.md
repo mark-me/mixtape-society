@@ -9,14 +9,15 @@ No accounts, no telemetry, no Spotify – just your music, your server, your rul
 ## ✨ Features
 
 - Clean, modern UI (Bootstrap 5 + vanilla JS)
-- Drag-and-drop mixtape editor
-- Live search with highlighting
-- Automatic or manual cover art
+- Mixtape editor with:
+  - Live search with highlighting
+  - Adding coverart automatically or adding your own creation
 - Public shareable links (no login needed to play)
 - Full seeking support for FLAC, MP3, M4A, etc.
 - Simple single-password protection
 - Background filesystem monitoring – always up-to-date
 - Zero runtime external dependencies
+- Transcoding song qualtity for lower bandwidths
 
 ## 🚀 Quick Start
 
@@ -52,6 +53,7 @@ Public links should only be shared with people you trust or protected with a pas
 See [DISCLAIMER](./DISCLAIMER) for full text.
 
 Made with love for real mixtapes in a digital world.
+
 
 
 
