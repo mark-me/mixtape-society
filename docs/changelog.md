@@ -47,7 +47,6 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 - When searching with multiple words the results narrows down
 - Player control text is illegible in the white theme
-- Android notification track progress not in sync
 
 [v0.2.5](https://github.com/mark-me/mixtape-society/compare/v0.2.2...v0.2.5)
 
