@@ -216,17 +216,34 @@ body.reorder-mode #search-bar {                                     /* The title
     white-space: nowrap; /* Prevent pill content from wrapping */
 }
 
-/* Artist accordion (bg-success) - pill should be warning color with success text */
-.accordion-button.bg-success .ms-auto {
-    background-color: #ffc107; /* warning color */
-    color: #198754; /* success color */
+/* ===== THEME-AWARE ACCORDION BUTTONS ===== */
+
+/* Artist accordion (green/success) */
+.accordion-button.bg-success {
+    background-color: #198754 !important;
+    color: white !important;
 }
 
-/* Album accordion (bg-warning) - pill should be primary color with warning text */
-.accordion-button.bg-warning .ms-auto {
-    background-color: #0d6efd; /* primary color */
-    color: #ffc107; /* warning color */
+.accordion-button.bg-success .ms-auto {
+    background-color: #ffc107; /* warning/yellow color for contrast */
+    color: #000 !important;
 }
+
+/* Album accordion (yellow/warning) */
+.accordion-button.bg-warning {
+    background-color: #ffc107 !important;
+    color: #000 !important;
+}
+
+.accordion-button.bg-warning .ms-auto {
+    background-color: #0d6efd; /* primary/blue color for contrast */
+    color: white !important;
+}
+
+.accordion-button.bg-warning .bi-disc-fill {
+    color: #000 !important;
+}
+
 
 /* --- 7. EasyMDE Markdown Editor Custom Styling --- */
 
