@@ -4,14 +4,14 @@
 
 Mixtape Society is a self-hosted web application that lets you create, manage, and share personalized music mixtapes from your own music library. Inspired by the nostalgia of cassette tapes, it brings a modern twist: drag-and-drop editing, custom covers, and public share links for easy listening without accounts or apps.
 
-## Project Goals
+## 🥅 Project Goals
 
 - **Privacy-First**: Everything runs on your hardware—no cloud uploads, no tracking.
 - **Simplicity**: Easy to set up and use, even for non-techies.
 - **Nostalgia Meets Modern**: Recreate the joy of mixtapes with features like themes and browser-based streaming.
 - **Open Source**: Free and open for contributions, under the [MIT License](https://mit-license.org/).
 
-## Who Built This?
+## 🧔🏼‍♂️ Who Built This?
 
 Hi, I'm Mark Zwart (e.g., mark-me on GitHub), a I'm a Dutch developer and music enthusiast based in The Netherlands. I created Mixtape Society because I wanted a simple way to share curated playlists from my personal collection without relying on big streaming services.
 
@@ -19,7 +19,7 @@ If you'd like to connect:
 
 - GitHub: [github.com/mark-me](https://github.com/mark-me)
 
-## Acknowledgements
+## 🙌 Acknowledgements
 
 Mixtape Society leverages several fantastic open-source libraries and tools. A big thank you to the developers and communities behind these projects.
 
@@ -54,11 +54,11 @@ Mixtape Society leverages several fantastic open-source libraries and tools. A b
 - **[Bootstrap Icons](https://icons.getbootstrap.com/)** – All the lovely icons you see everywhere
 - **[Sortable.js](https://sortablejs.github.io/Sortable/)** – Drag-and-drop reordering in the editor
 
-## License
+## ⚖️ License
 
 Mixtape Society is released under the [MIT License](https://mit-license.org/). Feel free to fork, modify, and share—but remember, users are responsible for their own music content (no copyrighted media is included or distributed).
 
-## Get Involved
+## 👥🔧 Get Involved
 
 - Report issues or suggest features on [GitHub Issues](https://github.com/mark-me/mixtape-society/issues).
 - Star the repo if you like it!
