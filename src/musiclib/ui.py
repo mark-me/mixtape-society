@@ -245,6 +245,7 @@ class MusicCollectionUI(MusicCollection):
             highlighted_tracks = self._highlight_text(track_name, all_terms)
             highlighted_artist = self._highlight_text(track["artist"], all_terms)
             highlighted_album = self._highlight_text(track["album"], all_terms)
+            track["cover"] = self.get_cover(track["release_dir"])
 
             results.append(
                 {

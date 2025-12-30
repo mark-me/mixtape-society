@@ -905,3 +905,47 @@ body.reorder-mode #search-bar {                                     /* The title
         padding: 0.25rem 0.5rem;  /* Smaller button */
     }
 }
+
+/* --- Animated Toasts --- */
+
+/* Base style for animated toasts */
+.toast-animated {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); /* Bounce effect */
+    will-change: transform, opacity;
+}
+
+/* When toast is shown */
+.toast-animated.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+/* Optional: subtle exit animation (when dismissed) */
+.toast-animated.hiding {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+    transition: all 0.25s ease-out;
+}
+
+/* Slight bounce on entry for extra polish */
+@keyframes toastBounceIn {
+    0%   { opacity: 0; transform: translateY(30px) scale(0.9); }
+    60%  { opacity: 1; transform: translateY(-8px) scale(1.03); }
+    80%  { transform: translateY(2px) scale(0.98); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.toast-animated.show {
+    animation: toastBounceIn 0.5s ease-out forwards;
+}
+
+/* Dark mode: subtle shadow for depth */
+[data-bs-theme="dark"] .toast-animated {
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+[data-bs-theme="light"] .toast-animated {
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}

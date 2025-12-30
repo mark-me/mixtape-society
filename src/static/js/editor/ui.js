@@ -1,6 +1,6 @@
 // static/js/editor/ui.js
 import { showAlert, showConfirm, escapeHtml } from "./utils.js";
-import { playlist, registerUnsavedCallback } from "./playlist.js";
+import { playlist, registerUnsavedCallback, registerTrackAddedCallback, registerTrackRemovedCallback } from "./playlist.js";
 import { easyMDE } from "./editorNotes.js";
 import { showProgressModal } from './progressModal.js';
 
@@ -284,7 +284,12 @@ export function initUI() {
     // -----------------------------------------------------------------
     // 6️⃣  “Track added” toast (re‑used for any playlist mutation)
     // -----------------------------------------------------------------
-    const addTrackToastEl = document.createElement("div");
+    const addTrackToastEl = document.getElementById('addTrackToast');
+    const removeTrackToastEl = document.getElementById('removeTrackToast');
+
+    const addTrackToast = addTrackToastEl ? new bootstrap.Toast(addTrackToastEl, { delay: 2000 }) : null;
+    const removeTrackToast = removeTrackToastEl ? new bootstrap.Toast(removeTrackToastEl, { delay: 2000 }) : null;
+
     addTrackToastEl.className = "toast position-fixed bottom-0 end-0 m-3";
     addTrackToastEl.setAttribute("role", "alert");
     addTrackToastEl.setAttribute("aria-live", "assertive");
@@ -295,7 +300,6 @@ export function initUI() {
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
         </div>`;
     document.body.appendChild(addTrackToastEl);
-    const addTrackToast = new bootstrap.Toast(addTrackToastEl, { delay: 2000 });
 
     // -----------------------------------------------------------------
     // 7️⃣  Register the **unsaved‑changes callback** with the playlist module.
@@ -305,10 +309,15 @@ export function initUI() {
     registerUnsavedCallback(() => {
         // Show the “Unsaved” badge
         markUnsaved();
-        // Also fire the toast that tells the user a track was added / playlist changed
-        addTrackToast.show();
     });
 
+    registerTrackAddedCallback(() => {
+        if (addTrackToast) addTrackToast.show();
+    });
+
+    registerTrackRemovedCallback(() => {
+        if (removeTrackToast) removeTrackToast.show();
+    });
     // -----------------------------------------------------------------
     // 8️⃣  EasyMDE (liner‑notes) – mark unsaved on any edit
     // -----------------------------------------------------------------

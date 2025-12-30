@@ -1188,7 +1188,6 @@ class MusicCollection:
             return {
                 "artist": display_artist,
                 "album": album_name,
-                "cover": album_cover,
                 "tracks": track_list,
                 "is_compilation": is_compilation,
                 "release_dir": release_dir,

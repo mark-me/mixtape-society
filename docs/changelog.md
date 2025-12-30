@@ -14,15 +14,17 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 ### ✨ Added
 
-- Offline mixtape playback
+- Covers included for tracks
+- Composite cover generation
+- Track removal toast
 
 ### 🔧 Changed
 
--
+- Play buttons changed to cover-play buttons
 
 ### 🐛 Fixed
 
--
+- Reordering tracks resulted in track added toast.
 
 [v0.3.0](https://github.com/mark-me/mixtape-society/compare/v0.2.2...v0.3.0)
 

@@ -20,6 +20,21 @@ export function registerUnsavedCallback(cb) {
     if (typeof cb === "function") unsavedCallback = cb;
 }
 
+let trackRemovedCallback = () => {};  // new
+
+export function registerTrackRemovedCallback(cb) {
+    if (typeof cb === "function") trackRemovedCallback = cb;
+}
+
+
+let trackAddedCallback = () => {};
+
+export function registerTrackAddedCallback(cb) {
+    // Registers a callback to be invoked whenever a track is added to the playlist.
+    // Allows external modules to hook into playlist growth events, such as updating UI state or metadata.
+    if (typeof cb === "function") trackAddedCallback = cb;
+}
+
 export function setPlaylist(newTracks) {
     // Replace the current contents atomically
     playlist.length = 0;
@@ -66,7 +81,8 @@ export function addToPlaylist(item) {
             track: sub.track || '',
             duration: sub.duration || '',
             path: sub.path || '',
-            filename: sub.filename || ''
+            filename: sub.filename || '',
+            cover: item.cover || '',
         };
     }
 
@@ -81,26 +97,24 @@ export function addToPlaylist(item) {
         track: item.track || '',
         duration: item.duration || '',
         path: item.path || '',
-        filename: item.filename || ''
+        filename: item.filename || '',
+        cover: item.cover || ''
     };
 
     // ────────────────────────────────────────────────────────────
     // 3. Duplicate check using the normalized fields
     // ────────────────────────────────────────────────────────────
-    const isDuplicate = playlist.some(t =>
-        t.artist === normalized.artist &&
-        t.album === normalized.album &&
-        t.track === normalized.track &&
-        t.path === normalized.path
-    );
-
-    if (isDuplicate) return;
+    const exists = playlist.some(t => t.path === item.path);
+    if (exists) return;
 
     // ────────────────────────────────────────────────────────────
     // 4. Add to playlist and refresh UI
     // ────────────────────────────────────────────────────────────
     playlist.push(normalized);
     renderPlaylist();
+    updatePlaylistCount();
+
+    trackAddedCallback();
     unsavedCallback();
 }
 
@@ -124,17 +138,30 @@ function attachPlaylistEvents() {
         });
 
     // Sortable.js integration
-    new Sortable(playlistOl, {
+    Sortable.create(playlistOl, {
         animation: 150,
-        ghostClass: "playlist-ghost",
-        handle: ".drag-handle",
-        onEnd: evt => {
-            const moved = playlist.splice(evt.oldIndex, 1)[0];
-            playlist.splice(evt.newIndex, 0, moved);
-            renderPlaylist();
-            unsavedCallback();
+        handle: '.drag-handle',
+        onEnd: () => {
+            // Rebuild playlist array from DOM order
+            const newOrder = [...playlistOl.children].map(li => {
+                const {index} = li.dataset;
+                return playlist[index];
+            });
+            playlist.length = 0;
+            newOrder.forEach(t => playlist.push(t));
+
+            renderPlaylist();        // updates data-index attributes
+            unsavedCallback();       // ← correct: only unsaved, no toast
         }
     });
+}
+
+export function updatePlaylistCount() {
+    // Updates the visible playlist count indicator in the UI.
+    // Ensures the displayed track count stays in sync with the current playlist length.
+    if (playlistCount) {
+        playlistCount.textContent = playlist.length;
+    }
 }
 
 /**
@@ -246,7 +273,7 @@ export function renderPlaylist() {
         btn.onclick = function (e) {
             e.stopPropagation();
 
-            const path = this.dataset.path;
+            const {path} = this.dataset;
             if (!path) return;
 
             const player = document.getElementById('global-audio-player');
@@ -316,7 +343,6 @@ export function renderPlaylist() {
             const player = document.getElementById('global-audio-player');
             const container = document.getElementById('audio-player-container');
             const currentSrc = player.src;
-            const trackPath = decodeURIComponent(path);
             const isThisTrackPlaying = currentSrc && currentSrc.includes(path);
 
             // If this track is already playing, toggle play/pause
@@ -366,6 +392,7 @@ export function renderPlaylist() {
             const index = Number(btn.dataset.index);
             playlist.splice(index, 1);
             renderPlaylist();
+            trackRemovedCallback();
             unsavedCallback();
         };
     });
