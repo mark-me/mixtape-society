@@ -5,12 +5,6 @@ from datetime import datetime
 from io import BytesIO
 from pathlib import Path
 
-from audio_cache import (
-    ProgressCallback,
-    ProgressStatus,
-    get_progress_tracker,
-    schedule_mixtape_caching,
-)
 from flask import (
     Blueprint,
     Response,
@@ -22,6 +16,12 @@ from flask import (
 )
 from PIL import Image
 
+from audio_cache import (
+    ProgressCallback,
+    ProgressStatus,
+    get_progress_tracker,
+    schedule_mixtape_caching,
+)
 from auth import require_auth
 from common.logging import Logger, NullLogger
 from mixtape_manager import MixtapeManager
@@ -347,24 +347,49 @@ def create_editor_blueprint(
 
             # Analyze results
             total_files = len(results)
-            successful = sum(
-                1 for r in results.values()
-                if not isinstance(r, dict) or r.get("skipped") or any(r.values() if isinstance(r, dict) else [True])
-            )
+
+            if total_files == 0:
+                # No results means something went wrong
+                tracker.emit(
+                    task_id=slug,
+                    step="completed",
+                    status=ProgressStatus.COMPLETED,
+                    message="No files processed (empty results)",
+                    current=total_tracks,
+                    total=total_tracks
+                )
+                logger.warning(f"No results returned for mixtape '{slug}'")
+                return
+
+            # Count successful operations (cached or skipped)
+            cached = sum(1 for r in results.values() if isinstance(r, dict) and any(k != "skipped" and k != "reason" for k in r.keys()))
+            skipped = sum(1 for r in results.values() if isinstance(r, dict) and r.get("skipped"))
+            failed = total_files - cached - skipped
+
+            # Build completion message
+            parts = []
+            if cached > 0:
+                parts.append(f"{cached} cached")
+            if skipped > 0:
+                parts.append(f"{skipped} skipped")
+            if failed > 0:
+                parts.append(f"{failed} failed")
+
+            message = f"Complete! {', '.join(parts) if parts else 'No files processed'}"
 
             # Emit completion event
             tracker.emit(
                 task_id=slug,
                 step="completed",
                 status=ProgressStatus.COMPLETED,
-                message=f"Caching complete! Processed {successful}/{total_files} files",
+                message=message,
                 current=total_files,
                 total=total_files
             )
 
             logger.info(
                 f"Pre-caching completed for '{slug}': "
-                f"{successful}/{total_files} files processed"
+                f"cached={cached}, skipped={skipped}, failed={failed}"
             )
 
         except Exception as e:
