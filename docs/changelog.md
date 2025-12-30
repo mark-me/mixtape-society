@@ -36,7 +36,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 ### ✨ Added
 
-- Creating cached versions of flac's converted to lower (but listenable) quality when creating a mixtape
+- Creating cached versions of FLAC's converted to lower (but listenable) quality when creating a mixtape
 - Option to let the user choose higher quality playback
 
 ### 🔧 Changed
@@ -45,7 +45,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 ### 🐛 Fixed
 
-- When searching with multiple words the results narrows down
+- When searching with multiple words, the results narrows down
 - Player control text is illegible in the white theme
 - Editor search result play preview button not in sync with player controls
 
