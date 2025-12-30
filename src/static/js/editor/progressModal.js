@@ -132,6 +132,11 @@ export class ProgressModal {
     }
 
     handleProgressEvent(data) {
+        // Skip connection events (they don't have step/status/message)
+        if (data.type === 'connected') {
+            return;
+        }
+
         const { step, status, message, current, total } = data;
 
         // Update main label based on step
