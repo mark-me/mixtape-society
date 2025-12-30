@@ -2,6 +2,7 @@
 
 /**
  * Progress modal for displaying real-time caching progress
+ * with Bootstrap theme support and mobile responsiveness
  */
 export class ProgressModal {
     constructor() {
@@ -11,10 +12,10 @@ export class ProgressModal {
     }
 
     createModal() {
-        // Create modal HTML
+        // Create modal HTML with theme-aware styling
         const modalHTML = `
             <div class="modal fade" id="progressModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
                     <div class="modal-content">
                         <div class="modal-header bg-success text-white">
                             <h5 class="modal-title">
@@ -30,14 +31,14 @@ export class ProgressModal {
                                     <span id="progress-percentage" class="text-muted">0%</span>
                                 </div>
                                 <div class="progress" style="height: 24px;">
-                                    <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-success" 
+                                    <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-success"
                                          role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Status messages -->
-                            <div class="card bg-light">
+                            <div class="card border">
                                 <div class="card-header d-flex justify-content-between align-items-center">
                                     <span class="fw-semibold">Progress</span>
                                     <button id="progress-clear-log" class="btn btn-sm btn-outline-secondary" title="Clear log">
@@ -45,7 +46,7 @@ export class ProgressModal {
                                     </button>
                                 </div>
                                 <div class="card-body p-0">
-                                    <div id="progress-log" class="overflow-auto font-monospace small" style="max-height: 300px;">
+                                    <div id="progress-log" class="overflow-auto font-monospace small bg-body" style="max-height: 300px;">
                                         <!-- Log entries will be added here -->
                                     </div>
                                 </div>
@@ -112,7 +113,7 @@ export class ProgressModal {
         this.eventSource.onerror = (error) => {
             console.error('Progress stream error:', error);
             this.addLogEntry('Connection error - retrying...', 'text-warning');
-            
+
             // Close and cleanup
             if (this.eventSource.readyState === EventSource.CLOSED) {
                 this.eventSource.close();
@@ -131,6 +132,11 @@ export class ProgressModal {
     }
 
     handleProgressEvent(data) {
+        // Skip connection events (they don't have step/status/message)
+        if (data.type === 'connected') {
+            return;
+        }
+
         const { step, status, message, current, total } = data;
 
         // Update main label based on step
@@ -141,7 +147,7 @@ export class ProgressModal {
             'completed': 'Complete!',
             'error': 'Error'
         };
-        
+
         if (stepLabels[step]) {
             this.setMainLabel(stepLabels[step]);
         }
@@ -154,7 +160,7 @@ export class ProgressModal {
         // Add log entry with appropriate styling
         const iconClass = this.getIconForStatus(status);
         const textClass = this.getTextClassForStatus(status);
-        
+
         this.addLogEntry(`${iconClass} ${message}`, textClass);
 
         // Handle completion
@@ -207,15 +213,23 @@ export class ProgressModal {
     addLogEntry(message, className = '') {
         const log = document.getElementById('progress-log');
         const timestamp = new Date().toLocaleTimeString();
-        
+
         const entry = document.createElement('div');
+        // Use Bootstrap's border and padding utilities + theme-aware text color
         entry.className = `p-2 border-bottom ${className}`;
-        entry.innerHTML = `<small class="text-muted">[${timestamp}]</small> ${message}`;
-        
+        entry.style.cssText = 'word-break: break-word;'; // Ensure long filenames wrap
+        entry.innerHTML = `<small class="text-muted">[${timestamp}]</small> <span>${this.escapeHtml(message)}</span>`;
+
         log.appendChild(entry);
-        
+
         // Auto-scroll to bottom
         log.scrollTop = log.scrollHeight;
+    }
+
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 
     clearLog() {
@@ -240,7 +254,7 @@ export class ProgressModal {
     enableCloseButton(enabled) {
         const btn = document.getElementById('progress-close-btn');
         btn.disabled = !enabled;
-        
+
         if (enabled) {
             btn.classList.remove('btn-secondary');
             btn.classList.add('btn-success');

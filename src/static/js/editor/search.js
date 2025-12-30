@@ -376,9 +376,27 @@ function attachPreviewButtons() {
 
             if (!path) return;
 
-            // Use your existing global player logic here
             const player = document.getElementById('global-audio-player');
             const container = document.getElementById('audio-player-container');
+            
+            // Check if this button is already playing
+            const isThisButtonPlaying = window.currentPreviewBtn === this;
+            
+            if (isThisButtonPlaying) {
+                // Toggle play/pause for this track
+                if (player.paused) {
+                    player.play().catch(e => console.error("Preview failed:", e));
+                    this.innerHTML = '<i class="bi bi-pause-fill"></i>';
+                    this.classList.remove('btn-primary');
+                    this.classList.add('btn-warning');
+                } else {
+                    player.pause();
+                    this.innerHTML = '<i class="bi bi-play-fill"></i>';
+                    this.classList.remove('btn-warning');
+                    this.classList.add('btn-primary');
+                }
+                return;
+            }
 
             // Stop any currently playing preview
             if (window.currentPreviewBtn && window.currentPreviewBtn !== this) {

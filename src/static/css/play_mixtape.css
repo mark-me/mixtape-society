@@ -13,15 +13,42 @@ body {
     background-color: var(--bs-body-bg);
 }
 
-/* Bottom player background – translucent blur */
+/* Bottom player background – translucent blur with theme support */
 #bottom-player-container .bg-dark {
     background-color: rgba(var(--bs-body-bg-rgb), 0.95) !important;
     backdrop-filter: blur(10px);
+    /* Override the text-white class for theme support */
+    color: var(--bs-body-color) !important;
 }
 
-/* Fix light mode heading color */
+/* Fix heading color to be theme-aware */
 h4.text-white {
     color: var(--bs-heading-color) !important;
+}
+
+/* --- 2. Bottom Player Text & Button Styling --- */
+
+/* Make bottom player buttons theme-aware instead of btn-outline-light */
+#bottom-player-container .btn-outline-light {
+    border-color: var(--bs-border-color) !important;
+    color: var(--bs-body-color) !important;
+    background-color: transparent !important;
+}
+
+#bottom-player-container .btn-outline-light:hover {
+    background-color: var(--bs-tertiary-bg) !important;
+    border-color: var(--bs-border-color) !important;
+    color: var(--bs-body-color) !important;
+}
+
+/* Bottom player text - make it theme-aware */
+#bottom-now-title {
+    color: var(--bs-body-color) !important;
+}
+
+#bottom-now-artist-album {
+    color: var(--bs-secondary-color) !important;
+    opacity: 1 !important; /* Remove opacity, use the color directly */
 }
 
 /* --- 2. Bottom Player Text Truncation & Layout --- */
@@ -91,7 +118,7 @@ h4.text-white {
 /* Mobile tweaks */
 @media (max-width: 576px) {
 
-    /* 1️⃣ Bootstrap .container and .container‑fluid have 15 px side padding.
+    /* 1️⃣ Bootstrap .container and .container‑fluid have 15 px side padding.
         We strip that padding on phones so the inner columns can reach the
         very edge of the viewport. */
     .container,
@@ -105,7 +132,7 @@ h4.text-white {
     }
 
     /* 2️⃣ The row that holds the two columns (.row.g‑5) adds a horizontal
-        gap (the “g‑5” gutter). We already removed the gap in the previous
+        gap (the "g‑5" gutter). We already removed the gap in the previous
         snippet, but we also need to force the row itself to be full‑width. */
     .row.g-5 {
         margin-left: 0 !important;
@@ -115,7 +142,7 @@ h4.text-white {
 
     /* 3️⃣ Force the column that contains the track list to occupy the
         full width of its parent (the row). This also removes the default
-        15 px column padding that Bootstrap applies. */
+        15 px column padding that Bootstrap applies. */
     .col-lg-8,
     .col-lg-4 {                     /* also affects the left‑hand column
                                       so the whole page aligns */
@@ -123,7 +150,7 @@ h4.text-white {
         padding-right: 0 !important;
         margin-left: 0 !important;
         margin-right: 0 !important;
-        flex: 0 0 100% !important;   /* 100 % of the row */
+        flex: 0 0 100% !important;   /* 100 % of the row */
         max-width: 100% !important;
     }
 
@@ -294,7 +321,7 @@ html[data-bs-theme="dark"] .theme-outline-btn:hover {
    Bottom player – make the track‑info area use all available space
    -------------------------------------------------------------- */
 
-/* 1️⃣ Remove the 140 px cap and let the info grow */
+/* 1️⃣ Remove the 140 px cap and let the info grow */
 #bottom-player-container .me-2 {
     max-width: none !important;           /* override the inline max‑width */
 }
@@ -314,7 +341,7 @@ html[data-bs-theme="dark"] .theme-outline-btn:hover {
 }
 
 /* 4️⃣ Reduce the horizontal margin on the native <audio> element
-    so it doesn’t steal space from the info block. */
+    so it doesn't steal space from the info block. */
 #bottom-player-container audio#w-main-player,
 #bottom-player-container audio#main-player {
     margin-left: 0.5rem !important;
@@ -322,8 +349,8 @@ html[data-bs-theme="dark"] .theme-outline-btn:hover {
 }
 
 /* 5️⃣ On phones the three groups (info, controls, audio) can wrap.
-    Force them onto a single line when there’s enough width, but
-    allow wrapping only when the viewport is < 480 px. */
+    Force them onto a single line when there's enough width, but
+    allow wrapping only when the viewport is < 480 px. */
 @media (max-width: 480px) {
     #bottom-player-container .d-flex.align-items-center.flex-wrap {
         flex-wrap: wrap;                 /* let them stack on very small screens */
@@ -346,3 +373,74 @@ html[data-bs-theme="dark"] .theme-outline-btn:hover {
     }
 }
 
+/* --- 10. Quality Selector Dropdown - Theme Aware --- */
+.quality-selector {
+    position: relative;
+    display: inline-block;
+}
+
+.quality-menu {
+    display: none;
+    position: absolute;
+    bottom: 100%;
+    right: 0;
+    margin-bottom: 0.5rem;
+    background-color: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 180px;
+    z-index: 1050;
+}
+
+/* Enhanced shadow for dark mode */
+html[data-bs-theme="dark"] .quality-menu {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.quality-menu.show {
+    display: block;
+}
+
+.quality-option {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    color: var(--bs-body-color);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background-color 0.2s;
+}
+
+.quality-option:first-child {
+    border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.quality-option:last-child {
+    border-radius: 0 0 0.5rem 0.5rem;
+}
+
+.quality-option:hover {
+    background-color: var(--bs-tertiary-bg);
+}
+
+.quality-option.active {
+    background-color: var(--bs-primary);
+    color: white;
+}
+
+.quality-option.active .quality-badge {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.quality-option .bi-check2 {
+    font-size: 1.2rem;
+    color: currentColor;
+}
+
+.quality-badge {
+    font-size: 0.75rem;
+    color: var(--bs-secondary-color);
+    margin-left: 0.5rem;
+}

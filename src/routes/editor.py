@@ -1,16 +1,11 @@
 import shutil
 import threading
+import time
 from base64 import b64decode
 from datetime import datetime
 from io import BytesIO
 from pathlib import Path
 
-from audio_cache import (
-    ProgressCallback,
-    ProgressStatus,
-    get_progress_tracker,
-    schedule_mixtape_caching,
-)
 from flask import (
     Blueprint,
     Response,
@@ -22,6 +17,12 @@ from flask import (
 )
 from PIL import Image
 
+from audio_cache import (
+    ProgressCallback,
+    ProgressStatus,
+    get_progress_tracker,
+    schedule_mixtape_caching,
+)
 from auth import require_auth
 from common.logging import Logger, NullLogger
 from mixtape_manager import MixtapeManager
@@ -201,12 +202,11 @@ def create_editor_blueprint(
 
                 def run_with_context():
                     with app.app_context():
-                        _trigger_audio_caching_async(final_slug, mixtape_manager, bool(slug))
+                        _trigger_audio_caching_async(
+                            final_slug, mixtape_manager, bool(slug)
+                        )
 
-                threading.Thread(
-                    target=run_with_context,
-                    daemon=True
-                ).start()
+                threading.Thread(target=run_with_context, daemon=True).start()
 
             return jsonify(
                 {
@@ -246,16 +246,16 @@ def create_editor_blueprint(
 
         return Response(
             stream_with_context(generate()),
-            mimetype='text/event-stream',
+            mimetype="text/event-stream",
             headers={
-                'Cache-Control': 'no-cache',
-                'X-Accel-Buffering': 'no',  # Disable nginx buffering
-            }
+                "Cache-Control": "no-cache",
+                "X-Accel-Buffering": "no",  # Disable nginx buffering
+            },
         )
 
     def _trigger_audio_caching_async(
-        slug: str, mixtape_manager: MixtapeManager, is_update: bool = False
-    ) -> None:
+            slug: str, mixtape_manager: MixtapeManager, is_update: bool = False
+        ) -> None:
         """
         Triggers background audio caching with progress tracking.
 
@@ -276,7 +276,7 @@ def create_editor_blueprint(
                 status=ProgressStatus.IN_PROGRESS,
                 message="Starting cache process...",
                 current=0,
-                total=1
+                total=1,
             )
 
             # Check if audio_cache is available
@@ -287,7 +287,7 @@ def create_editor_blueprint(
                     status=ProgressStatus.FAILED,
                     message="Audio cache not initialized",
                     current=0,
-                    total=0
+                    total=0,
                 )
                 logger.warning("Audio cache not initialized, skipping pre-caching")
                 return
@@ -302,7 +302,7 @@ def create_editor_blueprint(
                     status=ProgressStatus.COMPLETED,
                     message="No tracks to cache",
                     current=1,
-                    total=1
+                    total=1,
                 )
                 logger.debug(f"No tracks to cache for mixtape: {slug}")
                 return
@@ -317,7 +317,7 @@ def create_editor_blueprint(
                 status=ProgressStatus.IN_PROGRESS,
                 message=f"Analyzing {total_tracks} tracks...",
                 current=0,
-                total=total_tracks
+                total=total_tracks,
             )
 
             # Get configuration
@@ -342,29 +342,68 @@ def create_editor_blueprint(
                 logger=logger,
                 qualities=qualities,
                 async_mode=True,
-                progress_callback=progress_callback
+                progress_callback=progress_callback,
             )
+
+            # Small delay to ensure all progress events are queued
+            time.sleep(0.2)
 
             # Analyze results
             total_files = len(results)
-            successful = sum(
-                1 for r in results.values()
-                if not isinstance(r, dict) or r.get("skipped") or any(r.values() if isinstance(r, dict) else [True])
+
+            logger.info(f"Processing completed: {total_files} results returned")
+
+            if total_files == 0:
+                # No results means something went wrong
+                tracker.emit(
+                    task_id=slug,
+                    step="completed",
+                    status=ProgressStatus.COMPLETED,
+                    message="No files processed (empty results)",
+                    current=total_tracks,
+                    total=total_tracks,
+                )
+                logger.warning(f"No results returned for mixtape '{slug}'")
+                return
+
+            # Count successful operations (cached or skipped)
+            cached = sum(
+                isinstance(r, dict)
+                and any(k not in ["skipped", "reason"] for k in r.keys())
+                for r in results.values()
             )
+            skipped = sum(
+                bool(isinstance(r, dict) and r.get("skipped")) for r in results.values()
+            )
+            failed = total_files - cached - skipped
+
+            # Build completion message
+            parts = []
+            if cached > 0:
+                parts.append(f"{cached} cached")
+            if skipped > 0:
+                parts.append(f"{skipped} skipped")
+            if failed > 0:
+                parts.append(f"{failed} failed")
+
+            message = f"Complete! {', '.join(parts) if parts else 'No files processed'}"
 
             # Emit completion event
             tracker.emit(
                 task_id=slug,
                 step="completed",
                 status=ProgressStatus.COMPLETED,
-                message=f"Caching complete! Processed {successful}/{total_files} files",
+                message=message,
                 current=total_files,
-                total=total_files
+                total=total_files,
             )
+
+            # Small delay to ensure completion event is queued
+            time.sleep(0.1)
 
             logger.info(
                 f"Pre-caching completed for '{slug}': "
-                f"{successful}/{total_files} files processed"
+                f"cached={cached}, skipped={skipped}, failed={failed}"
             )
 
         except Exception as e:
@@ -375,7 +414,7 @@ def create_editor_blueprint(
                 status=ProgressStatus.FAILED,
                 message=f"Caching failed: {str(e)}",
                 current=0,
-                total=0
+                total=0,
             )
             logger.error(f"Pre-caching failed for mixtape '{slug}': {e}")
             logger.exception("Detailed error:")

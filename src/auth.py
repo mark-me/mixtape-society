@@ -1,17 +1,19 @@
 from flask import session, redirect, url_for
+from typing import Callable
 
-def check_auth():
+def check_auth() -> bool:
     """
     Checks if the current user is authenticated.
 
     Returns True if the user is authenticated in the session, otherwise False.
 
     Returns:
-        bool: Authentication status of the current user.
+        bool: Authentication status of the current user. Returns True only if the
+        session "authenticated" flag is explicitly set to True.
     """
-    return session.get("authenticated")
+    return session.get("authenticated") is True
 
-def require_auth(view):
+def require_auth(view: Callable) -> Callable:
     """
     Decorator that enforces authentication for a view function.
 

@@ -8,7 +8,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 ## 📦 v0.3.0
 
-<span class="md-tag">Release</span>
+<span class="md-tag">On backlog</span>
 
 **🗓️** 2025-12-xx
 
@@ -18,11 +18,11 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 ### 🔧 Changed
 
-- On-the-fly Transcoding for playback of flac files
+-
 
 ### 🐛 Fixed
 
-- When searching with multiple words the results narrows down
+-
 
 [v0.3.0](https://github.com/mark-me/mixtape-society/compare/v0.2.2...v0.3.0)
 
@@ -30,9 +30,9 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 ## 📦 v0.2.5
 
-<span class="md-tag">Release</span>
+<span class="md-tag">On backlog</span>
 
-**🗓️** 2025-12-29
+**🗓️** 2025-12-30
 
 ### ✨ Added
 
@@ -46,8 +46,9 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 ### 🐛 Fixed
 
 - When searching with multiple words the results narrows down
+- Player control text is illegible in the white theme
 
-[v0.3.0](https://github.com/mark-me/mixtape-society/compare/v0.2.2...v0.2.5)
+[v0.2.5](https://github.com/mark-me/mixtape-society/compare/v0.2.2...v0.2.5)
 
 ---
 
