@@ -200,6 +200,93 @@ h4.text-white {
     color: var(--bs-secondary-color) !important;
 }
 
+/* --- Track cover + overlay play button --- */
+.track-cover,
+.track-cover-placeholder {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: 0.5rem;
+    display: block;
+    flex-shrink: 0;
+}
+
+.track-cover-placeholder {
+    background: var(--bs-tertiary-bg);
+    border: 2px dashed var(--bs-border-color);
+}
+
+/* Container for the overlay button */
+.track-cover-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+/* The actual play/pause button */
+.play-overlay-btn {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.45);
+    color: white;
+    border: none;
+    font-size: 1.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* Start hidden/faint */
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Hover (desktop) */
+@media (hover: hover) and (pointer: fine) {
+    .track-item:hover .play-overlay-btn {
+        opacity: 1;
+        transform: scale(1);
+        background: rgba(0, 0, 0, 0.65);
+    }
+}
+
+/* Touch devices (mobile/tablet) */
+@media (pointer: coarse) {
+    .play-overlay-btn {
+        opacity: 0.7;  /* Always faintly visible */
+        background: rgba(0, 0, 0, 0.35);
+    }
+    .play-overlay-btn:active {
+        transform: scale(0.94);
+        background: rgba(0, 0, 0, 0.75);
+    }
+}
+
+/* Playing state */
+.track-item.playing .play-overlay-btn {
+    opacity: 1 !important;
+    background: rgba(30, 215, 96, 0.9) !important;  /* Spotify green */
+    transform: scale(1) !important;
+    animation: pulseOnce 0.6s ease-out;
+}
+
+/* Subtle heartbeat pulse */
+@keyframes pulseOnce {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.18); }
+    100% { transform: scale(1); }
+}
+
+/* Track item playing highlight */
+.track-item.playing {
+    background-color: var(--bs-primary-bg-subtle) !important;
+    border-color: var(--bs-primary) !important;
+}
 
 /* --- 5. Big Play Button – Theme Adaptive Outline --- */
 .theme-outline-btn {

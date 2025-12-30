@@ -57,11 +57,11 @@ export function initPlayerControls() {
             option.addEventListener('click', (e) => {
                 e.preventDefault();
                 const newQuality = option.dataset.quality;
-                
+
                 if (newQuality !== currentQuality) {
                     changeQuality(newQuality);
                 }
-                
+
                 qualityMenu.classList.remove('show');
             });
         });
@@ -78,9 +78,9 @@ export function initPlayerControls() {
     function changeQuality(newQuality) {
         currentQuality = newQuality;
         localStorage.setItem('audioQuality', newQuality);
-        
+
         updateQualityButtonText();
-        
+
         // Mark all quality options
         document.querySelectorAll('.quality-option').forEach(opt => {
             if (opt.dataset.quality === newQuality) {
@@ -94,9 +94,9 @@ export function initPlayerControls() {
         if (currentIndex >= 0 && player.src) {
             const wasPlaying = !player.paused;
             const currentTime = player.currentTime;
-            
+
             playTrack(currentIndex);
-            
+
             // Try to resume at the same position
             if (wasPlaying) {
                 player.currentTime = currentTime;
@@ -113,7 +113,7 @@ export function initPlayerControls() {
 
         const toastBody = toastEl.querySelector('.toast-body');
         const qualityInfo = QUALITY_LEVELS[quality];
-        
+
         if (toastBody && qualityInfo) {
             toastBody.textContent = `Quality changed to ${qualityInfo.label}`;
         }
@@ -143,12 +143,12 @@ export function initPlayerControls() {
         }
 
         const track = trackItems[index];
-        
+
         // Build URL with quality parameter
         const basePath = track.dataset.path;
         const urlParams = new URLSearchParams();
         urlParams.set('quality', currentQuality);
-        
+
         player.src = `${basePath}?${urlParams.toString()}`;
 
         bottomTitle.textContent = track.dataset.title;
@@ -170,28 +170,33 @@ export function initPlayerControls() {
         if (currentIndex === -1) playTrack(0);
         else player.play();
     });
-
+    player?.addEventListener('play', syncPlayIcons);
+    player?.addEventListener('pause', syncPlayIcons);
     prevBtn?.addEventListener('click', () => playTrack(currentIndex - 1));
     nextBtn?.addEventListener('click', () => playTrack(currentIndex + 1));
-    player?.addEventListener('ended', () => playTrack(currentIndex + 1));
+    player?.addEventListener('ended', () => {
+        syncPlayIcons();
+        playTrack(currentIndex + 1);
+    });
 
     trackItems.forEach((item, i) => {
-        const handleToggle = (e) => {
-            e.stopPropagation();
-            // If this track is already playing/active, just toggle play/pause
-            if (i === currentIndex) {
-                if (player.paused) {
-                    player.play();
+        const overlayBtn = item.querySelector('.play-overlay-btn');
+        if (overlayBtn) {
+            overlayBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (i === currentIndex) {
+                    // Same track: toggle pause/resume
+                    if (player.paused) {
+                        player.play().catch(err => console.error("Resume failed:", err));
+                    } else {
+                        player.pause();
+                    }
                 } else {
-                    player.pause();
+                    // New track: load and play
+                    playTrack(i);
                 }
-            } else {
-                // Otherwise, load and play the new track
-                playTrack(i);
-            }
-        };
-        item.addEventListener('click', handleToggle);
-        item.querySelector('.play-this-track')?.addEventListener('click', handleToggle);
+            });
+        }
     });
 
     closeBtn?.addEventListener('click', () => {
@@ -211,21 +216,30 @@ export function initPlayerControls() {
        Icon‑sync helper
        ----------------------------------------------------------------- */
     function syncPlayIcons() {
-        // Reset every button to the "play" icon
-        trackItems.forEach(item => {
-            const icon = item.querySelector('.play-this-track i');
+        trackItems.forEach((item, idx) => {
+            const icon = item.querySelector('.play-overlay-btn i');
             if (icon) {
-                icon.classList.remove('bi-pause-fill', 'bi-play-fill');
+                icon.classList.remove('bi-pause-fill');
                 icon.classList.add('bi-play-fill');
             }
+            item.classList.remove('playing');
         });
 
-        // If something is playing, turn the active row's icon into "pause"
         if (currentIndex >= 0 && !player.paused) {
-            const activeIcon = trackItems[currentIndex]
-                .querySelector('.play-this-track i');
-            if (activeIcon) {
-                activeIcon.classList.replace('bi-play-fill', 'bi-pause-fill');
+            const activeItem = trackItems[currentIndex];
+            if (activeItem) {
+                activeItem.classList.add('playing');
+                const activeIcon = activeItem.querySelector('.play-overlay-btn i');
+                if (activeIcon) {
+                    activeIcon.classList.remove('bi-play-fill');
+                    activeIcon.classList.add('bi-pause-fill');
+                }
+            }
+        } else if (currentIndex >= 0 && player.paused) {
+            // Paused: show play icon on active
+            const activeItem = trackItems[currentIndex];
+            if (activeItem) {
+                activeItem.classList.remove('playing');  // Remove green if paused
             }
         }
     }
