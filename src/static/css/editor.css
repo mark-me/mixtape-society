@@ -440,10 +440,35 @@ body.reorder-mode #search-bar {                                     /* The title
     background-color: var(--bs-body-bg);
 }
 
-/* Bottom player background – translucent blur */
+/* Bottom player background – translucent blur with theme support */
 #audio-player-container .bg-dark {
     background-color: rgba(var(--bs-body-bg-rgb), 0.95) !important;
     backdrop-filter: blur(10px);
+    /* Override the text-white class for theme support */
+    color: var(--bs-body-color) !important;
+}
+
+/* Make bottom player buttons theme-aware instead of btn-outline-light */
+#audio-player-container .btn-outline-light {
+    border-color: var(--bs-border-color) !important;
+    color: var(--bs-body-color) !important;
+    background-color: transparent !important;
+}
+
+#audio-player-container .btn-outline-light:hover {
+    background-color: var(--bs-tertiary-bg) !important;
+    border-color: var(--bs-border-color) !important;
+    color: var(--bs-body-color) !important;
+}
+
+/* Bottom player text - make it theme-aware */
+#now-playing-title {
+    color: var(--bs-body-color) !important;
+}
+
+#now-playing-artist {
+    color: var(--bs-secondary-color) !important;
+    opacity: 1 !important; /* Remove opacity, use the color directly */
 }
 
 /* Bottom Player Text Truncation & Layout */
@@ -455,10 +480,27 @@ body.reorder-mode #search-bar {                                     /* The title
 }
 
 /* Limit the width of the track info section so it doesn't push controls off-screen */
+/* Override the inline max-width: 140px with !important */
 #audio-player-container .me-2 {
+    min-width: 0 !important;
+    max-width: none !important;        /* Remove the restriction */
+    flex: 1 1 auto !important;         /* Allow it to grow */
+    width: auto !important;            /* Override any width restrictions */
+}
+
+/* Make the parent flex container that holds close button + track info grow aggressively */
+#audio-player-container .d-flex.align-items-center.mb-2.mb-md-0 {
+    flex: 1 1 auto !important;         /* Let it take available space */
     min-width: 0;
-    max-width: 50vw;
-    flex: 1 1 150px;
+    max-width: none !important;        /* Remove the max-width restriction */
+}
+
+/* Ensure the audio player doesn't hog all the space */
+#audio-player-container audio#global-audio-player {
+    flex: 0 1 auto !important;         /* Don't grow, but can shrink */
+    width: auto !important;            /* Override w-100 */
+    min-width: 200px;                  /* Ensure it doesn't get too small */
+    max-width: 500px;                  /* But also doesn't get too large */
 }
 
 #audio-player-container .d-flex {
@@ -480,18 +522,41 @@ body.reorder-mode #search-bar {                                     /* The title
         padding: 0.25rem 0.4rem;
         font-size: 0.9rem;
     }
+
+    /* On mobile, make audio player even smaller to give track info more room */
+    #audio-player-container audio#global-audio-player {
+        min-width: 150px !important;
+        max-width: 300px !important;
+    }
+}
+
+/* Tablet - balance between track info and audio controls */
+@media (min-width: 577px) and (max-width: 991px) {
+    #audio-player-container audio#global-audio-player {
+        min-width: 250px;
+        max-width: 400px;
+    }
+}
+
+/* Desktop - audio player can be wider */
+@media (min-width: 992px) {
+    #audio-player-container audio#global-audio-player {
+        min-width: 300px;
+        max-width: 500px;
+    }
 }
 
 /* Allow info block to grow and take remaining width */
 #audio-player-container #now-playing-title,
 #audio-player-container #now-playing-artist {
     width: 100%;
+    max-width: 600px; /* Reasonable limit for readability */
 }
 
-/* Reduce horizontal margin on audio element */
+/* Reduce horizontal margin on audio element to give more space */
 #audio-player-container audio#global-audio-player {
-    margin-left: 0.5rem !important;
-    margin-right: 0.5rem !important;
+    margin-left: 1rem !important;
+    margin-right: 0 !important;
 }
 
 /* On very small screens allow wrapping */
