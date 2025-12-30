@@ -1,3 +1,4 @@
+import hashlib
 import re
 from collections import defaultdict
 from dataclasses import dataclass
@@ -5,6 +6,8 @@ from pathlib import Path
 from sqlite3 import Connection
 from threading import Thread
 from time import time
+
+from tinytag import TinyTag
 
 from common.logging import Logger, NullLogger
 
@@ -45,7 +48,7 @@ class MusicCollection:
     TAG_BONUS = 30
 
     def __init__(
-        self, music_root: Path | str, db_path: Path | str, logger: Logger=None
+        self, music_root: Path | str, db_path: Path | str, logger: Logger = None
     ) -> None:
         """Initializes a MusicCollection backed by a SQLite database and music root directory.
         Sets up logging, collection extraction, and schedules any required initial indexing or resync operations.
@@ -75,6 +78,9 @@ class MusicCollection:
             self._extractor.wait_for_indexing_start()
 
         self._last_search_session: SearchSession | None = None
+
+        self.covers_dir = self.db_path.parent / "collection_covers"
+        self.covers_dir.mkdir(parents=True, exist_ok=True)
 
     def is_indexing(self) -> bool:
         status = get_indexing_status(self.db_path.parent)
@@ -254,7 +260,9 @@ class MusicCollection:
         minutes, seconds = divmod(total_seconds, 60)
         return f"{minutes}:{seconds:02d}"
 
-    def _build_track_dict(self, row: dict, artist: str | None = None, album: str | None = None) -> dict:
+    def _build_track_dict(
+        self, row: dict, artist: str | None = None, album: str | None = None
+    ) -> dict:
         """Builds a track dictionary from a database row.
 
         Args:
@@ -645,7 +653,9 @@ class MusicCollection:
 
         return artist_candidates, album_candidates, track_candidates
 
-    def _fetch_candidate_rows(self, terms: dict, limit: int) -> list[dict[str, str | float]]:
+    def _fetch_candidate_rows(
+        self, terms: dict, limit: int
+    ) -> list[dict[str, str | float]]:
         """Fetches raw candidate rows from the database for the first search pass.
         Uses full-text search when available, falling back to ordered scans otherwise.
 
@@ -793,14 +803,23 @@ class MusicCollection:
         with self._get_conn() as conn:
             # Add album counts for each artist result
             for artist in artists:
-                count_query = "SELECT COUNT(DISTINCT album) FROM tracks WHERE artist = ?"
-                artist['num_albums'] = conn.execute(count_query, (artist['artist'],)).fetchone()[0] or 0
+                count_query = (
+                    "SELECT COUNT(DISTINCT album) FROM tracks WHERE artist = ?"
+                )
+                artist["num_albums"] = (
+                    conn.execute(count_query, (artist["artist"],)).fetchone()[0] or 0
+                )
 
             # Add track counts for each album result
             for album in albums:
-                expr = self._sql_release_dir_expr()  # Reuses your existing method for release_dir expression
+                expr = (
+                    self._sql_release_dir_expr()
+                )  # Reuses your existing method for release_dir expression
                 count_query = f"SELECT COUNT(*) FROM tracks WHERE {expr} = ?"
-                album['num_tracks'] = conn.execute(count_query, (album['release_dir'],)).fetchone()[0] or 0
+                album["num_tracks"] = (
+                    conn.execute(count_query, (album["release_dir"],)).fetchone()[0]
+                    or 0
+                )
 
         return {
             "artists": artists,
@@ -1003,7 +1022,9 @@ class MusicCollection:
 
         return best
 
-    def _score_artist(self, artist: str, terms: dict, has_artist: bool, is_free_text: bool) -> int:
+    def _score_artist(
+        self, artist: str, terms: dict, has_artist: bool, is_free_text: bool
+    ) -> int:
         """Computes the score for an artist based on terms.
 
         Args:
@@ -1022,7 +1043,9 @@ class MusicCollection:
             score = self._score_text(artist, terms["general"])
         return score
 
-    def _score_album(self, album_name: str, terms: dict, has_album: bool, is_free_text: bool) -> int:
+    def _score_album(
+        self, album_name: str, terms: dict, has_album: bool, is_free_text: bool
+    ) -> int:
         """Computes the score for an album based on terms.
 
         Args:
@@ -1102,8 +1125,14 @@ class MusicCollection:
                     if tracks
                     else "Unknown Album"
                 )
+                album_cover = self.get_cover(release_dir)
                 albums.append(
-                    {"album": album_name, "tracks": tracks, "release_dir": release_dir}
+                    {
+                        "album": album_name,
+                        "cover": album_cover,
+                        "tracks": tracks,
+                        "release_dir": release_dir,
+                    }
                 )
 
             return {"artist": artist, "albums": albums}
@@ -1144,12 +1173,10 @@ class MusicCollection:
 
             # Album name from first row
             album_name = rows[0]["album"] or "Unknown Album"
+            album_cover = self.get_cover(release_dir)
 
             # Build track list
-            track_list = [
-                self._build_track_dict(row)
-                for row in rows
-            ]
+            track_list = [self._build_track_dict(row) for row in rows]
 
             # Detect compilation
             artists = {t["artist"] for t in track_list if t["artist"]}
@@ -1161,6 +1188,7 @@ class MusicCollection:
             return {
                 "artist": display_artist,
                 "album": album_name,
+                "cover": album_cover,
                 "tracks": track_list,
                 "is_compilation": is_compilation,
                 "release_dir": release_dir,
@@ -1192,3 +1220,104 @@ class MusicCollection:
             str: SQL expression for extracting the release directory from the path.
         """
         return "SUBSTR(path, 1, LENGTH(path) - LENGTH(filename))"  # e.g., 'artist/album/' (with trailing /)
+
+    def get_cover(self, release_dir: str) -> str | None:
+        """Retrieves or generates the cover image path for a given album release directory.
+        Returns a relative path to a cached or newly extracted cover image if available.
+
+        Args:
+            release_dir: The release directory identifier used to locate or derive the cover image.
+
+        Returns:
+            str | None: Relative path to the cover image within the covers directory, or None if not found.
+        """
+        if not release_dir:
+            return None
+
+        # Sanitize to a safe filename slug
+        slug = self._sanitize_release_dir(release_dir)
+        cover_path = self.covers_dir / f"{slug}.jpg"
+
+        if cover_path.exists():
+            return f"covers/{slug}.jpg"
+
+        # Extract on demand
+        if self._extract_cover(release_dir, cover_path):
+            return f"covers/{slug}.jpg"
+
+        return None
+
+    def _sanitize_release_dir(self, release_dir: str) -> str:
+        """Normalizes a release directory string into a safe filename slug.
+        Produces a stable, filesystem-friendly identifier suitable for use in cover cache filenames.
+
+        Args:
+            release_dir: The release directory identifier to sanitize.
+
+        Returns:
+            str: A normalized slug representation of the release directory.
+        """
+        clean = (
+            "".join(c if c.isalnum() or c in "-_ /" else "_" for c in release_dir)
+            .strip("/")
+            .replace("/", "_")
+        )
+        if len(clean) > 200:  # Truncate long paths
+            clean = f"{clean[:100]}_{hashlib.md5(release_dir.encode()).hexdigest()[:8]}"
+        return clean
+
+    def _extract_cover(self, release_dir: str, target_path: Path) -> bool:
+        """Attempts to locate or extract a cover image for a given release directory.
+        Searches for existing image files or embedded artwork and writes a normalized copy to the target path.
+
+        Args:
+            release_dir: The release directory relative to the music root where audio and image files are stored.
+            target_path: The filesystem path where the discovered or extracted cover image should be written.
+
+        Returns:
+            bool: True if a cover image was successfully found and written, otherwise False.
+        """
+        abs_dir = self.music_root / release_dir.rstrip("/")
+        if not abs_dir.is_dir():
+            self._logger.warning(f"Release directory not found: {abs_dir}")
+            return False
+
+        # Step 1: Check for common image files in the folder
+        common_cover_names = [
+            "cover.jpg",
+            "folder.jpg",
+            "album.jpg",
+            "front.jpg",
+            "cover.png",
+            "folder.png",
+        ]
+        for name in common_cover_names:
+            img_path = abs_dir / name
+            if img_path.exists():
+                try:
+                    with open(img_path, "rb") as src, open(target_path, "wb") as dst:
+                        dst.write(src.read())
+                    self._logger.info(f"Copied cover from {img_path} for {release_dir}")
+                    return True
+                except OSError as e:
+                    self._logger.error(f"Failed to copy cover {img_path}: {e}")
+                    continue
+
+        # Step 2: Extract embedded art from audio files
+        for file in abs_dir.iterdir():
+            if file.suffix.lower() in CollectionExtractor.SUPPORTED_EXTS:
+                try:
+                    tag = TinyTag.get(str(file), image=True)
+                    if img_data := tag.get_image():
+                        with open(target_path, "wb") as f:
+                            f.write(img_data)
+                        self._logger.info(
+                            f"Extracted embedded cover from {file} for {release_dir}"
+                        )
+                        return True
+                except Exception as e:
+                    self._logger.warning(f"Failed to extract from {file}: {e}")
+                    continue
+
+        self._logger.info(f"No cover found for {release_dir}")
+        return False
