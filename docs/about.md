@@ -25,19 +25,19 @@ Mixtape Society leverages several fantastic open-source libraries and tools. A b
 
 ### Python & Backend
 
-- **[Flask](https://flask.palletsprojects.com/)** – The lightweight and elegant web framework that powers everything
-- **[Jinja2](https://jinja.palletsprojects.com/)** – The powerful templating engine used for dynamic HTML rendering in all pages.
+- **[Flask](https://flask.palletsprojects.com/)** – Web framework that powers everything
+- **[Jinja2](https://jinja.palletsprojects.com/)** – Templating engine used for dynamic HTML rendering in all pages.
 - **[Flask-CORS](https://flask-cors.readthedocs.io/)** – Simple cross-origin resource sharing
 - **[Flask-Limiter](https://flask-limiter.readthedocs.io/)** – Rate limiting for the login route
 - **[Flask-Login](https://flask-login.readthedocs.io/)** – Session management
-- **[FFmpeg](https://ffmpeg.org/) - Used for transcoding audio quality
+- **[FFmpeg](https://ffmpeg.org/) - Transcoding audio quality
 - **[Gunicorn](https://gunicorn.org/)** – Production WSGI server
-- **[Pillow](https://python-pillow.org/)** – Image processing for uploaded covers
+- **[Pillow](https://python-pillow.org/)** – Image processing for uploaded covers and OpenGraph image generation
 - **[python-dotenv](https://github.com/theskumar/python-dotenv)** – Easy .env file support
 - **[python-json-logger](https://github.com/madzak/python-json-logger)** – Structured logging
 - **[TinyTag](https://github.com/devsnd/tinytag)** – Fast and lightweight audio metadata reading
 - **[Watchdog](https://github.com/gorakhargosh/watchdog)** – File system events for auto-reindexing the music library
-- **[SQLite](https://www.sqlite.org/)** – Embedded, zero-configuration database that stores your entire music library index and makes instant search possible.
+- **[SQLite](https://www.sqlite.org/)** – Embedded, zero-configuration database that stores the music library index and makes instant search possible.
 
 ### Documentation
 
