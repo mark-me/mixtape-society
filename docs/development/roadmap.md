@@ -21,16 +21,11 @@
 
 ## 2. Mobile Experience
 
-- Fully responsive player controls (bottom-fixed on mobile)
-- Swipe gestures in editor (remove track, reorder)
 - Pull-to-refresh on browse page
-- Dark mode (already half-there with Bootstrap, just add prefers-color-scheme)
 
 ## 3. Transcoding / Streaming Optimisation
 
-- Optional on-the-fly transcoding to Opus 96-128kbps for mobile/low-bandwidth (using ffmpeg in Docker)
 - HLS streaming fallback for very large FLAC files (>100 MB) to enable instant seeking
-- Configurable bitrate ceiling per client (detect mobile → lower bitrate)
 
 ## 4. Smart Features (without becoming bloated)
 
@@ -63,7 +58,6 @@
 
 ## 10. Developer/Deployment Experience
 
-- Add Traefik/Caddy reverse-proxy example with HTTPS (Let’s Encrypt)
 - Add healthcheck endpoint for Docker/Kubernetes
 - Support for Podman as well as Docker
 - Optional Redis cache for very large libraries (>50k tracks)
