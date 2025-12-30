@@ -47,6 +47,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 - When searching with multiple words the results narrows down
 - Player control text is illegible in the white theme
+- Editor search result play preview button not in sync with player controls
 
 [v0.2.5](https://github.com/mark-me/mixtape-society/compare/v0.2.2...v0.2.5)
 
