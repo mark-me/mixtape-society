@@ -16,7 +16,7 @@ No accounts, no telemetry, no Spotify – just your music, your server, your rul
 - Clean, modern UI (Bootstrap 5 + vanilla JS)
 - Full seeking support for FLAC, MP3, M4A, etc.
 - Simple single-password protection for mixtape management
-- Background filesystem monitoring – always up-to-date
+- Music library always up-to-date with background filesystem monitoring
 - Transcoding song qualtity for lower bandwidths
 
 ## 🚀 Quick Start
@@ -53,6 +53,7 @@ Public links should only be shared with people you trust or protected with a pas
 See [DISCLAIMER](./DISCLAIMER) for full text.
 
 Made with love for real mixtapes in a digital world.
+
 
 
 
