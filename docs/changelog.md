@@ -8,11 +8,11 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 ## 📦 v0.3.0
 
-<span class="md-tag">Release</span>
+<span class="md-tag">On backlog</span>
 
 **🗓️** 2025-12-xx
 
-### 🚀 Added
+### ✨ Added
 
 - Offline mixtape playback
 
@@ -22,9 +22,34 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 ### 🐛 Fixed
 
-- When searching with multiple words the results narrows down
+-
 
 [v0.3.0](https://github.com/mark-me/mixtape-society/compare/v0.2.2...v0.3.0)
+
+---
+
+## 📦 v0.2.5
+
+<span class="md-tag">On backlog</span>
+
+**🗓️** 2025-12-30
+
+### ✨ Added
+
+- Creating cached versions of flac's converted to lower (but listenable) quality when creating a mixtape
+- Option to let the user choose higher quality playback
+
+### 🔧 Changed
+
+- Updated documentation
+
+### 🐛 Fixed
+
+- When searching with multiple words the results narrows down
+- Player control text is illegible in the white theme
+- Editor search result play preview button not in sync with player controls
+
+[v0.2.5](https://github.com/mark-me/mixtape-society/compare/v0.2.2...v0.2.5)
 
 ---
 
@@ -34,7 +59,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 **🗓️** 2025-12-28
 
-### 🚀 Added
+### ✨ Added
 
 - Possibility to expand the tracks/liner notes for easier reordering and writing notes.
 - Duration of playlist items added
@@ -102,7 +127,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 **🗓️** 2025-12-26
 
-### 🚀 Added
+### ✨ Added
 
 - Using tags while searching
     - Artist
@@ -143,7 +168,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 **🗓️** 2025-12-18
 
-### 🚀 Added
+### ✨ Added
 
 - Editing previews - each track in the search-result can be played without adding them to the playlist
 - Project link in navbar
@@ -182,7 +207,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 **🗓️** 2025-12-17
 
-### 🚀 Added
+### ✨ Added
 
 - Grouping search results:
   - Nesting for Artists: Artists show as top-level headers with summaries (e.g., "2 album(s)", "5 nummer(s)").
@@ -207,7 +232,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 **🗓️** 2025-12-16
 
-### 🚀 Added
+### ✨ Added
 
 - Page that informs user at first startup on the progress of music library scraping
 
@@ -233,7 +258,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 **🗓️** 2025-12-15
 
-### 🚀 Added
+### ✨ Added
 
 - Creating liner notes for a mixtape
 - Pop-up when adding tracks to a mixtape
@@ -268,7 +293,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 **🗓️** 2025-12-12
 
-### 🚀 Added
+### ✨ Added
 
 - Included version information from git tags
 - Docker logging

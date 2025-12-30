@@ -78,13 +78,13 @@ function renderResults(data) {
                 <div class="accordion mb-3" id="accordion-artist-${safeArtist}">
                     <div class="accordion-item">
                         <h2 class="accordion-header">
-                            <button class="accordion-button collapsed bg-success text-white" type="button"
+                            <button class="accordion-button collapsed bg-success" type="button"
                                     data-bs-toggle="collapse"
                                     data-bs-target="#collapse-artist-${safeArtist}"
                                     data-raw-artist="${escapeHtml(entry.raw_artist || entry.artist)}">
                                 <i class="bi bi-person-fill me-2"></i>
                                 ${entry.artist}
-                                <span class="ms-auto small opacity-75 text-dark">
+                                <span class="ms-auto small">
                                     <i class="bi bi-disc-fill me-2"></i>#${entry.num_albums || 0}
                                 </span>
                             </button>
@@ -110,14 +110,14 @@ function renderResults(data) {
                 <div class="accordion mb-3" id="accordion-album-${safeReleaseDir}">
                     <div class="accordion-item">
                         <h2 class="accordion-header">
-                            <button class="accordion-button collapsed bg-warning text-dark" type="button"
+                            <button class="accordion-button collapsed bg-warning" type="button"
                                     data-bs-toggle="collapse"
                                     data-bs-target="#collapse-album-${safeReleaseDir}"
                                     data-raw-album="${escapeHtml(entry.raw_album || entry.album)}"
                                     data-raw-artist="${escapeHtml(entry.raw_artist || entry.artist)}">
                                 <i class="bi bi-disc-fill me-2"></i>
                                 ${entry.album}
-                                <span class="ms-auto small opacity-75 text-white">
+                                <span class="ms-auto small">
                                     <i class="bi bi-music-note-beamed me-2"></i>#${entry.num_tracks || 0}
                                 </span>
                             </button>
@@ -211,10 +211,10 @@ function loadArtistDetails(collapse) {
                 html += `
                     <div class="accordion-item">
                         <h2 class="accordion-header">
-                            <button class="accordion-button collapsed bg-dark text-light" type="button"
+                            <button class="accordion-button collapsed bg-warning" type="button"
                                     data-bs-toggle="collapse"
                                     data-bs-target="#collapse-album-${albumId}">
-                                <i class="bi bi-disc-fill me-2 text-warning"></i>
+                                <i class="bi bi-disc-fill me-2"></i>
                                 <strong>${escapeHtml(album.album)}</strong>
                             </button>
                         </h2>
@@ -376,9 +376,27 @@ function attachPreviewButtons() {
 
             if (!path) return;
 
-            // Use your existing global player logic here
             const player = document.getElementById('global-audio-player');
             const container = document.getElementById('audio-player-container');
+            
+            // Check if this button is already playing
+            const isThisButtonPlaying = window.currentPreviewBtn === this;
+            
+            if (isThisButtonPlaying) {
+                // Toggle play/pause for this track
+                if (player.paused) {
+                    player.play().catch(e => console.error("Preview failed:", e));
+                    this.innerHTML = '<i class="bi bi-pause-fill"></i>';
+                    this.classList.remove('btn-primary');
+                    this.classList.add('btn-warning');
+                } else {
+                    player.pause();
+                    this.innerHTML = '<i class="bi bi-play-fill"></i>';
+                    this.classList.remove('btn-warning');
+                    this.classList.add('btn-primary');
+                }
+                return;
+            }
 
             // Stop any currently playing preview
             if (window.currentPreviewBtn && window.currentPreviewBtn !== this) {
@@ -404,8 +422,6 @@ function attachPreviewButtons() {
             this.classList.add('btn-warning');
 
             window.currentPreviewBtn = this;
-
-            player.onended = () => stopPreview();
         });
     });
 }
@@ -420,6 +436,44 @@ function stopPreview() {
         window.currentPreviewBtn.classList.add('btn-primary');
         window.currentPreviewBtn = null;
     }
+}
+
+/**
+ * Syncs the preview button state with the audio player
+ * Updates the button icon based on whether audio is playing or paused
+ */
+function syncPreviewButtonState() {
+    const player = document.getElementById('global-audio-player');
+    if (!player || !window.currentPreviewBtn) return;
+    
+    const isPlaying = !player.paused && player.src;
+    
+    if (isPlaying) {
+        // Player is playing - show pause icon
+        window.currentPreviewBtn.innerHTML = '<i class="bi bi-pause-fill"></i>';
+        window.currentPreviewBtn.classList.remove('btn-primary');
+        window.currentPreviewBtn.classList.add('btn-warning');
+    } else {
+        // Player is paused or stopped - show play icon
+        window.currentPreviewBtn.innerHTML = '<i class="bi bi-play-fill"></i>';
+        window.currentPreviewBtn.classList.remove('btn-warning');
+        window.currentPreviewBtn.classList.add('btn-primary');
+    }
+}
+
+/**
+ * Sets up audio player event listeners to keep preview button in sync
+ */
+function setupAudioPlayerSync() {
+    const player = document.getElementById('global-audio-player');
+    if (!player) return;
+    
+    // Sync button state when player plays or pauses
+    player.addEventListener('play', syncPreviewButtonState);
+    player.addEventListener('pause', syncPreviewButtonState);
+    player.addEventListener('ended', () => {
+        stopPreview();
+    });
 }
 
 // ---------- Init ----------
@@ -438,4 +492,7 @@ export function initSearch() {
 
     // Initial popover
     new bootstrap.Popover(document.getElementById("searchHint"));
+    
+    // Set up audio player event listeners to keep preview button in sync
+    setupAudioPlayerSync();
 }

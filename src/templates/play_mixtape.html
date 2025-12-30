@@ -49,14 +49,12 @@
 
         <meta property="og:image" content="{{ og_url }}">
         <meta property="og:image:type" content="image/png">
-        <!-- Optionally remove fixed dimensions or make them dynamic if you resize in the endpoint -->
         <meta property="og:image:width" content="1200">
         <meta property="og:image:height" content="630">
 
         <meta name="twitter:card" content="summary_large_image">
-        <meta name="twitter:image" content="{{ og_url }}">  <!-- Use overlaid version here too -->
+        <meta name="twitter:image" content="{{ og_url }}">
     {% else %}
-        <!-- Fallback afbeelding als er geen cover is -->
         <meta property="og:image" content="{{ url_for('static', filename='image.jpg') }}"/>
     {% endif %}
 
@@ -154,6 +152,31 @@
                                 <div class="mb-2 mb-md-0">
                                     <button id="prev-btn-bottom" class="btn btn-sm btn-outline-light"><i class="bi bi-skip-backward-fill"></i></button>
                                     <button id="next-btn-bottom" class="btn btn-sm btn-outline-light ms-1"><i class="bi bi-skip-forward-fill"></i></button>
+
+                                    <!-- Quality selector -->
+                                    <div class="quality-selector d-inline-block ms-2">
+                                        <button id="quality-btn-bottom" class="btn btn-sm btn-outline-light">
+                                            <i class="bi bi-gear-fill me-1"></i>Medium
+                                        </button>
+                                        <div id="quality-menu" class="quality-menu">
+                                            <a href="#" class="quality-option" data-quality="high">
+                                                <span>High (256k)<span class="quality-badge">~2MB/min</span></span>
+                                                <i class="bi bi-check2" style="display:none;"></i>
+                                            </a>
+                                            <a href="#" class="quality-option active" data-quality="medium">
+                                                <span>Medium (192k)<span class="quality-badge">~1.4MB/min</span></span>
+                                                <i class="bi bi-check2"></i>
+                                            </a>
+                                            <a href="#" class="quality-option" data-quality="low">
+                                                <span>Low (128k)<span class="quality-badge">~1MB/min</span></span>
+                                                <i class="bi bi-check2" style="display:none;"></i>
+                                            </a>
+                                            <a href="#" class="quality-option" data-quality="original">
+                                                <span>Original<span class="quality-badge">~8-10MB/min</span></span>
+                                                <i class="bi bi-check2" style="display:none;"></i>
+                                            </a>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <audio id="main-player" controls class="w-100 flex-grow-1 mx-md-3" style="height: 38px;"></audio>
@@ -211,6 +234,7 @@
             </div>
         </div>
     </div>
+
     <!-- Share toast (public page) -->
     <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080">
         <div id="shareToast" class="toast align-items-center text-bg-success border-0 shadow" role="alert">
@@ -218,6 +242,19 @@
                 <div class="toast-body">
                     <i class="bi bi-check2-circle me-2"></i>
                     Public link copied to clipboard!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quality change toast -->
+    <div class="position-fixed bottom-0 start-50 translate-middle-x p-3" style="z-index: 1080">
+        <div id="qualityToast" class="toast align-items-center text-bg-info border-0 shadow" role="alert">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="bi bi-music-note-beamed me-2"></i>
+                    Quality changed
                 </div>
                 <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
             </div>

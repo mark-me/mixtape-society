@@ -103,6 +103,18 @@
     border: 2px dashed var(--bs-primary);
 }
 
+/* Currently playing track in playlist - theme-aware highlighting */
+.playlist-item.bg-primary-subtle {
+    background-color: var(--bs-primary-bg-subtle) !important;
+    border-color: var(--bs-primary) !important;
+    border-width: 2px !important;
+}
+
+.playlist-item.bg-primary-subtle strong,
+.playlist-item.bg-primary-subtle .text-muted {
+    color: var(--bs-emphasis-color) !important;
+}
+
 body.reorder-mode .col-lg-7 { display: none !important; } /* Hide search */
 body.reorder-mode .col-lg-5 { flex: 0 0 100%; max-width: 100%; } /* Full width */
 body.reorder-mode #playlist {
@@ -204,17 +216,34 @@ body.reorder-mode #search-bar {                                     /* The title
     white-space: nowrap; /* Prevent pill content from wrapping */
 }
 
-/* Artist accordion (bg-success) - pill should be warning color with success text */
-.accordion-button.bg-success .ms-auto {
-    background-color: #ffc107; /* warning color */
-    color: #198754; /* success color */
+/* ===== THEME-AWARE ACCORDION BUTTONS ===== */
+
+/* Artist accordion (green/success) */
+.accordion-button.bg-success {
+    background-color: #198754 !important;
+    color: white !important;
 }
 
-/* Album accordion (bg-warning) - pill should be primary color with warning text */
-.accordion-button.bg-warning .ms-auto {
-    background-color: #0d6efd; /* primary color */
-    color: #ffc107; /* warning color */
+.accordion-button.bg-success .ms-auto {
+    background-color: #ffc107; /* warning/yellow color for contrast */
+    color: #000 !important;
 }
+
+/* Album accordion (yellow/warning) */
+.accordion-button.bg-warning {
+    background-color: #ffc107 !important;
+    color: #000 !important;
+}
+
+.accordion-button.bg-warning .ms-auto {
+    background-color: #0d6efd; /* primary/blue color for contrast */
+    color: white !important;
+}
+
+.accordion-button.bg-warning .bi-disc-fill {
+    color: #000 !important;
+}
+
 
 /* --- 7. EasyMDE Markdown Editor Custom Styling --- */
 
@@ -440,10 +469,35 @@ body.reorder-mode #search-bar {                                     /* The title
     background-color: var(--bs-body-bg);
 }
 
-/* Bottom player background – translucent blur */
+/* Bottom player background – translucent blur with theme support */
 #audio-player-container .bg-dark {
     background-color: rgba(var(--bs-body-bg-rgb), 0.95) !important;
     backdrop-filter: blur(10px);
+    /* Override the text-white class for theme support */
+    color: var(--bs-body-color) !important;
+}
+
+/* Make bottom player buttons theme-aware instead of btn-outline-light */
+#audio-player-container .btn-outline-light {
+    border-color: var(--bs-border-color) !important;
+    color: var(--bs-body-color) !important;
+    background-color: transparent !important;
+}
+
+#audio-player-container .btn-outline-light:hover {
+    background-color: var(--bs-tertiary-bg) !important;
+    border-color: var(--bs-border-color) !important;
+    color: var(--bs-body-color) !important;
+}
+
+/* Bottom player text - make it theme-aware */
+#now-playing-title {
+    color: var(--bs-body-color) !important;
+}
+
+#now-playing-artist {
+    color: var(--bs-secondary-color) !important;
+    opacity: 1 !important; /* Remove opacity, use the color directly */
 }
 
 /* Bottom Player Text Truncation & Layout */
@@ -455,10 +509,27 @@ body.reorder-mode #search-bar {                                     /* The title
 }
 
 /* Limit the width of the track info section so it doesn't push controls off-screen */
+/* Override the inline max-width: 140px with !important */
 #audio-player-container .me-2 {
+    min-width: 0 !important;
+    max-width: none !important;        /* Remove the restriction */
+    flex: 1 1 auto !important;         /* Allow it to grow */
+    width: auto !important;            /* Override any width restrictions */
+}
+
+/* Make the parent flex container that holds close button + track info grow aggressively */
+#audio-player-container .d-flex.align-items-center.mb-2.mb-md-0 {
+    flex: 1 1 auto !important;         /* Let it take available space */
     min-width: 0;
-    max-width: 50vw;
-    flex: 1 1 150px;
+    max-width: none !important;        /* Remove the max-width restriction */
+}
+
+/* Ensure the audio player doesn't hog all the space */
+#audio-player-container audio#global-audio-player {
+    flex: 0 1 auto !important;         /* Don't grow, but can shrink */
+    width: auto !important;            /* Override w-100 */
+    min-width: 200px;                  /* Ensure it doesn't get too small */
+    max-width: 500px;                  /* But also doesn't get too large */
 }
 
 #audio-player-container .d-flex {
@@ -480,18 +551,41 @@ body.reorder-mode #search-bar {                                     /* The title
         padding: 0.25rem 0.4rem;
         font-size: 0.9rem;
     }
+
+    /* On mobile, make audio player even smaller to give track info more room */
+    #audio-player-container audio#global-audio-player {
+        min-width: 150px !important;
+        max-width: 300px !important;
+    }
+}
+
+/* Tablet - balance between track info and audio controls */
+@media (min-width: 577px) and (max-width: 991px) {
+    #audio-player-container audio#global-audio-player {
+        min-width: 250px;
+        max-width: 400px;
+    }
+}
+
+/* Desktop - audio player can be wider */
+@media (min-width: 992px) {
+    #audio-player-container audio#global-audio-player {
+        min-width: 300px;
+        max-width: 500px;
+    }
 }
 
 /* Allow info block to grow and take remaining width */
 #audio-player-container #now-playing-title,
 #audio-player-container #now-playing-artist {
     width: 100%;
+    max-width: 600px; /* Reasonable limit for readability */
 }
 
-/* Reduce horizontal margin on audio element */
+/* Reduce horizontal margin on audio element to give more space */
 #audio-player-container audio#global-audio-player {
-    margin-left: 0.5rem !important;
-    margin-right: 0.5rem !important;
+    margin-left: 1rem !important;
+    margin-right: 0 !important;
 }
 
 /* On very small screens allow wrapping */
@@ -505,4 +599,156 @@ body.reorder-mode #search-bar {                                     /* The title
     #audio-player-container audio#global-audio-player {
         margin-bottom: 0.4rem;
     }
+}
+
+/* Progress Modal Styling - Add to editor.css */
+
+/* --- 9. Progress Modal --- */
+
+/* Log container - theme-aware background */
+#progress-log {
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    border-radius: 0;
+}
+
+/* Log entries - theme-aware */
+#progress-log > div {
+    background-color: var(--bs-body-bg);
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+/* Last entry - no border */
+#progress-log > div:last-child {
+    border-bottom: none;
+}
+
+/* Hover effect for log entries */
+#progress-log > div:hover {
+    background-color: var(--bs-tertiary-bg);
+}
+
+/* Progress modal - ensure proper theming on card */
+#progressModal .card {
+    background-color: var(--bs-body-bg);
+    border-color: var(--bs-border-color);
+}
+
+#progressModal .card-header {
+    background-color: var(--bs-tertiary-bg);
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+/* Mobile-specific adjustments for progress modal */
+@media (max-width: 576px) {
+    /* Modal takes full screen on mobile */
+    #progressModal .modal-dialog {
+        margin: 0;
+        max-width: 100%;
+    }
+
+    /* Reduce padding on mobile */
+    #progressModal .modal-body {
+        padding: 1rem 0.75rem;
+    }
+
+    /* Smaller progress bar on mobile */
+    #progressModal .progress {
+        height: 20px !important;
+    }
+
+    /* More compact log entries on mobile */
+    #progress-log > div {
+        padding: 0.5rem !important;
+        font-size: 0.75rem;
+    }
+
+    /* Smaller timestamp on mobile */
+    #progress-log small {
+        font-size: 0.65rem;
+    }
+
+    /* Make log container taller on mobile (more vertical space) */
+    #progress-log {
+        max-height: 400px !important;
+    }
+
+    /* Smaller clear button on mobile */
+    #progress-clear-log {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    /* Progress percentage - smaller on mobile */
+    #progress-percentage {
+        font-size: 0.875rem;
+    }
+
+    /* Main label - wrap if needed */
+    #progress-main-label {
+        word-break: break-word;
+    }
+}
+
+/* Landscape mobile optimization */
+@media (max-width: 768px) and (orientation: landscape) {
+    /* Reduce log height in landscape to fit screen */
+    #progress-log {
+        max-height: 200px !important;
+    }
+
+    /* Smaller modal body padding */
+    #progressModal .modal-body {
+        padding: 0.75rem 0.5rem;
+    }
+}
+
+/* Very small screens (< 360px) */
+@media (max-width: 360px) {
+    /* Even more compact */
+    #progress-log > div {
+        padding: 0.375rem !important;
+        font-size: 0.7rem;
+    }
+
+    #progress-log small {
+        display: block; /* Stack timestamp on its own line */
+        margin-bottom: 0.125rem;
+    }
+
+    /* Hide clear button icon text on tiny screens */
+    #progress-clear-log i {
+        margin: 0;
+    }
+}
+
+/* Dark mode specific adjustments (when data-bs-theme="dark") */
+[data-bs-theme="dark"] #progress-log {
+    /* Slightly lighter background for better contrast */
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-bs-theme="dark"] #progress-log > div:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Light mode specific adjustments */
+[data-bs-theme="light"] #progress-log {
+    /* Slightly darker background for better contrast */
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+[data-bs-theme="light"] #progress-log > div:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Ensure text wraps properly in log entries */
+#progress-log span {
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+}
+
+/* Smooth scroll for log */
+#progress-log {
+    scroll-behavior: smooth;
 }

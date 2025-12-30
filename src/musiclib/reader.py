@@ -6,7 +6,7 @@ from sqlite3 import Connection
 from threading import Thread
 from time import time
 
-from common.logging import NullLogger
+from common.logging import Logger, NullLogger
 
 from ._extractor import CollectionExtractor
 from .indexing_status import get_indexing_status
@@ -45,7 +45,7 @@ class MusicCollection:
     TAG_BONUS = 30
 
     def __init__(
-        self, music_root: Path | str, db_path: Path | str, logger=None
+        self, music_root: Path | str, db_path: Path | str, logger: Logger=None
     ) -> None:
         """Initializes a MusicCollection backed by a SQLite database and music root directory.
         Sets up logging, collection extraction, and schedules any required initial indexing or resync operations.
@@ -83,8 +83,6 @@ class MusicCollection:
         if status and status.get("status") in ("rebuilding", "resyncing"):
             return True
 
-        # If status file doesn't exist yet, but DB is empty → initial rebuild is queued
-        # and will start shortly → treat as indexing to allow waiting
         if status is None and self.count() == 0:
             return True
 

@@ -1,14 +1,28 @@
-import json
-import secrets
 import shutil
+import threading
+import time
 from base64 import b64decode
 from datetime import datetime
 from io import BytesIO
 from pathlib import Path
 
-from flask import Blueprint, Response, current_app, jsonify, render_template, request
+from flask import (
+    Blueprint,
+    Response,
+    current_app,
+    jsonify,
+    render_template,
+    request,
+    stream_with_context,
+)
 from PIL import Image
 
+from audio_cache import (
+    ProgressCallback,
+    ProgressStatus,
+    get_progress_tracker,
+    schedule_mixtape_caching,
+)
 from auth import require_auth
 from common.logging import Logger, NullLogger
 from mixtape_manager import MixtapeManager
@@ -113,7 +127,6 @@ def create_editor_blueprint(
         details = collection.get_artist_details(artist)
         return jsonify(details)
 
-
     @editor.route("/album_details")
     @require_auth
     def album_details() -> Response:
@@ -149,9 +162,9 @@ def create_editor_blueprint(
             if not data or not data.get("tracks"):
                 return jsonify({"error": "Empty mixtape"}), 400
 
-            title = (data.get("title", "").strip() or "Unnamed Mixtape")
+            title = data.get("title", "").strip() or "Unnamed Mixtape"
             liner_notes = data.get("liner_notes", "")
-            slug = data.get("slug") # Present only when editing
+            slug = data.get("slug")  # Present only when editing
 
             # Prepare clean data for the manager
             mixtape_data = {
@@ -163,7 +176,7 @@ def create_editor_blueprint(
 
             # Instantiate the manager
             mixtape_manager = MixtapeManager(
-                path_mixtapes=current_app.config["MIXTAPE_DIR"]
+                path_mixtapes=current_app.config["MIXTAPE_DIR"], logger=logger
             )
 
             if slug:
@@ -182,16 +195,229 @@ def create_editor_blueprint(
                 mixtape_data["created_at"] = datetime.now().isoformat()
                 final_slug = mixtape_manager.save(mixtape_data)
 
-            return jsonify({
-                "success": True,
-                "title": title,
-                "slug": final_slug,
-                "client_id": mixtape_data.get("client_id"),
-                "url": f"/editor/{final_slug}",
-            })
+            # Trigger background audio caching in a separate thread
+            if current_app.config.get("AUDIO_CACHE_PRECACHE_ON_UPLOAD", False):
+                # Copy app reference and context for the thread
+                app = current_app._get_current_object()
+
+                def run_with_context():
+                    with app.app_context():
+                        _trigger_audio_caching_async(
+                            final_slug, mixtape_manager, bool(slug)
+                        )
+
+                threading.Thread(target=run_with_context, daemon=True).start()
+
+            return jsonify(
+                {
+                    "success": True,
+                    "title": title,
+                    "slug": final_slug,
+                    "client_id": mixtape_data.get("client_id"),
+                    "url": f"/editor/{final_slug}",
+                }
+            )
         except Exception as e:
             logger.exception(f"Error saving mixtape: {e}")
             return jsonify({"error": "Server error"}), 500
+
+    @editor.route("/progress/<slug>")
+    @require_auth
+    def progress_stream(slug: str) -> Response:
+        """
+        Server-Sent Events endpoint for real-time progress updates.
+
+        Streams progress events during mixtape caching operations.
+
+        Args:
+            slug: The mixtape slug to track progress for
+
+        Returns:
+            Response: SSE stream of progress events
+        """
+        tracker = get_progress_tracker(logger)
+
+        def generate():
+            try:
+                yield from tracker.listen(slug, timeout=300)
+            except Exception as e:
+                logger.error(f"Progress stream error for {slug}: {e}")
+                yield f"data: {{'error': '{str(e)}'}}\n\n"
+
+        return Response(
+            stream_with_context(generate()),
+            mimetype="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "X-Accel-Buffering": "no",  # Disable nginx buffering
+            },
+        )
+
+    def _trigger_audio_caching_async(
+            slug: str, mixtape_manager: MixtapeManager, is_update: bool = False
+        ) -> None:
+        """
+        Triggers background audio caching with progress tracking.
+
+        This runs in a separate thread to avoid blocking the save response.
+
+        Args:
+            slug: The unique identifier for the mixtape.
+            mixtape_manager: The MixtapeManager instance to retrieve mixtape data.
+            is_update: Whether this is an update to an existing mixtape.
+        """
+        tracker = get_progress_tracker(logger)
+
+        try:
+            # Emit initial event
+            tracker.emit(
+                task_id=slug,
+                step="initializing",
+                status=ProgressStatus.IN_PROGRESS,
+                message="Starting cache process...",
+                current=0,
+                total=1,
+            )
+
+            # Check if audio_cache is available
+            if not hasattr(current_app, "audio_cache"):
+                tracker.emit(
+                    task_id=slug,
+                    step="error",
+                    status=ProgressStatus.FAILED,
+                    message="Audio cache not initialized",
+                    current=0,
+                    total=0,
+                )
+                logger.warning("Audio cache not initialized, skipping pre-caching")
+                return
+
+            # Get the saved mixtape data
+            saved_mixtape = mixtape_manager.get(slug)
+
+            if not saved_mixtape or not saved_mixtape.get("tracks"):
+                tracker.emit(
+                    task_id=slug,
+                    step="completed",
+                    status=ProgressStatus.COMPLETED,
+                    message="No tracks to cache",
+                    current=1,
+                    total=1,
+                )
+                logger.debug(f"No tracks to cache for mixtape: {slug}")
+                return
+
+            tracks = saved_mixtape["tracks"]
+            total_tracks = len(tracks)
+
+            # Emit starting cache event
+            tracker.emit(
+                task_id=slug,
+                step="analyzing",
+                status=ProgressStatus.IN_PROGRESS,
+                message=f"Analyzing {total_tracks} tracks...",
+                current=0,
+                total=total_tracks,
+            )
+
+            # Get configuration
+            qualities = current_app.config.get(
+                "AUDIO_CACHE_PRECACHE_QUALITIES", ["medium"]
+            )
+            music_root = Path(current_app.config["MUSIC_ROOT"])
+
+            logger.info(
+                f"Starting pre-cache for mixtape '{slug}' "
+                f"({'update' if is_update else 'new'}) with {total_tracks} tracks"
+            )
+
+            # Create progress callback
+            progress_callback = ProgressCallback(slug, tracker, total_tracks)
+
+            # Start caching
+            results = schedule_mixtape_caching(
+                mixtape_tracks=tracks,
+                music_root=music_root,
+                audio_cache=current_app.audio_cache,
+                logger=logger,
+                qualities=qualities,
+                async_mode=True,
+                progress_callback=progress_callback,
+            )
+
+            # Small delay to ensure all progress events are queued
+            time.sleep(0.2)
+
+            # Analyze results
+            total_files = len(results)
+
+            logger.info(f"Processing completed: {total_files} results returned")
+
+            if total_files == 0:
+                # No results means something went wrong
+                tracker.emit(
+                    task_id=slug,
+                    step="completed",
+                    status=ProgressStatus.COMPLETED,
+                    message="No files processed (empty results)",
+                    current=total_tracks,
+                    total=total_tracks,
+                )
+                logger.warning(f"No results returned for mixtape '{slug}'")
+                return
+
+            # Count successful operations (cached or skipped)
+            cached = sum(
+                isinstance(r, dict)
+                and any(k not in ["skipped", "reason"] for k in r.keys())
+                for r in results.values()
+            )
+            skipped = sum(
+                bool(isinstance(r, dict) and r.get("skipped")) for r in results.values()
+            )
+            failed = total_files - cached - skipped
+
+            # Build completion message
+            parts = []
+            if cached > 0:
+                parts.append(f"{cached} cached")
+            if skipped > 0:
+                parts.append(f"{skipped} skipped")
+            if failed > 0:
+                parts.append(f"{failed} failed")
+
+            message = f"Complete! {', '.join(parts) if parts else 'No files processed'}"
+
+            # Emit completion event
+            tracker.emit(
+                task_id=slug,
+                step="completed",
+                status=ProgressStatus.COMPLETED,
+                message=message,
+                current=total_files,
+                total=total_files,
+            )
+
+            # Small delay to ensure completion event is queued
+            time.sleep(0.1)
+
+            logger.info(
+                f"Pre-caching completed for '{slug}': "
+                f"cached={cached}, skipped={skipped}, failed={failed}"
+            )
+
+        except Exception as e:
+            # Emit error event
+            tracker.emit(
+                task_id=slug,
+                step="error",
+                status=ProgressStatus.FAILED,
+                message=f"Caching failed: {str(e)}",
+                current=0,
+                total=0,
+            )
+            logger.error(f"Pre-caching failed for mixtape '{slug}': {e}")
+            logger.exception("Detailed error:")
 
     # TODO: Either remove or move to MixtapeManager
     def _process_cover(cover_data: str, slug: str) -> str | None:
@@ -222,7 +448,7 @@ def create_editor_blueprint(
             return None
 
     # TODO: Either remove or move to MixtapeManager
-    def _cover_resize(image: Image, new_width: int=1200) -> Image:
+    def _cover_resize(image: Image, new_width: int = 1200) -> Image:
         """
         Resizes the given image to a specified width while maintaining aspect ratio.
 
