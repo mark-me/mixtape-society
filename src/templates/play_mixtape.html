@@ -72,68 +72,6 @@
 {% block extra_css %}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/play_mixtape.css') }}">
-    <style>
-        /* Quality selector dropdown styles */
-        .quality-selector {
-            position: relative;
-            display: inline-block;
-        }
-
-        .quality-menu {
-            display: none;
-            position: absolute;
-            bottom: 100%;
-            right: 0;
-            margin-bottom: 0.5rem;
-            background-color: #2d2d2d;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            min-width: 180px;
-            z-index: 1050;
-        }
-
-        .quality-menu.show {
-            display: block;
-        }
-
-        .quality-option {
-            padding: 0.75rem 1rem;
-            cursor: pointer;
-            color: #fff;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: background-color 0.2s;
-        }
-
-        .quality-option:first-child {
-            border-radius: 0.5rem 0.5rem 0 0;
-        }
-
-        .quality-option:last-child {
-            border-radius: 0 0 0.5rem 0.5rem;
-        }
-
-        .quality-option:hover {
-            background-color: #3d3d3d;
-        }
-
-        .quality-option.active {
-            background-color: #0d6efd;
-        }
-
-        .quality-option .bi-check2 {
-            font-size: 1.2rem;
-            color: #fff;
-        }
-
-        .quality-badge {
-            font-size: 0.75rem;
-            opacity: 0.7;
-            margin-left: 0.5rem;
-        }
-    </style>
 {% endblock %}
 
 
@@ -214,7 +152,7 @@
                                 <div class="mb-2 mb-md-0">
                                     <button id="prev-btn-bottom" class="btn btn-sm btn-outline-light"><i class="bi bi-skip-backward-fill"></i></button>
                                     <button id="next-btn-bottom" class="btn btn-sm btn-outline-light ms-1"><i class="bi bi-skip-forward-fill"></i></button>
-                                    
+
                                     <!-- Quality selector -->
                                     <div class="quality-selector d-inline-block ms-2">
                                         <button id="quality-btn-bottom" class="btn btn-sm btn-outline-light">
@@ -296,7 +234,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Share toast (public page) -->
     <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080">
         <div id="shareToast" class="toast align-items-center text-bg-success border-0 shadow" role="alert">
