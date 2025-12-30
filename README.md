@@ -38,10 +38,11 @@ Open [http://localhost:5001](http://localhost:5001) – Done!
 ## 📖 Project docs
 
 - 🚀 [Getting Started](https://mark-me.github.io/mixtape-society/getting-started.html)
-- 📖 [Full Documentation](https://mark-me.github.io/mixtape-society/index.html)
 - 🐳 [Docker Deployment](https://mark-me.github.io/mixtape-society/docker.html)
 - 🙌 [Acknowledgements](https://mark-me.github.io/mixtape-society/about.html#acknowledgements)
-
+- 📝 [Changelog](https://mark-me.github.io/mixtape-society/changelog.html)
+- 📖 [Full Documentation](https://mark-me.github.io/mixtape-society/index.html)
+  
 ## ⚖️ Legal & Copyright Notice
 
 This software is a tool for personal, non-commercial use with legally owned music files.
@@ -53,6 +54,7 @@ Public links should only be shared with people you trust or protected with a pas
 See [DISCLAIMER](./DISCLAIMER) for full text.
 
 Made with love for real mixtapes in a digital world.
+
 
 
 
