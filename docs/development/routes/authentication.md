@@ -24,6 +24,15 @@ Functionally, it:
     - Removes the authenticated flag from the session (`session.pop("authenticated", None)`).
     - Redirects the user back to `/` (the landing or main page).
 
+The file `src/auth.py` defines simple authentication utilities for a Flask application. Its primary purpose is to:
+
+- Provide a helper to check whether the current user is authenticated based on the Flask session.
+- Provide a decorator to protect view functions, ensuring only authenticated users can access them and redirecting unauthenticated users to a landing page.
+
+In the larger system, this module centralizes basic auth checks so route handlers can easily enforce authentication without duplicating logic.
+
 ## API
 
 ### ::: src.routes.authentication
+
+### ::: src.auth

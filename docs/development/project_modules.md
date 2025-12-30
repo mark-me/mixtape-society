@@ -10,6 +10,7 @@ This page provides an overview of the project’s Python modules and how they de
 
 ### Core modules
 
+- **audio_cache**: Intelligent transcoding and bandwidth optimization.
 - **auth**: Custom authentication logic for checking user credentials.
 - **config**: Environment-aware configuration and directory setup.
 - **logtools**: Custom logging setup and logger retrieval for the application.
@@ -53,6 +54,7 @@ graph LR
         logtools
         mixtape_manager
         musiclib
+        audio_cache
     end
 
     subgraph routes
@@ -60,6 +62,7 @@ graph LR
         editor
         play
         authentication
+        logo_on_cover
     end
 
     app.py --> routes
