@@ -166,10 +166,16 @@ def create_editor_blueprint(
             liner_notes = data.get("liner_notes", "")
             slug = data.get("slug")  # Present only when editing
 
+            # Adding track covers
+            tracks = data.get("tracks", [])
+            for track in tracks:
+                release_dir = collection._get_release_dir(track.get("path", ""))  # Reuse existing helper
+                track["cover"] = collection.get_cover(release_dir)
+
             # Prepare clean data for the manager
             mixtape_data = {
                 "title": title,
-                "tracks": data.get("tracks", []),
+                "tracks": tracks,
                 "liner_notes": liner_notes,
                 "cover": data.get("cover"),
             }
