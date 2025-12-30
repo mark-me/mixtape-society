@@ -422,8 +422,6 @@ function attachPreviewButtons() {
             this.classList.add('btn-warning');
 
             window.currentPreviewBtn = this;
-
-            player.onended = () => stopPreview();
         });
     });
 }
@@ -438,6 +436,44 @@ function stopPreview() {
         window.currentPreviewBtn.classList.add('btn-primary');
         window.currentPreviewBtn = null;
     }
+}
+
+/**
+ * Syncs the preview button state with the audio player
+ * Updates the button icon based on whether audio is playing or paused
+ */
+function syncPreviewButtonState() {
+    const player = document.getElementById('global-audio-player');
+    if (!player || !window.currentPreviewBtn) return;
+    
+    const isPlaying = !player.paused && player.src;
+    
+    if (isPlaying) {
+        // Player is playing - show pause icon
+        window.currentPreviewBtn.innerHTML = '<i class="bi bi-pause-fill"></i>';
+        window.currentPreviewBtn.classList.remove('btn-primary');
+        window.currentPreviewBtn.classList.add('btn-warning');
+    } else {
+        // Player is paused or stopped - show play icon
+        window.currentPreviewBtn.innerHTML = '<i class="bi bi-play-fill"></i>';
+        window.currentPreviewBtn.classList.remove('btn-warning');
+        window.currentPreviewBtn.classList.add('btn-primary');
+    }
+}
+
+/**
+ * Sets up audio player event listeners to keep preview button in sync
+ */
+function setupAudioPlayerSync() {
+    const player = document.getElementById('global-audio-player');
+    if (!player) return;
+    
+    // Sync button state when player plays or pauses
+    player.addEventListener('play', syncPreviewButtonState);
+    player.addEventListener('pause', syncPreviewButtonState);
+    player.addEventListener('ended', () => {
+        stopPreview();
+    });
 }
 
 // ---------- Init ----------
@@ -456,4 +492,7 @@ export function initSearch() {
 
     // Initial popover
     new bootstrap.Popover(document.getElementById("searchHint"));
+    
+    // Set up audio player event listeners to keep preview button in sync
+    setupAudioPlayerSync();
 }
