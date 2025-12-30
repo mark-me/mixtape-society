@@ -37,10 +37,10 @@ Open [http://localhost:5001](http://localhost:5001) – Done!
 
 ## 📖 Project docs
 
-- [🚀 Getting Started](https://mark-me.github.io/mixtape-society/getting-started.html)
-- [📖 Full Documentation](https://mark-me.github.io/mixtape-society/index.html)
-- [🐳 Docker Deployment](https://mark-me.github.io/mixtape-society/docker.html)
-- [🙌 Acknowledgements](https://mark-me.github.io/mixtape-society/about.html#acknowledgements)
+- 🚀 [Getting Started](https://mark-me.github.io/mixtape-society/getting-started.html)
+- 📖 [Full Documentation](https://mark-me.github.io/mixtape-society/index.html)
+- 🐳 [Docker Deployment](https://mark-me.github.io/mixtape-society/docker.html)
+- 🙌 [Acknowledgements](https://mark-me.github.io/mixtape-society/about.html#acknowledgements)
 
 ## ⚖️ Legal & Copyright Notice
 
@@ -53,6 +53,7 @@ Public links should only be shared with people you trust or protected with a pas
 See [DISCLAIMER](./DISCLAIMER) for full text.
 
 Made with love for real mixtapes in a digital world.
+
 
 
 
