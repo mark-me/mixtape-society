@@ -1,4 +1,4 @@
-# 📼 Mixtape Society
+# Mixtape Society 📼👐
 
 **A private, self-hosted web app to create, edit, share and play music mixtapes from your personal library.**
 
@@ -41,7 +41,7 @@ Open [http://localhost:5001](http://localhost:5001) – Done!
 - [🐳 Docker Deployment](https://mark-me.github.io/mixtape-society/docker.html)
 - [🙌 Acknowledgements](https://mark-me.github.io/mixtape-society/about.html#acknowledgements)
 
-## Legal & Copyright Notice
+## ⚖️ Legal & Copyright Notice
 
 This software is a tool for personal, non-commercial use with legally owned music files.
 
@@ -52,5 +52,6 @@ Public links should only be shared with people you trust or protected with a pas
 See [DISCLAIMER](./DISCLAIMER) for full text.
 
 Made with love for real mixtapes in a digital world.
+
 
 
