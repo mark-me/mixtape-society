@@ -103,6 +103,18 @@
     border: 2px dashed var(--bs-primary);
 }
 
+/* Currently playing track in playlist - theme-aware highlighting */
+.playlist-item.bg-primary-subtle {
+    background-color: var(--bs-primary-bg-subtle) !important;
+    border-color: var(--bs-primary) !important;
+    border-width: 2px !important;
+}
+
+.playlist-item.bg-primary-subtle strong,
+.playlist-item.bg-primary-subtle .text-muted {
+    color: var(--bs-emphasis-color) !important;
+}
+
 body.reorder-mode .col-lg-7 { display: none !important; } /* Hide search */
 body.reorder-mode .col-lg-5 { flex: 0 0 100%; max-width: 100%; } /* Full width */
 body.reorder-mode #playlist {
