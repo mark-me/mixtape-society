@@ -383,6 +383,85 @@ export function initUI() {
             return confirmationMessage;          // WebKit, Safari
         }
     });
+
+    // Cover generation/uploading
+    const coverUploadBtn = document.getElementById('cover-upload-btn');
+    if (coverUploadBtn) {
+        coverUploadBtn.addEventListener('click', (e) => {
+            e.preventDefault();  // Prevent default if it's a button
+            const coverModal = new bootstrap.Modal(document.getElementById('coverOptionsModal'));
+            coverModal.show();
+        });
+    }
+
+    // Wire up modal options (do this after DOMContentLoaded, but initUI is fine)
+    const uploadOption = document.getElementById('upload-cover-option');
+    const generateOption = document.getElementById('generate-composite-option');
+
+    if (uploadOption) {
+        uploadOption.addEventListener('click', () => {
+            document.getElementById('cover-upload').click();  // Trigger existing upload
+            bootstrap.Modal.getInstance(document.getElementById('coverOptionsModal')).hide();
+        });
+    }
+
+    if (generateOption) {
+        generateOption.addEventListener('click', () => {
+            generateCompositeCover();
+            bootstrap.Modal.getInstance(document.getElementById('coverOptionsModal')).hide();
+        });
+    }
+
+    // NEW: Function to generate composite cover
+    function generateCompositeCover() {
+        // Get unique covers from playlist (avoid duplicates)
+        const uniqueCovers = [...new Set(playlist.map(item => item.cover).filter(Boolean))];  // Filter out null/undefined
+
+        if (uniqueCovers.length === 0) {
+            showAlert({ title: "No Covers Available", message: "Add tracks with covers to generate a composite." });
+            return;
+        }
+
+        // Limit to e.g., 4 for a 2x2 grid
+        const maxTiles = 4;
+        const tiles = uniqueCovers.slice(0, maxTiles);
+        const gridSize = Math.ceil(Math.sqrt(tiles.length));  // e.g., 1→1x1, 2→2x2, 3→2x2, 4→2x2
+        const tileSize = 300;  // Pixels per tile (adjust for quality)
+        const canvasSize = tileSize * gridSize;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = canvasSize;
+        canvas.height = canvasSize;
+        const ctx = canvas.getContext('2d');
+
+        // Fill background (theme-aware fallback, e.g., dark gray for dark mode)
+        const isDarkMode = document.body.getAttribute('data-bs-theme') === 'dark';
+        ctx.fillStyle = isDarkMode ? '#333' : '#f8f9fa';  // Bootstrap bg colors
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Load and draw images
+        let loaded = 0;
+        tiles.forEach((coverUrl, index) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';  // For CORS if needed (assuming same-origin)
+            img.src = `/${coverUrl}`;  // Prepend '/' as in previous suggestions
+            img.onload = () => {
+                const x = (index % gridSize) * tileSize;
+                const y = Math.floor(index / gridSize) * tileSize;
+                ctx.drawImage(img, x, y, tileSize, tileSize);
+                loaded++;
+                if (loaded === tiles.length) {
+                    coverDataUrl = canvas.toDataURL('image/jpeg', 1.0);  // High quality JPEG
+                    document.getElementById('playlist-cover').src = coverDataUrl;
+                    markUnsaved();
+                }
+            };
+            img.onerror = () => {
+                console.error(`Failed to load cover: ${coverUrl}`);
+                loaded++;  // Continue even if one fails
+            };
+        });
+    }
 }
 
 

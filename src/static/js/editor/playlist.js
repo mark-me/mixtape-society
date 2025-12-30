@@ -1,7 +1,7 @@
 // static/js/editor/playlist.js
 import { escapeHtml } from "./utils.js";
 
-const {Sortable} = window;
+const { Sortable } = window;
 
 export let playlist = [];               // exported so other modules (e.g. notes) can read it
 const playlistOl = document.getElementById("playlist");
@@ -15,7 +15,7 @@ const playlistCount = document.getElementById("playlist-count");
 *  This decouples the playlist module from the UI and avoids a
 *  circular import.
 * -----------------------------------------------------------------*/
-let unsavedCallback = () => {};               // default — no‑op
+let unsavedCallback = () => { };               // default — no‑op
 export function registerUnsavedCallback(cb) {
     if (typeof cb === "function") unsavedCallback = cb;
 }
@@ -61,11 +61,11 @@ export function addToPlaylist(item) {
     if (item.tracks && Array.isArray(item.tracks) && item.tracks.length > 0) {
         const sub = item.tracks[0];
         item = {
-            artist: item.raw_artist || item.artist ||'',
-            album:  item.raw_album  || item.album || '',
-            track:  sub.track || '',
+            artist: item.raw_artist || item.artist || '',
+            album: item.raw_album || item.album || '',
+            track: sub.track || '',
             duration: sub.duration || '',
-            path:   sub.path || '',
+            path: sub.path || '',
             filename: sub.filename || ''
         };
     }
@@ -76,11 +76,11 @@ export function addToPlaylist(item) {
     //    we no longer need the fallback to 'title'.
     // ────────────────────────────────────────────────────────────
     const normalized = {
-        artist:   item.artist   || '',
-        album:    item.album    || '',
-        track:    item.track    || '',
+        artist: item.artist || '',
+        album: item.album || '',
+        track: item.track || '',
         duration: item.duration || '',
-        path:     item.path     || '',
+        path: item.path || '',
         filename: item.filename || ''
     };
 
@@ -89,9 +89,9 @@ export function addToPlaylist(item) {
     // ────────────────────────────────────────────────────────────
     const isDuplicate = playlist.some(t =>
         t.artist === normalized.artist &&
-        t.album  === normalized.album &&
-        t.track  === normalized.track &&
-        t.path   === normalized.path
+        t.album === normalized.album &&
+        t.track === normalized.track &&
+        t.path === normalized.path
     );
 
     if (isDuplicate) return;
@@ -155,18 +155,17 @@ function setupAudioPlayerListeners() {
 function updatePlayPauseButtons() {
     const player = document.getElementById('global-audio-player');
     const isPlaying = player && !player.paused;
-    
+
     document.querySelectorAll('.play-track-btn').forEach(btn => {
         const icon = btn.querySelector('i');
         if (!icon) return;
-        
-        const playlistItem = btn.closest('.playlist-item');
+
         const trackPath = btn.dataset.path;
         const currentSrc = player.src;
-        
+
         // Check if this button's track is currently playing
         const isThisTrackPlaying = currentSrc && currentSrc.includes(encodeURIComponent(trackPath));
-        
+
         if (isThisTrackPlaying && isPlaying) {
             // This track is playing - show pause icon
             icon.classList.remove('bi-play-fill', 'bi-ban');
@@ -208,6 +207,9 @@ export function renderPlaylist() {
         <li class="d-flex align-items-center rounded p-3 mb-2 shadow-sm playlist-item
             bg-body-tertiary border" data-index="${esc(idx)}">
             <div class="drag-handle me-3 text-muted">⋮⋮</div>
+
+            <!-- Track cover -->
+            ${item.cover ? `<img src="/${esc(item.cover)}" alt="Cover" class="me-3 rounded" style="width: 50px; height: 50px; object-fit: cover;">` : '<div class="me-3" style="width: 50px; height: 50px; background: #ddd; border-radius: 0.25rem;"></div>'}
 
             <!-- Play button -->
             <button class="btn btn-success btn-sm me-2 play-track-btn"
@@ -264,11 +266,20 @@ export function renderPlaylist() {
             document.getElementById('now-playing-title').textContent = item.track;
             document.getElementById('now-playing-artist').textContent = `${item.artist} • ${item.album}`;
 
+            // Set player cover
+            const playerCover = document.getElementById('now-playing-cover');
+            if (item.cover) {
+                playerCover.src = `/${item.cover}`;
+                playerCover.style.display = 'block';
+            } else {
+                playerCover.style.display = 'none';
+            }
+
             // Remove highlight from all items
             document.querySelectorAll('.playlist-item').forEach(el => {
                 el.classList.remove('bg-primary', 'text-white', 'bg-primary-subtle', 'border-primary');
             });
-            
+
             // Add theme-aware highlight to current item
             const playlistItem = this.closest('.playlist-item');
             playlistItem.classList.add('bg-primary-subtle', 'border-primary');
@@ -284,7 +295,7 @@ export function renderPlaylist() {
             unsavedCallback();
         };
     });
-    
+
     // Update play/pause button states after rendering
     updatePlayPauseButtons();
 }

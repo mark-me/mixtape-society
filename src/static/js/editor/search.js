@@ -84,14 +84,15 @@ function renderResults(data) {
                                     data-raw-artist="${escapeHtml(entry.raw_artist || entry.artist)}">
                                 <i class="bi bi-person-fill me-2"></i>
                                 ${entry.artist}
+                                ${entry.cover ? `<img src="/${entry.cover}" alt="Cover" class="ms-2 rounded" style="width: 40px; height: 40px; object-fit: cover;">` : ''}
                                 <span class="ms-auto small">
                                     <i class="bi bi-disc-fill me-2"></i>#${entry.num_albums || 0}
                                 </span>
                             </button>
                         </h2>
                         <div id="collapse-artist-${safeArtist}"
-                             class="accordion-collapse collapse"
-                             data-artist="${escapeHtml(entry.raw_artist || entry.artist)}">
+                            class="accordion-collapse collapse"
+                            data-artist="${escapeHtml(entry.raw_artist || entry.artist)}">
                             <div class="accordion-body" data-loading="true">
                                 <p class="text-muted">Loading…</p>
                             </div>
@@ -117,14 +118,15 @@ function renderResults(data) {
                                     data-raw-artist="${escapeHtml(entry.raw_artist || entry.artist)}">
                                 <i class="bi bi-disc-fill me-2"></i>
                                 ${entry.album}
+                                ${entry.cover ? `<img src="/${entry.cover}" alt="Album Cover" class="ms-2 rounded" style="width: 40px; height: 40px; object-fit: cover;">` : ''}
                                 <span class="ms-auto small">
                                     <i class="bi bi-music-note-beamed me-2"></i>#${entry.num_tracks || 0}
                                 </span>
                             </button>
                         </h2>
                         <div id="collapse-album-${safeReleaseDir}"
-                             class="accordion-collapse collapse"
-                             data-release_dir="${escapeHtml(entry.release_dir)}">
+                            class="accordion-collapse collapse"
+                            data-release_dir="${escapeHtml(entry.release_dir)}">
                             <div class="accordion-body" data-loading="true">
                                 <p class="text-muted">Loading…</p>
                             </div>
@@ -144,6 +146,7 @@ function renderResults(data) {
                     <div class="flex-grow-1">
                         <i class="bi bi-music-note-beamed me-2 text-primary"></i>
                         <strong>${entry.highlighted_tracks ? entry.highlighted_tracks[0].highlighted : escapeHtml(track.track)}</strong><br>
+                        ${entry.cover ? `<img src="/${entry.cover}" alt="Track Cover" class="ms-2 rounded" style="width: 40px; height: 40px; object-fit: cover;">` : ''}
                         <small class="text-muted">
                             ${entry.artist} • ${entry.album}
                         </small>
@@ -151,8 +154,8 @@ function renderResults(data) {
                     <div class="d-flex align-items-center">
                         <div class="track-actions d-flex align-items-center gap-2">
                             <span class="text-muted me-3">${formatDuration(track.duration || "?:??")}</span>
-                            <button class="btn btn-primary btn-sm preview-btn" 
-                                    data-path="${escapeHtml(track.path)}" 
+                            <button class="btn btn-primary btn-sm preview-btn"
+                                    data-path="${escapeHtml(track.path)}"
                                     data-title="${escapeHtml(track.track)}"
                                     data-artist="${escapeHtml(entry.artist)}"
                                     data-album="${escapeHtml(entry.album)}">
@@ -378,10 +381,10 @@ function attachPreviewButtons() {
 
             const player = document.getElementById('global-audio-player');
             const container = document.getElementById('audio-player-container');
-            
+
             // Check if this button is already playing
             const isThisButtonPlaying = window.currentPreviewBtn === this;
-            
+
             if (isThisButtonPlaying) {
                 // Toggle play/pause for this track
                 if (player.paused) {
@@ -445,9 +448,9 @@ function stopPreview() {
 function syncPreviewButtonState() {
     const player = document.getElementById('global-audio-player');
     if (!player || !window.currentPreviewBtn) return;
-    
+
     const isPlaying = !player.paused && player.src;
-    
+
     if (isPlaying) {
         // Player is playing - show pause icon
         window.currentPreviewBtn.innerHTML = '<i class="bi bi-pause-fill"></i>';
@@ -467,7 +470,7 @@ function syncPreviewButtonState() {
 function setupAudioPlayerSync() {
     const player = document.getElementById('global-audio-player');
     if (!player) return;
-    
+
     // Sync button state when player plays or pauses
     player.addEventListener('play', syncPreviewButtonState);
     player.addEventListener('pause', syncPreviewButtonState);
@@ -492,7 +495,7 @@ export function initSearch() {
 
     // Initial popover
     new bootstrap.Popover(document.getElementById("searchHint"));
-    
+
     // Set up audio player event listeners to keep preview button in sync
     setupAudioPlayerSync();
 }

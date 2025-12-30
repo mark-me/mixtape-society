@@ -4,23 +4,23 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from flask import Flask, Response, redirect, render_template
+from flask import Flask, Response, redirect, render_template, abort, send_from_directory
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
-from auth import check_auth
-from config import DevelopmentConfig, ProductionConfig, TestConfig, BaseConfig
-from logtools import get_logger, setup_logging
-from musiclib import MusicCollectionUI, get_indexing_status
-from mixtape_manager import MixtapeManager
 from audio_cache import AudioCache
+from auth import check_auth, require_auth
+from config import BaseConfig, DevelopmentConfig, ProductionConfig, TestConfig
+from logtools import get_logger, setup_logging
+from mixtape_manager import MixtapeManager
+from musiclib import MusicCollectionUI, get_indexing_status
 from routes import (
+    create_authentication_blueprint,
     create_browser_blueprint,
     create_editor_blueprint,
-    create_play_blueprint,
-    create_authentication_blueprint,
     create_og_cover_blueprint,
+    create_play_blueprint,
 )
 from utils import get_version
 
@@ -112,6 +112,18 @@ def create_app() -> Flask:
             Response: A plain text HTTP response containing the robots.txt directives.
         """
         return Response("User-agent: *\nDisallow: /\n", mimetype="text/plain")
+
+    @app.route("/covers/<filename>")
+    @require_auth  # Optional: keep it authenticated like the editor, or remove if public
+    def serve_album_cover(filename):
+        """
+        Serves extracted album cover images from the cached covers directory.
+        """
+        covers_dir = app.config["DATA_ROOT"] / "collection_covers"
+        # Security: restrict to .jpg (or .jpeg/.png if you extend extraction)
+        if not filename.lower().endswith(('.jpg', '.jpeg', '.png')):
+            abort(404)
+        return send_from_directory(covers_dir, filename)
 
     # === Context Processors ===
 
