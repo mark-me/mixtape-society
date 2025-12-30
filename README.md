@@ -1,4 +1,4 @@
-# Mixtape Society
+# 📼 Mixtape Society
 
 **A private, self-hosted web app to create, edit, share and play music mixtapes from your personal library.**
 
@@ -6,7 +6,7 @@ No accounts, no telemetry, no Spotify – just your music, your server, your rul
 
 ![Mixtape Society screenshot](docs/images/screenshot-browse.png)
 
-## Features
+## ✨ Features
 
 - Clean, modern UI (Bootstrap 5 + vanilla JS)
 - Drag-and-drop mixtape editor
@@ -18,7 +18,7 @@ No accounts, no telemetry, no Spotify – just your music, your server, your rul
 - Background filesystem monitoring – always up-to-date
 - Zero runtime external dependencies
 
-## Quick Start
+## 🚀 Quick Start
 
 ```bash
 docker run -d \
@@ -34,7 +34,7 @@ docker run -d \
 
 Open [http://localhost:5001](http://localhost:5001) – Done!
 
-## Project docs
+## 📖 Project docs
 
 - [🚀 Getting Started](https://mark-me.github.io/mixtape-society/getting-started.html)
 - [📖 Full Documentation](https://mark-me.github.io/mixtape-society/index.html)
@@ -52,4 +52,5 @@ Public links should only be shared with people you trust or protected with a pas
 See [DISCLAIMER](./DISCLAIMER) for full text.
 
 Made with love for real mixtapes in a digital world.
+
 
