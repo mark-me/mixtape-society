@@ -85,7 +85,7 @@ def create_editor_blueprint(
             str: The rendered HTML page for editing the mixtape.
         """
         mixtape_manager = MixtapeManager(
-            path_mixtapes=current_app.config["MIXTAPE_DIR"]
+            path_mixtapes=current_app.config["MIXTAPE_DIR"], collection=collection
         )
         mixtape = mixtape_manager.get(slug)
         return render_template(
@@ -169,7 +169,9 @@ def create_editor_blueprint(
             # Adding track covers
             tracks = data.get("tracks", [])
             for track in tracks:
-                release_dir = collection._get_release_dir(track.get("path", ""))  # Reuse existing helper
+                release_dir = collection._get_release_dir(
+                    track.get("path", "")
+                )  # Reuse existing helper
                 track["cover"] = collection.get_cover(release_dir)
 
             # Prepare clean data for the manager
@@ -182,7 +184,9 @@ def create_editor_blueprint(
 
             # Instantiate the manager
             mixtape_manager = MixtapeManager(
-                path_mixtapes=current_app.config["MIXTAPE_DIR"], logger=logger
+                path_mixtapes=current_app.config["MIXTAPE_DIR"],
+                collection=collection,
+                logger=logger,
             )
 
             if slug:
@@ -260,8 +264,8 @@ def create_editor_blueprint(
         )
 
     def _trigger_audio_caching_async(
-            slug: str, mixtape_manager: MixtapeManager, is_update: bool = False
-        ) -> None:
+        slug: str, mixtape_manager: MixtapeManager, is_update: bool = False
+    ) -> None:
         """
         Triggers background audio caching with progress tracking.
 

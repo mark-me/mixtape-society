@@ -1,4 +1,5 @@
 import hashlib
+import io
 import re
 from collections import defaultdict
 from dataclasses import dataclass
@@ -8,6 +9,7 @@ from threading import Thread
 from time import time
 
 from tinytag import TinyTag
+from PIL import Image
 
 from common.logging import Logger, NullLogger
 
@@ -79,7 +81,7 @@ class MusicCollection:
 
         self._last_search_session: SearchSession | None = None
 
-        self.covers_dir = self.db_path.parent / "collection_covers"
+        self.covers_dir = self.db_path.parent / "cache" / "covers"
         self.covers_dir.mkdir(parents=True, exist_ok=True)
 
     def is_indexing(self) -> bool:
@@ -271,8 +273,11 @@ class MusicCollection:
             album: Optional album override.
 
         Returns:
-            dict: The track dictionary.
+            dict: The track dictionary with cover information.
         """
+        # Get the release directory to fetch the cover
+        release_dir = self._get_release_dir(row["path"])
+        
         return {
             "artist": artist or row["artist"],
             "track": row["title"],
@@ -280,6 +285,7 @@ class MusicCollection:
             "filename": row["filename"],
             "duration": self._format_duration(row["duration"]),
             "album": album or row["album"],
+            "cover": self.get_cover(release_dir),
         }
 
     def _relative_path(self, path: str) -> str:
@@ -1220,6 +1226,48 @@ class MusicCollection:
         """
         return "SUBSTR(path, 1, LENGTH(path) - LENGTH(filename))"  # e.g., 'artist/album/' (with trailing /)
 
+    def get_track(self, path: Path) -> dict | None:
+        """Retrieves metadata for a single track identified by its path.
+
+        Queries the music library database for the track and returns a normalized metadata dictionary if found.
+
+        Args:
+            path: The full or relative path of the track to look up.
+
+        Returns:
+            dict | None: A dictionary of track metadata if the track exists, otherwise None.
+        """
+        with self._get_conn() as conn:
+            cur = conn.execute(
+                """
+                SELECT path, filename, artist, album, title, albumartist, track_number, disc_number, duration, mtime
+                FROM tracks
+                WHERE path = ?
+                """,
+                (str(path),),
+            )
+            if rows := cur.fetchall():
+                track = rows[0]
+                # Get the release directory to fetch the cover
+                release_dir = self._get_release_dir(track["path"])
+                
+                return {
+                    "path": Path(path),
+                    "filename": track["filename"],
+                    "artist": track["artist"],
+                    "album": track["album"],
+                    "track": track["title"],
+                    "albumartist": track["albumartist"],
+                    "track_number": track["track_number"],
+                    "disc_number": track["disc_number"],
+                    "duration": self._format_duration(track["duration"]),
+                    "time_added": track["mtime"],
+                    "cover": self.get_cover(release_dir),
+                }
+            else:
+                return None
+
+
     def get_cover(self, release_dir: str) -> str | None:
         """Retrieves or generates the cover image path for a given album release directory.
         Returns a relative path to a cached or newly extracted cover image if available.
@@ -1267,7 +1315,8 @@ class MusicCollection:
 
     def _extract_cover(self, release_dir: str, target_path: Path) -> bool:
         """Attempts to locate or extract a cover image for a given release directory.
-        Searches for existing image files or embedded artwork and writes a normalized copy to the target path.
+        Searches for existing image files or embedded artwork, resizes them to a reasonable size,
+        and writes an optimized copy to the target path.
 
         Args:
             release_dir: The release directory relative to the music root where audio and image files are stored.
@@ -1281,6 +1330,11 @@ class MusicCollection:
             self._logger.warning(f"Release directory not found: {abs_dir}")
             return False
 
+        # Configuration for cover optimization
+        MAX_SIZE = 800  # Maximum width/height in pixels
+        JPEG_QUALITY = 85  # JPEG quality (1-100)
+        MAX_FILE_SIZE = 500 * 1024  # 500KB max file size
+
         # Step 1: Check for common image files in the folder
         common_cover_names = [
             "cover.jpg",
@@ -1290,16 +1344,16 @@ class MusicCollection:
             "cover.png",
             "folder.png",
         ]
+        
         for name in common_cover_names:
             img_path = abs_dir / name
             if img_path.exists():
                 try:
-                    with open(img_path, "rb") as src, open(target_path, "wb") as dst:
-                        dst.write(src.read())
-                    self._logger.info(f"Copied cover from {img_path} for {release_dir}")
-                    return True
-                except OSError as e:
-                    self._logger.error(f"Failed to copy cover {img_path}: {e}")
+                    if self._resize_and_save_cover(img_path, target_path, MAX_SIZE, JPEG_QUALITY, MAX_FILE_SIZE):
+                        self._logger.info(f"Processed cover from {img_path} for {release_dir}")
+                        return True
+                except Exception as e:
+                    self._logger.error(f"Failed to process cover {img_path}: {e}")
                     continue
 
         # Step 2: Extract embedded art from audio files
@@ -1308,15 +1362,127 @@ class MusicCollection:
                 try:
                     tag = TinyTag.get(str(file), image=True)
                     if img_data := tag.get_image():
-                        with open(target_path, "wb") as f:
-                            f.write(img_data)
-                        self._logger.info(
-                            f"Extracted embedded cover from {file} for {release_dir}"
-                        )
-                        return True
+                        if self._resize_and_save_cover_from_bytes(img_data, target_path, MAX_SIZE, JPEG_QUALITY, MAX_FILE_SIZE):
+                            self._logger.info(
+                                f"Extracted and processed embedded cover from {file} for {release_dir}"
+                            )
+                            return True
                 except Exception as e:
                     self._logger.warning(f"Failed to extract from {file}: {e}")
                     continue
 
         self._logger.info(f"No cover found for {release_dir}")
         return False
+
+    def _resize_and_save_cover(
+        self, 
+        source_path: Path, 
+        target_path: Path, 
+        max_size: int, 
+        quality: int,
+        max_file_size: int
+    ) -> bool:
+        """Resize and optimize a cover image from a file path.
+
+        Args:
+            source_path: Path to the source image file.
+            target_path: Path where the optimized image should be saved.
+            max_size: Maximum dimension (width or height) in pixels.
+            quality: JPEG quality (1-100).
+            max_file_size: Maximum file size in bytes.
+
+        Returns:
+            bool: True if successful, False otherwise.
+        """
+        try:
+            with Image.open(source_path) as img:
+                return self._process_and_save_image(img, target_path, max_size, quality, max_file_size)
+        except Exception as e:
+            self._logger.error(f"Failed to resize cover from {source_path}: {e}")
+            return False
+
+    def _resize_and_save_cover_from_bytes(
+        self, 
+        img_data: bytes, 
+        target_path: Path, 
+        max_size: int, 
+        quality: int,
+        max_file_size: int
+    ) -> bool:
+        """Resize and optimize a cover image from raw bytes.
+
+        Args:
+            img_data: Raw image data bytes.
+            target_path: Path where the optimized image should be saved.
+            max_size: Maximum dimension (width or height) in pixels.
+            quality: JPEG quality (1-100).
+            max_file_size: Maximum file size in bytes.
+
+        Returns:
+            bool: True if successful, False otherwise.
+        """
+        try:
+            with Image.open(io.BytesIO(img_data)) as img:
+                return self._process_and_save_image(img, target_path, max_size, quality, max_file_size)
+        except Exception as e:
+            self._logger.error(f"Failed to resize cover from bytes: {e}")
+            return False
+
+    def _process_and_save_image(
+        self, 
+        img: Image.Image, 
+        target_path: Path, 
+        max_size: int, 
+        quality: int,
+        max_file_size: int
+    ) -> bool:
+        """Process and save an image with resizing and optimization.
+
+        Args:
+            img: PIL Image object to process.
+            target_path: Path where the optimized image should be saved.
+            max_size: Maximum dimension (width or height) in pixels.
+            quality: JPEG quality (1-100).
+            max_file_size: Maximum file size in bytes.
+
+        Returns:
+            bool: True if successful, False otherwise.
+        """
+        try:
+            # Convert to RGB if necessary (handles RGBA, P mode, etc.)
+            if img.mode not in ('RGB', 'L'):
+                # Handle transparency by compositing on white background
+                if img.mode == 'RGBA':
+                    background = Image.new('RGB', img.size, (255, 255, 255))
+                    background.paste(img, mask=img.split()[3])  # Use alpha channel as mask
+                    img = background
+                else:
+                    img = img.convert('RGB')
+
+            # Resize if needed
+            original_size = img.size
+            if max(img.size) > max_size:
+                img.thumbnail((max_size, max_size), Image.Resampling.LANCZOS)
+                self._logger.debug(f"Resized cover from {original_size} to {img.size}")
+
+            # Save with optimization
+            # Try with the specified quality first
+            img.save(target_path, 'JPEG', quality=quality, optimize=True)
+            
+            # If still too large, reduce quality iteratively
+            current_quality = quality
+            while target_path.stat().st_size > max_file_size and current_quality > 50:
+                current_quality -= 10
+                img.save(target_path, 'JPEG', quality=current_quality, optimize=True)
+                self._logger.debug(f"Reduced quality to {current_quality} to meet size limit")
+
+            final_size = target_path.stat().st_size
+            self._logger.debug(
+                f"Saved cover: {img.size[0]}x{img.size[1]}, "
+                f"{final_size / 1024:.1f}KB, quality={current_quality}"
+            )
+            
+            return True
+        except Exception as e:
+            self._logger.error(f"Failed to process and save image: {e}")
+            return False

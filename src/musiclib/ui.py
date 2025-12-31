@@ -43,7 +43,7 @@ class MusicCollectionUI(MusicCollection):
 
     def _track_display_dict(self, track: dict) -> dict:
         """Formats a track dictionary for UI display.
-        Returns a dictionary with title, duration, path, and a safe filename for the track.
+        Returns a dictionary with title, duration, path, cover, and a safe filename for the track.
 
         Args:
             track: Dictionary containing track information.
@@ -58,6 +58,7 @@ class MusicCollectionUI(MusicCollection):
             "duration": track.get("duration") or "?:??",
             "path": track["path"],
             "filename": self._safe_filename(track["track"], track["path"]),
+            "cover": track.get("cover"),
         }
 
     @staticmethod

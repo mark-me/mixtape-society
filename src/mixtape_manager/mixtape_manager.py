@@ -5,6 +5,7 @@ from base64 import b64decode
 from typing import Optional
 
 from common.logging import Logger, NullLogger
+from musiclib import MusicCollection
 
 
 class MixtapeManager:
@@ -13,13 +14,19 @@ class MixtapeManager:
     Provides functionality to create, update, delete, list, and retrieve mixtapes stored on disk.
     """
 
-    def __init__(self, path_mixtapes: Path, logger: Logger | None = None) -> None:
+    def __init__(
+        self,
+        path_mixtapes: Path,
+        collection: MusicCollection,
+        logger: Logger | None = None,
+    ) -> None:
         """Initializes the MixtapeManager with paths for mixtapes and covers.
 
         Sets up the directory structure for storing mixtape JSON files and cover images.
 
         Args:
             path_mixtapes: Path to the directory where mixtapes are stored.
+            collection: Access to the collection's metadata
             logger: Optional logger instance for logging actions.
         """
         self._logger: Logger = logger or NullLogger()
@@ -27,6 +34,7 @@ class MixtapeManager:
         self.path_cover: Path = path_mixtapes / "covers"
         self.path_mixtapes.mkdir(exist_ok=True)
         self.path_cover.mkdir(exist_ok=True)
+        self.collection = collection
 
     def _sanitize_title(self, title: str) -> str:
         """Convert title to a filesystem-safe slug."""
@@ -147,7 +155,9 @@ class MixtapeManager:
         existing_data.update(updated_data)
 
         # Ensure required fields
-        existing_data["title"] = updated_data.get("title", existing_data.get("title", "Untitled Mixtape"))
+        existing_data["title"] = updated_data.get(
+            "title", existing_data.get("title", "Untitled Mixtape")
+        )
         if "liner_notes" not in existing_data:
             existing_data["liner_notes"] = ""
 
@@ -155,9 +165,7 @@ class MixtapeManager:
         existing_data["updated_at"] = datetime.now().isoformat()
 
         return self._save_with_slug(
-            mixtape_data=existing_data,
-            title=existing_data["title"],
-            slug=slug
+            mixtape_data=existing_data, title=existing_data["title"], slug=slug
         )
 
     def _save_with_slug(self, mixtape_data: dict, title: str, slug: str) -> str:
@@ -240,19 +248,21 @@ class MixtapeManager:
             mixtapes.append(data)
 
         # Sort by most recently updated first
-        mixtapes.sort(key=lambda x: x.get("updated_at") or x.get("created_at") or "", reverse=True)
+        mixtapes.sort(
+            key=lambda x: x.get("updated_at") or x.get("created_at") or "", reverse=True
+        )
         return mixtapes
 
     def get(self, slug: str) -> dict | None:
-        """Retrieves a single mixtape by its slug.
+        """Retrieves a single mixtape by its slug if it exists and is valid.
 
-        Normalizes legacy data and fills in missing fields so callers receive a consistent mixtape structure.
+        Loads the mixtape from disk, validates its tracks against the collection, and normalizes optional fields.
 
         Args:
-            slug: The slug of the mixtape to retrieve.
+            slug: The slug identifier of the mixtape to retrieve.
 
         Returns:
-            dict | None: The mixtape data dictionary if found, otherwise None.
+            dict | None: The validated and normalized mixtape data, or None if the mixtape is missing or invalid.
         """
         path = self.path_mixtapes / f"{slug}.json"
         if not path.exists():
@@ -265,16 +275,65 @@ class MixtapeManager:
             self._logger.error(f"Failed to read mixtape {slug}: {e}")
             return None
 
+        # TODO: Make complete
+        data_verified, has_changed = self._verify_against_collection(data=data)
+        if data_verified:
+            data_verified = self._verify_mixtape_metadata(data=data_verified)
+            data_verified["slug"] = slug
+            return data_verified
+        else:
+            return None
+
+    def _verify_against_collection(self, data: dict) -> tuple[dict, bool | None]:
+        """Verifies and refreshes mixtape track metadata against the music collection.
+
+        Compares each track entry with current collection data and updates fields when differences are detected.
+
+        Args:
+            data: The mixtape data dictionary containing a "tracks" list to validate.
+
+        Returns:
+            tuple[dict, bool | None]: A tuple of the updated tracks list and a flag indicating whether any changes
+            were made, or (False, None) if there are no tracks to verify.
+        """
+        if not (tracks := data["tracks"]):
+            return False, None
+        has_changes = False
+        for track in tracks:
+            track_collection = self.collection.get_track(path=Path(track["path"]))
+            keys = [
+                "filename",
+                "artist",
+                "album",
+                "track",
+                "duration",
+                "cover",
+            ]
+            for key in keys:
+                if key not in track or track[key] != track_collection.get(key):
+                    has_changes = True
+                    track[key] = track_collection.get(key)
+        return data, has_changes
+
+    def _verify_mixtape_metadata(self, data: dict) -> dict:
+        """Normalizes and completes metadata fields for a mixtape.
+
+        Converts legacy structures, ensures optional fields are present, and standardizes timestamps for consistency.
+
+        Args:
+            data: The raw mixtape data dictionary to validate and normalize.
+
+        Returns:
+            dict: The updated mixtape data dictionary with normalized metadata and timestamps.
+        """
         data = self._convert_old_mixtape(data)
         if "liner_notes" not in data:
             data["liner_notes"] = ""
         if "client_id" not in data:
             data["client_id"] = None
 
-        # Final timestamp normalization
         data = self._normalize_timestamps(data)
 
-        data["slug"] = slug
         return data
 
     def _normalize_timestamps(self, data: dict) -> dict:
@@ -293,12 +352,8 @@ class MixtapeManager:
         # Migrate legacy saved_at → updated_at
         if "saved_at" in data and "updated_at" not in data:
             data["updated_at"] = data.pop("saved_at")
-
-        # Ensure created_at exists
         if "created_at" not in data:
             data["created_at"] = None
-
-        # Ensure updated_at exists
         if "updated_at" not in data:
             data["updated_at"] = data["created_at"] or now
 
