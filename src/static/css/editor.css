@@ -1,4 +1,4 @@
-/* --- 1. Search Input --- */
+/* === 1. Search Input === */
 #searchInput {
     height: 58px;
     padding-left: 52px !important;
@@ -44,7 +44,7 @@
     pointer-events: none;
 }
 
-/* --- Search Highlights --- */
+/* === Search Highlights === */
 .track-title mark,
 .artist-name mark,
 .album-title mark {
@@ -87,7 +87,7 @@
 .accordion-button.bg-warning { background-color: #ffc107 !important; color: #000 !important; }
 
 
-/* --- 2. Drag & Drop Handles --- */
+/* === 2. Drag & Drop Handles === */
 .drag-handle {
     cursor: grab;
     opacity: 0.6;
@@ -144,7 +144,7 @@ body.reorder-mode #search-bar {                                     /* The title
 
 #toggle-reorder-mode.active { background-color: var(--bs-primary); color: white; }
 
-/* --- 3. Cover Upload Button --- */
+/* === 3. Cover Upload Button === */
 #cover-upload-btn:hover span {
     background-color: #0d6efd !important;
     border-color: #0d6efd !important;
@@ -156,13 +156,13 @@ body.reorder-mode #search-bar {                                     /* The title
     transition: opacity 0.3s ease;
 }
 
-/* --- 4. Card Headers --- */
+/* === 4. Card Headers === */
 .card-header {
     background-color: var(--bs-success-bg-subtle) !important;
     color: var(--bs-success-text-emphasis) !important;
 }
 
-/* --- 5. Markdown Preview Typography --- */
+/* === 5. Markdown Preview Typography === */
 #markdown-preview {
     min-height: 100%;
     padding: 1rem;
@@ -182,7 +182,7 @@ body.reorder-mode #search-bar {                                     /* The title
     padding-left: 1.5em;
 }
 
-/* --- 6. Accordion Overrides --- */
+/* === 6. Accordion Overrides === */
 .accordion-button.collapsed::after {
     background-image: var(--bs-accordion-btn-icon);
 }
@@ -237,7 +237,7 @@ body.reorder-mode #search-bar {                                     /* The title
 
 .accordion-button.bg-warning .ms-auto {
     background-color: #0d6efd; /* primary/blue color for contrast */
-    color: white !important;
+    color: #000 !important;
 }
 
 .accordion-button.bg-warning .bi-disc-fill {
@@ -245,7 +245,7 @@ body.reorder-mode #search-bar {                                     /* The title
 }
 
 
-/* --- 7. EasyMDE Markdown Editor Custom Styling --- */
+/* === 7. EasyMDE Markdown Editor Custom Styling === */
 
 /* Main editor container */
 .CodeMirror,
@@ -458,7 +458,7 @@ body.reorder-mode #search-bar {                                     /* The title
     }
 }
 
-/* --- 8. Bottom Audio Player Styles (from play_mixtape.css) --- */
+/* === 8. Bottom Audio Player Styles (from play_mixtape.css) === */
 
 /* Player panel background fixes */
 #global-audio-player {
@@ -603,7 +603,7 @@ body.reorder-mode #search-bar {                                     /* The title
 
 /* Progress Modal Styling - Add to editor.css */
 
-/* --- 9. Progress Modal --- */
+/* === 9. Progress Modal === */
 
 /* Log container - theme-aware background */
 #progress-log {
@@ -790,7 +790,7 @@ body.reorder-mode #search-bar {                                     /* The title
     --bs-btn-color: #fff;
 }
 
-/* --- 10. Track cover + overlay play button --- */
+/* === 10. Track cover + overlay play button === */
 .track-cover,
 .track-cover-placeholder {
     width: 64px;           /* Slightly larger for better tap target */
@@ -872,7 +872,7 @@ body.reorder-mode #search-bar {                                     /* The title
     100% { transform: scale(1); }
 }
 
-/* --- Force truncation in playlist text --- */
+/* === Force truncation in playlist text === */
 
 /* The text container must clip overflow */
 .playlist-item .flex-grow-1.min-w-0 {
@@ -906,7 +906,7 @@ body.reorder-mode #search-bar {                                     /* The title
     }
 }
 
-/* --- Animated Toasts --- */
+/* === Animated Toasts === */
 
 /* Base style for animated toasts */
 .toast-animated {
@@ -948,4 +948,3288 @@ body.reorder-mode #search-bar {                                     /* The title
 
 [data-bs-theme="light"] .toast-animated {
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* === Album thumbnail styles === */
+
+/* Album thumbnail in accordion headers - DEFAULT DESKTOP SIZE */
+.album-thumb {
+    width: 56px;
+    height: 56px;
+    min-width: 56px;  /* Prevent shrinking in flex layouts */
+    max-width: 56px;  /* Prevent growing in flex layouts */
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 4px;  /* Optional: slight rounding for polish */
+}
+
+.album-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    flex-shrink: 0;  /* Prevent the image from shrinking */
+}
+
+/* Album detail cover (in expanded accordion body) */
+.album-detail-cover {
+    max-width: 200px;
+    margin: 0 auto;
+}
+
+.album-detail-cover img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Improved layout for album accordion buttons */
+.accordion-button.bg-warning.d-flex {
+    padding: 0.75rem 1rem;
+    gap: 0.5rem;
+}
+
+/* Make sure album title and artist don't overflow */
+.accordion-button .album-title {
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.accordion-button .album-artist {
+    line-height: 1.2;
+    margin-top: 2px;
+}
+
+/* Better spacing for track actions in mobile */
+.track-actions {
+    white-space: nowrap;
+}
+
+/* Ensure proper text truncation */
+.min-w-0 {
+    min-width: 0;
+}
+
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Dark theme support for track count on yellow/warning background */
+.accordion-button.bg-warning .flex-shrink-0 {
+    color: #000 !important;
+}
+
+/* Ensure icon is also dark */
+.accordion-button.bg-warning .bi-music-note-beamed {
+    color: #000 !important;
+}
+
+/* Fix low contrast for album artist text on yellow background in dark theme */
+.accordion-button.bg-warning .album-artist {
+    color: #000 !important;
+    opacity: 0.7;
+}
+
+/* Also handle artist accordion track counts for consistency */
+.accordion-button.bg-success .flex-shrink-0 {
+    color: #fff !important;
+}
+
+/* Fix low contrast for artist accordion disc icon on green background */
+.accordion-button.bg-success .bi-disc-fill {
+    color: #fff !important;
+}
+
+/* Mobile optimizations - SMALLER thumbnails on mobile */
+@media (max-width: 576px) {
+    /* Smaller album thumbnails on mobile - ALWAYS SQUARE */
+    .album-thumb {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;  /* Prevent shrinking */
+        max-width: 44px;  /* Prevent growing */
+    }
+
+    /* Reduce padding on accordion buttons */
+    .accordion-button {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.9rem;
+    }
+
+    /* Smaller album detail cover on mobile */
+    .album-detail-cover {
+        max-width: 150px;
+    }
+
+    /* Stack track info better on mobile */
+    .list-group-item {
+        padding: 0.6rem;
+    }
+
+    /* Smaller buttons on mobile */
+    .btn-sm {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.8rem;
+    }
+
+    /* Reduce gap in track actions */
+    .track-actions {
+        gap: 0.25rem !important;
+    }
+
+    /* Smaller font for album titles on mobile */
+    .accordion-button .album-title {
+        font-size: 0.9rem;
+    }
+
+    .accordion-button .album-artist {
+        font-size: 0.8rem;
+    }
+}
+
+/* Tablet devices - Medium size between desktop and mobile */
+@media (min-width: 577px) and (max-width: 992px) {
+    .album-thumb {
+        width: 50px;
+        height: 50px;
+        min-width: 50px;
+        max-width: 50px;
+    }
+
+    .album-detail-cover {
+        max-width: 180px;
+    }
+}
+
+/* Large desktop - Keep larger thumbnails */
+@media (min-width: 1200px) {
+    .album-thumb {
+        width: 60px;
+        height: 60px;
+        min-width: 60px;
+        max-width: 60px;
+    }
+}
+
+/* Hover effects for album thumbnails */
+.album-thumb img {
+    transition: transform 0.2s ease;
+}
+
+.accordion-button:hover .album-thumb img {
+    transform: scale(1.05);
+}
+
+/* Ensure album accordion buttons look good with thumbnails */
+.accordion-button.bg-warning {
+    align-items: center !important;
+}
+
+/* Prevent album info from being squished */
+.accordion-button .flex-grow-1 {
+    overflow: hidden;
+}
+
+/* Better alignment for the track count badge */
+.accordion-button .flex-shrink-0 {
+    display: flex;
+    align-items: center;
+}
+
+/* Fallback for when no thumbnail is present - maintain spacing */
+.accordion-button.bg-warning:not(:has(.album-thumb)) {
+    padding-left: 1.25rem;
+}
+/* Album thumbnail in accordion headers - DEFAULT DESKTOP SIZE */
+.album-thumb {
+    width: 56px;
+    height: 56px;
+    min-width: 56px;  /* Prevent shrinking in flex layouts */
+    max-width: 56px;  /* Prevent growing in flex layouts */
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 4px;  /* Optional: slight rounding for polish */
+}
+
+.album-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    flex-shrink: 0;  /* Prevent the image from shrinking */
+}
+
+/* Album detail cover (in expanded accordion body) */
+.album-detail-cover {
+    max-width: 200px;
+    margin: 0 auto;
+}
+
+.album-detail-cover img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Improved layout for album accordion buttons */
+.accordion-button.bg-warning.d-flex {
+    padding: 0.75rem 1rem;
+    gap: 0.5rem;
+}
+
+/* Make sure album title and artist don't overflow */
+.accordion-button .album-title {
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.accordion-button .album-artist {
+    line-height: 1.2;
+    margin-top: 2px;
+}
+
+/* Better spacing for track actions in mobile */
+.track-actions {
+    white-space: nowrap;
+}
+
+/* Ensure proper text truncation */
+.min-w-0 {
+    min-width: 0;
+}
+
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Dark theme support for track count on yellow/warning background */
+.accordion-button.bg-warning .flex-shrink-0 {
+    color: #000 !important;
+}
+
+/* Ensure icon is also dark */
+.accordion-button.bg-warning .bi-music-note-beamed {
+    color: #000 !important;
+}
+
+/* Fix low contrast for album artist text on yellow background in dark theme */
+.accordion-button.bg-warning .album-artist {
+    color: #000 !important;
+    opacity: 0.7;
+}
+
+/* Also handle artist accordion track counts for consistency */
+.accordion-button.bg-success .flex-shrink-0 {
+    color: #fff !important;
+}
+
+/* Fix low contrast for artist accordion disc icon on green background */
+.accordion-button.bg-success .bi-disc-fill {
+    color: #fff !important;
+}
+
+/* Mobile optimizations - SMALLER thumbnails on mobile */
+@media (max-width: 576px) {
+    /* Smaller album thumbnails on mobile - ALWAYS SQUARE */
+    .album-thumb {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;  /* Prevent shrinking */
+        max-width: 44px;  /* Prevent growing */
+    }
+
+    /* Reduce padding on accordion buttons */
+    .accordion-button {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.9rem;
+    }
+
+    /* Smaller album detail cover on mobile */
+    .album-detail-cover {
+        max-width: 150px;
+    }
+
+    /* Stack track info better on mobile */
+    .list-group-item {
+        padding: 0.6rem;
+    }
+
+    /* Smaller buttons on mobile */
+    .btn-sm {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.8rem;
+    }
+
+    /* Reduce gap in track actions */
+    .track-actions {
+        gap: 0.25rem !important;
+    }
+
+    /* Smaller font for album titles on mobile */
+    .accordion-button .album-title {
+        font-size: 0.9rem;
+    }
+
+    .accordion-button .album-artist {
+        font-size: 0.8rem;
+    }
+}
+
+/* Tablet devices - Medium size between desktop and mobile */
+@media (min-width: 577px) and (max-width: 992px) {
+    .album-thumb {
+        width: 50px;
+        height: 50px;
+        min-width: 50px;
+        max-width: 50px;
+    }
+
+    .album-detail-cover {
+        max-width: 180px;
+    }
+}
+
+/* Large desktop - Keep larger thumbnails */
+@media (min-width: 1200px) {
+    .album-thumb {
+        width: 60px;
+        height: 60px;
+        min-width: 60px;
+        max-width: 60px;
+    }
+}
+
+/* Hover effects for album thumbnails */
+.album-thumb img {
+    transition: transform 0.2s ease;
+}
+
+.accordion-button:hover .album-thumb img {
+    transform: scale(1.05);
+}
+
+/* Ensure album accordion buttons look good with thumbnails */
+.accordion-button.bg-warning {
+    align-items: center !important;
+}
+
+/* Prevent album info from being squished */
+.accordion-button .flex-grow-1 {
+    overflow: hidden;
+}
+
+/* Better alignment for the track count badge */
+.accordion-button .flex-shrink-0 {
+    display: flex;
+    align-items: center;
+}
+
+/* Fallback for when no thumbnail is present - maintain spacing */
+.accordion-button.bg-warning:not(:has(.album-thumb)) {
+    padding-left: 1.25rem;
+}
+/* Album thumbnail in accordion headers - DEFAULT DESKTOP SIZE */
+.album-thumb {
+    width: 56px;
+    height: 56px;
+    min-width: 56px;  /* Prevent shrinking in flex layouts */
+    max-width: 56px;  /* Prevent growing in flex layouts */
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 4px;  /* Optional: slight rounding for polish */
+}
+
+.album-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    flex-shrink: 0;  /* Prevent the image from shrinking */
+}
+
+/* Album detail cover (in expanded accordion body) */
+.album-detail-cover {
+    max-width: 200px;
+    margin: 0 auto;
+}
+
+.album-detail-cover img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Improved layout for album accordion buttons */
+.accordion-button.bg-warning.d-flex {
+    padding: 0.75rem 1rem;
+    gap: 0.5rem;
+}
+
+/* Make sure album title and artist don't overflow */
+.accordion-button .album-title {
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.accordion-button .album-artist {
+    line-height: 1.2;
+    margin-top: 2px;
+}
+
+/* Better spacing for track actions in mobile */
+.track-actions {
+    white-space: nowrap;
+}
+
+/* Ensure proper text truncation */
+.min-w-0 {
+    min-width: 0;
+}
+
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Dark theme support for track count on yellow/warning background */
+.accordion-button.bg-warning .flex-shrink-0 {
+    color: #000 !important;
+}
+
+/* Ensure icon is also dark */
+.accordion-button.bg-warning .bi-music-note-beamed {
+    color: #000 !important;
+}
+
+/* Fix low contrast for album artist text on yellow background in dark theme */
+.accordion-button.bg-warning .album-artist {
+    color: #000 !important;
+    opacity: 0.7;
+}
+
+/* Also handle artist accordion track counts for consistency */
+.accordion-button.bg-success .flex-shrink-0 {
+    color: #fff !important;
+}
+
+/* Fix low contrast for artist accordion disc icon on green background */
+.accordion-button.bg-success .bi-disc-fill {
+    color: #fff !important;
+}
+
+/* Mobile optimizations - SMALLER thumbnails on mobile */
+@media (max-width: 576px) {
+    /* Smaller album thumbnails on mobile - ALWAYS SQUARE */
+    .album-thumb {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;  /* Prevent shrinking */
+        max-width: 44px;  /* Prevent growing */
+    }
+
+    /* Reduce padding on accordion buttons */
+    .accordion-button {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.9rem;
+    }
+
+    /* Smaller album detail cover on mobile */
+    .album-detail-cover {
+        max-width: 150px;
+    }
+
+    /* Stack track info better on mobile */
+    .list-group-item {
+        padding: 0.6rem;
+    }
+
+    /* Smaller buttons on mobile */
+    .btn-sm {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.8rem;
+    }
+
+    /* Reduce gap in track actions */
+    .track-actions {
+        gap: 0.25rem !important;
+    }
+
+    /* Smaller font for album titles on mobile */
+    .accordion-button .album-title {
+        font-size: 0.9rem;
+    }
+
+    .accordion-button .album-artist {
+        font-size: 0.8rem;
+    }
+}
+
+/* Tablet devices - Medium size between desktop and mobile */
+@media (min-width: 577px) and (max-width: 992px) {
+    .album-thumb {
+        width: 50px;
+        height: 50px;
+        min-width: 50px;
+        max-width: 50px;
+    }
+
+    .album-detail-cover {
+        max-width: 180px;
+    }
+}
+
+/* Large desktop - Keep larger thumbnails */
+@media (min-width: 1200px) {
+    .album-thumb {
+        width: 60px;
+        height: 60px;
+        min-width: 60px;
+        max-width: 60px;
+    }
+}
+
+/* Hover effects for album thumbnails */
+.album-thumb img {
+    transition: transform 0.2s ease;
+}
+
+.accordion-button:hover .album-thumb img {
+    transform: scale(1.05);
+}
+
+/* Ensure album accordion buttons look good with thumbnails */
+.accordion-button.bg-warning {
+    align-items: center !important;
+}
+
+/* Prevent album info from being squished */
+.accordion-button .flex-grow-1 {
+    overflow: hidden;
+}
+
+/* Better alignment for the track count badge */
+.accordion-button .flex-shrink-0 {
+    display: flex;
+    align-items: center;
+}
+
+/* Fallback for when no thumbnail is present - maintain spacing */
+.accordion-button.bg-warning:not(:has(.album-thumb)) {
+    padding-left: 1.25rem;
+}
+/* Album thumbnail in accordion headers - DEFAULT DESKTOP SIZE */
+.album-thumb {
+    width: 56px;
+    height: 56px;
+    min-width: 56px;  /* Prevent shrinking in flex layouts */
+    max-width: 56px;  /* Prevent growing in flex layouts */
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 4px;  /* Optional: slight rounding for polish */
+}
+
+.album-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    flex-shrink: 0;  /* Prevent the image from shrinking */
+}
+
+/* Album detail cover (in expanded accordion body) */
+.album-detail-cover {
+    max-width: 200px;
+    margin: 0 auto;
+}
+
+.album-detail-cover img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Improved layout for album accordion buttons */
+.accordion-button.bg-warning.d-flex {
+    padding: 0.75rem 1rem;
+    gap: 0.5rem;
+}
+
+/* Make sure album title and artist don't overflow */
+.accordion-button .album-title {
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.accordion-button .album-artist {
+    line-height: 1.2;
+    margin-top: 2px;
+}
+
+/* Better spacing for track actions in mobile */
+.track-actions {
+    white-space: nowrap;
+}
+
+/* Ensure proper text truncation */
+.min-w-0 {
+    min-width: 0;
+}
+
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Dark theme support for track count on yellow/warning background */
+.accordion-button.bg-warning .flex-shrink-0 {
+    color: #000 !important;
+}
+
+/* Ensure icon is also dark */
+.accordion-button.bg-warning .bi-music-note-beamed {
+    color: #000 !important;
+}
+
+/* Fix low contrast for album artist text on yellow background in dark theme */
+.accordion-button.bg-warning .album-artist {
+    color: #000 !important;
+    opacity: 0.7;
+}
+
+/* Also handle artist accordion track counts for consistency */
+.accordion-button.bg-success .flex-shrink-0 {
+    color: #fff !important;
+}
+
+/* Fix low contrast for artist accordion disc icon on green background */
+.accordion-button.bg-success .bi-disc-fill {
+    color: #fff !important;
+}
+
+/* Mobile optimizations - SMALLER thumbnails on mobile */
+@media (max-width: 576px) {
+    /* Smaller album thumbnails on mobile - ALWAYS SQUARE */
+    .album-thumb {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;  /* Prevent shrinking */
+        max-width: 44px;  /* Prevent growing */
+    }
+
+    /* Reduce padding on accordion buttons */
+    .accordion-button {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.9rem;
+    }
+
+    /* Smaller album detail cover on mobile */
+    .album-detail-cover {
+        max-width: 150px;
+    }
+
+    /* Stack track info better on mobile */
+    .list-group-item {
+        padding: 0.6rem;
+    }
+
+    /* Smaller buttons on mobile */
+    .btn-sm {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.8rem;
+    }
+
+    /* Reduce gap in track actions */
+    .track-actions {
+        gap: 0.25rem !important;
+    }
+
+    /* Smaller font for album titles on mobile */
+    .accordion-button .album-title {
+        font-size: 0.9rem;
+    }
+
+    .accordion-button .album-artist {
+        font-size: 0.8rem;
+    }
+}
+
+/* Tablet devices - Medium size between desktop and mobile */
+@media (min-width: 577px) and (max-width: 992px) {
+    .album-thumb {
+        width: 50px;
+        height: 50px;
+        min-width: 50px;
+        max-width: 50px;
+    }
+
+    .album-detail-cover {
+        max-width: 180px;
+    }
+}
+
+/* Large desktop - Keep larger thumbnails */
+@media (min-width: 1200px) {
+    .album-thumb {
+        width: 60px;
+        height: 60px;
+        min-width: 60px;
+        max-width: 60px;
+    }
+}
+
+/* Hover effects for album thumbnails */
+.album-thumb img {
+    transition: transform 0.2s ease;
+}
+
+.accordion-button:hover .album-thumb img {
+    transform: scale(1.05);
+}
+
+/* Ensure album accordion buttons look good with thumbnails */
+.accordion-button.bg-warning {
+    align-items: center !important;
+}
+
+/* Prevent album info from being squished */
+.accordion-button .flex-grow-1 {
+    overflow: hidden;
+}
+
+/* Better alignment for the track count badge */
+.accordion-button .flex-shrink-0 {
+    display: flex;
+    align-items: center;
+}
+
+/* Fallback for when no thumbnail is present - maintain spacing */
+.accordion-button.bg-warning:not(:has(.album-thumb)) {
+    padding-left: 1.25rem;
+}
+/* Album thumbnail in accordion headers - DEFAULT DESKTOP SIZE */
+.album-thumb {
+    width: 56px;
+    height: 56px;
+    min-width: 56px;  /* Prevent shrinking in flex layouts */
+    max-width: 56px;  /* Prevent growing in flex layouts */
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 4px;  /* Optional: slight rounding for polish */
+}
+
+.album-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    flex-shrink: 0;  /* Prevent the image from shrinking */
+}
+
+/* Album detail cover (in expanded accordion body) */
+.album-detail-cover {
+    max-width: 200px;
+    margin: 0 auto;
+}
+
+.album-detail-cover img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Improved layout for album accordion buttons */
+.accordion-button.bg-warning.d-flex {
+    padding: 0.75rem 1rem;
+    gap: 0.5rem;
+}
+
+/* Make sure album title and artist don't overflow */
+.accordion-button .album-title {
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.accordion-button .album-artist {
+    line-height: 1.2;
+    margin-top: 2px;
+}
+
+/* Better spacing for track actions in mobile */
+.track-actions {
+    white-space: nowrap;
+}
+
+/* Ensure proper text truncation */
+.min-w-0 {
+    min-width: 0;
+}
+
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Dark theme support for track count on yellow/warning background */
+.accordion-button.bg-warning .flex-shrink-0 {
+    color: #000 !important;
+}
+
+/* Ensure icon is also dark */
+.accordion-button.bg-warning .bi-music-note-beamed {
+    color: #000 !important;
+}
+
+/* Fix low contrast for album artist text on yellow background in dark theme */
+.accordion-button.bg-warning .album-artist {
+    color: #000 !important;
+    opacity: 0.7;
+}
+
+/* Also handle artist accordion track counts for consistency */
+.accordion-button.bg-success .flex-shrink-0 {
+    color: #fff !important;
+}
+
+/* Fix low contrast for artist accordion disc icon on green background */
+.accordion-button.bg-success .bi-disc-fill {
+    color: #fff !important;
+}
+
+/* Mobile optimizations - SMALLER thumbnails on mobile */
+@media (max-width: 576px) {
+    /* Smaller album thumbnails on mobile - ALWAYS SQUARE */
+    .album-thumb {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;  /* Prevent shrinking */
+        max-width: 44px;  /* Prevent growing */
+    }
+
+    /* Reduce padding on accordion buttons */
+    .accordion-button {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.9rem;
+    }
+
+    /* Smaller album detail cover on mobile */
+    .album-detail-cover {
+        max-width: 150px;
+    }
+
+    /* Stack track info better on mobile */
+    .list-group-item {
+        padding: 0.6rem;
+    }
+
+    /* Smaller buttons on mobile */
+    .btn-sm {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.8rem;
+    }
+
+    /* Reduce gap in track actions */
+    .track-actions {
+        gap: 0.25rem !important;
+    }
+
+    /* Smaller font for album titles on mobile */
+    .accordion-button .album-title {
+        font-size: 0.9rem;
+    }
+
+    .accordion-button .album-artist {
+        font-size: 0.8rem;
+    }
+}
+
+/* Tablet devices - Medium size between desktop and mobile */
+@media (min-width: 577px) and (max-width: 992px) {
+    .album-thumb {
+        width: 50px;
+        height: 50px;
+        min-width: 50px;
+        max-width: 50px;
+    }
+
+    .album-detail-cover {
+        max-width: 180px;
+    }
+}
+
+/* Large desktop - Keep larger thumbnails */
+@media (min-width: 1200px) {
+    .album-thumb {
+        width: 60px;
+        height: 60px;
+        min-width: 60px;
+        max-width: 60px;
+    }
+}
+
+/* Hover effects for album thumbnails */
+.album-thumb img {
+    transition: transform 0.2s ease;
+}
+
+.accordion-button:hover .album-thumb img {
+    transform: scale(1.05);
+}
+
+/* Ensure album accordion buttons look good with thumbnails */
+.accordion-button.bg-warning {
+    align-items: center !important;
+}
+
+/* Prevent album info from being squished */
+.accordion-button .flex-grow-1 {
+    overflow: hidden;
+}
+
+/* Better alignment for the track count badge */
+.accordion-button .flex-shrink-0 {
+    display: flex;
+    align-items: center;
+}
+
+/* Fallback for when no thumbnail is present - maintain spacing */
+.accordion-button.bg-warning:not(:has(.album-thumb)) {
+    padding-left: 1.25rem;
+}
+/* Album thumbnail in accordion headers - DEFAULT DESKTOP SIZE */
+.album-thumb {
+    width: 56px;
+    height: 56px;
+    min-width: 56px;  /* Prevent shrinking in flex layouts */
+    max-width: 56px;  /* Prevent growing in flex layouts */
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 4px;  /* Optional: slight rounding for polish */
+}
+
+.album-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    flex-shrink: 0;  /* Prevent the image from shrinking */
+}
+
+/* Album detail cover (in expanded accordion body) */
+.album-detail-cover {
+    max-width: 200px;
+    margin: 0 auto;
+}
+
+.album-detail-cover img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Improved layout for album accordion buttons */
+.accordion-button.bg-warning.d-flex {
+    padding: 0.75rem 1rem;
+    gap: 0.5rem;
+}
+
+/* Make sure album title and artist don't overflow */
+.accordion-button .album-title {
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.accordion-button .album-artist {
+    line-height: 1.2;
+    margin-top: 2px;
+}
+
+/* Better spacing for track actions in mobile */
+.track-actions {
+    white-space: nowrap;
+}
+
+/* Ensure proper text truncation */
+.min-w-0 {
+    min-width: 0;
+}
+
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Dark theme support for track count on yellow/warning background */
+.accordion-button.bg-warning .flex-shrink-0 {
+    color: #000 !important;
+}
+
+/* Ensure icon is also dark */
+.accordion-button.bg-warning .bi-music-note-beamed {
+    color: #000 !important;
+}
+
+/* Fix low contrast for album artist text on yellow background in dark theme */
+.accordion-button.bg-warning .album-artist {
+    color: #000 !important;
+    opacity: 0.7;
+}
+
+/* Also handle artist accordion track counts for consistency */
+.accordion-button.bg-success .flex-shrink-0 {
+    color: #fff !important;
+}
+
+/* Fix low contrast for artist accordion disc icon on green background */
+.accordion-button.bg-success .bi-disc-fill {
+    color: #fff !important;
+}
+
+/* Mobile optimizations - SMALLER thumbnails on mobile */
+@media (max-width: 576px) {
+    /* Smaller album thumbnails on mobile - ALWAYS SQUARE */
+    .album-thumb {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;  /* Prevent shrinking */
+        max-width: 44px;  /* Prevent growing */
+    }
+
+    /* Reduce padding on accordion buttons */
+    .accordion-button {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.9rem;
+    }
+
+    /* Smaller album detail cover on mobile */
+    .album-detail-cover {
+        max-width: 150px;
+    }
+
+    /* Stack track info better on mobile */
+    .list-group-item {
+        padding: 0.6rem;
+    }
+
+    /* Smaller buttons on mobile */
+    .btn-sm {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.8rem;
+    }
+
+    /* Reduce gap in track actions */
+    .track-actions {
+        gap: 0.25rem !important;
+    }
+
+    /* Smaller font for album titles on mobile */
+    .accordion-button .album-title {
+        font-size: 0.9rem;
+    }
+
+    .accordion-button .album-artist {
+        font-size: 0.8rem;
+    }
+}
+
+/* Tablet devices - Medium size between desktop and mobile */
+@media (min-width: 577px) and (max-width: 992px) {
+    .album-thumb {
+        width: 50px;
+        height: 50px;
+        min-width: 50px;
+        max-width: 50px;
+    }
+
+    .album-detail-cover {
+        max-width: 180px;
+    }
+}
+
+/* Large desktop - Keep larger thumbnails */
+@media (min-width: 1200px) {
+    .album-thumb {
+        width: 60px;
+        height: 60px;
+        min-width: 60px;
+        max-width: 60px;
+    }
+}
+
+/* Hover effects for album thumbnails */
+.album-thumb img {
+    transition: transform 0.2s ease;
+}
+
+.accordion-button:hover .album-thumb img {
+    transform: scale(1.05);
+}
+
+/* Ensure album accordion buttons look good with thumbnails */
+.accordion-button.bg-warning {
+    align-items: center !important;
+}
+
+/* Prevent album info from being squished */
+.accordion-button .flex-grow-1 {
+    overflow: hidden;
+}
+
+/* Better alignment for the track count badge */
+.accordion-button .flex-shrink-0 {
+    display: flex;
+    align-items: center;
+}
+
+/* Fallback for when no thumbnail is present - maintain spacing */
+.accordion-button.bg-warning:not(:has(.album-thumb)) {
+    padding-left: 1.25rem;
+}
+/* Album thumbnail in accordion headers - DEFAULT DESKTOP SIZE */
+.album-thumb {
+    width: 56px;
+    height: 56px;
+    min-width: 56px;  /* Prevent shrinking in flex layouts */
+    max-width: 56px;  /* Prevent growing in flex layouts */
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 4px;  /* Optional: slight rounding for polish */
+}
+
+.album-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    flex-shrink: 0;  /* Prevent the image from shrinking */
+}
+
+/* Album detail cover (in expanded accordion body) */
+.album-detail-cover {
+    max-width: 200px;
+    margin: 0 auto;
+}
+
+.album-detail-cover img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Improved layout for album accordion buttons */
+.accordion-button.bg-warning.d-flex {
+    padding: 0.75rem 1rem;
+    gap: 0.5rem;
+}
+
+/* Make sure album title and artist don't overflow */
+.accordion-button .album-title {
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.accordion-button .album-artist {
+    line-height: 1.2;
+    margin-top: 2px;
+}
+
+/* Better spacing for track actions in mobile */
+.track-actions {
+    white-space: nowrap;
+}
+
+/* Ensure proper text truncation */
+.min-w-0 {
+    min-width: 0;
+}
+
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Dark theme support for track count on yellow/warning background */
+.accordion-button.bg-warning .flex-shrink-0 {
+    color: #000 !important;
+}
+
+/* Ensure icon is also dark */
+.accordion-button.bg-warning .bi-music-note-beamed {
+    color: #000 !important;
+}
+
+/* Fix low contrast for album artist text on yellow background in dark theme */
+.accordion-button.bg-warning .album-artist {
+    color: #000 !important;
+    opacity: 0.7;
+}
+
+/* Also handle artist accordion track counts for consistency */
+.accordion-button.bg-success .flex-shrink-0 {
+    color: #fff !important;
+}
+
+/* Fix low contrast for artist accordion disc icon on green background */
+.accordion-button.bg-success .bi-disc-fill {
+    color: #fff !important;
+}
+
+/* Mobile optimizations - SMALLER thumbnails on mobile */
+@media (max-width: 576px) {
+    /* Smaller album thumbnails on mobile - ALWAYS SQUARE */
+    .album-thumb {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;  /* Prevent shrinking */
+        max-width: 44px;  /* Prevent growing */
+    }
+
+    /* Reduce padding on accordion buttons */
+    .accordion-button {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.9rem;
+    }
+
+    /* Smaller album detail cover on mobile */
+    .album-detail-cover {
+        max-width: 150px;
+    }
+
+    /* Stack track info better on mobile */
+    .list-group-item {
+        padding: 0.6rem;
+    }
+
+    /* Smaller buttons on mobile */
+    .btn-sm {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.8rem;
+    }
+
+    /* Reduce gap in track actions */
+    .track-actions {
+        gap: 0.25rem !important;
+    }
+
+    /* Smaller font for album titles on mobile */
+    .accordion-button .album-title {
+        font-size: 0.9rem;
+    }
+
+    .accordion-button .album-artist {
+        font-size: 0.8rem;
+    }
+}
+
+/* Tablet devices - Medium size between desktop and mobile */
+@media (min-width: 577px) and (max-width: 992px) {
+    .album-thumb {
+        width: 50px;
+        height: 50px;
+        min-width: 50px;
+        max-width: 50px;
+    }
+
+    .album-detail-cover {
+        max-width: 180px;
+    }
+}
+
+/* Large desktop - Keep larger thumbnails */
+@media (min-width: 1200px) {
+    .album-thumb {
+        width: 60px;
+        height: 60px;
+        min-width: 60px;
+        max-width: 60px;
+    }
+}
+
+/* Hover effects for album thumbnails */
+.album-thumb img {
+    transition: transform 0.2s ease;
+}
+
+.accordion-button:hover .album-thumb img {
+    transform: scale(1.05);
+}
+
+/* Ensure album accordion buttons look good with thumbnails */
+.accordion-button.bg-warning {
+    align-items: center !important;
+}
+
+/* Prevent album info from being squished */
+.accordion-button .flex-grow-1 {
+    overflow: hidden;
+}
+
+/* Better alignment for the track count badge */
+.accordion-button .flex-shrink-0 {
+    display: flex;
+    align-items: center;
+}
+
+/* Fallback for when no thumbnail is present - maintain spacing */
+.accordion-button.bg-warning:not(:has(.album-thumb)) {
+    padding-left: 1.25rem;
+}
+/* Album thumbnail in accordion headers - DEFAULT DESKTOP SIZE */
+.album-thumb {
+    width: 56px;
+    height: 56px;
+    min-width: 56px;  /* Prevent shrinking in flex layouts */
+    max-width: 56px;  /* Prevent growing in flex layouts */
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 4px;  /* Optional: slight rounding for polish */
+}
+
+.album-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    flex-shrink: 0;  /* Prevent the image from shrinking */
+}
+
+/* Album detail cover (in expanded accordion body) */
+.album-detail-cover {
+    max-width: 200px;
+    margin: 0 auto;
+}
+
+.album-detail-cover img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Improved layout for album accordion buttons */
+.accordion-button.bg-warning.d-flex {
+    padding: 0.75rem 1rem;
+    gap: 0.5rem;
+}
+
+/* Make sure album title and artist don't overflow */
+.accordion-button .album-title {
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.accordion-button .album-artist {
+    line-height: 1.2;
+    margin-top: 2px;
+}
+
+/* Better spacing for track actions in mobile */
+.track-actions {
+    white-space: nowrap;
+}
+
+/* Ensure proper text truncation */
+.min-w-0 {
+    min-width: 0;
+}
+
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Dark theme support for track count on yellow/warning background */
+.accordion-button.bg-warning .flex-shrink-0 {
+    color: #000 !important;
+}
+
+/* Ensure icon is also dark */
+.accordion-button.bg-warning .bi-music-note-beamed {
+    color: #000 !important;
+}
+
+/* Fix low contrast for album artist text on yellow background in dark theme */
+.accordion-button.bg-warning .album-artist {
+    color: #000 !important;
+    opacity: 0.7;
+}
+
+/* Also handle artist accordion track counts for consistency */
+.accordion-button.bg-success .flex-shrink-0 {
+    color: #fff !important;
+}
+
+/* Fix low contrast for artist accordion disc icon on green background */
+.accordion-button.bg-success .bi-disc-fill {
+    color: #fff !important;
+}
+
+/* Mobile optimizations - SMALLER thumbnails on mobile */
+@media (max-width: 576px) {
+    /* Smaller album thumbnails on mobile - ALWAYS SQUARE */
+    .album-thumb {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;  /* Prevent shrinking */
+        max-width: 44px;  /* Prevent growing */
+    }
+
+    /* Reduce padding on accordion buttons */
+    .accordion-button {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.9rem;
+    }
+
+    /* Smaller album detail cover on mobile */
+    .album-detail-cover {
+        max-width: 150px;
+    }
+
+    /* Stack track info better on mobile */
+    .list-group-item {
+        padding: 0.6rem;
+    }
+
+    /* Smaller buttons on mobile */
+    .btn-sm {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.8rem;
+    }
+
+    /* Reduce gap in track actions */
+    .track-actions {
+        gap: 0.25rem !important;
+    }
+
+    /* Smaller font for album titles on mobile */
+    .accordion-button .album-title {
+        font-size: 0.9rem;
+    }
+
+    .accordion-button .album-artist {
+        font-size: 0.8rem;
+    }
+}
+
+/* Tablet devices - Medium size between desktop and mobile */
+@media (min-width: 577px) and (max-width: 992px) {
+    .album-thumb {
+        width: 50px;
+        height: 50px;
+        min-width: 50px;
+        max-width: 50px;
+    }
+
+    .album-detail-cover {
+        max-width: 180px;
+    }
+}
+
+/* Large desktop - Keep larger thumbnails */
+@media (min-width: 1200px) {
+    .album-thumb {
+        width: 60px;
+        height: 60px;
+        min-width: 60px;
+        max-width: 60px;
+    }
+}
+
+/* Hover effects for album thumbnails */
+.album-thumb img {
+    transition: transform 0.2s ease;
+}
+
+.accordion-button:hover .album-thumb img {
+    transform: scale(1.05);
+}
+
+/* Ensure album accordion buttons look good with thumbnails */
+.accordion-button.bg-warning {
+    align-items: center !important;
+}
+
+/* Prevent album info from being squished */
+.accordion-button .flex-grow-1 {
+    overflow: hidden;
+}
+
+/* Better alignment for the track count badge */
+.accordion-button .flex-shrink-0 {
+    display: flex;
+    align-items: center;
+}
+
+/* Fallback for when no thumbnail is present - maintain spacing */
+.accordion-button.bg-warning:not(:has(.album-thumb)) {
+    padding-left: 1.25rem;
+}
+/* Album thumbnail in accordion headers - DEFAULT DESKTOP SIZE */
+.album-thumb {
+    width: 56px;
+    height: 56px;
+    min-width: 56px;  /* Prevent shrinking in flex layouts */
+    max-width: 56px;  /* Prevent growing in flex layouts */
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 4px;  /* Optional: slight rounding for polish */
+}
+
+.album-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    flex-shrink: 0;  /* Prevent the image from shrinking */
+}
+
+/* Album detail cover (in expanded accordion body) */
+.album-detail-cover {
+    max-width: 200px;
+    margin: 0 auto;
+}
+
+.album-detail-cover img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Improved layout for album accordion buttons */
+.accordion-button.bg-warning.d-flex {
+    padding: 0.75rem 1rem;
+    gap: 0.5rem;
+}
+
+/* Make sure album title and artist don't overflow */
+.accordion-button .album-title {
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.accordion-button .album-artist {
+    line-height: 1.2;
+    margin-top: 2px;
+}
+
+/* Better spacing for track actions in mobile */
+.track-actions {
+    white-space: nowrap;
+}
+
+/* Ensure proper text truncation */
+.min-w-0 {
+    min-width: 0;
+}
+
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Dark theme support for track count on yellow/warning background */
+.accordion-button.bg-warning .flex-shrink-0 {
+    color: #000 !important;
+}
+
+/* Ensure icon is also dark */
+.accordion-button.bg-warning .bi-music-note-beamed {
+    color: #000 !important;
+}
+
+/* Fix low contrast for album artist text on yellow background in dark theme */
+.accordion-button.bg-warning .album-artist {
+    color: #000 !important;
+    opacity: 0.7;
+}
+
+/* Also handle artist accordion track counts for consistency */
+.accordion-button.bg-success .flex-shrink-0 {
+    color: #fff !important;
+}
+
+/* Fix low contrast for artist accordion disc icon on green background */
+.accordion-button.bg-success .bi-disc-fill {
+    color: #fff !important;
+}
+
+/* Mobile optimizations - SMALLER thumbnails on mobile */
+@media (max-width: 576px) {
+    /* Smaller album thumbnails on mobile - ALWAYS SQUARE */
+    .album-thumb {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;  /* Prevent shrinking */
+        max-width: 44px;  /* Prevent growing */
+    }
+
+    /* Reduce padding on accordion buttons */
+    .accordion-button {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.9rem;
+    }
+
+    /* Smaller album detail cover on mobile */
+    .album-detail-cover {
+        max-width: 150px;
+    }
+
+    /* Stack track info better on mobile */
+    .list-group-item {
+        padding: 0.6rem;
+    }
+
+    /* Smaller buttons on mobile */
+    .btn-sm {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.8rem;
+    }
+
+    /* Reduce gap in track actions */
+    .track-actions {
+        gap: 0.25rem !important;
+    }
+
+    /* Smaller font for album titles on mobile */
+    .accordion-button .album-title {
+        font-size: 0.9rem;
+    }
+
+    .accordion-button .album-artist {
+        font-size: 0.8rem;
+    }
+}
+
+/* Tablet devices - Medium size between desktop and mobile */
+@media (min-width: 577px) and (max-width: 992px) {
+    .album-thumb {
+        width: 50px;
+        height: 50px;
+        min-width: 50px;
+        max-width: 50px;
+    }
+
+    .album-detail-cover {
+        max-width: 180px;
+    }
+}
+
+/* Large desktop - Keep larger thumbnails */
+@media (min-width: 1200px) {
+    .album-thumb {
+        width: 60px;
+        height: 60px;
+        min-width: 60px;
+        max-width: 60px;
+    }
+}
+
+/* Hover effects for album thumbnails */
+.album-thumb img {
+    transition: transform 0.2s ease;
+}
+
+.accordion-button:hover .album-thumb img {
+    transform: scale(1.05);
+}
+
+/* Ensure album accordion buttons look good with thumbnails */
+.accordion-button.bg-warning {
+    align-items: center !important;
+}
+
+/* Prevent album info from being squished */
+.accordion-button .flex-grow-1 {
+    overflow: hidden;
+}
+
+/* Better alignment for the track count badge */
+.accordion-button .flex-shrink-0 {
+    display: flex;
+    align-items: center;
+}
+
+/* Fallback for when no thumbnail is present - maintain spacing */
+.accordion-button.bg-warning:not(:has(.album-thumb)) {
+    padding-left: 1.25rem;
+}
+/* Album thumbnail in accordion headers - DEFAULT DESKTOP SIZE */
+.album-thumb {
+    width: 56px;
+    height: 56px;
+    min-width: 56px;  /* Prevent shrinking in flex layouts */
+    max-width: 56px;  /* Prevent growing in flex layouts */
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 4px;  /* Optional: slight rounding for polish */
+}
+
+.album-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    flex-shrink: 0;  /* Prevent the image from shrinking */
+}
+
+/* Album detail cover (in expanded accordion body) */
+.album-detail-cover {
+    max-width: 200px;
+    margin: 0 auto;
+}
+
+.album-detail-cover img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Improved layout for album accordion buttons */
+.accordion-button.bg-warning.d-flex {
+    padding: 0.75rem 1rem;
+    gap: 0.5rem;
+}
+
+/* Make sure album title and artist don't overflow */
+.accordion-button .album-title {
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.accordion-button .album-artist {
+    line-height: 1.2;
+    margin-top: 2px;
+}
+
+/* Better spacing for track actions in mobile */
+.track-actions {
+    white-space: nowrap;
+}
+
+/* Ensure proper text truncation */
+.min-w-0 {
+    min-width: 0;
+}
+
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Dark theme support for track count on yellow/warning background */
+.accordion-button.bg-warning .flex-shrink-0 {
+    color: #000 !important;
+}
+
+/* Ensure icon is also dark */
+.accordion-button.bg-warning .bi-music-note-beamed {
+    color: #000 !important;
+}
+
+/* Fix low contrast for album artist text on yellow background in dark theme */
+.accordion-button.bg-warning .album-artist {
+    color: #000 !important;
+    opacity: 0.7;
+}
+
+/* Also handle artist accordion track counts for consistency */
+.accordion-button.bg-success .flex-shrink-0 {
+    color: #fff !important;
+}
+
+/* Fix low contrast for artist accordion disc icon on green background */
+.accordion-button.bg-success .bi-disc-fill {
+    color: #fff !important;
+}
+
+/* Mobile optimizations - SMALLER thumbnails on mobile */
+@media (max-width: 576px) {
+    /* Smaller album thumbnails on mobile - ALWAYS SQUARE */
+    .album-thumb {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;  /* Prevent shrinking */
+        max-width: 44px;  /* Prevent growing */
+    }
+
+    /* Reduce padding on accordion buttons */
+    .accordion-button {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.9rem;
+    }
+
+    /* Smaller album detail cover on mobile */
+    .album-detail-cover {
+        max-width: 150px;
+    }
+
+    /* Stack track info better on mobile */
+    .list-group-item {
+        padding: 0.6rem;
+    }
+
+    /* Smaller buttons on mobile */
+    .btn-sm {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.8rem;
+    }
+
+    /* Reduce gap in track actions */
+    .track-actions {
+        gap: 0.25rem !important;
+    }
+
+    /* Smaller font for album titles on mobile */
+    .accordion-button .album-title {
+        font-size: 0.9rem;
+    }
+
+    .accordion-button .album-artist {
+        font-size: 0.8rem;
+    }
+}
+
+/* Tablet devices - Medium size between desktop and mobile */
+@media (min-width: 577px) and (max-width: 992px) {
+    .album-thumb {
+        width: 50px;
+        height: 50px;
+        min-width: 50px;
+        max-width: 50px;
+    }
+
+    .album-detail-cover {
+        max-width: 180px;
+    }
+}
+
+/* Large desktop - Keep larger thumbnails */
+@media (min-width: 1200px) {
+    .album-thumb {
+        width: 60px;
+        height: 60px;
+        min-width: 60px;
+        max-width: 60px;
+    }
+}
+
+/* Hover effects for album thumbnails */
+.album-thumb img {
+    transition: transform 0.2s ease;
+}
+
+.accordion-button:hover .album-thumb img {
+    transform: scale(1.05);
+}
+
+/* Ensure album accordion buttons look good with thumbnails */
+.accordion-button.bg-warning {
+    align-items: center !important;
+}
+
+/* Prevent album info from being squished */
+.accordion-button .flex-grow-1 {
+    overflow: hidden;
+}
+
+/* Better alignment for the track count badge */
+.accordion-button .flex-shrink-0 {
+    display: flex;
+    align-items: center;
+}
+
+/* Fallback for when no thumbnail is present - maintain spacing */
+.accordion-button.bg-warning:not(:has(.album-thumb)) {
+    padding-left: 1.25rem;
+}
+/* Album thumbnail in accordion headers - DEFAULT DESKTOP SIZE */
+.album-thumb {
+    width: 56px;
+    height: 56px;
+    min-width: 56px;  /* Prevent shrinking in flex layouts */
+    max-width: 56px;  /* Prevent growing in flex layouts */
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 4px;  /* Optional: slight rounding for polish */
+}
+
+.album-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    flex-shrink: 0;  /* Prevent the image from shrinking */
+}
+
+/* Album detail cover (in expanded accordion body) */
+.album-detail-cover {
+    max-width: 200px;
+    margin: 0 auto;
+}
+
+.album-detail-cover img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Improved layout for album accordion buttons */
+.accordion-button.bg-warning.d-flex {
+    padding: 0.75rem 1rem;
+    gap: 0.5rem;
+}
+
+/* Make sure album title and artist don't overflow */
+.accordion-button .album-title {
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.accordion-button .album-artist {
+    line-height: 1.2;
+    margin-top: 2px;
+}
+
+/* Better spacing for track actions in mobile */
+.track-actions {
+    white-space: nowrap;
+}
+
+/* Ensure proper text truncation */
+.min-w-0 {
+    min-width: 0;
+}
+
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Dark theme support for track count on yellow/warning background */
+.accordion-button.bg-warning .flex-shrink-0 {
+    color: #000 !important;
+}
+
+/* Ensure icon is also dark */
+.accordion-button.bg-warning .bi-music-note-beamed {
+    color: #000 !important;
+}
+
+/* Fix low contrast for album artist text on yellow background in dark theme */
+.accordion-button.bg-warning .album-artist {
+    color: #000 !important;
+    opacity: 0.7;
+}
+
+/* Also handle artist accordion track counts for consistency */
+.accordion-button.bg-success .flex-shrink-0 {
+    color: #fff !important;
+}
+
+/* Fix low contrast for artist accordion disc icon on green background */
+.accordion-button.bg-success .bi-disc-fill {
+    color: #fff !important;
+}
+
+/* Mobile optimizations - SMALLER thumbnails on mobile */
+@media (max-width: 576px) {
+    /* Smaller album thumbnails on mobile - ALWAYS SQUARE */
+    .album-thumb {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;  /* Prevent shrinking */
+        max-width: 44px;  /* Prevent growing */
+    }
+
+    /* Reduce padding on accordion buttons */
+    .accordion-button {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.9rem;
+    }
+
+    /* Smaller album detail cover on mobile */
+    .album-detail-cover {
+        max-width: 150px;
+    }
+
+    /* Stack track info better on mobile */
+    .list-group-item {
+        padding: 0.6rem;
+    }
+
+    /* Smaller buttons on mobile */
+    .btn-sm {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.8rem;
+    }
+
+    /* Reduce gap in track actions */
+    .track-actions {
+        gap: 0.25rem !important;
+    }
+
+    /* Smaller font for album titles on mobile */
+    .accordion-button .album-title {
+        font-size: 0.9rem;
+    }
+
+    .accordion-button .album-artist {
+        font-size: 0.8rem;
+    }
+}
+
+/* Tablet devices - Medium size between desktop and mobile */
+@media (min-width: 577px) and (max-width: 992px) {
+    .album-thumb {
+        width: 50px;
+        height: 50px;
+        min-width: 50px;
+        max-width: 50px;
+    }
+
+    .album-detail-cover {
+        max-width: 180px;
+    }
+}
+
+/* Large desktop - Keep larger thumbnails */
+@media (min-width: 1200px) {
+    .album-thumb {
+        width: 60px;
+        height: 60px;
+        min-width: 60px;
+        max-width: 60px;
+    }
+}
+
+/* Hover effects for album thumbnails */
+.album-thumb img {
+    transition: transform 0.2s ease;
+}
+
+.accordion-button:hover .album-thumb img {
+    transform: scale(1.05);
+}
+
+/* Ensure album accordion buttons look good with thumbnails */
+.accordion-button.bg-warning {
+    align-items: center !important;
+}
+
+/* Prevent album info from being squished */
+.accordion-button .flex-grow-1 {
+    overflow: hidden;
+}
+
+/* Better alignment for the track count badge */
+.accordion-button .flex-shrink-0 {
+    display: flex;
+    align-items: center;
+}
+
+/* Fallback for when no thumbnail is present - maintain spacing */
+.accordion-button.bg-warning:not(:has(.album-thumb)) {
+    padding-left: 1.25rem;
+}
+/* Album thumbnail in accordion headers - DEFAULT DESKTOP SIZE */
+.album-thumb {
+    width: 56px;
+    height: 56px;
+    min-width: 56px;  /* Prevent shrinking in flex layouts */
+    max-width: 56px;  /* Prevent growing in flex layouts */
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 4px;  /* Optional: slight rounding for polish */
+}
+
+.album-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    flex-shrink: 0;  /* Prevent the image from shrinking */
+}
+
+/* Album detail cover (in expanded accordion body) */
+.album-detail-cover {
+    max-width: 200px;
+    margin: 0 auto;
+}
+
+.album-detail-cover img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Improved layout for album accordion buttons */
+.accordion-button.bg-warning.d-flex {
+    padding: 0.75rem 1rem;
+    gap: 0.5rem;
+}
+
+/* Make sure album title and artist don't overflow */
+.accordion-button .album-title {
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.accordion-button .album-artist {
+    line-height: 1.2;
+    margin-top: 2px;
+}
+
+/* Better spacing for track actions in mobile */
+.track-actions {
+    white-space: nowrap;
+}
+
+/* Ensure proper text truncation */
+.min-w-0 {
+    min-width: 0;
+}
+
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Dark theme support for track count on yellow/warning background */
+.accordion-button.bg-warning .flex-shrink-0 {
+    color: #000 !important;
+}
+
+/* Ensure icon is also dark */
+.accordion-button.bg-warning .bi-music-note-beamed {
+    color: #000 !important;
+}
+
+/* Fix low contrast for album artist text on yellow background in dark theme */
+.accordion-button.bg-warning .album-artist {
+    color: #000 !important;
+    opacity: 0.7;
+}
+
+/* Also handle artist accordion track counts for consistency */
+.accordion-button.bg-success .flex-shrink-0 {
+    color: #fff !important;
+}
+
+/* Fix low contrast for artist accordion disc icon on green background */
+.accordion-button.bg-success .bi-disc-fill {
+    color: #fff !important;
+}
+
+/* Mobile optimizations - SMALLER thumbnails on mobile */
+@media (max-width: 576px) {
+    /* Smaller album thumbnails on mobile - ALWAYS SQUARE */
+    .album-thumb {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;  /* Prevent shrinking */
+        max-width: 44px;  /* Prevent growing */
+    }
+
+    /* Reduce padding on accordion buttons */
+    .accordion-button {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.9rem;
+    }
+
+    /* Smaller album detail cover on mobile */
+    .album-detail-cover {
+        max-width: 150px;
+    }
+
+    /* Stack track info better on mobile */
+    .list-group-item {
+        padding: 0.6rem;
+    }
+
+    /* Smaller buttons on mobile */
+    .btn-sm {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.8rem;
+    }
+
+    /* Reduce gap in track actions */
+    .track-actions {
+        gap: 0.25rem !important;
+    }
+
+    /* Smaller font for album titles on mobile */
+    .accordion-button .album-title {
+        font-size: 0.9rem;
+    }
+
+    .accordion-button .album-artist {
+        font-size: 0.8rem;
+    }
+}
+
+/* Tablet devices - Medium size between desktop and mobile */
+@media (min-width: 577px) and (max-width: 992px) {
+    .album-thumb {
+        width: 50px;
+        height: 50px;
+        min-width: 50px;
+        max-width: 50px;
+    }
+
+    .album-detail-cover {
+        max-width: 180px;
+    }
+}
+
+/* Large desktop - Keep larger thumbnails */
+@media (min-width: 1200px) {
+    .album-thumb {
+        width: 60px;
+        height: 60px;
+        min-width: 60px;
+        max-width: 60px;
+    }
+}
+
+/* Hover effects for album thumbnails */
+.album-thumb img {
+    transition: transform 0.2s ease;
+}
+
+.accordion-button:hover .album-thumb img {
+    transform: scale(1.05);
+}
+
+/* Ensure album accordion buttons look good with thumbnails */
+.accordion-button.bg-warning {
+    align-items: center !important;
+}
+
+/* Prevent album info from being squished */
+.accordion-button .flex-grow-1 {
+    overflow: hidden;
+}
+
+/* Better alignment for the track count badge */
+.accordion-button .flex-shrink-0 {
+    display: flex;
+    align-items: center;
+}
+
+/* Fallback for when no thumbnail is present - maintain spacing */
+.accordion-button.bg-warning:not(:has(.album-thumb)) {
+    padding-left: 1.25rem;
+}
+/* Album thumbnail in accordion headers - DEFAULT DESKTOP SIZE */
+.album-thumb {
+    width: 56px;
+    height: 56px;
+    min-width: 56px;  /* Prevent shrinking in flex layouts */
+    max-width: 56px;  /* Prevent growing in flex layouts */
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 4px;  /* Optional: slight rounding for polish */
+}
+
+.album-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    flex-shrink: 0;  /* Prevent the image from shrinking */
+}
+
+/* Album detail cover (in expanded accordion body) */
+.album-detail-cover {
+    max-width: 200px;
+    margin: 0 auto;
+}
+
+.album-detail-cover img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Improved layout for album accordion buttons */
+.accordion-button.bg-warning.d-flex {
+    padding: 0.75rem 1rem;
+    gap: 0.5rem;
+}
+
+/* Make sure album title and artist don't overflow */
+.accordion-button .album-title {
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.accordion-button .album-artist {
+    line-height: 1.2;
+    margin-top: 2px;
+}
+
+/* Better spacing for track actions in mobile */
+.track-actions {
+    white-space: nowrap;
+}
+
+/* Ensure proper text truncation */
+.min-w-0 {
+    min-width: 0;
+}
+
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Dark theme support for track count on yellow/warning background */
+.accordion-button.bg-warning .flex-shrink-0 {
+    color: #000 !important;
+}
+
+/* Ensure icon is also dark */
+.accordion-button.bg-warning .bi-music-note-beamed {
+    color: #000 !important;
+}
+
+/* Fix low contrast for album artist text on yellow background in dark theme */
+.accordion-button.bg-warning .album-artist {
+    color: #000 !important;
+    opacity: 0.7;
+}
+
+/* Also handle artist accordion track counts for consistency */
+.accordion-button.bg-success .flex-shrink-0 {
+    color: #fff !important;
+}
+
+/* Fix low contrast for artist accordion disc icon on green background */
+.accordion-button.bg-success .bi-disc-fill {
+    color: #fff !important;
+}
+
+/* Mobile optimizations - SMALLER thumbnails on mobile */
+@media (max-width: 576px) {
+    /* Smaller album thumbnails on mobile - ALWAYS SQUARE */
+    .album-thumb {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;  /* Prevent shrinking */
+        max-width: 44px;  /* Prevent growing */
+    }
+
+    /* Reduce padding on accordion buttons */
+    .accordion-button {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.9rem;
+    }
+
+    /* Smaller album detail cover on mobile */
+    .album-detail-cover {
+        max-width: 150px;
+    }
+
+    /* Stack track info better on mobile */
+    .list-group-item {
+        padding: 0.6rem;
+    }
+
+    /* Smaller buttons on mobile */
+    .btn-sm {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.8rem;
+    }
+
+    /* Reduce gap in track actions */
+    .track-actions {
+        gap: 0.25rem !important;
+    }
+
+    /* Smaller font for album titles on mobile */
+    .accordion-button .album-title {
+        font-size: 0.9rem;
+    }
+
+    .accordion-button .album-artist {
+        font-size: 0.8rem;
+    }
+}
+
+/* Tablet devices - Medium size between desktop and mobile */
+@media (min-width: 577px) and (max-width: 992px) {
+    .album-thumb {
+        width: 50px;
+        height: 50px;
+        min-width: 50px;
+        max-width: 50px;
+    }
+
+    .album-detail-cover {
+        max-width: 180px;
+    }
+}
+
+/* Large desktop - Keep larger thumbnails */
+@media (min-width: 1200px) {
+    .album-thumb {
+        width: 60px;
+        height: 60px;
+        min-width: 60px;
+        max-width: 60px;
+    }
+}
+
+/* Hover effects for album thumbnails */
+.album-thumb img {
+    transition: transform 0.2s ease;
+}
+
+.accordion-button:hover .album-thumb img {
+    transform: scale(1.05);
+}
+
+/* Ensure album accordion buttons look good with thumbnails */
+.accordion-button.bg-warning {
+    align-items: center !important;
+}
+
+/* Prevent album info from being squished */
+.accordion-button .flex-grow-1 {
+    overflow: hidden;
+}
+
+/* Better alignment for the track count badge */
+.accordion-button .flex-shrink-0 {
+    display: flex;
+    align-items: center;
+}
+
+/* Fallback for when no thumbnail is present - maintain spacing */
+.accordion-button.bg-warning:not(:has(.album-thumb)) {
+    padding-left: 1.25rem;
+}
+/* Album thumbnail in accordion headers - DEFAULT DESKTOP SIZE */
+.album-thumb {
+    width: 56px;
+    height: 56px;
+    min-width: 56px;  /* Prevent shrinking in flex layouts */
+    max-width: 56px;  /* Prevent growing in flex layouts */
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 4px;  /* Optional: slight rounding for polish */
+}
+
+.album-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    flex-shrink: 0;  /* Prevent the image from shrinking */
+}
+
+/* Album detail cover (in expanded accordion body) */
+.album-detail-cover {
+    max-width: 200px;
+    margin: 0 auto;
+}
+
+.album-detail-cover img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Improved layout for album accordion buttons */
+.accordion-button.bg-warning.d-flex {
+    padding: 0.75rem 1rem;
+    gap: 0.5rem;
+}
+
+/* Make sure album title and artist don't overflow */
+.accordion-button .album-title {
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.accordion-button .album-artist {
+    line-height: 1.2;
+    margin-top: 2px;
+}
+
+/* Better spacing for track actions in mobile */
+.track-actions {
+    white-space: nowrap;
+}
+
+/* Ensure proper text truncation */
+.min-w-0 {
+    min-width: 0;
+}
+
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Dark theme support for track count on yellow/warning background */
+.accordion-button.bg-warning .flex-shrink-0 {
+    color: #000 !important;
+}
+
+/* Ensure icon is also dark */
+.accordion-button.bg-warning .bi-music-note-beamed {
+    color: #000 !important;
+}
+
+/* Fix low contrast for album artist text on yellow background in dark theme */
+.accordion-button.bg-warning .album-artist {
+    color: #000 !important;
+    opacity: 0.7;
+}
+
+/* Also handle artist accordion track counts for consistency */
+.accordion-button.bg-success .flex-shrink-0 {
+    color: #fff !important;
+}
+
+/* Fix low contrast for artist accordion disc icon on green background */
+.accordion-button.bg-success .bi-disc-fill {
+    color: #fff !important;
+}
+
+/* Mobile optimizations - SMALLER thumbnails on mobile */
+@media (max-width: 576px) {
+    /* Smaller album thumbnails on mobile - ALWAYS SQUARE */
+    .album-thumb {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;  /* Prevent shrinking */
+        max-width: 44px;  /* Prevent growing */
+    }
+
+    /* Reduce padding on accordion buttons */
+    .accordion-button {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.9rem;
+    }
+
+    /* Smaller album detail cover on mobile */
+    .album-detail-cover {
+        max-width: 150px;
+    }
+
+    /* Stack track info better on mobile */
+    .list-group-item {
+        padding: 0.6rem;
+    }
+
+    /* Smaller buttons on mobile */
+    .btn-sm {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.8rem;
+    }
+
+    /* Reduce gap in track actions */
+    .track-actions {
+        gap: 0.25rem !important;
+    }
+
+    /* Smaller font for album titles on mobile */
+    .accordion-button .album-title {
+        font-size: 0.9rem;
+    }
+
+    .accordion-button .album-artist {
+        font-size: 0.8rem;
+    }
+}
+
+/* Tablet devices - Medium size between desktop and mobile */
+@media (min-width: 577px) and (max-width: 992px) {
+    .album-thumb {
+        width: 50px;
+        height: 50px;
+        min-width: 50px;
+        max-width: 50px;
+    }
+
+    .album-detail-cover {
+        max-width: 180px;
+    }
+}
+
+/* Large desktop - Keep larger thumbnails */
+@media (min-width: 1200px) {
+    .album-thumb {
+        width: 60px;
+        height: 60px;
+        min-width: 60px;
+        max-width: 60px;
+    }
+}
+
+/* Hover effects for album thumbnails */
+.album-thumb img {
+    transition: transform 0.2s ease;
+}
+
+.accordion-button:hover .album-thumb img {
+    transform: scale(1.05);
+}
+
+/* Ensure album accordion buttons look good with thumbnails */
+.accordion-button.bg-warning {
+    align-items: center !important;
+}
+
+/* Prevent album info from being squished */
+.accordion-button .flex-grow-1 {
+    overflow: hidden;
+}
+
+/* Better alignment for the track count badge */
+.accordion-button .flex-shrink-0 {
+    display: flex;
+    align-items: center;
+}
+
+/* Fallback for when no thumbnail is present - maintain spacing */
+.accordion-button.bg-warning:not(:has(.album-thumb)) {
+    padding-left: 1.25rem;
+}
+/* Album thumbnail in accordion headers - DEFAULT DESKTOP SIZE */
+.album-thumb {
+    width: 56px;
+    height: 56px;
+    min-width: 56px;  /* Prevent shrinking in flex layouts */
+    max-width: 56px;  /* Prevent growing in flex layouts */
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 4px;  /* Optional: slight rounding for polish */
+}
+
+.album-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    flex-shrink: 0;  /* Prevent the image from shrinking */
+}
+
+/* Album detail cover (in expanded accordion body) */
+.album-detail-cover {
+    max-width: 200px;
+    margin: 0 auto;
+}
+
+.album-detail-cover img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Improved layout for album accordion buttons */
+.accordion-button.bg-warning.d-flex {
+    padding: 0.75rem 1rem;
+    gap: 0.5rem;
+}
+
+/* Make sure album title and artist don't overflow */
+.accordion-button .album-title {
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.accordion-button .album-artist {
+    line-height: 1.2;
+    margin-top: 2px;
+}
+
+/* Better spacing for track actions in mobile */
+.track-actions {
+    white-space: nowrap;
+}
+
+/* Ensure proper text truncation */
+.min-w-0 {
+    min-width: 0;
+}
+
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Dark theme support for track count on yellow/warning background */
+.accordion-button.bg-warning .flex-shrink-0 {
+    color: #000 !important;
+}
+
+/* Ensure icon is also dark */
+.accordion-button.bg-warning .bi-music-note-beamed {
+    color: #000 !important;
+}
+
+/* Fix low contrast for album artist text on yellow background in dark theme */
+.accordion-button.bg-warning .album-artist {
+    color: #000 !important;
+    opacity: 0.7;
+}
+
+/* Also handle artist accordion track counts for consistency */
+.accordion-button.bg-success .flex-shrink-0 {
+    color: #fff !important;
+}
+
+/* Fix low contrast for artist accordion disc icon on green background */
+.accordion-button.bg-success .bi-disc-fill {
+    color: #fff !important;
+}
+
+/* Mobile optimizations - SMALLER thumbnails on mobile */
+@media (max-width: 576px) {
+    /* Smaller album thumbnails on mobile - ALWAYS SQUARE */
+    .album-thumb {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;  /* Prevent shrinking */
+        max-width: 44px;  /* Prevent growing */
+    }
+
+    /* Reduce padding on accordion buttons */
+    .accordion-button {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.9rem;
+    }
+
+    /* Smaller album detail cover on mobile */
+    .album-detail-cover {
+        max-width: 150px;
+    }
+
+    /* Stack track info better on mobile */
+    .list-group-item {
+        padding: 0.6rem;
+    }
+
+    /* Smaller buttons on mobile */
+    .btn-sm {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.8rem;
+    }
+
+    /* Reduce gap in track actions */
+    .track-actions {
+        gap: 0.25rem !important;
+    }
+
+    /* Smaller font for album titles on mobile */
+    .accordion-button .album-title {
+        font-size: 0.9rem;
+    }
+
+    .accordion-button .album-artist {
+        font-size: 0.8rem;
+    }
+}
+
+/* Tablet devices - Medium size between desktop and mobile */
+@media (min-width: 577px) and (max-width: 992px) {
+    .album-thumb {
+        width: 50px;
+        height: 50px;
+        min-width: 50px;
+        max-width: 50px;
+    }
+
+    .album-detail-cover {
+        max-width: 180px;
+    }
+}
+
+/* Large desktop - Keep larger thumbnails */
+@media (min-width: 1200px) {
+    .album-thumb {
+        width: 60px;
+        height: 60px;
+        min-width: 60px;
+        max-width: 60px;
+    }
+}
+
+/* Hover effects for album thumbnails */
+.album-thumb img {
+    transition: transform 0.2s ease;
+}
+
+.accordion-button:hover .album-thumb img {
+    transform: scale(1.05);
+}
+
+/* Ensure album accordion buttons look good with thumbnails */
+.accordion-button.bg-warning {
+    align-items: center !important;
+}
+
+/* Prevent album info from being squished */
+.accordion-button .flex-grow-1 {
+    overflow: hidden;
+}
+
+/* Better alignment for the track count badge */
+.accordion-button .flex-shrink-0 {
+    display: flex;
+    align-items: center;
+}
+
+/* Fallback for when no thumbnail is present - maintain spacing */
+.accordion-button.bg-warning:not(:has(.album-thumb)) {
+    padding-left: 1.25rem;
+}
+/* Album thumbnail in accordion headers - DEFAULT DESKTOP SIZE */
+.album-thumb {
+    width: 56px;
+    height: 56px;
+    min-width: 56px;  /* Prevent shrinking in flex layouts */
+    max-width: 56px;  /* Prevent growing in flex layouts */
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 4px;  /* Optional: slight rounding for polish */
+}
+
+.album-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    flex-shrink: 0;  /* Prevent the image from shrinking */
+}
+
+/* Album detail cover (in expanded accordion body) */
+.album-detail-cover {
+    max-width: 200px;
+    margin: 0 auto;
+}
+
+.album-detail-cover img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Improved layout for album accordion buttons */
+.accordion-button.bg-warning.d-flex {
+    padding: 0.75rem 1rem;
+    gap: 0.5rem;
+}
+
+/* Make sure album title and artist don't overflow */
+.accordion-button .album-title {
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.accordion-button .album-artist {
+    line-height: 1.2;
+    margin-top: 2px;
+}
+
+/* Better spacing for track actions in mobile */
+.track-actions {
+    white-space: nowrap;
+}
+
+/* Ensure proper text truncation */
+.min-w-0 {
+    min-width: 0;
+}
+
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Dark theme support for track count on yellow/warning background */
+.accordion-button.bg-warning .flex-shrink-0 {
+    color: #000 !important;
+}
+
+/* Ensure icon is also dark */
+.accordion-button.bg-warning .bi-music-note-beamed {
+    color: #000 !important;
+}
+
+/* Fix low contrast for album artist text on yellow background in dark theme */
+.accordion-button.bg-warning .album-artist {
+    color: #000 !important;
+    opacity: 0.7;
+}
+
+/* Also handle artist accordion track counts for consistency */
+.accordion-button.bg-success .flex-shrink-0 {
+    color: #fff !important;
+}
+
+/* Fix low contrast for artist accordion disc icon on green background */
+.accordion-button.bg-success .bi-disc-fill {
+    color: #fff !important;
+}
+
+/* Mobile optimizations - SMALLER thumbnails on mobile */
+@media (max-width: 576px) {
+    /* Smaller album thumbnails on mobile - ALWAYS SQUARE */
+    .album-thumb {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;  /* Prevent shrinking */
+        max-width: 44px;  /* Prevent growing */
+    }
+
+    /* Reduce padding on accordion buttons */
+    .accordion-button {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.9rem;
+    }
+
+    /* Smaller album detail cover on mobile */
+    .album-detail-cover {
+        max-width: 150px;
+    }
+
+    /* Stack track info better on mobile */
+    .list-group-item {
+        padding: 0.6rem;
+    }
+
+    /* Smaller buttons on mobile */
+    .btn-sm {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.8rem;
+    }
+
+    /* Reduce gap in track actions */
+    .track-actions {
+        gap: 0.25rem !important;
+    }
+
+    /* Smaller font for album titles on mobile */
+    .accordion-button .album-title {
+        font-size: 0.9rem;
+    }
+
+    .accordion-button .album-artist {
+        font-size: 0.8rem;
+    }
+}
+
+/* Tablet devices - Medium size between desktop and mobile */
+@media (min-width: 577px) and (max-width: 992px) {
+    .album-thumb {
+        width: 50px;
+        height: 50px;
+        min-width: 50px;
+        max-width: 50px;
+    }
+
+    .album-detail-cover {
+        max-width: 180px;
+    }
+}
+
+/* Large desktop - Keep larger thumbnails */
+@media (min-width: 1200px) {
+    .album-thumb {
+        width: 60px;
+        height: 60px;
+        min-width: 60px;
+        max-width: 60px;
+    }
+}
+
+/* Hover effects for album thumbnails */
+.album-thumb img {
+    transition: transform 0.2s ease;
+}
+
+.accordion-button:hover .album-thumb img {
+    transform: scale(1.05);
+}
+
+/* Ensure album accordion buttons look good with thumbnails */
+.accordion-button.bg-warning {
+    align-items: center !important;
+}
+
+/* Prevent album info from being squished */
+.accordion-button .flex-grow-1 {
+    overflow: hidden;
+}
+
+/* Better alignment for the track count badge */
+.accordion-button .flex-shrink-0 {
+    display: flex;
+    align-items: center;
+}
+
+/* Fallback for when no thumbnail is present - maintain spacing */
+.accordion-button.bg-warning:not(:has(.album-thumb)) {
+    padding-left: 1.25rem;
+}
+/* Album thumbnail in accordion headers - DEFAULT DESKTOP SIZE */
+.album-thumb {
+    width: 56px;
+    height: 56px;
+    min-width: 56px;  /* Prevent shrinking in flex layouts */
+    max-width: 56px;  /* Prevent growing in flex layouts */
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 4px;  /* Optional: slight rounding for polish */
+}
+
+.album-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    flex-shrink: 0;  /* Prevent the image from shrinking */
+}
+
+/* Album detail cover (in expanded accordion body) */
+.album-detail-cover {
+    max-width: 200px;
+    margin: 0 auto;
+}
+
+.album-detail-cover img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Improved layout for album accordion buttons */
+.accordion-button.bg-warning.d-flex {
+    padding: 0.75rem 1rem;
+    gap: 0.5rem;
+}
+
+/* Make sure album title and artist don't overflow */
+.accordion-button .album-title {
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.accordion-button .album-artist {
+    line-height: 1.2;
+    margin-top: 2px;
+}
+
+/* Better spacing for track actions in mobile */
+.track-actions {
+    white-space: nowrap;
+}
+
+/* Ensure proper text truncation */
+.min-w-0 {
+    min-width: 0;
+}
+
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Dark theme support for track count on yellow/warning background */
+.accordion-button.bg-warning .flex-shrink-0 {
+    color: #000 !important;
+}
+
+/* Ensure icon is also dark */
+.accordion-button.bg-warning .bi-music-note-beamed {
+    color: #000 !important;
+}
+
+/* Fix low contrast for album artist text on yellow background in dark theme */
+.accordion-button.bg-warning .album-artist {
+    color: #000 !important;
+    opacity: 0.7;
+}
+
+/* Also handle artist accordion track counts for consistency */
+.accordion-button.bg-success .flex-shrink-0 {
+    color: #fff !important;
+}
+
+/* Fix low contrast for artist accordion disc icon on green background */
+.accordion-button.bg-success .bi-disc-fill {
+    color: #fff !important;
+}
+
+/* Mobile optimizations - SMALLER thumbnails on mobile */
+@media (max-width: 576px) {
+    /* Smaller album thumbnails on mobile - ALWAYS SQUARE */
+    .album-thumb {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;  /* Prevent shrinking */
+        max-width: 44px;  /* Prevent growing */
+    }
+
+    /* Reduce padding on accordion buttons */
+    .accordion-button {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.9rem;
+    }
+
+    /* Smaller album detail cover on mobile */
+    .album-detail-cover {
+        max-width: 150px;
+    }
+
+    /* Stack track info better on mobile */
+    .list-group-item {
+        padding: 0.6rem;
+    }
+
+    /* Smaller buttons on mobile */
+    .btn-sm {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.8rem;
+    }
+
+    /* Reduce gap in track actions */
+    .track-actions {
+        gap: 0.25rem !important;
+    }
+
+    /* Smaller font for album titles on mobile */
+    .accordion-button .album-title {
+        font-size: 0.9rem;
+    }
+
+    .accordion-button .album-artist {
+        font-size: 0.8rem;
+    }
+}
+
+/* Tablet devices - Medium size between desktop and mobile */
+@media (min-width: 577px) and (max-width: 992px) {
+    .album-thumb {
+        width: 50px;
+        height: 50px;
+        min-width: 50px;
+        max-width: 50px;
+    }
+
+    .album-detail-cover {
+        max-width: 180px;
+    }
+}
+
+/* Large desktop - Keep larger thumbnails */
+@media (min-width: 1200px) {
+    .album-thumb {
+        width: 60px;
+        height: 60px;
+        min-width: 60px;
+        max-width: 60px;
+    }
+}
+
+/* Hover effects for album thumbnails */
+.album-thumb img {
+    transition: transform 0.2s ease;
+}
+
+.accordion-button:hover .album-thumb img {
+    transform: scale(1.05);
+}
+
+/* Ensure album accordion buttons look good with thumbnails */
+.accordion-button.bg-warning {
+    align-items: center !important;
+}
+
+/* Prevent album info from being squished */
+.accordion-button .flex-grow-1 {
+    overflow: hidden;
+}
+
+/* Better alignment for the track count badge */
+.accordion-button .flex-shrink-0 {
+    display: flex;
+    align-items: center;
+}
+
+/* Fallback for when no thumbnail is present - maintain spacing */
+.accordion-button.bg-warning:not(:has(.album-thumb)) {
+    padding-left: 1.25rem;
 }
