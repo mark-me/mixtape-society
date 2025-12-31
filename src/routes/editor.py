@@ -1,3 +1,4 @@
+import math
 import shutil
 import threading
 import time
@@ -27,6 +28,7 @@ from auth import require_auth
 from common.logging import Logger, NullLogger
 from mixtape_manager import MixtapeManager
 from musiclib import MusicCollectionUI
+from utils import CoverCompositor
 
 
 def create_editor_blueprint(
@@ -85,7 +87,7 @@ def create_editor_blueprint(
             str: The rendered HTML page for editing the mixtape.
         """
         mixtape_manager = MixtapeManager(
-            path_mixtapes=current_app.config["MIXTAPE_DIR"]
+            path_mixtapes=current_app.config["MIXTAPE_DIR"], collection=collection
         )
         mixtape = mixtape_manager.get(slug)
         return render_template(
@@ -166,17 +168,27 @@ def create_editor_blueprint(
             liner_notes = data.get("liner_notes", "")
             slug = data.get("slug")  # Present only when editing
 
+            # Adding track covers
+            tracks = data.get("tracks", [])
+            for track in tracks:
+                release_dir = collection._get_release_dir(
+                    track.get("path", "")
+                )  # Reuse existing helper
+                track["cover"] = collection.get_cover(release_dir)
+
             # Prepare clean data for the manager
             mixtape_data = {
                 "title": title,
-                "tracks": data.get("tracks", []),
+                "tracks": tracks,
                 "liner_notes": liner_notes,
                 "cover": data.get("cover"),
             }
 
             # Instantiate the manager
             mixtape_manager = MixtapeManager(
-                path_mixtapes=current_app.config["MIXTAPE_DIR"], logger=logger
+                path_mixtapes=current_app.config["MIXTAPE_DIR"],
+                collection=collection,
+                logger=logger,
             )
 
             if slug:
@@ -254,8 +266,8 @@ def create_editor_blueprint(
         )
 
     def _trigger_audio_caching_async(
-            slug: str, mixtape_manager: MixtapeManager, is_update: bool = False
-        ) -> None:
+        slug: str, mixtape_manager: MixtapeManager, is_update: bool = False
+    ) -> None:
         """
         Triggers background audio caching with progress tracking.
 
@@ -501,5 +513,26 @@ def create_editor_blueprint(
                 shutil.copy(src, dest)
                 return f"covers/{slug}.jpg"
         return None
+
+    @editor.route("/generate_composite", methods=["POST"])
+    @require_auth
+    def generate_composite() -> Response:
+        data = request.get_json()
+        if not data or not isinstance(data.get("covers"), list):
+            return jsonify({"error": "Missing covers list"}), 400
+
+        covers = data["covers"]
+        if not covers:
+            return jsonify({"error": "No covers provided"}), 400
+
+        try:
+            compositor = CoverCompositor(collection.covers_dir)
+            data_url = compositor.generate_grid_composite(covers)
+            return jsonify({"data_url": data_url})
+        except ValueError as e:
+            return jsonify({"error": str(e)}), 400
+        except Exception as e:
+            logger.error(f"Composite generation failed: {e}")
+            return jsonify({"error": "Failed to generate composite"}), 500
 
     return editor

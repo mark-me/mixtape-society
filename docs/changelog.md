@@ -8,21 +8,24 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 ## 📦 v0.3.0
 
-<span class="md-tag">On backlog</span>
+<span class="md-tag">Release</span>
 
-**🗓️** 2025-12-xx
+**🗓️** 2026-01-01
 
 ### ✨ Added
 
-- Offline mixtape playback
+- Covers included for tracks
+- Composite cover generation
+- Track removal toast
 
 ### 🔧 Changed
 
--
+- Play buttons changed to cover-play buttons
 
 ### 🐛 Fixed
 
--
+- Reordering tracks resulted in track added toast.
+- White theme browsing mixtapes, mixtape title invisible
 
 [v0.3.0](https://github.com/mark-me/mixtape-society/compare/v0.2.2...v0.3.0)
 

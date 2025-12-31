@@ -1,3 +1,5 @@
+import hashlib
+import io
 import re
 from collections import defaultdict
 from dataclasses import dataclass
@@ -5,6 +7,9 @@ from pathlib import Path
 from sqlite3 import Connection
 from threading import Thread
 from time import time
+
+from tinytag import TinyTag
+from PIL import Image
 
 from common.logging import Logger, NullLogger
 
@@ -45,7 +50,7 @@ class MusicCollection:
     TAG_BONUS = 30
 
     def __init__(
-        self, music_root: Path | str, db_path: Path | str, logger: Logger=None
+        self, music_root: Path | str, db_path: Path | str, logger: Logger = None
     ) -> None:
         """Initializes a MusicCollection backed by a SQLite database and music root directory.
         Sets up logging, collection extraction, and schedules any required initial indexing or resync operations.
@@ -75,6 +80,9 @@ class MusicCollection:
             self._extractor.wait_for_indexing_start()
 
         self._last_search_session: SearchSession | None = None
+
+        self.covers_dir = self.db_path.parent / "cache" / "covers"
+        self.covers_dir.mkdir(parents=True, exist_ok=True)
 
     def is_indexing(self) -> bool:
         status = get_indexing_status(self.db_path.parent)
@@ -254,7 +262,9 @@ class MusicCollection:
         minutes, seconds = divmod(total_seconds, 60)
         return f"{minutes}:{seconds:02d}"
 
-    def _build_track_dict(self, row: dict, artist: str | None = None, album: str | None = None) -> dict:
+    def _build_track_dict(
+        self, row: dict, artist: str | None = None, album: str | None = None
+    ) -> dict:
         """Builds a track dictionary from a database row.
 
         Args:
@@ -263,8 +273,11 @@ class MusicCollection:
             album: Optional album override.
 
         Returns:
-            dict: The track dictionary.
+            dict: The track dictionary with cover information.
         """
+        # Get the release directory to fetch the cover
+        release_dir = self._get_release_dir(row["path"])
+
         return {
             "artist": artist or row["artist"],
             "track": row["title"],
@@ -272,6 +285,7 @@ class MusicCollection:
             "filename": row["filename"],
             "duration": self._format_duration(row["duration"]),
             "album": album or row["album"],
+            "cover": self.get_cover(release_dir),
         }
 
     def _relative_path(self, path: str) -> str:
@@ -645,7 +659,9 @@ class MusicCollection:
 
         return artist_candidates, album_candidates, track_candidates
 
-    def _fetch_candidate_rows(self, terms: dict, limit: int) -> list[dict[str, str | float]]:
+    def _fetch_candidate_rows(
+        self, terms: dict, limit: int
+    ) -> list[dict[str, str | float]]:
         """Fetches raw candidate rows from the database for the first search pass.
         Uses full-text search when available, falling back to ordered scans otherwise.
 
@@ -793,14 +809,23 @@ class MusicCollection:
         with self._get_conn() as conn:
             # Add album counts for each artist result
             for artist in artists:
-                count_query = "SELECT COUNT(DISTINCT album) FROM tracks WHERE artist = ?"
-                artist['num_albums'] = conn.execute(count_query, (artist['artist'],)).fetchone()[0] or 0
+                count_query = (
+                    "SELECT COUNT(DISTINCT album) FROM tracks WHERE artist = ?"
+                )
+                artist["num_albums"] = (
+                    conn.execute(count_query, (artist["artist"],)).fetchone()[0] or 0
+                )
 
             # Add track counts for each album result
             for album in albums:
-                expr = self._sql_release_dir_expr()  # Reuses your existing method for release_dir expression
+                expr = (
+                    self._sql_release_dir_expr()
+                )  # Reuses your existing method for release_dir expression
                 count_query = f"SELECT COUNT(*) FROM tracks WHERE {expr} = ?"
-                album['num_tracks'] = conn.execute(count_query, (album['release_dir'],)).fetchone()[0] or 0
+                album["num_tracks"] = (
+                    conn.execute(count_query, (album["release_dir"],)).fetchone()[0]
+                    or 0
+                )
 
         return {
             "artists": artists,
@@ -871,6 +896,7 @@ class MusicCollection:
                     "album": album["album"],
                     "release_dir": album["release_dir"],
                     "is_compilation": False,
+                    "cover": self.get_cover(album["release_dir"])
                 }
             )
             covered_albums.add(album["release_dir"])
@@ -1003,7 +1029,9 @@ class MusicCollection:
 
         return best
 
-    def _score_artist(self, artist: str, terms: dict, has_artist: bool, is_free_text: bool) -> int:
+    def _score_artist(
+        self, artist: str, terms: dict, has_artist: bool, is_free_text: bool
+    ) -> int:
         """Computes the score for an artist based on terms.
 
         Args:
@@ -1022,7 +1050,9 @@ class MusicCollection:
             score = self._score_text(artist, terms["general"])
         return score
 
-    def _score_album(self, album_name: str, terms: dict, has_album: bool, is_free_text: bool) -> int:
+    def _score_album(
+        self, album_name: str, terms: dict, has_album: bool, is_free_text: bool
+    ) -> int:
         """Computes the score for an album based on terms.
 
         Args:
@@ -1102,8 +1132,14 @@ class MusicCollection:
                     if tracks
                     else "Unknown Album"
                 )
+                album_cover = self.get_cover(release_dir)
                 albums.append(
-                    {"album": album_name, "tracks": tracks, "release_dir": release_dir}
+                    {
+                        "album": album_name,
+                        "cover": album_cover,
+                        "tracks": tracks,
+                        "release_dir": release_dir,
+                    }
                 )
 
             return {"artist": artist, "albums": albums}
@@ -1144,12 +1180,10 @@ class MusicCollection:
 
             # Album name from first row
             album_name = rows[0]["album"] or "Unknown Album"
+            album_cover = self.get_cover(release_dir)
 
             # Build track list
-            track_list = [
-                self._build_track_dict(row)
-                for row in rows
-            ]
+            track_list = [self._build_track_dict(row) for row in rows]
 
             # Detect compilation
             artists = {t["artist"] for t in track_list if t["artist"]}
@@ -1192,3 +1226,264 @@ class MusicCollection:
             str: SQL expression for extracting the release directory from the path.
         """
         return "SUBSTR(path, 1, LENGTH(path) - LENGTH(filename))"  # e.g., 'artist/album/' (with trailing /)
+
+    def get_track(self, path: Path) -> dict | None:
+        """Retrieves metadata for a single track identified by its path.
+
+        Queries the music library database for the track and returns a normalized metadata dictionary if found.
+
+        Args:
+            path: The full or relative path of the track to look up.
+
+        Returns:
+            dict | None: A dictionary of track metadata if the track exists, otherwise None.
+        """
+        with self._get_conn() as conn:
+            cur = conn.execute(
+                """
+                SELECT path, filename, artist, album, title, albumartist, track_number, disc_number, duration, mtime
+                FROM tracks
+                WHERE path = ?
+                """,
+                (str(path),),
+            )
+            if rows := cur.fetchall():
+                track = rows[0]
+                # Get the release directory to fetch the cover
+                release_dir = self._get_release_dir(track["path"])
+
+                return {
+                    "path": Path(path),
+                    "filename": track["filename"],
+                    "artist": track["artist"],
+                    "album": track["album"],
+                    "track": track["title"],
+                    "albumartist": track["albumartist"],
+                    "track_number": track["track_number"],
+                    "disc_number": track["disc_number"],
+                    "duration": self._format_duration(track["duration"]),
+                    "time_added": track["mtime"],
+                    "cover": self.get_cover(release_dir),
+                }
+            else:
+                return None
+
+
+    def get_cover(self, release_dir: str) -> str | None:
+        """Retrieves or generates the cover image path for a given album release directory.
+        Returns a relative path to a cached or newly extracted cover image if available.
+
+        Args:
+            release_dir: The release directory identifier used to locate or derive the cover image.
+
+        Returns:
+            str | None: Relative path to the cover image within the covers directory, or None if not found.
+        """
+        if not release_dir:
+            return None
+
+        # Sanitize to a safe filename slug
+        slug = self._sanitize_release_dir(release_dir)
+        cover_path = self.covers_dir / f"{slug}.jpg"
+
+        if cover_path.exists():
+            return f"covers/{slug}.jpg"
+
+        # Extract on demand
+        if self._extract_cover(release_dir, cover_path):
+            return f"covers/{slug}.jpg"
+
+        return None
+
+    def _sanitize_release_dir(self, release_dir: str) -> str:
+        """Normalizes a release directory string into a safe filename slug.
+        Produces a stable, filesystem-friendly identifier suitable for use in cover cache filenames.
+
+        Args:
+            release_dir: The release directory identifier to sanitize.
+
+        Returns:
+            str: A normalized slug representation of the release directory.
+        """
+        clean = (
+            "".join(c if c.isalnum() or c in "-_ /" else "_" for c in release_dir)
+            .strip("/")
+            .replace("/", "_")
+        )
+        if len(clean) > 200:  # Truncate long paths
+            clean = f"{clean[:100]}_{hashlib.md5(release_dir.encode()).hexdigest()[:8]}"
+        return clean
+
+    def _extract_cover(self, release_dir: str, target_path: Path) -> bool:
+        """Attempts to locate or extract a cover image for a given release directory.
+        Searches for existing image files or embedded artwork, resizes them to a reasonable size,
+        and writes an optimized copy to the target path.
+
+        Args:
+            release_dir: The release directory relative to the music root where audio and image files are stored.
+            target_path: The filesystem path where the discovered or extracted cover image should be written.
+
+        Returns:
+            bool: True if a cover image was successfully found and written, otherwise False.
+        """
+        abs_dir = self.music_root / release_dir.rstrip("/")
+        if not abs_dir.is_dir():
+            self._logger.warning(f"Release directory not found: {abs_dir}")
+            return False
+
+        # Configuration for cover optimization
+        MAX_SIZE = 800  # Maximum width/height in pixels
+        JPEG_QUALITY = 85  # JPEG quality (1-100)
+        MAX_FILE_SIZE = 500 * 1024  # 500KB max file size
+
+        # Step 1: Check for common image files in the folder
+        common_cover_names = [
+            "cover.jpg",
+            "folder.jpg",
+            "album.jpg",
+            "front.jpg",
+            "cover.png",
+            "folder.png",
+        ]
+
+        for name in common_cover_names:
+            img_path = abs_dir / name
+            if img_path.exists():
+                try:
+                    if self._resize_and_save_cover(img_path, target_path, MAX_SIZE, JPEG_QUALITY, MAX_FILE_SIZE):
+                        self._logger.info(f"Processed cover from {img_path} for {release_dir}")
+                        return True
+                except Exception as e:
+                    self._logger.error(f"Failed to process cover {img_path}: {e}")
+                    continue
+
+        # Step 2: Extract embedded art from audio files
+        for file in abs_dir.iterdir():
+            if file.suffix.lower() in CollectionExtractor.SUPPORTED_EXTS:
+                try:
+                    tag = TinyTag.get(str(file), image=True)
+                    if img_data := tag.get_image():
+                        if self._resize_and_save_cover_from_bytes(img_data, target_path, MAX_SIZE, JPEG_QUALITY, MAX_FILE_SIZE):
+                            self._logger.info(
+                                f"Extracted and processed embedded cover from {file} for {release_dir}"
+                            )
+                            return True
+                except Exception as e:
+                    self._logger.warning(f"Failed to extract from {file}: {e}")
+                    continue
+
+        self._logger.info(f"No cover found for {release_dir}")
+        return False
+
+    def _resize_and_save_cover(
+        self,
+        source_path: Path,
+        target_path: Path,
+        max_size: int,
+        quality: int,
+        max_file_size: int
+    ) -> bool:
+        """Resize and optimize a cover image from a file path.
+
+        Args:
+            source_path: Path to the source image file.
+            target_path: Path where the optimized image should be saved.
+            max_size: Maximum dimension (width or height) in pixels.
+            quality: JPEG quality (1-100).
+            max_file_size: Maximum file size in bytes.
+
+        Returns:
+            bool: True if successful, False otherwise.
+        """
+        try:
+            with Image.open(source_path) as img:
+                return self._process_and_save_image(img, target_path, max_size, quality, max_file_size)
+        except Exception as e:
+            self._logger.error(f"Failed to resize cover from {source_path}: {e}")
+            return False
+
+    def _resize_and_save_cover_from_bytes(
+        self,
+        img_data: bytes,
+        target_path: Path,
+        max_size: int,
+        quality: int,
+        max_file_size: int
+    ) -> bool:
+        """Resize and optimize a cover image from raw bytes.
+
+        Args:
+            img_data: Raw image data bytes.
+            target_path: Path where the optimized image should be saved.
+            max_size: Maximum dimension (width or height) in pixels.
+            quality: JPEG quality (1-100).
+            max_file_size: Maximum file size in bytes.
+
+        Returns:
+            bool: True if successful, False otherwise.
+        """
+        try:
+            with Image.open(io.BytesIO(img_data)) as img:
+                return self._process_and_save_image(img, target_path, max_size, quality, max_file_size)
+        except Exception as e:
+            self._logger.error(f"Failed to resize cover from bytes: {e}")
+            return False
+
+    def _process_and_save_image(
+        self,
+        img: Image.Image,
+        target_path: Path,
+        max_size: int,
+        quality: int,
+        max_file_size: int
+    ) -> bool:
+        """Process and save an image with resizing and optimization.
+
+        Args:
+            img: PIL Image object to process.
+            target_path: Path where the optimized image should be saved.
+            max_size: Maximum dimension (width or height) in pixels.
+            quality: JPEG quality (1-100).
+            max_file_size: Maximum file size in bytes.
+
+        Returns:
+            bool: True if successful, False otherwise.
+        """
+        try:
+            # Convert to RGB if necessary (handles RGBA, P mode, etc.)
+            if img.mode not in ('RGB', 'L'):
+                # Handle transparency by compositing on white background
+                if img.mode == 'RGBA':
+                    background = Image.new('RGB', img.size, (255, 255, 255))
+                    background.paste(img, mask=img.split()[3])  # Use alpha channel as mask
+                    img = background
+                else:
+                    img = img.convert('RGB')
+
+            # Resize if needed
+            original_size = img.size
+            if max(img.size) > max_size:
+                img.thumbnail((max_size, max_size), Image.Resampling.LANCZOS)
+                self._logger.debug(f"Resized cover from {original_size} to {img.size}")
+
+            # Save with optimization
+            # Try with the specified quality first
+            img.save(target_path, 'JPEG', quality=quality, optimize=True)
+
+            # If still too large, reduce quality iteratively
+            current_quality = quality
+            while target_path.stat().st_size > max_file_size and current_quality > 50:
+                current_quality -= 10
+                img.save(target_path, 'JPEG', quality=current_quality, optimize=True)
+                self._logger.debug(f"Reduced quality to {current_quality} to meet size limit")
+
+            final_size = target_path.stat().st_size
+            self._logger.debug(
+                f"Saved cover: {img.size[0]}x{img.size[1]}, "
+                f"{final_size / 1024:.1f}KB, quality={current_quality}"
+            )
+
+            return True
+        except Exception as e:
+            self._logger.error(f"Failed to process and save image: {e}")
+            return False

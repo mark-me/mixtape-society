@@ -43,7 +43,7 @@ class MusicCollectionUI(MusicCollection):
 
     def _track_display_dict(self, track: dict) -> dict:
         """Formats a track dictionary for UI display.
-        Returns a dictionary with title, duration, path, and a safe filename for the track.
+        Returns a dictionary with title, duration, path, cover, and a safe filename for the track.
 
         Args:
             track: Dictionary containing track information.
@@ -58,6 +58,7 @@ class MusicCollectionUI(MusicCollection):
             "duration": track.get("duration") or "?:??",
             "path": track["path"],
             "filename": self._safe_filename(track["track"], track["path"]),
+            "cover": track.get("cover"),
         }
 
     @staticmethod
@@ -236,7 +237,8 @@ class MusicCollectionUI(MusicCollection):
                 "clickable": True,
                 "click_query": f'release_dir:{self._escape_for_query(release_dir)}',  # Or just provide release_dir
                 "artist_click_query": None if is_compilation else f'artist:{self._escape_for_query(display_artist)}',
-                "release_dir": release_dir  # For UI to use in lazy load call
+                "release_dir": release_dir,  # For UI to use in lazy load call
+                "cover": self.get_cover(release_dir)
             })
 
         # Tracks (fully populated, with clickable artist and album)
@@ -245,6 +247,8 @@ class MusicCollectionUI(MusicCollection):
             highlighted_tracks = self._highlight_text(track_name, all_terms)
             highlighted_artist = self._highlight_text(track["artist"], all_terms)
             highlighted_album = self._highlight_text(track["album"], all_terms)
+            release_dir = self._get_release_dir(track["path"])
+            track["cover"] = self.get_cover(release_dir)
 
             results.append(
                 {

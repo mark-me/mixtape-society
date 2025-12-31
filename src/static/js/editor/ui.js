@@ -1,6 +1,6 @@
 // static/js/editor/ui.js
 import { showAlert, showConfirm, escapeHtml } from "./utils.js";
-import { playlist, registerUnsavedCallback } from "./playlist.js";
+import { playlist, registerUnsavedCallback, registerTrackAddedCallback, registerTrackRemovedCallback } from "./playlist.js";
 import { easyMDE } from "./editorNotes.js";
 import { showProgressModal } from './progressModal.js';
 
@@ -284,7 +284,12 @@ export function initUI() {
     // -----------------------------------------------------------------
     // 6️⃣  “Track added” toast (re‑used for any playlist mutation)
     // -----------------------------------------------------------------
-    const addTrackToastEl = document.createElement("div");
+    const addTrackToastEl = document.getElementById('addTrackToast');
+    const removeTrackToastEl = document.getElementById('removeTrackToast');
+
+    const addTrackToast = addTrackToastEl ? new bootstrap.Toast(addTrackToastEl, { delay: 2000 }) : null;
+    const removeTrackToast = removeTrackToastEl ? new bootstrap.Toast(removeTrackToastEl, { delay: 2000 }) : null;
+
     addTrackToastEl.className = "toast position-fixed bottom-0 end-0 m-3";
     addTrackToastEl.setAttribute("role", "alert");
     addTrackToastEl.setAttribute("aria-live", "assertive");
@@ -295,7 +300,6 @@ export function initUI() {
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
         </div>`;
     document.body.appendChild(addTrackToastEl);
-    const addTrackToast = new bootstrap.Toast(addTrackToastEl, { delay: 2000 });
 
     // -----------------------------------------------------------------
     // 7️⃣  Register the **unsaved‑changes callback** with the playlist module.
@@ -305,10 +309,15 @@ export function initUI() {
     registerUnsavedCallback(() => {
         // Show the “Unsaved” badge
         markUnsaved();
-        // Also fire the toast that tells the user a track was added / playlist changed
-        addTrackToast.show();
     });
 
+    registerTrackAddedCallback(() => {
+        if (addTrackToast) addTrackToast.show();
+    });
+
+    registerTrackRemovedCallback(() => {
+        if (removeTrackToast) removeTrackToast.show();
+    });
     // -----------------------------------------------------------------
     // 8️⃣  EasyMDE (liner‑notes) – mark unsaved on any edit
     // -----------------------------------------------------------------
@@ -383,6 +392,71 @@ export function initUI() {
             return confirmationMessage;          // WebKit, Safari
         }
     });
+
+    // Cover generation/uploading
+    const coverUploadBtn = document.getElementById('cover-upload-btn');
+    if (coverUploadBtn) {
+        coverUploadBtn.addEventListener('click', (e) => {
+            e.preventDefault();  // Prevent default if it's a button
+            const coverModal = new bootstrap.Modal(document.getElementById('coverOptionsModal'));
+            coverModal.show();
+        });
+    }
+
+    // Wire up modal options
+    const uploadOption = document.getElementById('upload-cover-option');
+    const generateOption = document.getElementById('generate-composite-option');
+
+    if (uploadOption) {
+        uploadOption.addEventListener('click', () => {
+            document.getElementById('cover-upload').click();  // Trigger existing upload
+            bootstrap.Modal.getInstance(document.getElementById('coverOptionsModal')).hide();
+        });
+    }
+
+    if (generateOption) {
+        generateOption.addEventListener('click', () => {
+            generateCompositeCover();
+            bootstrap.Modal.getInstance(document.getElementById('coverOptionsModal')).hide();
+        });
+    }
+
+    // Generate composite cover
+    function generateCompositeCover() {
+        // Collect ALL cover paths (including duplicates for weighting)
+        const allCovers = playlist
+            .map(item => item.cover)
+            .filter(Boolean);  // remove null/undefined
+
+        if (allCovers.length === 0) {
+            showAlert({ title: "No Covers Available", message: "Add tracks with covers to generate a composite." });
+            return;
+        }
+
+        // POST to server — send full list with duplicates
+        fetch('/editor/generate_composite', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ covers: allCovers })  // ← changed: allCovers, not unique
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Generation failed');
+            return response.json();
+        })
+        .then(data => {
+            if (data.error) {
+                showAlert({ title: "Error", message: data.error });
+                return;
+            }
+            coverDataUrl = data.data_url;
+            document.getElementById('playlist-cover').src = coverDataUrl;
+            markUnsaved();
+        })
+        .catch(err => {
+            console.error("Composite generation error:", err);
+            showAlert({ title: "Error", message: "Failed to generate composite. Try again." });
+        });
+    }
 }
 
 

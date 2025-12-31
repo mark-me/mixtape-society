@@ -213,10 +213,16 @@
                                 data-album="{{ t.album|default('') }}">
 
                                 <!-- Play button on the left -->
-                                <button class="btn btn-light rounded-circle play-this-track shadow-sm flex-shrink-0"
-                                        style="width: 48px; height: 48px;">
-                                    <i class="bi bi-play-fill" style="font-size: 1.4rem;"></i>
-                                </button>
+                                <div class="track-cover-wrapper me-3 flex-shrink-0">
+                                    {% if t.cover %}
+                                        <img src="{{ url_for('serve_album_cover', filename=t.cover.split('/')[-1]) }}" alt="Cover" class="track-cover rounded">
+                                    {% else %}
+                                        <div class="track-cover-placeholder rounded"></div>
+                                    {% endif %}
+                                    <button class="btn play-overlay-btn" data-path="{{ t.path | urlencode }}">
+                                        <i class="bi bi-play-fill"></i>
+                                    </button>
+                                </div>
 
                                 <!-- Text block (takes remaining space) -->
                                 <div class="flex-grow-1 min-width-0">
