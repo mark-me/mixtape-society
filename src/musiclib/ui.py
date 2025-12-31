@@ -237,7 +237,8 @@ class MusicCollectionUI(MusicCollection):
                 "clickable": True,
                 "click_query": f'release_dir:{self._escape_for_query(release_dir)}',  # Or just provide release_dir
                 "artist_click_query": None if is_compilation else f'artist:{self._escape_for_query(display_artist)}',
-                "release_dir": release_dir  # For UI to use in lazy load call
+                "release_dir": release_dir,  # For UI to use in lazy load call
+                "cover": self.get_cover(release_dir)
             })
 
         # Tracks (fully populated, with clickable artist and album)
