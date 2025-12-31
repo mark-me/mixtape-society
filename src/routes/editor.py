@@ -2,8 +2,7 @@ import math
 import shutil
 import threading
 import time
-from base64 import b64decode, b64encode
-from collections import Counter
+from base64 import b64decode
 from datetime import datetime
 from io import BytesIO
 from pathlib import Path
@@ -17,7 +16,7 @@ from flask import (
     request,
     stream_with_context,
 )
-from PIL import Image, ImageEnhance
+from PIL import Image
 
 from audio_cache import (
     ProgressCallback,
@@ -29,6 +28,7 @@ from auth import require_auth
 from common.logging import Logger, NullLogger
 from mixtape_manager import MixtapeManager
 from musiclib import MusicCollectionUI
+from utils import CoverCompositor
 
 
 def create_editor_blueprint(
@@ -517,89 +517,22 @@ def create_editor_blueprint(
     @editor.route("/generate_composite", methods=["POST"])
     @require_auth
     def generate_composite() -> Response:
-        """
-        Generates a dynamic square composite cover from unique track covers.
-        - All tiles equal size
-        - Grid size = ceil(sqrt(n_unique_covers)), filled completely
-        - Repeats prioritize higher-frequency covers (more tracks = more repeats)
-        """
         data = request.get_json()
         if not data or not isinstance(data.get("covers"), list):
-            return jsonify({"error": "Missing or invalid 'covers' list"}), 400
+            return jsonify({"error": "Missing covers list"}), 400
 
-        raw_covers = data["covers"]
-        if not raw_covers:
+        covers = data["covers"]
+        if not covers:
             return jsonify({"error": "No covers provided"}), 400
 
-        # Count frequency (tracks per cover) and get unique list preserving order
-        cover_counts = Counter(raw_covers)
-        unique_covers = list(dict.fromkeys(raw_covers))  # preserves original order
-
-        n_unique = len(unique_covers)
-        if n_unique == 0:
-            return jsonify({"error": "No valid covers found"}), 400
-
-        # Determine grid size
-        grid_size = math.ceil(math.sqrt(n_unique))
-        total_cells = grid_size ** 2
-
-        # Smart fill: repeat higher-frequency covers more
-        fill_covers = []
-        # Sort unique covers by frequency descending for repeating
-        sorted_by_freq = sorted(unique_covers, key=lambda c: cover_counts[c], reverse=True)
-
-        cells_needed = total_cells - n_unique
-        if cells_needed > 0:
-            # Repeat the highest-frequency ones first
-            for cover in sorted_by_freq:
-                if cells_needed <= 0:
-                    break
-                fill_covers.append(cover)
-                cells_needed -= 1
-
-        # Combine: original unique + smart repeats
-        fill_covers = unique_covers + fill_covers
-
-        # Load and prepare tiles (all same size)
-        covers_dir = collection.covers_dir
-        tiles = []
-        for cover_path in fill_covers:
-            full_path = covers_dir / Path(cover_path).name
-            if full_path.exists():
-                try:
-                    img = Image.open(full_path).convert("RGB")
-                    enhancer = ImageEnhance.Contrast(img)
-                    img = enhancer.enhance(1.05)
-
-                    # Center crop to square
-                    w, h = img.size
-                    crop_size = min(w, h)
-                    left = (w - crop_size) // 2
-                    top = (h - crop_size) // 2
-                    square = img.crop((left, top, left + crop_size, top + crop_size))
-
-                    tiles.append(square.resize((400, 400), Image.LANCZOS))
-                except Exception as e:
-                    logger.warning(f"Failed to load cover {full_path}: {e}")
-                    continue
-
-        if not tiles:
-            return jsonify({"error": "No images could be loaded"}), 500
-
-        # Create composite
-        composite = Image.new('RGB', (400 * grid_size, 400 * grid_size), (30, 30, 30))
-
-        for i, tile in enumerate(tiles):
-            x = (i % grid_size) * 400
-            y = (i // grid_size) * 400
-            composite.paste(tile, (x, y))
-
-        # Output
-        buffered = BytesIO()
-        composite.save(buffered, format="JPEG", quality=95, optimize=True)
-        base64_img = b64encode(buffered.getvalue()).decode()
-        data_url = f"data:image/jpeg;base64,{base64_img}"
-
-        return jsonify({"data_url": data_url})
+        try:
+            compositor = CoverCompositor(collection.covers_dir)
+            data_url = compositor.generate_grid_composite(covers)
+            return jsonify({"data_url": data_url})
+        except ValueError as e:
+            return jsonify({"error": str(e)}), 400
+        except Exception as e:
+            logger.error(f"Composite generation failed: {e}")
+            return jsonify({"error": "Failed to generate composite"}), 500
 
     return editor
