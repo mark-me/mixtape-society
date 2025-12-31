@@ -118,14 +118,13 @@ function renderResults(data) {
                                     data-bs-toggle="collapse"
                                     data-bs-target="#collapse-album-${safeReleaseDir}"
                                     data-raw-album="${escapeHtml(entry.raw_album || entry.album)}"
-                                    data-raw-artist="${escapeHtml(entry.raw_artist || entry.artist)}"
-                                    style="display: flex; align-items: center; gap: 0.5rem;">
+                                    data-raw-artist="${escapeHtml(entry.raw_artist || entry.artist)}">
                                 ${coverThumb}
                                 <div class="flex-grow-1 min-w-0">
                                     <div class="album-title text-truncate">${entry.album}</div>
                                     <div class="album-artist text-truncate small text-muted">${entry.artist}</div>
                                 </div>
-                                <span class="ms-2 small flex-shrink-0">
+                                <span class="ms-auto small">
                                     <i class="bi bi-music-note-beamed me-1"></i>${entry.num_tracks || 0}
                                 </span>
                             </button>
@@ -227,13 +226,14 @@ function loadArtistDetails(collapse) {
                         <h2 class="accordion-header">
                             <button class="accordion-button collapsed bg-warning" type="button"
                                     data-bs-toggle="collapse"
-                                    data-bs-target="#collapse-album-${albumId}"
-                                    style="display: flex; align-items: center; gap: 0.5rem;">
+                                    data-bs-target="#collapse-album-${albumId}">
                                 ${coverThumb}
                                 <div class="flex-grow-1 min-w-0">
                                     <strong class="text-truncate d-block">${escapeHtml(album.album)}</strong>
-                                    <small class="text-muted">${album.tracks.length} tracks</small>
                                 </div>
+                                <span class="ms-auto small">
+                                    <i class="bi bi-music-note-beamed me-1"></i>${album.tracks.length}
+                                </span>
                             </button>
                         </h2>
                         <div id="collapse-album-${albumId}"
@@ -316,8 +316,8 @@ function loadAlbumDetails(collapse) {
                                 <button class="btn btn-primary btn-sm preview-btn"
                                         data-path="${escapeHtml(track.path)}"
                                         data-title="${escapeHtml(track.track)}"
-                                        data-artist="${escapeHtml(track.artist)}"
-                                        data-album="${escapeHtml(track.album)}">
+                                        data-artist="${escapeHtml(details.artist)}"
+                                        data-album="${escapeHtml(details.album)}">
                                     <i class="bi bi-play-fill"></i>
                                 </button>
                                 <button class="btn btn-success btn-sm add-btn"
