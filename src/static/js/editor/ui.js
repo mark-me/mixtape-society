@@ -403,7 +403,7 @@ export function initUI() {
         });
     }
 
-    // Wire up modal options (do this after DOMContentLoaded, but initUI is fine)
+    // Wire up modal options
     const uploadOption = document.getElementById('upload-cover-option');
     const generateOption = document.getElementById('generate-composite-option');
 
@@ -421,54 +421,40 @@ export function initUI() {
         });
     }
 
-    // NEW: Function to generate composite cover
+    // Generate composite cover
     function generateCompositeCover() {
-        // Get unique covers from playlist (avoid duplicates)
-        const uniqueCovers = [...new Set(playlist.map(item => item.cover).filter(Boolean))];  // Filter out null/undefined
+        // Collect ALL cover paths (including duplicates for weighting)
+        const allCovers = playlist
+            .map(item => item.cover)
+            .filter(Boolean);  // remove null/undefined
 
-        if (uniqueCovers.length === 0) {
+        if (allCovers.length === 0) {
             showAlert({ title: "No Covers Available", message: "Add tracks with covers to generate a composite." });
             return;
         }
 
-        // Limit to e.g., 4 for a 2x2 grid
-        const maxTiles = 4;
-        const tiles = uniqueCovers.slice(0, maxTiles);
-        const gridSize = Math.ceil(Math.sqrt(tiles.length));  // e.g., 1→1x1, 2→2x2, 3→2x2, 4→2x2
-        const tileSize = 300;  // Pixels per tile (adjust for quality)
-        const canvasSize = tileSize * gridSize;
-
-        const canvas = document.createElement('canvas');
-        canvas.width = canvasSize;
-        canvas.height = canvasSize;
-        const ctx = canvas.getContext('2d');
-
-        // Fill background (theme-aware fallback, e.g., dark gray for dark mode)
-        const isDarkMode = document.body.getAttribute('data-bs-theme') === 'dark';
-        ctx.fillStyle = isDarkMode ? '#333' : '#f8f9fa';  // Bootstrap bg colors
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Load and draw images
-        let loaded = 0;
-        tiles.forEach((coverUrl, index) => {
-            const img = new Image();
-            img.crossOrigin = 'anonymous';  // For CORS if needed (assuming same-origin)
-            img.src = `/${coverUrl}`;  // Prepend '/' as in previous suggestions
-            img.onload = () => {
-                const x = (index % gridSize) * tileSize;
-                const y = Math.floor(index / gridSize) * tileSize;
-                ctx.drawImage(img, x, y, tileSize, tileSize);
-                loaded++;
-                if (loaded === tiles.length) {
-                    coverDataUrl = canvas.toDataURL('image/jpeg', 1.0);  // High quality JPEG
-                    document.getElementById('playlist-cover').src = coverDataUrl;
-                    markUnsaved();
-                }
-            };
-            img.onerror = () => {
-                console.error(`Failed to load cover: ${coverUrl}`);
-                loaded++;  // Continue even if one fails
-            };
+        // POST to server — send full list with duplicates
+        fetch('/editor/generate_composite', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ covers: allCovers })  // ← changed: allCovers, not unique
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Generation failed');
+            return response.json();
+        })
+        .then(data => {
+            if (data.error) {
+                showAlert({ title: "Error", message: data.error });
+                return;
+            }
+            coverDataUrl = data.data_url;
+            document.getElementById('playlist-cover').src = coverDataUrl;
+            markUnsaved();
+        })
+        .catch(err => {
+            console.error("Composite generation error:", err);
+            showAlert({ title: "Error", message: "Failed to generate composite. Try again." });
         });
     }
 }
