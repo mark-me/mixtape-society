@@ -277,7 +277,7 @@ class MusicCollection:
         """
         # Get the release directory to fetch the cover
         release_dir = self._get_release_dir(row["path"])
-        
+
         return {
             "artist": artist or row["artist"],
             "track": row["title"],
@@ -896,6 +896,7 @@ class MusicCollection:
                     "album": album["album"],
                     "release_dir": album["release_dir"],
                     "is_compilation": False,
+                    "cover": self.get_cover(album["release_dir"])
                 }
             )
             covered_albums.add(album["release_dir"])
@@ -1250,7 +1251,7 @@ class MusicCollection:
                 track = rows[0]
                 # Get the release directory to fetch the cover
                 release_dir = self._get_release_dir(track["path"])
-                
+
                 return {
                     "path": Path(path),
                     "filename": track["filename"],
@@ -1344,7 +1345,7 @@ class MusicCollection:
             "cover.png",
             "folder.png",
         ]
-        
+
         for name in common_cover_names:
             img_path = abs_dir / name
             if img_path.exists():
@@ -1375,10 +1376,10 @@ class MusicCollection:
         return False
 
     def _resize_and_save_cover(
-        self, 
-        source_path: Path, 
-        target_path: Path, 
-        max_size: int, 
+        self,
+        source_path: Path,
+        target_path: Path,
+        max_size: int,
         quality: int,
         max_file_size: int
     ) -> bool:
@@ -1402,10 +1403,10 @@ class MusicCollection:
             return False
 
     def _resize_and_save_cover_from_bytes(
-        self, 
-        img_data: bytes, 
-        target_path: Path, 
-        max_size: int, 
+        self,
+        img_data: bytes,
+        target_path: Path,
+        max_size: int,
         quality: int,
         max_file_size: int
     ) -> bool:
@@ -1429,10 +1430,10 @@ class MusicCollection:
             return False
 
     def _process_and_save_image(
-        self, 
-        img: Image.Image, 
-        target_path: Path, 
-        max_size: int, 
+        self,
+        img: Image.Image,
+        target_path: Path,
+        max_size: int,
         quality: int,
         max_file_size: int
     ) -> bool:
@@ -1468,7 +1469,7 @@ class MusicCollection:
             # Save with optimization
             # Try with the specified quality first
             img.save(target_path, 'JPEG', quality=quality, optimize=True)
-            
+
             # If still too large, reduce quality iteratively
             current_quality = quality
             while target_path.stat().st_size > max_file_size and current_quality > 50:
@@ -1481,7 +1482,7 @@ class MusicCollection:
                 f"Saved cover: {img.size[0]}x{img.size[1]}, "
                 f"{final_size / 1024:.1f}KB, quality={current_quality}"
             )
-            
+
             return True
         except Exception as e:
             self._logger.error(f"Failed to process and save image: {e}")
