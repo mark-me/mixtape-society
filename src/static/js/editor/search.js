@@ -83,10 +83,9 @@ function renderResults(data) {
                                     data-bs-target="#collapse-artist-${safeArtist}"
                                     data-raw-artist="${escapeHtml(entry.raw_artist || entry.artist)}">
                                 <i class="bi bi-person-fill me-2"></i>
-                                ${entry.artist}
-                                ${entry.cover ? `<img src="/${entry.cover}" alt="Cover" class="ms-2 rounded" style="width: 40px; height: 40px; object-fit: cover;">` : ''}
+                                <span class="flex-grow-1">${entry.artist}</span>
                                 <span class="ms-auto small">
-                                    <i class="bi bi-disc-fill me-2"></i>#${entry.num_albums || 0}
+                                    <i class="bi bi-disc-fill me-1"></i>${entry.num_albums || 0}
                                 </span>
                             </button>
                         </h2>
@@ -106,6 +105,10 @@ function renderResults(data) {
         html += '<h5 class="mt-4 mb-2 text-muted">Albums</h5>';
         html += grouped.albums.map(entry => {
             const safeReleaseDir = safeId(entry.release_dir);
+            const coverThumb = entry.cover ? `
+                <div class="album-thumb me-2">
+                    <img src="/${entry.cover}" alt="Album Cover" class="rounded">
+                </div>` : '';
 
             return `
                 <div class="accordion mb-3" id="accordion-album-${safeReleaseDir}">
@@ -115,12 +118,15 @@ function renderResults(data) {
                                     data-bs-toggle="collapse"
                                     data-bs-target="#collapse-album-${safeReleaseDir}"
                                     data-raw-album="${escapeHtml(entry.raw_album || entry.album)}"
-                                    data-raw-artist="${escapeHtml(entry.raw_artist || entry.artist)}">
-                                <i class="bi bi-disc-fill me-2"></i>
-                                ${entry.album}
-                                ${entry.cover ? `<img src="/${entry.cover}" alt="Album Cover" class="ms-2 rounded" style="width: 40px; height: 40px; object-fit: cover;">` : ''}
-                                <span class="ms-auto small">
-                                    <i class="bi bi-music-note-beamed me-2"></i>#${entry.num_tracks || 0}
+                                    data-raw-artist="${escapeHtml(entry.raw_artist || entry.artist)}"
+                                    style="display: flex; align-items: center; gap: 0.5rem;">
+                                ${coverThumb}
+                                <div class="flex-grow-1 min-w-0">
+                                    <div class="album-title text-truncate">${entry.album}</div>
+                                    <div class="album-artist text-truncate small text-muted">${entry.artist}</div>
+                                </div>
+                                <span class="ms-2 small flex-shrink-0">
+                                    <i class="bi bi-music-note-beamed me-1"></i>${entry.num_tracks || 0}
                                 </span>
                             </button>
                         </h2>
@@ -210,15 +216,24 @@ function loadArtistDetails(collapse) {
 
             let html = '<div class="accordion accordion-flush" id="artist-albums-accordion">';
             details.albums.forEach((album, index) => {
-                const albumId = safeId(album.album + '-' + index);  // Unique ID using safeId
+                const albumId = safeId(album.album + '-' + index);
+                const coverThumb = album.cover ? `
+                    <div class="album-thumb me-2">
+                        <img src="/${album.cover}" alt="Album Cover" class="rounded">
+                    </div>` : '';
+
                 html += `
                     <div class="accordion-item">
                         <h2 class="accordion-header">
                             <button class="accordion-button collapsed bg-warning" type="button"
                                     data-bs-toggle="collapse"
-                                    data-bs-target="#collapse-album-${albumId}">
-                                <i class="bi bi-disc-fill me-2"></i>
-                                <strong>${escapeHtml(album.album)}</strong>
+                                    data-bs-target="#collapse-album-${albumId}"
+                                    style="display: flex; align-items: center; gap: 0.5rem;">
+                                ${coverThumb}
+                                <div class="flex-grow-1 min-w-0">
+                                    <strong class="text-truncate d-block">${escapeHtml(album.album)}</strong>
+                                    <small class="text-muted">${album.tracks.length} tracks</small>
+                                </div>
                             </button>
                         </h2>
                         <div id="collapse-album-${albumId}"
@@ -231,24 +246,22 @@ function loadArtistDetails(collapse) {
                                 <ul class="list-group">
                                     ${album.tracks.map(track => `
                                         <li class="list-group-item d-flex justify-content-between align-items-center">
-                                            <div>
-                                                ${escapeHtml(track.track)}
-                                                <small class="text-muted ms-2">(${formatDuration(track.duration || "?:??")})</small>
+                                            <div class="flex-grow-1 min-w-0">
+                                                <span class="text-truncate d-block">${escapeHtml(track.track)}</span>
+                                                <small class="text-muted">${formatDuration(track.duration || "?:??")}</small>
                                             </div>
-                                            <div>
-                                                <div class="track-actions d-flex align-items-center gap-2">
-                                                    <button class="btn btn-primary btn-sm preview-btn me-2"
-                                                            data-path="${escapeHtml(track.path)}"
-                                                            data-title="${escapeHtml(track.track)}"
-                                                            data-artist="${escapeHtml(track.artist)}"
-                                                            data-album="${escapeHtml(track.album)}">
-                                                        <i class="bi bi-play-fill"></i>
-                                                    </button>
-                                                    <button class="btn btn-success btn-sm add-btn"
-                                                            data-item="${escapeHtml(JSON.stringify(track))}">
-                                                        <i class="bi bi-plus-circle"></i>
-                                                    </button>
-                                                </div>
+                                            <div class="track-actions d-flex align-items-center gap-2 flex-shrink-0 ms-2">
+                                                <button class="btn btn-primary btn-sm preview-btn"
+                                                        data-path="${escapeHtml(track.path)}"
+                                                        data-title="${escapeHtml(track.track)}"
+                                                        data-artist="${escapeHtml(track.artist)}"
+                                                        data-album="${escapeHtml(track.album)}">
+                                                    <i class="bi bi-play-fill"></i>
+                                                </button>
+                                                <button class="btn btn-success btn-sm add-btn"
+                                                        data-item="${escapeHtml(JSON.stringify(track))}">
+                                                    <i class="bi bi-plus-circle"></i>
+                                                </button>
                                             </div>
                                         </li>
                                     `).join('')}
@@ -279,33 +292,38 @@ function loadAlbumDetails(collapse) {
     fetch(`/editor/album_details?release_dir=${encodeURIComponent(release_dir)}`)
         .then(r => r.json())
         .then(details => {
+            const coverDisplay = details.cover ? `
+                <div class="album-detail-cover mb-3">
+                    <img src="/${details.cover}" alt="Album Cover" class="rounded shadow-sm">
+                </div>` : '';
+
             let html = `
-                <h5>${escapeHtml(details.album)} — ${escapeHtml(details.artist)}</h5>
+                ${coverDisplay}
+                <h5 class="mb-1">${escapeHtml(details.album)}</h5>
+                <p class="text-muted mb-3">${escapeHtml(details.artist)}</p>
                 <button class="btn btn-success mb-3 add-album-btn"
                         data-tracks="${escapeHtml(JSON.stringify(details.tracks))}">
-                    Add whole album
+                    <i class="bi bi-plus-circle me-2"></i>Add whole album
                 </button>
                 <ul class="list-group">
                     ${details.tracks.map(track => `
                         <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                ${escapeHtml(track.track)}
-                                <small class="text-muted ms-2">(${formatDuration(track.duration || "?:??")})</small>
+                            <div class="flex-grow-1 min-w-0">
+                                <span class="text-truncate d-block">${escapeHtml(track.track)}</span>
+                                <small class="text-muted">${formatDuration(track.duration || "?:??")}</small>
                             </div>
-                            <div>
-                                <div class="track-actions d-flex align-items-center gap-2">
-                                    <button class="btn btn-primary btn-sm preview-btn me-2"
-                                            data-path="${escapeHtml(track.path)}"
-                                            data-title="${escapeHtml(track.track)}"
-                                            data-artist="${escapeHtml(track.artist)}"
-                                            data-album="${escapeHtml(track.album)}">
-                                        <i class="bi bi-play-fill"></i>
-                                    </button>
-                                    <button class="btn btn-success btn-sm add-btn"
-                                            data-item="${escapeHtml(JSON.stringify(track))}">
-                                        <i class="bi bi-plus-circle"></i>
-                                    </button>
-                                </div>
+                            <div class="track-actions d-flex align-items-center gap-2 flex-shrink-0 ms-2">
+                                <button class="btn btn-primary btn-sm preview-btn"
+                                        data-path="${escapeHtml(track.path)}"
+                                        data-title="${escapeHtml(track.track)}"
+                                        data-artist="${escapeHtml(track.artist)}"
+                                        data-album="${escapeHtml(track.album)}">
+                                    <i class="bi bi-play-fill"></i>
+                                </button>
+                                <button class="btn btn-success btn-sm add-btn"
+                                        data-item="${escapeHtml(JSON.stringify(track))}">
+                                    <i class="bi bi-plus-circle"></i>
+                                </button>
                             </div>
                         </li>
                     `).join('')}
@@ -332,13 +350,13 @@ function attachRefineLinks() {
             const isAlbum = this.classList.contains("bg-warning");
 
             if (isArtist) {
-                const artist = this.dataset.rawArtist;  // Use raw_artist (handles spaces)
+                const artist = this.dataset.rawArtist;
                 if (artist) {
                     searchInput.value = "";
                     performSearch();
                 }
             } else if (isAlbum) {
-                const album = this.dataset.rawAlbum;  // Use raw_album (handles special chars/spaces)
+                const album = this.dataset.rawAlbum;
                 if (album) {
                     searchInput.value = "";
                     performSearch();
