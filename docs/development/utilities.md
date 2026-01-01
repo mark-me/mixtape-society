@@ -4,7 +4,7 @@
 
 ## Git version utility
 
-![versioning](../images/version.png){ align=right width="90" }
+![versioning](../images/version.png){ align=right width="70" }
 
 The `version_info.py` file provides `get_version()` to access Git version information of the codebase. imported wherever version information is needed within the application. Its design ensures robust and consistent version reporting across different environments and deployment scenarios.
 
@@ -12,7 +12,7 @@ It attempts to retrieve the latest Git tag, formats the version string to includ
 
 ## Cover image compositor
 
-![cover composition](../images/album_cover.png){ align=right width="90" }
+![cover composition](../images/album_cover.png){ align=right width="70" }
 
 This file `cover_compositor.py` defines a `CoverCompositor` utility that generates a composite “collage” image from a set of album cover images. It:
 
