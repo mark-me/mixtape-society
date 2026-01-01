@@ -24,7 +24,7 @@ jobs:
         run: curl -LsSf https://astral.sh/uv/install.sh | sh
 
       - name: Install dev dependencies
-        run: uv sync --extra dev
+        run: uv sync --group dev
 
       - name: Deploy docs
         run: uv run mkdocs gh-deploy --force
