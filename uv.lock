@@ -546,6 +546,15 @@ dependencies = [
     { name = "flask-limiter" },
     { name = "flask-login" },
     { name = "gunicorn" },
+    { name = "pillow" },
+    { name = "python-dotenv" },
+    { name = "python-json-logger" },
+    { name = "tinytag" },
+    { name = "watchdog" },
+]
+
+[package.dev-dependencies]
+dev = [
     { name = "mkdocs" },
     { name = "mkdocs-git-committers-plugin" },
     { name = "mkdocs-git-revision-date-localized-plugin" },
@@ -554,17 +563,6 @@ dependencies = [
     { name = "mkdocs-panzoom-plugin" },
     { name = "mkdocstrings" },
     { name = "mkdocstrings-python" },
-    { name = "pillow" },
-    { name = "python-dotenv" },
-    { name = "python-json-logger" },
-    { name = "tinytag" },
-    { name = "watchdog" },
-]
-
-[package.optional-dependencies]
-dev = [
-    { name = "mkdocs" },
-    { name = "mkdocs-material" },
 ]
 
 [package.metadata]
@@ -575,23 +573,24 @@ requires-dist = [
     { name = "flask-limiter", specifier = ">=4.1.1" },
     { name = "flask-login", specifier = ">=0.6.3" },
     { name = "gunicorn", specifier = ">=23.0.0" },
-    { name = "mkdocs", specifier = ">=1.6.1" },
-    { name = "mkdocs", marker = "extra == 'dev'" },
-    { name = "mkdocs-git-committers-plugin", specifier = ">=0.2.3" },
-    { name = "mkdocs-git-revision-date-localized-plugin", specifier = ">=1.5.0" },
-    { name = "mkdocs-material", specifier = ">=9.7.0" },
-    { name = "mkdocs-material", marker = "extra == 'dev'" },
-    { name = "mkdocs-mermaid2-plugin", specifier = ">=1.2.3" },
-    { name = "mkdocs-panzoom-plugin", specifier = ">=0.4.2" },
-    { name = "mkdocstrings", specifier = ">=1.0.0" },
-    { name = "mkdocstrings-python", specifier = ">=2.0.1" },
     { name = "pillow", specifier = ">=12.0.0" },
     { name = "python-dotenv", specifier = ">=1.2.1" },
     { name = "python-json-logger", specifier = ">=4.0.0" },
     { name = "tinytag", specifier = ">=2.1.2" },
     { name = "watchdog", specifier = ">=6.0.0" },
 ]
-provides-extras = ["dev"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "mkdocs", specifier = ">=1.6.1" },
+    { name = "mkdocs-git-committers-plugin", specifier = ">=0.2.3" },
+    { name = "mkdocs-git-revision-date-localized-plugin", specifier = ">=1.5.0" },
+    { name = "mkdocs-material", specifier = ">=9.7.0" },
+    { name = "mkdocs-mermaid2-plugin", specifier = ">=1.2.3" },
+    { name = "mkdocs-panzoom-plugin", specifier = ">=0.4.2" },
+    { name = "mkdocstrings", specifier = ">=1.0.0" },
+    { name = "mkdocstrings-python", specifier = ">=2.0.1" },
+]
 
 [[package]]
 name = "mkdocs"
