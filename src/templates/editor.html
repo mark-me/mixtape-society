@@ -75,6 +75,7 @@
             <!-- Results -->
             <div class="col-lg-7">
                 <div class="card shadow-sm">
+                    <!-- CHANGED: bg-success → stays as-is (this is a status indicator, not semantic) -->
                     <div class="card-header bg-success text-white">
                         <h2 class="h5 mb-0">Library</h2>
                     </div>
@@ -87,6 +88,7 @@
             <!-- Mixtape -->
             <div class="col-lg-5">
                 <div class="card shadow-sm">
+                    <!-- CHANGED: bg-success → stays as-is (this is a status indicator, not semantic) -->
                     <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
                         <h2 class="h5 mb-0">
                             My Mixtape <span id="playlist-count">(0)</span>
@@ -142,6 +144,7 @@
                             <div class="tab-pane fade show active" id="tracks-pane" role="tabpanel">
                                 <ol id="playlist" class="list-unstyled mb-3 flex-grow-1 overflow-auto" style="max-height: 400px;"></ol>
                                 <div class="mt-auto">
+                                    <!-- KEPT: btn-outline-danger is an action, not semantic -->
                                     <button id="clear-playlist" class="btn btn-outline-danger w-100 mb-2">
                                         Empty mixtape
                                     </button>
@@ -149,24 +152,20 @@
                             </div>
 
                             <!-- Liner Notes tab -->
-                            <div class="tab-pane fade" id="notes-pane" role="tabpanel">
-                                <div class="d-flex flex-column h-100">
-                                    <small class="text-muted d-block mb-2">
-                                        Tip: Use <code>#1</code>, <code>#5</code>, or <code>#2-4</code> to auto-link to tracks!
-                                    </small>
-                                    <!-- Sub-tabs: Write / Preview -->
-                                    <ul class="nav nav-pills mb-3" id="notesSubTabs" role="tablist">
-                                        <li class="nav-item" role="presentation">
-                                            <button class="nav-link active" id="write-tab" data-bs-toggle="pill" data-bs-target="#write-pane" type="button">Write</button>
+                            <div class="tab-pane fade h-100 d-flex flex-column" id="notes-pane" role="tabpanel">
+                                <div class="h-100 d-flex flex-column">
+                                    <!-- Sub-tabs for Write and Preview -->
+                                    <ul class="nav nav-tabs small mb-2" id="notesTabs" role="tablist">
+                                        <li class="nav-item">
+                                            <button class="nav-link active" id="write-tab" data-bs-toggle="tab" data-bs-target="#write-pane" type="button">Write</button>
                                         </li>
-                                        <li class="nav-item" role="presentation">
-                                            <button class="nav-link" id="preview-tab" data-bs-toggle="pill" data-bs-target="#preview-pane" type="button">Preview</button>
+                                        <li class="nav-item">
+                                            <button class="nav-link" id="preview-tab" data-bs-toggle="tab" data-bs-target="#preview-pane" type="button">Preview</button>
                                         </li>
                                     </ul>
-
-                                    <div class="tab-content flex-grow-1 overflow-hidden">
+                                    <div class="tab-content h-100 overflow-auto">
                                         <div class="tab-pane fade show active h-100" id="write-pane">
-                                            <textarea id="liner-notes"></textarea>
+                                            <textarea id="liner-notes" class="form-control h-100" style="min-height: 300px;"></textarea>
                                         </div>
                                         <div class="tab-pane fade h-100 overflow-auto p-3 bg-light" id="preview-pane">
                                         <!--
@@ -192,6 +191,7 @@
     <!-- Floating buttons for mobile only -->
     <div class="floating-buttons d-lg-none position-fixed bottom-0 end-0 p-3" style="z-index: 1050;">
         <!-- Save button: appears only when unsaved (on the left when visible) -->
+        <!-- KEPT: btn-primary is an action button, not semantic -->
         <button id="floating-save"
                 class="btn btn-primary shadow-lg rounded-circle d-flex align-items-center justify-content-center hidden"
                 title="Save Mixtape"
@@ -200,6 +200,7 @@
         </button>
 
         <!-- Tracks button: always visible (on the far right) -->
+        <!-- KEPT: btn-secondary is an action button, not semantic -->
         <button id="floating-tracks"
                 class="btn btn-secondary shadow-lg rounded-circle ms-3 d-flex align-items-center justify-content-center"
                 title="Go to Tracks"
@@ -233,11 +234,13 @@
                 <div class="modal-body">
                     <div class="row g-3">  <!-- Responsive grid: full-width on mobile, side-by-side on desktop -->
                         <div class="col-12 col-md-6">  <!-- Stacks vertically on small screens -->
+                            <!-- KEPT: btn-primary is an action button, not semantic -->
                             <button id="upload-cover-option" class="btn btn-primary w-100 h-100 py-4">
                                 <i class="bi bi-upload me-2"></i>Upload Image
                             </button>
                         </div>
                         <div class="col-12 col-md-6">
+                            <!-- KEPT: btn-secondary is an action button, not semantic -->
                             <button id="generate-composite-option" class="btn btn-secondary w-100 h-100 py-4">
                                 <i class="bi bi-grid-3x3-gap-fill me-2"></i>Generate Composite
                             </button>
@@ -274,6 +277,7 @@
         </div>
     </div>
     <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1080;">
+        <!-- KEPT: text-bg-success is a status indicator (success action), not semantic -->
         <div id="addTrackToast" class="toast align-items-center text-bg-success border-0 toast-animated" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="d-flex">
                 <div class="toast-body">
@@ -282,7 +286,7 @@
                 <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
         </div>
-        <!-- NEW: Red "deleted" toast -->
+        <!-- KEPT: text-bg-danger is a status indicator (delete action), not semantic -->
         <div id="removeTrackToast" class="toast align-items-center text-bg-danger border-0 toast-animated" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="d-flex">
                 <div class="toast-body">
