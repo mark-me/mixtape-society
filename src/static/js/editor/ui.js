@@ -23,6 +23,7 @@ function updateSaveButton() {
     const saveBtn   = document.getElementById("save-playlist");
     const saveBadge = saveBtn.querySelector(".badge");
 
+    // Regular header save button badge
     if (hasUnsavedChanges) {
         if (!saveBadge) {
             const badge = document.createElement("span");
@@ -32,6 +33,18 @@ function updateSaveButton() {
         }
     } else if (saveBadge) {
         saveBtn.removeChild(saveBadge);
+    }
+
+    // Floating save button: show/hide with animation
+    const floatingSave = document.getElementById("floating-save");
+    if (floatingSave) {
+        if (hasUnsavedChanges) {
+            floatingSave.classList.remove("hidden");
+            floatingSave.classList.add("visible");
+        } else {
+            floatingSave.classList.remove("visible");
+            floatingSave.classList.add("hidden");
+        }
     }
 }
 
@@ -147,188 +160,105 @@ export function initUI() {
                 track: t.track,
                 duration: t.duration,
                 path: t.path,
-                filename: t.filename
+                filename: t.filename,
+                cover: t.cover
             })),
-            client_id: clientId  // ← This is the key addition
+            slug: editingSlug || null,
+            client_id: clientId
         };
 
-        // If editing, include the slug
-        if (editingSlug) {
-            const confirmOverwrite = await showConfirm({
-                title: "Overwrite mixtape",
-                message: `Are you sure you want to overwrite <strong>${escapeHtml(title)}</strong>?`,
-                confirmText: "Overwrite"
-            });
-            if (!confirmOverwrite) return;
-
-            playlistData.slug = editingSlug;
-        }
-
-        // -----------------------------------------------------------------
-        // UI state during save
-        // -----------------------------------------------------------------
         isSaving = true;
+        saveText.textContent = "Saving…";
         saveBtn.disabled = true;
-        saveText.textContent = "Saving...";
 
-        const FETCH_TIMEOUT = 30000;  // 30 seconds
-        const MAX_RETRIES = 2;
-
-        let attempt = 0;
-        let success = false;
-        let lastError = null;
-
-        while (attempt <= MAX_RETRIES && !success) {
-            attempt++;
-            try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
-
-                const response = await fetch("/editor/save", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(playlistData),
-                    signal: controller.signal
-                });
-
-                clearTimeout(timeoutId);
-
-                if (!response.ok) {
-                    const text = await response.text();
-                    throw new Error(`Server error ${response.status}: ${text}`);
-                }
-
-                const data = await response.json();
-
-                if (data.success) {
-                    success = true;
-                    hasUnsavedChanges = false;
-                    updateSaveButton();
-
-                    // Show progress modal for caching
-                    showProgressModal(data.slug);
-
-                    // If this was a new mixtape, update URL and hidden field
-                    if (!editingSlug) {
-                        window.history.replaceState({}, "", `/editor/${data.slug}`);
-                        document.getElementById("editing-slug").value = data.slug;
-
-                        // Persist clientId for future retries (optional, but safe)
-                        if (data.client_id) {
-                            localStorage.setItem("current_mixtape_client_id", data.client_id);
-                        } else {
-                            localStorage.setItem("current_mixtape_client_id", clientId);
-                        }
-
-                        saveText.textContent = "Save changes";
-                    }
-                } else {
-                    throw new Error(data.error || "Unknown save error");
-                }
-            } catch (e) {
-                lastError = e;
-                console.error(`Save attempt ${attempt} failed:`, e);
-
-                if (attempt <= MAX_RETRIES) {
-                    // Wait before retry (2s, 4s)
-                    await new Promise(r => setTimeout(r, 2000 * attempt));
-                }
-            }
-        }
-
-        // -----------------------------------------------------------------
-        // Final cleanup
-        // -----------------------------------------------------------------
-        isSaving = false;
-        saveBtn.disabled = false;
-        saveText.textContent = editingSlug ? "Save changes" : "Save";
-
-        if (!success) {
-            showAlert({
-                title: "Save failed",
-                message: `Could not save after ${MAX_RETRIES + 1} attempts.<br><br>
-                        Error: ${escapeHtml(lastError?.message || "Network error")}<br><br>
-                        Your changes are still here — you can try again.`,
-                buttonText: "OK"
+        try {
+            const url = '/editor/save';
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(playlistData)
             });
+
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.error || 'Save failed');
+            }
+
+            const data = await response.json();
+            hasUnsavedChanges = false;
+            updateSaveButton();
+
+            // Clear clientId for new mixtapes after successful save
+            if (!editingSlug) {
+                localStorage.removeItem("current_mixtape_client_id");
+            }
+
+            showProgressModal(data.slug);
+        } catch (err) {
+            console.error("Save error:", err);
+            showAlert({
+                title: "Save Failed",
+                message: err.message || "An error occurred while saving."
+            });
+        } finally {
+            isSaving = false;
+            saveText.textContent = "Save";
+            saveBtn.disabled = false;
         }
     });
 
     // -----------------------------------------------------------------
-    // 5️⃣  Global audio player (bottom‑fixed)
+    // 5️⃣  Register callbacks for playlist mutations (unsaved + toasts)
     // -----------------------------------------------------------------
-    const audioPlayer    = document.getElementById("global-audio-player");
-    const playerContainer = document.getElementById("audio-player-container");
-    const closeBtn       = document.getElementById("close-player");
-    const nowPlayingTitle = document.getElementById("now-playing-title");
-    const nowPlayingArtist = document.getElementById("now-playing-artist");
+    registerUnsavedCallback(markUnsaved);
 
-    // When any track (including preview tracks) starts playing, show the player.
-    audioPlayer?.addEventListener("play", () => {
-        playerContainer.style.display = "block";
+    const addToast = new bootstrap.Toast(document.getElementById("addTrackToast"));
+    registerTrackAddedCallback(() => addToast.show());
+
+    const removeToast = new bootstrap.Toast(document.getElementById("removeTrackToast"));
+    registerTrackRemovedCallback(() => removeToast.show());
+
+    // -----------------------------------------------------------------
+    // 6️⃣  Global audio player controls
+    // -----------------------------------------------------------------
+    const player = document.getElementById('global-audio-player');
+    const container = document.getElementById('audio-player-container');
+    const closeBtn = document.getElementById('close-player');
+
+    closeBtn.addEventListener('click', () => {
+        player.pause();
+        player.src = '';
+        container.style.display = 'none';
+        // Reset all preview buttons in search results
+        document.querySelectorAll('.preview-btn').forEach(btn => {
+            btn.innerHTML = '<i class="bi bi-play-fill"></i>';
+            btn.classList.remove('btn-warning');
+            btn.classList.add('btn-primary');
+        });
+        window.currentPreviewBtn = null;
     });
 
-    // Close button hides the player and pauses playback.
-    closeBtn?.addEventListener("click", () => {
-        audioPlayer?.pause();
-        playerContainer.style.display = "none";
+    player.addEventListener('ended', () => {
+        // Reset preview button on end
+        if (window.currentPreviewBtn) {
+            window.currentPreviewBtn.innerHTML = '<i class="bi bi-play-fill"></i>';
+            window.currentPreviewBtn.classList.remove('btn-warning');
+            window.currentPreviewBtn.classList.add('btn-primary');
+            window.currentPreviewBtn = null;
+        }
     });
 
-    // Helper function to update track info in the player
-    // This can be called from search.js or other modules when previewing tracks
-    window.updatePlayerTrackInfo = function(title, artist) {
-        if (nowPlayingTitle) nowPlayingTitle.textContent = title || "—";
-        if (nowPlayingArtist) nowPlayingArtist.textContent = artist || "—";
-    };
-
     // -----------------------------------------------------------------
-    // 6️⃣  “Track added” toast (re‑used for any playlist mutation)
+    // 7️⃣  Unsaved-changes handling
     // -----------------------------------------------------------------
-    const addTrackToastEl = document.getElementById('addTrackToast');
-    const removeTrackToastEl = document.getElementById('removeTrackToast');
-
-    const addTrackToast = addTrackToastEl ? new bootstrap.Toast(addTrackToastEl, { delay: 2000 }) : null;
-    const removeTrackToast = removeTrackToastEl ? new bootstrap.Toast(removeTrackToastEl, { delay: 2000 }) : null;
-
-    addTrackToastEl.className = "toast position-fixed bottom-0 end-0 m-3";
-    addTrackToastEl.setAttribute("role", "alert");
-    addTrackToastEl.setAttribute("aria-live", "assertive");
-    addTrackToastEl.setAttribute("aria-atomic", "true");
-    addTrackToastEl.innerHTML = `
-        <div class="toast-header bg-success text-white">
-            <strong class="me-auto">Track added!</strong>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
-        </div>`;
-    document.body.appendChild(addTrackToastEl);
-
-    // -----------------------------------------------------------------
-    // 7️⃣  Register the **unsaved‑changes callback** with the playlist module.
-    //      The playlist module will call this function after ANY mutation
-    //      (add, clear, remove, drag‑reorder).
-    // -----------------------------------------------------------------
-    registerUnsavedCallback(() => {
-        // Show the “Unsaved” badge
-        markUnsaved();
-    });
-
-    registerTrackAddedCallback(() => {
-        if (addTrackToast) addTrackToast.show();
-    });
-
-    registerTrackRemovedCallback(() => {
-        if (removeTrackToast) removeTrackToast.show();
-    });
-    // -----------------------------------------------------------------
-    // 8️⃣  EasyMDE (liner‑notes) – mark unsaved on any edit
-    // -----------------------------------------------------------------
+    // 7a. Liner notes changes count as “unsaved”
     if (easyMDE) {
         easyMDE.codemirror.on("change", markUnsaved);
     }
 
     // -----------------------------------------------------------------
-    // 9️⃣  Warn the user if they try to navigate away with unsaved changes
+    // 8️⃣  Link-click interception (for internal navigation)
     // -----------------------------------------------------------------
-    // 9a. Click‑based navigation (links)
     document.addEventListener("click", e => {
         if (!hasUnsavedChanges || isSaving) return;
 
@@ -359,7 +289,7 @@ export function initUI() {
     });
 
     // -----------------------------------------------------------------
-    // Reorder mode toggle
+    // 9️⃣  Reorder mode toggle
     // -----------------------------------------------------------------
     const reorderBtn = document.getElementById('toggle-reorder-mode');
     if (reorderBtn) {
@@ -457,6 +387,37 @@ export function initUI() {
             showAlert({ title: "Error", message: "Failed to generate composite. Try again." });
         });
     }
+
+    // Floating buttons setup (mobile only)
+    const floatingSave = document.getElementById("floating-save");
+    const floatingTracks = document.getElementById("floating-tracks");
+
+    if (floatingSave) {
+        // Trigger original save on click
+        floatingSave.addEventListener("click", () => {
+            saveBtn.click();
+        });
+    }
+
+    if (floatingTracks) {
+        floatingTracks.addEventListener("click", () => {
+            // Activate Tracks tab
+            const tracksTab = document.getElementById("tracks-tab");
+            if (tracksTab) {
+                const bsTab = new bootstrap.Tab(tracksTab);
+                bsTab.show();
+            }
+
+            // Scroll to mixtape card (smoothly, to handle long search results)
+            const mixtapeCard = document.querySelector(".col-lg-5 .card"); // Selector for mixtape card
+            if (mixtapeCard) {
+                mixtapeCard.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+        });
+    }
+
+    // Initial sync of badges (in case there are unsaved changes on load)
+    updateSaveButton();
 }
 
 

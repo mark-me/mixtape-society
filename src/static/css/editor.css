@@ -134,6 +134,7 @@ body.reorder-mode #cover-title {                                     /* The titl
 body.reorder-mode #search-bar {                                     /* The title input */
     display: none !important;
 }
+body.reorder-mode .floating-buttons { display: none !important; }
 
 #toggle-reorder-mode {
     font-size: 1.2rem;  /* Slightly larger icon */
@@ -1144,4 +1145,66 @@ body.reorder-mode #search-bar {                                     /* The title
 /* Fallback for when no thumbnail is present - maintain spacing */
 .accordion-button.bg-warning:not(:has(.album-thumb)) {
     padding-left: 1.25rem;
+}
+
+/* Floating Buttons */
+.floating-buttons {
+    display: flex;
+    flex-direction: row;        /* left → right */
+    gap: 1rem;
+    align-items: center;
+}
+
+/* Animation for Save button */
+#floating-save {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+#floating-save.hidden {
+    opacity: 0;
+    transform: scale(0.8);
+    pointer-events: none;
+}
+
+#floating-save.visible {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Hover effects */
+.floating-buttons .btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Floating Save button animation */
+#floating-save {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+#floating-save.hidden {
+    opacity: 0;
+    transform: scale(0.8);
+    pointer-events: none; /* Disable clicks when hidden */
+}
+
+#floating-save.visible {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Dark mode adjustments */
+[data-bs-theme="dark"] .floating-buttons .btn {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+[data-bs-theme="dark"] .floating-buttons .btn:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+}
+
+/* Hide when keyboard is open (optional, to avoid overlap on mobile) */
+@media (max-height: 400px) {
+    .floating-buttons {
+        display: none !important;
+    }
 }

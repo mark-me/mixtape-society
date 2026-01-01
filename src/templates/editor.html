@@ -91,7 +91,7 @@
                         <h2 class="h5 mb-0">
                             My Mixtape <span id="playlist-count">(0)</span>
                         </h2>
-                        <button id="save-playlist" class="btn btn-light btn-sm" title="Playlist opslaan">
+                        <button id="save-playlist" class="btn btn-outline-light btn-sm" title="Playlist opslaan">
                             <span id="save-text">Save</span>
                         </button>
 
@@ -188,6 +188,25 @@
         </div>
     </div>
 </div>
+
+    <!-- Floating buttons for mobile only -->
+    <div class="floating-buttons d-lg-none position-fixed bottom-0 end-0 p-3" style="z-index: 1050;">
+        <!-- Save button: appears only when unsaved (on the left when visible) -->
+        <button id="floating-save"
+                class="btn btn-primary shadow-lg rounded-circle d-flex align-items-center justify-content-center hidden"
+                title="Save Mixtape"
+                style="width: 56px; height: 56px;">
+            <i class="bi bi-save fs-4"></i>
+        </button>
+
+        <!-- Tracks button: always visible (on the far right) -->
+        <button id="floating-tracks"
+                class="btn btn-secondary shadow-lg rounded-circle ms-3 d-flex align-items-center justify-content-center"
+                title="Go to Tracks"
+                style="width: 56px; height: 56px;">
+            <i class="bi bi-music-note-list fs-4"></i>
+        </button>
+    </div>
 
     <!-- Generic Modal -->
     <div class="modal fade" id="appModal" tabindex="-1" aria-hidden="true">

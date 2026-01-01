@@ -101,9 +101,6 @@ def create_browser_blueprint(
             Response: An empty response with status 200 if successful, or 404 if the mixtape does not exist.
         """
         try:
-            mixtape_manager = MixtapeManager(
-                path_mixtapes=current_app.config["MIXTAPE_DIR"]
-            )
             # First check if it exists
             json_path = mixtape_manager.path_mixtapes / f"{slug}.json"
             if not json_path.exists():
