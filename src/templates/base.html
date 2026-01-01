@@ -34,6 +34,19 @@
         </a>
 
         <div class="d-flex align-items-center ms-auto">
+          {% if is_authenticated %}
+          <div class="ms-3">
+            <button class="btn btn-outline-light d-flex align-items-center gap-2" 
+                    id="resyncBtn" 
+                    data-bs-toggle="tooltip" 
+                    data-bs-placement="bottom" 
+                    title="Resync music library">
+              <i class="bi bi-arrow-clockwise"></i>
+              <span class="d-none d-md-inline">Resync</span>
+            </button>
+          </div>
+          {% endif %}
+
           <div class="dropdown ms-3">
             <button class="btn btn-outline-light dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" id="themeNavbarButton">
               <i class="bi bi-sun-fill" id="themeNavbarIcon"></i>
@@ -87,7 +100,7 @@
         </div>
     </div>
 
-    <!-- ==== NAVIGATION GUARD MODAL (custom “Leave page?”) ==== -->
+    <!-- ==== NAVIGATION GUARD MODAL (custom "Leave page?") ==== -->
     <div class="modal fade" id="navigateAwayModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -111,6 +124,28 @@
 
         </div>
     </div>
+    </div>
+
+    <!-- ==== RESYNC CONFIRMATION MODAL ==== -->
+    <div class="modal fade" id="resyncConfirmModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Resync Music Library</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p>This will rescan your entire music collection and update the database with any changes.</p>
+            <p class="mb-0"><strong>This process may take several minutes depending on your library size.</strong></p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" id="confirmResyncBtn">
+              <i class="bi bi-arrow-clockwise me-1"></i> Start Resync
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Bootstrap JS -->
