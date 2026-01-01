@@ -14,14 +14,6 @@ dependencies = [
     "flask-limiter>=4.1.1",
     "flask-login>=0.6.3",
     "gunicorn>=23.0.0",
-    "mkdocs>=1.6.1",
-    "mkdocs-git-committers-plugin>=0.2.3",
-    "mkdocs-git-revision-date-localized-plugin>=1.5.0",
-    "mkdocs-material>=9.7.0",
-    "mkdocs-mermaid2-plugin>=1.2.3",
-    "mkdocs-panzoom-plugin>=0.4.2",
-    "mkdocstrings>=1.0.0",
-    "mkdocstrings-python>=2.0.1",
     "pillow>=12.0.0",
     "python-dotenv>=1.2.1",
     "python-json-logger>=4.0.0",
@@ -29,17 +21,22 @@ dependencies = [
     "watchdog>=6.0.0",
 ]
 
-
-[project.optional-dependencies]
-dev = [
-    "mkdocs",
-    "mkdocs-material"
-]
-
-
 [tool.hatch.build.targets.wheel]
 packages = ["src"]  # Include alles in src/ (je app.py, routes/, etc.)
 sources = { "src" = "src" }  # Map src/ naar zichzelf in de wheel
+
+[dependency-groups]
+dev = [
+    # Documentation tooling
+    "mkdocs>=1.6.1",
+    "mkdocs-material>=9.7.0",
+    "mkdocs-git-committers-plugin>=0.2.3",
+    "mkdocs-git-revision-date-localized-plugin>=1.5.0",
+    "mkdocs-mermaid2-plugin>=1.2.3",
+    "mkdocs-panzoom-plugin>=0.4.2",
+    "mkdocstrings>=1.0.0",
+    "mkdocstrings-python>=2.0.1",
+]
 
 [project.scripts]
 mixtape = "src.app:serve"
