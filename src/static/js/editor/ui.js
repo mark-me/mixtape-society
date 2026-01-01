@@ -172,7 +172,7 @@ export function initUI() {
         saveBtn.disabled = true;
 
         try {
-            const url = '/editor/save';
+            const url = editingSlug ? `/editor/update/${editingSlug}` : '/editor/save';
             const response = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -194,11 +194,6 @@ export function initUI() {
             }
 
             showProgressModal(data.slug);
-
-            // Redirect to view the mixtape
-            setTimeout(() => {
-                window.location.href = `/mixtape/${data.slug}`;
-            }, 1000);
         } catch (err) {
             console.error("Save error:", err);
             showAlert({
