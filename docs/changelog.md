@@ -17,6 +17,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 - Floating buttons in editor for mobile to:
     - Jump to mixtape tracks
     - Save changes
+- Added button for manual resyncing the music collection library
 
 ### 🐛 Fixed
 
