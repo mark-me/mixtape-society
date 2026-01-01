@@ -6,7 +6,7 @@ All notable changes to Mixtape Society are documented here. We follow [Semantic 
 
 Each release rewinds and fast-forwards your mixtape experience—just like a real cassette! 🎧
 
-## 📦 v0.3.1
+## 📦 v0.4.0
 
 <span class="md-tag">Unreleased</span>
 
@@ -18,7 +18,11 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
     - Jump to mixtape tracks
     - Save changes
 
-[v0.3.1](https://github.com/mark-me/mixtape-society/compare/v0.3.0...v0.3.1)
+### 🐛 Fixed
+
+- Saving existing mixtapes results in error
+
+[v0.3.1](https://github.com/mark-me/mixtape-society/compare/v0.3.0...v0.4.0)
 
 ---
 
