@@ -1300,33 +1300,21 @@ class MusicCollection:
     def _setup_fallback_cover(self) -> None:
         """Ensures the fallback cover image exists in the covers directory.
         Copies the fallback image from static directory if it doesn't already exist.
-        
+
         Returns:
             None
         """
         fallback_path = self.covers_dir / "_fallback.jpg"
-        
+
         # If fallback already exists, we're done
         if fallback_path.exists():
             return
-        
-        # Try to find the source fallback image in common locations
-        possible_sources = [
-            # Relative to the music_root parent (typical project structure)
-            self.music_root.parent / "static" / "cover-art-text.jpg",
-            # Relative to db_path parent (in case static is at project root)
-            self.db_path.parent.parent / "static" / "cover-art-text.jpg",
-            # Absolute path from project root
-            Path(__file__).parent.parent / "static" / "cover-art-text.jpg",
-        ]
-        
-        source_path = None
-        for path in possible_sources:
-            if path.exists():
-                source_path = path
-                break
-        
-        if source_path:
+
+        if (
+            source_path := Path(__file__).parent.parent
+            / "static"
+            / "cover-art-text.jpg"
+        ):
             try:
                 # Copy the fallback image to covers directory
                 import shutil
