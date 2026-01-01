@@ -6,9 +6,23 @@ All notable changes to Mixtape Society are documented here. We follow [Semantic 
 
 Each release rewinds and fast-forwards your mixtape experience—just like a real cassette! 🎧
 
-## 📦 v0.4.0
+## 📦 v0.4.1
 
 <span class="md-tag">Unreleased</span>
+
+**🗓️** 2026-01-xx
+
+### ✨ Added
+
+- Fallback cover art
+
+[v0.4.1](https://github.com/mark-me/mixtape-society/compare/v0.4.0...v0.4.1)
+
+---
+
+## 📦 v0.4.0
+
+<span class="md-tag">Release</span>
 
 **🗓️** 2026-01-01
 
@@ -24,7 +38,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 - Saving existing mixtapes results in error
 - Covers not available for non-admin users
 
-[v0.3.1](https://github.com/mark-me/mixtape-society/compare/v0.3.0...v0.4.0)
+[v0.4.0](https://github.com/mark-me/mixtape-society/compare/v0.3.0...v0.4.0)
 
 ---
 

@@ -83,6 +83,7 @@ class MusicCollection:
 
         self.covers_dir = self.db_path.parent / "cache" / "covers"
         self.covers_dir.mkdir(parents=True, exist_ok=True)
+        self._setup_fallback_cover()
 
     def is_indexing(self) -> bool:
         status = get_indexing_status(self.db_path.parent)
@@ -1271,16 +1272,17 @@ class MusicCollection:
 
     def get_cover(self, release_dir: str) -> str | None:
         """Retrieves or generates the cover image path for a given album release directory.
-        Returns a relative path to a cached or newly extracted cover image if available.
+        Returns a relative path to a cached or newly extracted cover image if available,
+        or a fallback image path if no cover is found.
 
         Args:
             release_dir: The release directory identifier used to locate or derive the cover image.
 
         Returns:
-            str | None: Relative path to the cover image within the covers directory, or None if not found.
+            str | None: Relative path to the cover image within the covers directory, or fallback image path if not found.
         """
         if not release_dir:
-            return None
+            return "covers/_fallback.jpg"
 
         # Sanitize to a safe filename slug
         slug = self._sanitize_release_dir(release_dir)
@@ -1293,7 +1295,50 @@ class MusicCollection:
         if self._extract_cover(release_dir, cover_path):
             return f"covers/{slug}.jpg"
 
-        return None
+        return "covers/_fallback.jpg"
+
+    def _setup_fallback_cover(self) -> None:
+        """Ensures the fallback cover image exists in the covers directory.
+        Copies the fallback image from static directory if it doesn't already exist.
+        
+        Returns:
+            None
+        """
+        fallback_path = self.covers_dir / "_fallback.jpg"
+        
+        # If fallback already exists, we're done
+        if fallback_path.exists():
+            return
+        
+        # Try to find the source fallback image in common locations
+        possible_sources = [
+            # Relative to the music_root parent (typical project structure)
+            self.music_root.parent / "static" / "cover-art-text.jpg",
+            # Relative to db_path parent (in case static is at project root)
+            self.db_path.parent.parent / "static" / "cover-art-text.jpg",
+            # Absolute path from project root
+            Path(__file__).parent.parent / "static" / "cover-art-text.jpg",
+        ]
+        
+        source_path = None
+        for path in possible_sources:
+            if path.exists():
+                source_path = path
+                break
+        
+        if source_path:
+            try:
+                # Copy the fallback image to covers directory
+                import shutil
+                shutil.copy2(source_path, fallback_path)
+                self._logger.info(f"Copied fallback cover from {source_path} to {fallback_path}")
+            except Exception as e:
+                self._logger.warning(f"Failed to copy fallback cover: {e}")
+        else:
+            self._logger.warning(
+                "Fallback cover image 'cover-art-text.jpg' not found in static directory. "
+                "Tracks without covers will not display properly."
+            )
 
     def _sanitize_release_dir(self, release_dir: str) -> str:
         """Normalizes a release directory string into a safe filename slug.
