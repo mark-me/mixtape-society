@@ -81,9 +81,9 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: docker/Dockerfile  # or docker/Dockerfile if it's in a subfolder
+          file: docker/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            APP_VERSION=${{ steps.version.outputs.display_version }}
+            APP_VERSION=${{ steps.version.outputs.version }}

@@ -26,6 +26,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 - Reordering tracks resulted in track added toast.
 - White theme browsing mixtapes, mixtape title invisible
+- No version information extracted from the repository
 
 [v0.3.0](https://github.com/mark-me/mixtape-society/compare/v0.2.2...v0.3.0)
 
