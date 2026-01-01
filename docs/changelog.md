@@ -6,6 +6,22 @@ All notable changes to Mixtape Society are documented here. We follow [Semantic 
 
 Each release rewinds and fast-forwards your mixtape experience—just like a real cassette! 🎧
 
+## 📦 v0.3.1
+
+<span class="md-tag">Unreleased</span>
+
+**🗓️** 2026-01-01
+
+### ✨ Added
+
+- Floating buttons in editor for mobile to:
+    - Jump to mixtape tracks
+    - Save changes
+
+[v0.3.1](https://github.com/mark-me/mixtape-society/compare/v0.3.0...v0.3.1)
+
+---
+
 ## 📦 v0.3.0
 
 <span class="md-tag">Release</span>
@@ -28,7 +44,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 - White theme browsing mixtapes, mixtape title invisible
 - No version information extracted from the repository
 
-[v0.3.0](https://github.com/mark-me/mixtape-society/compare/v0.2.2...v0.3.0)
+[v0.3.0](https://github.com/mark-me/mixtape-society/compare/v0.2.5...v0.3.0)
 
 ---
 
