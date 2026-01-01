@@ -172,7 +172,7 @@ export function initUI() {
         saveBtn.disabled = true;
 
         try {
-            const url = editingSlug ? `/editor/update/${editingSlug}` : '/editor/save';
+            const url = '/editor/save';
             const response = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
