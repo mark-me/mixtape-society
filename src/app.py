@@ -152,7 +152,6 @@ def create_app() -> Flask:
         return Response("User-agent: *\nDisallow: /\n", mimetype="text/plain")
 
     @app.route("/covers/<filename>")
-    @require_auth  # Optional: keep it authenticated like the editor, or remove if public
     def serve_album_cover(filename):
         """
         Serves extracted album cover images from the cached covers directory.
