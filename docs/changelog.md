@@ -16,6 +16,11 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 - Fallback cover art
 
+### 🔧 Changed
+
+- CSS changed to sematic color system
+-
+
 [v0.4.1](https://github.com/mark-me/mixtape-society/compare/v0.4.0...v0.4.1)
 
 ---
