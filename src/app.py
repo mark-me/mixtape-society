@@ -4,7 +4,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from flask import Flask, Response, redirect, render_template, abort, send_from_directory
+from flask import Flask, Response, redirect, render_template, abort, send_from_directory, jsonify
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -102,6 +102,45 @@ def create_app() -> Flask:
             "started_at": status.get("started_at"),  # ISO string
         }
 
+    @app.route("/resync", methods=["POST"])
+    @require_auth
+    def resync_library():
+        """
+        Triggers a resync of the music library.
+        Only accessible to authenticated users.
+        Returns JSON with success status or error message.
+        """
+        try:
+            # Check if indexing is already in progress
+            status = get_indexing_status(config_cls.DATA_ROOT, logger=app.logger)
+            if status and status["status"] in ("rebuilding", "resyncing"):
+                return jsonify({
+                    "success": False,
+                    "error": "Indexing already in progress"
+                }), 409
+
+            # Trigger resync in background
+            import threading
+            def run_resync():
+                try:
+                    collection.resync()
+                    logger.info("Music library resync completed successfully")
+                except Exception as e:
+                    logger.error(f"Error during resync: {e}")
+
+            thread = threading.Thread(target=run_resync, daemon=True)
+            thread.start()
+
+            logger.info("Music library resync initiated by user")
+            return jsonify({"success": True})
+
+        except Exception as e:
+            logger.error(f"Error initiating resync: {e}")
+            return jsonify({
+                "success": False,
+                "error": str(e)
+            }), 500
+
     @app.route("/robots.txt")
     def robots_txt():
         """
@@ -113,7 +152,6 @@ def create_app() -> Flask:
         return Response("User-agent: *\nDisallow: /\n", mimetype="text/plain")
 
     @app.route("/covers/<filename>")
-    @require_auth  # Optional: keep it authenticated like the editor, or remove if public
     def serve_album_cover(filename):
         """
         Serves extracted album cover images from the cached covers directory.
@@ -149,6 +187,34 @@ def create_app() -> Flask:
             dict: A dictionary with the current UTC datetime under the key 'now'.
         """
         return {"now": datetime.now(timezone.utc)}
+
+    @app.context_processor
+    def inject_auth_status() -> dict:
+        """
+        Injects the authentication status into the template context.
+
+        This allows templates to conditionally render content based on whether
+        the user is authenticated.
+
+        Returns:
+            dict: A dictionary with the authentication status under 'is_authenticated'.
+        """
+        return {"is_authenticated": check_auth()}
+
+    @app.context_processor
+    def inject_indexing_status() -> dict:
+        """
+        Injects the current indexing status into the template context.
+
+        This allows templates to know if indexing is in progress and conditionally
+        disable UI elements.
+
+        Returns:
+            dict: A dictionary with the indexing status flag under 'is_indexing'.
+        """
+        status = get_indexing_status(config_cls.DATA_ROOT, logger=app.logger)
+        is_indexing = status and status["status"] in ("rebuilding", "resyncing")
+        return {"is_indexing": is_indexing}
 
     @app.template_filter("to_datetime")
     def to_datetime_filter(s, fmt="%Y-%m-%d %H:%M:%S"):
