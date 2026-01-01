@@ -22,6 +22,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 ### 🐛 Fixed
 
 - Saving existing mixtapes results in error
+- Covers not available for non-admin users
 
 [v0.3.1](https://github.com/mark-me/mixtape-society/compare/v0.3.0...v0.4.0)
 
