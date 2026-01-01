@@ -74,7 +74,6 @@ function renderResults(data) {
         html += grouped.artists.map(entry => {
             const safeArtist = safeId(entry.raw_artist || entry.artist);
 
-            // CHANGED: bg-success → bg-artist (warm amber)
             return `
                 <div class="accordion mb-3" id="accordion-artist-${safeArtist}">
                     <div class="accordion-item">
@@ -111,7 +110,6 @@ function renderResults(data) {
                     <img src="/${entry.cover}" alt="Album Cover" class="rounded">
                 </div>` : '';
 
-            // CHANGED: bg-warning → bg-album (deep purple)
             return `
                 <div class="accordion mb-3" id="accordion-album-${safeReleaseDir}">
                     <div class="accordion-item">
@@ -148,9 +146,6 @@ function renderResults(data) {
         html += '<ul class="list-group">';
         html += grouped.tracks.map(entry => {
             const track = entry.tracks[0];
-            // CHANGED: text-primary → text-track (electric cyan)
-            // CHANGED: btn-primary → btn-track for preview button
-            // KEPT: btn-success for add button (it's an action, not semantic)
             return `
                 <li class="list-group-item d-flex justify-content-between align-items-center mb-2 border rounded">
                     <div class="flex-grow-1">
@@ -226,9 +221,6 @@ function loadArtistDetails(collapse) {
                         <img src="/${album.cover}" alt="Album Cover" class="rounded">
                     </div>` : '';
 
-                // CHANGED: bg-warning → bg-album (deep purple)
-                // KEPT: btn-success for add button (it's an action)
-                // CHANGED: btn-primary → btn-track for preview button
                 html += `
                     <div class="accordion-item">
                         <h2 class="accordion-header">
@@ -305,8 +297,6 @@ function loadAlbumDetails(collapse) {
                     <img src="/${details.cover}" alt="Album Cover" class="rounded shadow-sm">
                 </div>` : '';
 
-            // KEPT: btn-success for add button (it's an action)
-            // CHANGED: btn-primary → btn-track for preview button
             let html = `
                 ${coverDisplay}
                 <h5 class="mb-1">${escapeHtml(details.album)}</h5>
@@ -356,21 +346,19 @@ function attachRefineLinks() {
         btn.style.cursor = "pointer";
         btn.addEventListener("click", function (e) {
             if (e.target.closest("[data-bs-toggle]")) return; // let accordion work
-            // CHANGED: Check for semantic classes instead of Bootstrap colors
             const isArtist = this.classList.contains("bg-artist");
             const isAlbum = this.classList.contains("bg-album");
 
             if (isArtist) {
-                const rawArtist = this.getAttribute("data-raw-artist");
-                if (rawArtist) {
-                    searchInput.value = `artist:"${rawArtist}"`;
+                const artist = this.dataset.rawArtist;
+                if (artist) {
+                    searchInput.value = "";
                     performSearch();
                 }
             } else if (isAlbum) {
-                const rawAlbum = this.getAttribute("data-raw-album");
-                const rawArtist = this.getAttribute("data-raw-artist");
-                if (rawAlbum && rawArtist) {
-                    searchInput.value = `artist:"${rawArtist}" album:"${rawAlbum}"`;
+                const album = this.dataset.rawAlbum;
+                if (album) {
+                    searchInput.value = "";
                     performSearch();
                 }
             }
@@ -381,110 +369,151 @@ function attachRefineLinks() {
 // ---------- Add to playlist ----------
 function attachAddButtons() {
     document.querySelectorAll('.add-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            try {
-                const itemData = JSON.parse(btn.dataset.item);
-                addToPlaylist(itemData);
-
-                const toast = new bootstrap.Toast(document.getElementById('addTrackToast'));
-                toast.show();
-            } catch (e) {
-                console.error("Failed to add track:", e);
-            }
-        });
+        btn.onclick = () => {
+            const item = JSON.parse(btn.dataset.item);
+            addToPlaylist(item);
+        };
     });
-
     document.querySelectorAll('.add-album-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            try {
-                const tracks = JSON.parse(btn.dataset.tracks);
-                tracks.forEach(track => addToPlaylist(track));
-
-                const toast = new bootstrap.Toast(document.getElementById('addTrackToast'));
-                toast.show();
-            } catch (e) {
-                console.error("Failed to add album:", e);
-            }
-        });
+        btn.onclick = () => {
+            const tracks = JSON.parse(btn.dataset.tracks);
+            tracks.forEach(addToPlaylist);
+        };
     });
 }
 
-// ---------- Preview tracks ----------
+// Preview handling
 function attachPreviewButtons() {
-    const audioPlayer = document.getElementById("global-audio-player");
-    const audioPlayerContainer = document.getElementById("audio-player-container");
-    const nowPlayingTitle = document.getElementById("now-playing-title");
-    const nowPlayingArtist = document.getElementById("now-playing-artist");
-    const nowPlayingCover = document.getElementById("now-playing-cover");
-    const closePlayerBtn = document.getElementById("close-player");
-
-    closePlayerBtn?.addEventListener("click", () => {
-        audioPlayer.pause();
-        audioPlayer.src = "";
-        audioPlayerContainer.style.display = "none";
+    document.querySelectorAll('.preview-btn').forEach(btn => {
+        // Remove any old listener to prevent duplicates
+        btn.replaceWith(btn.cloneNode(true));
     });
 
     document.querySelectorAll('.preview-btn').forEach(btn => {
         btn.addEventListener('click', function () {
-            const path = this.dataset.path;
-            const title = this.dataset.title;
-            const artist = this.dataset.artist;
-            const album = this.dataset.album;
+            const {path, title, artist, album} = this.dataset;
+            const trackName = title || 'Preview';
+            const artistAlbum = (artist && album) ? `${artist} • ${album}` : (artist || album || 'Preview');
 
-            if (window.currentPreviewBtn) {
-                // CHANGED: Use semantic track color for state
-                window.currentPreviewBtn.classList.remove('btn-playing');
-                window.currentPreviewBtn.classList.add('btn-track');
+            if (!path) return;
+
+            const player = document.getElementById('global-audio-player');
+            const container = document.getElementById('audio-player-container');
+
+            // Check if this button is already playing
+            const isThisButtonPlaying = window.currentPreviewBtn === this;
+
+            if (isThisButtonPlaying) {
+                // Toggle play/pause for this track
+                if (player.paused) {
+                    player.play().catch(e => console.error("Preview failed:", e));
+                    this.innerHTML = '<i class="bi bi-pause-fill"></i>';
+                    this.classList.remove('btn-primary');
+                    this.classList.add('btn-warning');
+                } else {
+                    player.pause();
+                    this.innerHTML = '<i class="bi bi-play-fill"></i>';
+                    this.classList.remove('btn-warning');
+                    this.classList.add('btn-primary');
+                }
+                return;
             }
 
-            if (audioPlayer.src.endsWith(encodeURIComponent(path)) && !audioPlayer.paused) {
-                audioPlayer.pause();
-                this.classList.remove('btn-playing');
-                this.classList.add('btn-track');
-                window.currentPreviewBtn = null;
+            // Stop any currently playing preview
+            if (window.currentPreviewBtn && window.currentPreviewBtn !== this) {
+                stopPreview();
+            }
+
+            player.src = `/play/${path}`;
+            player.play().catch(e => console.error("Preview failed:", e));
+            container.style.display = 'block';
+
+            // Use the helper function from ui.js to update track info
+            if (window.updatePlayerTrackInfo) {
+                window.updatePlayerTrackInfo(trackName, artistAlbum);
             } else {
-                audioPlayer.src = `/editor/stream?path=${encodeURIComponent(path)}`;
-                audioPlayer.play();
-
-                nowPlayingTitle.textContent = title;
-                nowPlayingArtist.textContent = `${artist} • ${album}`;
-                audioPlayerContainer.style.display = "block";
-
-                // CHANGED: Use playing state styling
-                this.classList.remove('btn-track');
-                this.classList.add('btn-playing');
-                window.currentPreviewBtn = this;
+                // Fallback if the helper function isn't available yet
+                document.getElementById('now-playing-title').textContent = trackName;
+                document.getElementById('now-playing-artist').textContent = artistAlbum;
             }
+
+            // Visual feedback: change to pause icon
+            this.innerHTML = '<i class="bi bi-pause-fill"></i>';
+            this.classList.remove('btn-primary');
+            this.classList.add('btn-warning');
+
+            window.currentPreviewBtn = this;
         });
     });
+}
 
-    audioPlayer?.addEventListener('ended', () => {
-        if (window.currentPreviewBtn) {
-            // CHANGED: Reset to track color
-            window.currentPreviewBtn.classList.remove('btn-playing');
-            window.currentPreviewBtn.classList.add('btn-track');
-        }
-    });
+function stopPreview() {
+    const player = document.getElementById('global-audio-player');
+    player.pause();
+    player.src = '';
+    if (window.currentPreviewBtn) {
+        window.currentPreviewBtn.innerHTML = '<i class="bi bi-play-fill"></i>';
+        window.currentPreviewBtn.classList.remove('btn-warning');
+        window.currentPreviewBtn.classList.add('btn-primary');
+        window.currentPreviewBtn = null;
+    }
+}
 
-    audioPlayer?.addEventListener('pause', () => {
-        if (window.currentPreviewBtn && audioPlayer.src) {
-            // CHANGED: Reset to track color when paused
-            window.currentPreviewBtn.classList.remove('btn-playing');
-            window.currentPreviewBtn.classList.add('btn-track');
-        }
+/**
+ * Syncs the preview button state with the audio player
+ * Updates the button icon based on whether audio is playing or paused
+ */
+function syncPreviewButtonState() {
+    const player = document.getElementById('global-audio-player');
+    if (!player || !window.currentPreviewBtn) return;
+
+    const isPlaying = !player.paused && player.src;
+
+    if (isPlaying) {
+        // Player is playing - show pause icon
+        window.currentPreviewBtn.innerHTML = '<i class="bi bi-pause-fill"></i>';
+        window.currentPreviewBtn.classList.remove('btn-primary');
+        window.currentPreviewBtn.classList.add('btn-warning');
+    } else {
+        // Player is paused or stopped - show play icon
+        window.currentPreviewBtn.innerHTML = '<i class="bi bi-play-fill"></i>';
+        window.currentPreviewBtn.classList.remove('btn-warning');
+        window.currentPreviewBtn.classList.add('btn-primary');
+    }
+}
+
+/**
+ * Sets up audio player event listeners to keep preview button in sync
+ */
+function setupAudioPlayerSync() {
+    const player = document.getElementById('global-audio-player');
+    if (!player) return;
+
+    // Sync button state when player plays or pauses
+    player.addEventListener('play', syncPreviewButtonState);
+    player.addEventListener('pause', syncPreviewButtonState);
+    player.addEventListener('ended', () => {
+        stopPreview();
     });
 }
 
 // ---------- Init ----------
 export function initSearch() {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-        searchInput.value = stored;
-        if (stored.length >= 2) performSearch();
+    // Restore persisted query
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+        searchInput.value = saved.replace(/^(.*?)\s*$/, ""); // extract free text
+        performSearch();
     }
 
     searchInput.addEventListener("input", () => {
         clearTimeout(timeoutId);
         timeoutId = setTimeout(performSearch, 300);
     });
+
+    // Initial popover
+    new bootstrap.Popover(document.getElementById("searchHint"));
+
+    // Set up audio player event listeners to keep preview button in sync
+    setupAudioPlayerSync();
 }

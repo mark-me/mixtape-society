@@ -6,7 +6,7 @@
 
     position: relative;          /* creates a stacking context */
     z-index: 1;                  /* higher than the container */
-    background: transparent;     /* let the pill's background show through */
+    background: transparent;     /* let the pill’s background show through */
     color: var(--bs-body-color); /* ensure the text colour matches the theme */
 }
 
@@ -17,14 +17,14 @@
     position: absolute;          /* already used in the HTML */
     inset: 0;                    /* fill the pill */
     pointer-events: none;        /* keep clicks passing to the input */
-    background: transparent;     /* don't obscure the input's text */
+    background: transparent;     /* don’t obscure the input’s text */
     z-index: 0;                  /* lower than the input */
 }
 
 /* Search container – push it behind the input */
 #searchContainer::before {
     content: attr(data-placeholder);
-    color: #6c757d;               /* Bootstrap's muted colour */
+    color: #6c757d;               /* Bootstrap’s muted colour */
     position: absolute;
     left: 1rem;                  /* same horizontal padding as the input */
     top: 50%;
@@ -65,16 +65,14 @@
     vertical-align: baseline;
 }
 
-/* CHANGED: Use semantic album color for contrast */
-/* Use contrasting orange highlight for album accordions (purple background) */
-.accordion-button.bg-album mark {
-    background-color: #ff6b35; /* Warm amber from artist color for contrast */
+/* Use contrasting orange highlight for album accordions (yellow background) */
+.accordion-button.bg-warning mark {
+    background-color: #ff6b35; /* Bright orange for contrast */
     color: #fff; /* White text for readability */
 }
 
 /* Specific colors - light backgrounds for readability */
 #searchContainer .bg-info    { background-color: #cff4fc !important; color: #055160 !important; }
-/* KEPT: These are not semantic - they're used for badges/labels in search */
 #searchContainer .bg-warning { background-color: #fff3cd !important; color: #856404 !important; }
 #searchContainer .bg-danger  { background-color: #f8d7da !important; color: #721c24 !important; }
 #searchContainer .bg-secondary { background-color: #e2e3e5 !important; color: #495057 !important; }
@@ -85,17 +83,9 @@
     border-color: #86b7fe;
 }
 
-/* CHANGED: Artist accordion - was bg-success (#198754), now bg-artist */
-.accordion-button.bg-artist { 
-    background-color: var(--color-artist) !important;
-    color: white !important;
-}
+.accordion-button.bg-artist { background-color: var(--color-artist) !important; }
+.accordion-button.bg-album { background-color: var(--color-album) !important; color: white !important; }
 
-/* CHANGED: Album accordion - was bg-warning (#ffc107), now bg-album */
-.accordion-button.bg-album { 
-    background-color: var(--color-album) !important;
-    color: white !important;
-}
 
 /* === 2. Drag & Drop Handles === */
 .drag-handle {
@@ -107,22 +97,21 @@
     cursor: grabbing;
 }
 
-/* CHANGED: Use track color for playlist ghost */
 .playlist-ghost {
     opacity: 0.4;
     background: var(--color-track-bg-subtle);
     border: 2px dashed var(--color-track);
 }
 
-/* CHANGED: Currently playing track in playlist - use track color */
+/* Currently playing track in playlist - theme-aware highlighting */
 .playlist-item.bg-track-subtle {
     background-color: var(--color-track-bg-subtle) !important;
     border-color: var(--color-track) !important;
     border-width: 2px !important;
 }
 
-.playlist-item.bg-track-subtle strong,
-.playlist-item.bg-track-subtle .text-muted {
+.playlist-item.bg-primary-subtle strong,
+.playlist-item.bg-primary-subtle .text-muted {
     color: var(--bs-emphasis-color) !important;
 }
 
@@ -151,10 +140,9 @@ body.reorder-mode .floating-buttons { display: none !important; }
     font-size: 1.2rem;  /* Slightly larger icon */
 }
 #toggle-reorder-mode:hover {
-    background-color: var(--bs-primary-bg-subtle);
+    background-color: var(--color-track-bg-subtle);
 }
 
-/* KEPT: Primary is OK here for reorder mode toggle */
 #toggle-reorder-mode.active { background-color: var(--bs-primary); color: white; }
 
 /* === 3. Cover Upload Button === */
@@ -231,33 +219,32 @@ body.reorder-mode .floating-buttons { display: none !important; }
 
 /* ===== THEME-AWARE ACCORDION BUTTONS ===== */
 
-/* CHANGED: Artist accordion - was bg-success, now bg-artist (warm amber) */
-.accordion-button.bg-artist {
-    background-color: var(--color-artist) !important;
+/* Artist accordion (green/success) */
+.accordion-button.bg-success {
+    background-color: #198754 !important;
     color: white !important;
 }
 
-/* Badge on artist accordion - contrasting color */
-.accordion-button.bg-artist .ms-auto {
-    background-color: var(--color-album); /* Deep purple for contrast */
-    color: white !important;
+.accordion-button.bg-success .ms-auto {
+    background-color: #ffc107; /* warning/yellow color for contrast */
+    color: #000 !important;
 }
 
-/* CHANGED: Album accordion - was bg-warning, now bg-album (deep purple) */
-.accordion-button.bg-album {
-    background-color: var(--color-album) !important;
-    color: white !important;
+/* Album accordion (yellow/warning) */
+.accordion-button.bg-warning {
+    background-color: #ffc107 !important;
+    color: #000 !important;
 }
 
-/* Badge on album accordion - contrasting color */
-.accordion-button.bg-album .ms-auto {
-    background-color: var(--color-track); /* Electric cyan for contrast */
-    color: white !important;
+.accordion-button.bg-warning .ms-auto {
+    background-color: #0d6efd; /* primary/blue color for contrast */
+    color: #000 !important;
 }
 
-.accordion-button.bg-album .bi-disc-fill {
-    color: white !important;
+.accordion-button.bg-warning .bi-disc-fill {
+    color: #000 !important;
 }
+
 
 /* === 7. EasyMDE Markdown Editor Custom Styling === */
 
@@ -289,13 +276,13 @@ body.reorder-mode .floating-buttons { display: none !important; }
 }
 
 .editor-toolbar a:hover {
-    background-color: var(--bs-primary-bg-subtle) !important;
+    background-color: var(--color-track-bg-subtle) !important;
     color: var(--bs-primary-text-emphasis) !important;
 }
 
 .editor-toolbar a.active,
 .editor-toolbar a:hover {
-    background-color: var(--bs-primary-bg-subtle);
+    background-color: var(--color-track-bg-subtle);
 }
 
 /* Fullscreen mode toolbar */
@@ -323,441 +310,595 @@ body.reorder-mode .floating-buttons { display: none !important; }
     background-color: var(--bs-body-bg);
 }
 
+/* Gutter (line numbers) */
 .CodeMirror-gutters {
     background-color: var(--bs-tertiary-bg);
     border-right: 1px solid var(--bs-border-color);
 }
 
-.CodeMirror-linenumber {
-    color: var(--bs-secondary-color);
-}
-
 /* Cursor */
 .CodeMirror-cursor {
-    border-left-color: var(--bs-body-color);
+    border-left: 2px solid var(--bs-primary);
 }
 
-/* Selection */
+/* Selected text */
 .CodeMirror-selected {
-    background-color: var(--bs-primary-bg-subtle) !important;
+    background: var(--color-track-bg-subtle);
 }
 
-/* Active line */
-.CodeMirror-activeline-background {
-    background-color: var(--bs-tertiary-bg) !important;
-}
-
-/* Markdown syntax highlighting */
-.cm-header {
-    color: var(--bs-primary);
-    font-weight: 600;
-}
-
-.cm-strong {
-    font-weight: bold;
-    color: var(--bs-emphasis-color);
-}
-
-.cm-em {
-    font-style: italic;
-    color: var(--bs-emphasis-color);
-}
-
-.cm-link {
-    color: var(--bs-link-color);
-}
-
-.cm-url {
-    color: var(--bs-link-color);
-    text-decoration: underline;
-}
-
-.cm-quote {
-    color: var(--bs-secondary-color);
-    font-style: italic;
-}
-
-/* Code blocks */
-.cm-comment {
-    background-color: var(--bs-secondary-bg);
-    color: var(--bs-secondary-color);
-    padding: 0.1em 0.3em;
-    border-radius: 0.25rem;
-}
-
-/* Fullscreen mode */
-.CodeMirror-fullscreen {
+/* Enhancement to preview pane */
+#markdown-preview {
     background-color: var(--bs-body-bg);
-    z-index: 9999;
-}
-
-.editor-toolbar.fullscreen {
-    z-index: 9999;
-}
-
-/* Preview mode */
-.editor-preview,
-.editor-preview-side {
-    background-color: var(--bs-body-bg);
-    color: var(--bs-body-color);
-    border: 1px solid var(--bs-border-color);
-    padding: 1rem;
-}
-
-.editor-preview h1,
-.editor-preview h2,
-.editor-preview h3,
-.editor-preview h4,
-.editor-preview h5,
-.editor-preview h6 {
-    color: var(--bs-heading-color);
-    border-bottom: 1px solid var(--bs-border-color);
-    padding-bottom: 0.3em;
-    margin-top: 1.5em;
-}
-
-.editor-preview a {
-    color: var(--bs-link-color);
-}
-
-.editor-preview code {
-    background-color: var(--bs-secondary-bg);
-    color: var(--bs-code-color);
-    padding: 0.2em 0.4em;
-    border-radius: 0.25rem;
-}
-
-.editor-preview pre {
-    background-color: var(--bs-secondary-bg);
-    border: 1px solid var(--bs-border-color);
-    border-radius: 0.375rem;
-    padding: 1rem;
-}
-
-.editor-preview blockquote {
-    border-left: 4px solid var(--bs-border-color);
-    padding-left: 1rem;
-    color: var(--bs-secondary-color);
-}
-
-.editor-preview table {
-    border-collapse: collapse;
-    width: 100%;
-}
-
-.editor-preview th,
-.editor-preview td {
-    border: 1px solid var(--bs-border-color);
-    padding: 0.5rem;
-}
-
-.editor-preview th {
-    background-color: var(--bs-tertiary-bg);
-    font-weight: 600;
-}
-
-/* Placeholder text */
-.CodeMirror-empty.CodeMirror-focused {
-    outline: none;
-}
-
-.CodeMirror pre.CodeMirror-placeholder {
-    color: var(--bs-secondary-color);
-}
-
-/* Mobile responsiveness */
-@media (max-width: 768px) {
-    .CodeMirror {
-        font-size: 14px;
-    }
-
-    .editor-toolbar {
-        padding: 0.5rem;
-    }
-
-    .editor-toolbar a {
-        padding: 6px;
-        margin: 0 1px;
-    }
-}
-
-/* === 8. Playlist Items === */
-.playlist-item {
-    display: flex;
-    align-items: center;
-    padding: 1rem 1.5rem;
-    background: var(--bs-body-bg);
     border: 1px solid var(--bs-border-color);
     border-radius: 0.5rem;
-    margin-bottom: 0.75rem;
-    transition: all 0.2s ease;
-    position: relative;
-}
-
-.playlist-item:hover {
-    background-color: var(--bs-tertiary-bg);
-    transform: translateX(4px);
-}
-
-.playlist-item .track-number {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--bs-secondary-color);
-    margin-right: 1rem;
-    min-width: 2rem;
-}
-
-.playlist-item .track-info {
-    flex-grow: 1;
-    min-width: 0;
-}
-
-.playlist-item .track-title {
-    font-weight: 600;
-    font-size: 1rem;
-    margin-bottom: 0.25rem;
-    color: var(--bs-body-color);
-}
-
-.playlist-item .track-artist {
-    font-size: 0.9rem;
-    color: var(--bs-secondary-color);
-}
-
-.playlist-item .track-duration {
-    color: var(--bs-secondary-color);
-    font-size: 0.9rem;
-    margin: 0 1rem;
-    white-space: nowrap;
-}
-
-.playlist-item .remove-btn {
-    opacity: 0;
-    transition: opacity 0.2s ease;
-}
-
-.playlist-item:hover .remove-btn {
-    opacity: 1;
-}
-
-/* Mobile adjustments for playlist */
-@media (max-width: 768px) {
-    .playlist-item {
-        padding: 0.75rem 1rem;
-    }
-
-    .playlist-item .track-number {
-        font-size: 1rem;
-        margin-right: 0.75rem;
-        min-width: 1.5rem;
-    }
-
-    .playlist-item .track-title {
-        font-size: 0.95rem;
-    }
-
-    .playlist-item .track-artist {
-        font-size: 0.85rem;
-    }
-
-    .playlist-item .track-duration {
-        font-size: 0.85rem;
-        margin: 0 0.5rem;
-    }
-}
-
-/* === 9. Track List in Search Results === */
-.track-list-item {
-    display: flex;
-    align-items: center;
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid var(--bs-border-color);
-    transition: background-color 0.2s ease;
-}
-
-.track-list-item:last-child {
-    border-bottom: none;
-}
-
-.track-list-item:hover {
-    background-color: var(--bs-tertiary-bg);
-}
-
-.track-list-item .track-info {
-    flex-grow: 1;
-    min-width: 0;
-}
-
-.track-list-item .track-title {
-    font-weight: 500;
-    font-size: 0.95rem;
-    margin-bottom: 0.15rem;
-    color: var(--bs-body-color);
-}
-
-.track-list-item .track-duration {
-    color: var(--bs-secondary-color);
-    font-size: 0.85rem;
-}
-
-/* === 10. Reason Pills (Why Search Matched) === */
-.reason-pill {
-    display: inline-block;
-    padding: 0.15rem 0.5rem;
-    border-radius: 1rem;
-    font-size: 0.8rem;
-    font-weight: 500;
-    margin-right: 0.25rem;
-    margin-bottom: 0.25rem;
-}
-
-/* CHANGED: Use semantic colors for reason pills */
-.reason-pill.reason-artist {
-    background-color: var(--color-artist-bg-subtle);
-    color: var(--color-artist-text-emphasis);
-}
-
-.reason-pill.reason-album {
-    background-color: var(--color-album-bg-subtle);
-    color: var(--color-album-text-emphasis);
-}
-
-.reason-pill.reason-track {
-    background-color: var(--color-track-bg-subtle);
-    color: var(--color-track-text-emphasis);
-}
-
-/* === 11. Add/Preview Buttons in Search Results === */
-/* CHANGED: Use track color for preview buttons */
-.preview-btn {
-    min-width: auto;
-}
-
-/* CHANGED: Use track color for add buttons when adding tracks */
-.add-btn {
-    min-width: auto;
-}
-
-/* Button group for track actions */
-.track-actions {
-    display: flex;
-    gap: 0.5rem;
-    flex-shrink: 0;
-}
-
-@media (max-width: 576px) {
-    .track-actions {
-        gap: 0.25rem;
-    }
-
-    .track-actions .btn {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.85rem;
-    }
-}
-
-/* === 12. Search Results Container === */
-#results {
-    max-height: calc(100vh - 300px);
     overflow-y: auto;
 }
 
-#results:empty::before {
-    content: "Start typing to search...";
-    display: block;
-    text-align: center;
-    color: var(--bs-secondary-color);
-    padding: 3rem 1rem;
-}
-
-/* === 13. Floating Player Controls === */
-.floating-player-controls {
-    position: fixed;
-    bottom: 2rem;
-    right: 2rem;
-    z-index: 1050;
-    background: var(--bs-body-bg);
-    border: 1px solid var(--bs-border-color);
-    border-radius: 0.5rem;
-    padding: 0.75rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-/* === 14. Loading States === */
-.loading-skeleton {
-    background: linear-gradient(
-        90deg,
-        var(--bs-tertiary-bg) 0%,
-        var(--bs-secondary-bg) 50%,
-        var(--bs-tertiary-bg) 100%
-    );
-    background-size: 200% 100%;
-    animation: skeleton-loading 1.5s ease-in-out infinite;
-    border-radius: 0.25rem;
-}
-
-@keyframes skeleton-loading {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
-}
-
-/* === 15. Empty States === */
-.empty-state {
-    text-align: center;
-    padding: 3rem 2rem;
-    color: var(--bs-secondary-color);
-}
-
-.empty-state-icon {
-    font-size: 4rem;
-    opacity: 0.3;
-    margin-bottom: 1rem;
-}
-
-.empty-state-text {
-    font-size: 1.1rem;
-    margin-bottom: 0.5rem;
-}
-
-.empty-state-subtext {
-    font-size: 0.9rem;
-}
-
-/* === 16. Scrollbar Styling === */
-#results::-webkit-scrollbar,
-#playlist::-webkit-scrollbar {
-    width: 8px;
-}
-
-#results::-webkit-scrollbar-track,
-#playlist::-webkit-scrollbar-track {
-    background: var(--bs-tertiary-bg);
-    border-radius: 4px;
-}
-
-#results::-webkit-scrollbar-thumb,
-#playlist::-webkit-scrollbar-thumb {
-    background: var(--bs-border-color);
-    border-radius: 4px;
-}
-
-#results::-webkit-scrollbar-thumb:hover,
-#playlist::-webkit-scrollbar-thumb:hover {
-    background: var(--bs-secondary-color);
-}
-
-/* === 17. Responsive Design Adjustments === */
-@media (max-width: 992px) {
-    .container-fluid.overflow-hidden {
-        padding: 0 !important;
-    }
-
-    .card {
-        border-radius: 0 !important;
-    }
-}
 
 @media (max-width: 576px) {
+    /* Maximize horizontal space on mobile for search results */
+    .container-fluid.overflow-hidden {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+
+    /* Reduce card padding on mobile */
+    .card-body#results {
+        padding: 0.5rem !important;
+    }
+
+    /* Remove side padding from the card itself on mobile */
+    .col-lg-7 .card {
+        margin-left: -0.5rem;
+        margin-right: -0.5rem;
+    }
+
+    /* Maximize space for mixtape/tracks card on mobile */
+    .col-lg-5 .card {
+        margin-left: -0.5rem;
+        margin-right: -0.5rem;
+    }
+
+    .col-lg-5 .card-body {
+        padding: 0.5rem !important;
+    }
+
+    /* Reduce padding on playlist items on mobile */
+    .playlist-item {
+        padding: 0.5rem !important;
+        margin-bottom: 0.25rem !important;
+    }
+
+    /* In reorder mode, maximize space even more */
+    body.reorder-mode .col-lg-5 .card {
+        margin-left: -0.75rem;
+        margin-right: -0.75rem;
+        border-radius: 0; /* Remove rounded corners to go edge-to-edge */
+    }
+
+    body.reorder-mode .card-body {
+        padding: 0.25rem !important;
+    }
+
+    body.reorder-mode .playlist-item {
+        padding: 0.5rem 0.25rem !important;
+    }
+
+    /* Reduce accordion margins */
+    .accordion.mb-3 {
+        margin-bottom: 0.5rem !important;
+    }
+
+    /* Make badges smaller and push closer to right edge on mobile */
+    .accordion-button .ms-auto {
+        right: 0.5rem !important; /* Much closer to right edge */
+        padding: 0.15rem 0.5rem !important; /* Smaller padding */
+        font-size: 0.75rem !important; /* Smaller text */
+    }
+
+    /* Reduce padding-right on accordion buttons to give more space for text */
+    .accordion-button {
+        padding-right: 4rem !important; /* Less space needed with badge at edge */
+    }
+
+    /* 1. Make the whole button behave like normal block text */
+    .accordion-button {
+        align-items: flex-start   !important;   /* stop vertical centering */
+        white-space: normal       !important;   /* allow line breaks */
+        flex-wrap: wrap           !important;   /* let the inner flex items wrap */
+        text-align: left;                       /* left‑align the label */
+        padding-top: .75rem;                    /* a little extra vertical breathing room */
+        padding-bottom: .75rem;
+    }
+
+    /* 2. Keep the icon (the <i class="bi …">) from forcing extra space */
+   .accordion-button .bi {
+        flex: 0 0 auto;                 /* keep its natural size */
+        margin-top: .125rem;            /* nudge it to line‑up with the first line of text */
+        margin-right: .5rem;            /* space between icon and text */
+    }
+
+    /* 3. The textual part of the button is everything *except* the icon.
+        We force it to take the remaining width and wrap naturally. */
+    .accordion-button .accordion-button-text,
+    .accordion-button > span:not(.bi),          /* catches plain text nodes */
+    .accordion-button > div:not(.bi) {
+        flex: 1 1 0%;                   /* grow‑shrink, start at 0% width */
+        min-width: 0;                   /* crucial – lets the text shrink inside flex */
+        word-break: break-word;         /* break long words sensibly */
+        overflow-wrap: anywhere;        /* extra safety for ultra‑long strings */
+    }
+
+    /* 4. If you happen to have <strong> or <h5> inside the button
+        (some of the templates do), make sure they inherit the same
+        wrapping behaviour. */
+    .accordion-button strong,
+    .accordion-button h5 {
+        display: inline;                /* keep them inline with the surrounding text */
+        font-weight: normal;            /* optional – you can keep the bold if you wish */
+    }
+
+    /* Ensure the right‑hand button group stays on one line */
+    .list-group-item > .d-flex.align-items-center {
+        flex-wrap: nowrap;               /* never wrap */
+        gap: .5rem;                      /* consistent spacing */
+    }
+
+    /* Give the buttons a predictable size – they’ll shrink only a little */
+    .list-group-item .preview-btn,
+    .list-group-item .add-btn {
+        min-width: 2.2rem;               /* enough for the icon */
+        padding: .35rem .5rem;           /* tighter padding on mobile */
+        line-height: 1;                  /* removes extra vertical space */
+    }
+
+    /* Align the duration label with the buttons */
+    .list-group-item .text-muted.me-3 {
+        margin-right: .5rem !important;
+        white-space: nowrap;             /* keep “mm:ss” on one line */
+    }
+}
+
+/* === 8. Bottom Audio Player Styles (from play_mixtape.css) === */
+
+/* Player panel background fixes */
+#global-audio-player {
+    background: var(--bs-body-bg);
+}
+
+#global-audio-player::-webkit-media-controls-panel {
+    background-color: var(--bs-body-bg);
+}
+
+/* Bottom player background – translucent blur with theme support */
+#audio-player-container .bg-dark {
+    background-color: rgba(var(--bs-body-bg-rgb), 0.95) !important;
+    backdrop-filter: blur(10px);
+    /* Override the text-white class for theme support */
+    color: var(--bs-body-color) !important;
+}
+
+/* Make bottom player buttons theme-aware instead of btn-outline-light */
+#audio-player-container .btn-outline-light {
+    border-color: var(--bs-border-color) !important;
+    color: var(--bs-body-color) !important;
+    background-color: transparent !important;
+}
+
+#audio-player-container .btn-outline-light:hover {
+    background-color: var(--bs-tertiary-bg) !important;
+    border-color: var(--bs-border-color) !important;
+    color: var(--bs-body-color) !important;
+}
+
+/* Bottom player text - make it theme-aware */
+#now-playing-title {
+    color: var(--bs-body-color) !important;
+}
+
+#now-playing-artist {
+    color: var(--bs-secondary-color) !important;
+    opacity: 1 !important; /* Remove opacity, use the color directly */
+}
+
+/* Bottom Player Text Truncation & Layout */
+#now-playing-title,
+#now-playing-artist {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Limit the width of the track info section so it doesn't push controls off-screen */
+/* Override the inline max-width: 140px with !important */
+#audio-player-container .me-2 {
+    min-width: 0 !important;
+    max-width: none !important;        /* Remove the restriction */
+    flex: 1 1 auto !important;         /* Allow it to grow */
+    width: auto !important;            /* Override any width restrictions */
+}
+
+/* Make the parent flex container that holds close button + track info grow aggressively */
+#audio-player-container .d-flex.align-items-center.mb-2.mb-md-0 {
+    flex: 1 1 auto !important;         /* Let it take available space */
+    min-width: 0;
+    max-width: none !important;        /* Remove the max-width restriction */
+}
+
+/* Ensure the audio player doesn't hog all the space */
+#audio-player-container audio#global-audio-player {
+    flex: 0 1 auto !important;         /* Don't grow, but can shrink */
+    width: auto !important;            /* Override w-100 */
+    min-width: 200px;                  /* Ensure it doesn't get too small */
+    max-width: 500px;                  /* But also doesn't get too large */
+}
+
+#audio-player-container .d-flex {
+    min-width: 0;
+}
+
+/* Mobile font size adjustments for bottom player */
+@media (max-width: 576px) {
+    #now-playing-title {
+        font-size: 0.9rem;
+    }
+
+    #now-playing-artist {
+        font-size: 0.75rem;
+    }
+
+    /* Make the close button smaller on phones */
+    #audio-player-container #close-player {
+        padding: 0.25rem 0.4rem;
+        font-size: 0.9rem;
+    }
+
+    /* On mobile, make audio player even smaller to give track info more room */
+    #audio-player-container audio#global-audio-player {
+        min-width: 150px !important;
+        max-width: 300px !important;
+    }
+}
+
+/* Tablet - balance between track info and audio controls */
+@media (min-width: 577px) and (max-width: 991px) {
+    #audio-player-container audio#global-audio-player {
+        min-width: 250px;
+        max-width: 400px;
+    }
+}
+
+/* Desktop - audio player can be wider */
+@media (min-width: 992px) {
+    #audio-player-container audio#global-audio-player {
+        min-width: 300px;
+        max-width: 500px;
+    }
+}
+
+/* Allow info block to grow and take remaining width */
+#audio-player-container #now-playing-title,
+#audio-player-container #now-playing-artist {
+    width: 100%;
+    max-width: 600px; /* Reasonable limit for readability */
+}
+
+/* Reduce horizontal margin on audio element to give more space */
+#audio-player-container audio#global-audio-player {
+    margin-left: 1rem !important;
+    margin-right: 0 !important;
+}
+
+/* On very small screens allow wrapping */
+@media (max-width: 480px) {
+    #audio-player-container .d-flex.align-items-center.flex-wrap {
+        flex-wrap: wrap;
+    }
+
+    #audio-player-container .d-flex.align-items-center.mb-2.mb-md-0,
+    #audio-player-container .mb-2.mb-md-0,
+    #audio-player-container audio#global-audio-player {
+        margin-bottom: 0.4rem;
+    }
+}
+
+/* Progress Modal Styling - Add to editor.css */
+
+/* === 9. Progress Modal === */
+
+/* Log container - theme-aware background */
+#progress-log {
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    border-radius: 0;
+}
+
+/* Log entries - theme-aware */
+#progress-log > div {
+    background-color: var(--bs-body-bg);
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+/* Last entry - no border */
+#progress-log > div:last-child {
+    border-bottom: none;
+}
+
+/* Hover effect for log entries */
+#progress-log > div:hover {
+    background-color: var(--bs-tertiary-bg);
+}
+
+/* Progress modal - ensure proper theming on card */
+#progressModal .card {
+    background-color: var(--bs-body-bg);
+    border-color: var(--bs-border-color);
+}
+
+#progressModal .card-header {
+    background-color: var(--bs-tertiary-bg);
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+/* Mobile-specific adjustments for progress modal */
+@media (max-width: 576px) {
+    /* Modal takes full screen on mobile */
+    #progressModal .modal-dialog {
+        margin: 0;
+        max-width: 100%;
+    }
+
+    /* Reduce padding on mobile */
+    #progressModal .modal-body {
+        padding: 1rem 0.75rem;
+    }
+
+    /* Smaller progress bar on mobile */
+    #progressModal .progress {
+        height: 20px !important;
+    }
+
+    /* More compact log entries on mobile */
+    #progress-log > div {
+        padding: 0.5rem !important;
+        font-size: 0.75rem;
+    }
+
+    /* Smaller timestamp on mobile */
+    #progress-log small {
+        font-size: 0.65rem;
+    }
+
+    /* Make log container taller on mobile (more vertical space) */
+    #progress-log {
+        max-height: 400px !important;
+    }
+
+    /* Smaller clear button on mobile */
+    #progress-clear-log {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    /* Progress percentage - smaller on mobile */
+    #progress-percentage {
+        font-size: 0.875rem;
+    }
+
+    /* Main label - wrap if needed */
+    #progress-main-label {
+        word-break: break-word;
+    }
+}
+
+/* Landscape mobile optimization */
+@media (max-width: 768px) and (orientation: landscape) {
+    /* Reduce log height in landscape to fit screen */
+    #progress-log {
+        max-height: 200px !important;
+    }
+
+    /* Smaller modal body padding */
+    #progressModal .modal-body {
+        padding: 0.75rem 0.5rem;
+    }
+}
+
+/* Very small screens (< 360px) */
+@media (max-width: 360px) {
+    /* Even more compact */
+    #progress-log > div {
+        padding: 0.375rem !important;
+        font-size: 0.7rem;
+    }
+
+    #progress-log small {
+        display: block; /* Stack timestamp on its own line */
+        margin-bottom: 0.125rem;
+    }
+
+    /* Hide clear button icon text on tiny screens */
+    #progress-clear-log i {
+        margin: 0;
+    }
+}
+
+/* Dark mode specific adjustments (when data-bs-theme="dark") */
+[data-bs-theme="dark"] #progress-log {
+    /* Slightly lighter background for better contrast */
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-bs-theme="dark"] #progress-log > div:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Light mode specific adjustments */
+[data-bs-theme="light"] #progress-log {
+    /* Slightly darker background for better contrast */
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+[data-bs-theme="light"] #progress-log > div:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Ensure text wraps properly in log entries */
+#progress-log span {
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+}
+
+/* Smooth scroll for log */
+#progress-log {
+    scroll-behavior: smooth;
+}
+
+
+/* 10. Cover Options Modal */
+#coverOptionsModal .modal-content {
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
+}
+
+#coverOptionsModal .modal-header {
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+#coverOptionsModal .btn-primary {
+    --bs-btn-bg: var(--bs-primary);  /* Ensure theme colors */
+}
+
+#coverOptionsModal .btn-secondary {
+    --bs-btn-bg: var(--bs-secondary);
+}
+
+/* Mobile: Make buttons larger/touch-friendly */
+@media (max-width: 576px) {
+    #coverOptionsModal .py-4 {
+        padding-top: 2rem !important;
+        padding-bottom: 2rem !important;
+        font-size: 1.1rem;
+    }
+}
+
+/* Dark mode button contrast */
+[data-bs-theme="dark"] #coverOptionsModal .btn-primary {
+    --bs-btn-color: #fff;
+}
+
+[data-bs-theme="dark"] #coverOptionsModal .btn-secondary {
+    --bs-btn-color: #fff;
+}
+
+/* === 10. Track cover + overlay play button === */
+.track-cover,
+.track-cover-placeholder {
+    width: 64px;           /* Slightly larger for better tap target */
+    height: 64px;
+    object-fit: cover;
+    border-radius: 0.5rem;
+    display: block;
+    flex-shrink: 0;
+}
+
+.track-cover-placeholder {
+    background: var(--bs-tertiary-bg);
+    border: 2px dashed var(--bs-border-color);
+}
+
+/* Container for the overlay button */
+.track-cover-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+/* The actual play/pause button */
+.play-overlay-btn {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.45);
+    color: white;
+    border: none;
+    font-size: 1.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* Start hidden/faint */
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* ───── Hover (desktop) ───── */
+@media (hover: hover) and (pointer: fine) {
+    .playlist-item:hover .play-overlay-btn {
+        opacity: 1;
+        transform: scale(1);
+        background: rgba(0, 0, 0, 0.65);
+    }
+}
+
+/* ───── Touch devices (mobile/tablet) ───── */
+@media (pointer: coarse) {
+    .play-overlay-btn {
+        opacity: 0.7;                    /* Always faintly visible */
+        background: rgba(0, 0, 0, 0.35);
+    }
+    .play-overlay-btn:active {
+        transform: scale(0.94);
+        background: rgba(0, 0, 0, 0.75);
+    }
+}
+
+/* ───── Playing state ───── */
+.playlist-item.playing .play-overlay-btn {
+    opacity: 1 !important;
+    background: rgba(30, 215, 96, 0.9) !important;   /* Spotify green */
+    transform: scale(1) !important;
+    animation: pulseOnce 0.6s ease-out;
+}
+
+/* Subtle heartbeat pulse when playback starts */
+@keyframes pulseOnce {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.18); }
+    100% { transform: scale(1); }
+}
+
+/* === Force truncation in playlist text === */
+
+/* The text container must clip overflow */
+.playlist-item .flex-grow-1.min-w-0 {
+    overflow: hidden;  /* Critical: clip content */
+}
+
+/* Apply ellipsis to any child (strong/small), whether block or inline */
+.playlist-item .flex-grow-1.min-w-0 > * {
+    display: block;    /* Enforce block if needed, but allow truncation */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;    /* Constrain to parent width */
+}
+
+/* For very long words (rare in titles, but safety) */
+.playlist-item .flex-grow-1.min-w-0 > * {
+    word-break: break-word;  /* Break long words if no spaces; use 'break-all' if aggressive needed */
+}
+
+/* Mobile: Reduce padding/margins for more text space */
+@media (max-width: 576px) {
+    .playlist-item {
+        padding: 0.75rem;  /* Tighter padding */
+    }
     .playlist-item .me-3 {
         margin-right: 0.75rem !important;  /* Less spacing */
     }
@@ -845,8 +986,7 @@ body.reorder-mode .floating-buttons { display: none !important; }
 }
 
 /* Improved layout for album accordion buttons */
-/* CHANGED: Use semantic album color */
-.accordion-button.bg-album {
+.accordion-button.bg-warning {
     display: flex !important;
     align-items: center !important;
     gap: 0.5rem;
@@ -880,29 +1020,30 @@ body.reorder-mode .floating-buttons { display: none !important; }
     white-space: nowrap;
 }
 
-/* CHANGED: Dark theme support for track count on album (purple) background */
-.accordion-button.bg-album .flex-shrink-0 {
-    color: white !important;
+/* Dark theme support for track count on yellow/warning background */
+.accordion-button.bg-warning .flex-shrink-0 {
+    color: #000 !important;
 }
 
-/* Ensure icon is also visible */
-.accordion-button.bg-album .bi-music-note-beamed {
-    color: white !important;
+/* Ensure icon is also dark */
+.accordion-button.bg-warning .bi-music-note-beamed {
+    color: #000 !important;
 }
 
-/* CHANGED: Album artist text on purple background */
-.accordion-button.bg-album .album-artist {
-    color: rgba(255, 255, 255, 0.85) !important;
+/* Fix low contrast for album artist text on yellow background in dark theme */
+.accordion-button.bg-warning .album-artist {
+    color: #000 !important;
+    opacity: 0.7;
 }
 
-/* CHANGED: Artist accordion track counts for consistency */
-.accordion-button.bg-artist .flex-shrink-0 {
-    color: white !important;
+/* Also handle artist accordion track counts for consistency */
+.accordion-button.bg-success .flex-shrink-0 {
+    color: #fff !important;
 }
 
-/* CHANGED: Artist accordion disc icon on amber background */
-.accordion-button.bg-artist .bi-disc-fill {
-    color: white !important;
+/* Fix low contrast for artist accordion disc icon on green background */
+.accordion-button.bg-success .bi-disc-fill {
+    color: #000 !important;
 }
 
 /* Mobile optimizations - SMALLER thumbnails on mobile */
@@ -985,8 +1126,8 @@ body.reorder-mode .floating-buttons { display: none !important; }
     transform: scale(1.05);
 }
 
-/* CHANGED: Ensure album accordion buttons look good with thumbnails */
-.accordion-button.bg-album {
+/* Ensure album accordion buttons look good with thumbnails */
+.accordion-button.bg-warning {
     align-items: center !important;
 }
 
@@ -1001,8 +1142,8 @@ body.reorder-mode .floating-buttons { display: none !important; }
     align-items: center;
 }
 
-/* CHANGED: Fallback for when no thumbnail is present - maintain spacing */
-.accordion-button.bg-album:not(:has(.album-thumb)) {
+/* Fallback for when no thumbnail is present - maintain spacing */
+.accordion-button.bg-warning:not(:has(.album-thumb)) {
     padding-left: 1.25rem;
 }
 

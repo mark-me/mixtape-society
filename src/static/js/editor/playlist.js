@@ -377,12 +377,12 @@ export function renderPlaylist() {
 
             // Remove highlight from all items
             document.querySelectorAll('.playlist-item').forEach(el => {
-                el.classList.remove('bg-primary', 'text-white', 'bg-primary-subtle', 'border-primary');
+                el.classList.remove('bg-track', 'text-white', 'bg-track-subtle', 'border-track');
             });
 
             // Add theme-aware highlight to current item
             const playlistItem = this.closest('.playlist-item');
-            playlistItem.classList.add('bg-primary-subtle', 'border-primary');
+            playlistItem.classList.add('bg-track-subtle', 'border-track');
         };
     });
 

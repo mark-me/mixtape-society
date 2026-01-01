@@ -233,7 +233,7 @@ export function initUI() {
         document.querySelectorAll('.preview-btn').forEach(btn => {
             btn.innerHTML = '<i class="bi bi-play-fill"></i>';
             btn.classList.remove('btn-warning');
-            btn.classList.add('btn-primary');
+            btn.classList.add('btn-track');
         });
         window.currentPreviewBtn = null;
     });
@@ -243,7 +243,7 @@ export function initUI() {
         if (window.currentPreviewBtn) {
             window.currentPreviewBtn.innerHTML = '<i class="bi bi-play-fill"></i>';
             window.currentPreviewBtn.classList.remove('btn-warning');
-            window.currentPreviewBtn.classList.add('btn-primary');
+            window.currentPreviewBtn.classList.add('btn-track');
             window.currentPreviewBtn = null;
         }
     });
