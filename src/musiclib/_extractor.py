@@ -524,7 +524,15 @@ class CollectionExtractor:
             self._handle_job_completion(conn)
 
     def _clear_database(self, conn: sqlite3.Connection) -> None:
-        """Clears all tracks from the database."""
+        """Clears all track data from the database and resets the full-text index.
+
+        This method deletes every row from the main tracks table and its FTS
+        mirror, commits the changes, and runs a truncating WAL checkpoint so
+        the collection can be rebuilt from a clean, compact state.
+
+        Args:
+            conn (sqlite3.Connection): The SQLite connection on which to remove all track data.
+        """
         conn.execute("DELETE FROM tracks")
         conn.execute("DELETE FROM tracks_fts")
         conn.commit()
@@ -532,7 +540,16 @@ class CollectionExtractor:
         self._logger.info("Database cleared and checkpointed")
 
     def _delete_file(self, conn: sqlite3.Connection, event: IndexEvent) -> None:
-        """Deletes a file from the database."""
+        """Removes a single track record from the database for the given event path.
+
+        This method normalizes the event path to the stored relative form when needed,
+        executes a delete against the tracks table for that path, and increments the
+        processed operation counter used for job progress tracking.
+
+        Args:
+            conn (sqlite3.Connection): The active SQLite connection used to apply the deletion.
+            event (IndexEvent): The delete event containing the path of the track to remove.
+        """
         if event.path:
             rel_path = (
                 self._to_relpath(event.path)
@@ -543,13 +560,32 @@ class CollectionExtractor:
         self._processed_count += 1
 
     def _handle_index_file(self, conn: sqlite3.Connection, event: IndexEvent) -> None:
-        """Handles indexing a single file."""
+        """Processes an index-file event and advances job progress.
+
+        This method delegates the actual metadata extraction and database update
+        to the low-level file indexer when a path is present on the event, then
+        increments the processed-operation counter so that job progress tracking
+        remains accurate regardless of whether the file was indexable.
+
+        Args:
+            conn (sqlite3.Connection): The active database connection used during indexing.
+            event (IndexEvent): The index event describing which file should be indexed.
+        """
         if event.path:
             self._index_file(conn, event.path)
         self._processed_count += 1
 
     def _handle_job_completion(self, conn: sqlite3.Connection) -> None:
-        """Handles completion of a rebuild or resync job."""
+        """Finalizes an indexing job and records its completion.
+
+        This method commits any remaining database changes, checkpoints the WAL in
+        PASSIVE mode, forces external progress reporting to 100% if a job was
+        being tracked, and then clears job state while logging that the completion
+        signal was processed.
+
+        Args:
+            conn (sqlite3.Connection): The database connection used throughout the indexing job.
+        """
         conn.commit()
         checkpoint_wal(conn, "PASSIVE")
 
@@ -566,11 +602,30 @@ class CollectionExtractor:
         self._logger.info("Job completed signal processed and checkpointed")
 
     def _should_increment_batch(self, event: IndexEvent) -> int:
-        """Returns 1 if the event should increment the batch counter, 0 otherwise."""
+        """Determines whether an event should contribute to the current batch size.
+
+        This method returns 1 for file-level operations that modify the tracks
+        table, such as delete and index events, and 0 for control events that
+        should not trigger batch commits.
+
+        Args:
+            event (IndexEvent): The indexing event being evaluated.
+
+        Returns:
+            int: 1 if the event should increment the processed-in-batch counter, otherwise 0.
+        """
         return 1 if event.type in ("DELETE_FILE", "INDEX_FILE") else 0
 
     def _update_progress_status(self) -> None:
-        """Updates the indexing status with current progress."""
+        """Updates external indexing progress based on the current job counters.
+
+        This method sends the latest processed and total operation counts for
+        the active job to the indexing status helper so that UIs can display
+        up-to-date progress information while rebuild or resync tasks run.
+
+        Returns:
+            None
+        """
         if self._total_for_current_job is not None:
             set_indexing_status(
                 self.data_root,
@@ -580,7 +635,12 @@ class CollectionExtractor:
             )
 
     def _reset_job_state(self) -> None:
-        """Resets job tracking state."""
+        """Clears internal tracking state for the current indexing job.
+
+        This method resets the total operation count, current job status label,
+        and processed-operation counter so that subsequent jobs start with a
+        clean progress state.
+        """
         self._total_for_current_job = None
         self._current_job_status = None
         self._processed_count = 0
@@ -588,7 +648,17 @@ class CollectionExtractor:
     def _handle_database_error(
         self, conn: sqlite3.Connection, event: IndexEvent, error: sqlite3.Error
     ) -> None:
-        """Handles database errors gracefully."""
+        """Logs and recovers from a database error encountered during event processing.
+
+        This method records the original SQLite error with context, rolls back the
+        current transaction to maintain consistency, and then attempts an integrity
+        check on the database, logging a secondary error if the check itself fails.
+
+        Args:
+            conn (sqlite3.Connection): The database connection on which the error occurred.
+            event (IndexEvent): The indexing event being processed when the error was raised.
+            error (sqlite3.Error): The SQLite error that triggered this handler.
+        """
         self._logger.error(
             f"Database error during {event.type}: {error}", exc_info=True
         )
@@ -599,7 +669,15 @@ class CollectionExtractor:
             self._logger.error(f"Database integrity check failed: {check_error}")
 
     def _shutdown_writer(self, conn: sqlite3.Connection) -> None:
-        """Performs final commit and checkpoint on writer thread shutdown."""
+        """Cleanly shuts down the writer loop by flushing pending work to disk.
+
+        This method attempts a final commit and WAL checkpoint before the writer
+        thread exits, logging either a successful shutdown message or an error
+        if flushing changes fails.
+
+        Args:
+            conn (sqlite3.Connection): The SQLite connection used by the writer loop.
+        """
         try:
             conn.commit()
             checkpoint_wal(conn, "TRUNCATE")
@@ -610,7 +688,21 @@ class CollectionExtractor:
     # === Metadata extraction ===
 
     def _index_file(self, conn: sqlite3.Connection, path: Path) -> None:
-        """Extracts metadata from a music file and updates the database entry."""
+        """Indexes a single music file into the tracks table.
+
+        This method reads tags and file metadata for the given path and upserts
+        a normalized record into the tracks table so the database reflects the
+        current state of the file on disk. If the file disappears during
+        processing, it logs a warning and skips indexing; if a database error
+        occurs, it logs the failure and re-raises the exception.
+
+        Args:
+            conn (sqlite3.Connection): The SQLite connection used to write track metadata.
+            path (Path): The absolute path of the music file to index.
+
+        Raises:
+            sqlite3.Error: If the INSERT OR REPLACE operation fails at the database layer.
+        """
         if not path.exists():
             self._logger.warning(f"File no longer exists during indexing: {path}")
             return
@@ -633,7 +725,18 @@ class CollectionExtractor:
             raise
 
     def _read_tags(self, path: Path) -> TinyTag | None:
-        """Reads tags from a music file, returning None if it fails."""
+        """Reads tag metadata from an audio file, returning None if parsing fails.
+
+        This method attempts to load tag and duration information for the given
+        path and logs a warning when the file cannot be read or parsed so that
+        callers can continue indexing without raising errors.
+
+        Args:
+            path (Path): The absolute filesystem path to the audio file whose tags should be read.
+
+        Returns:
+            TinyTag | None: A TinyTag instance containing parsed metadata, or None if reading fails.
+        """
         try:
             return TinyTag.get(path, tags=True, duration=True)
         except Exception as e:
@@ -641,7 +744,20 @@ class CollectionExtractor:
             return None
 
     def _extract_metadata(self, tag: TinyTag | None, path: Path) -> tuple:
-        """Extracts metadata from tags into a tuple for database insertion."""
+        """Builds a normalized metadata tuple for a music file from tags and file attributes.
+
+        This method combines TinyTag metadata with filesystem information and
+        sensible fallbacks to produce a stable representation of a track that
+        can be stored in the database even when some tags are missing or
+        malformed.
+
+        Args:
+            tag (TinyTag | None): Parsed tag metadata for the file, or None if tags could not be read.
+            path (Path): The absolute filesystem path of the music file.
+
+        Returns:
+            tuple: A tuple of track fields in the order expected by the ``tracks`` table schema.
+        """
         rel_path = self._to_relpath(path)
         artist = getattr(tag, "artist", None) or getattr(tag, "albumartist", None)
         album = getattr(tag, "album", None)
@@ -666,7 +782,18 @@ class CollectionExtractor:
         )
 
     def _parse_year(self, tag: TinyTag | None) -> int | None:
-        """Parses the year from tags."""
+        """Parses a year value from tag metadata and returns it as a four-digit integer.
+
+        This method inspects the ``year`` attribute on the tag, normalizes it to a
+        string, and extracts the first four characters as an integer, returning
+        None if the attribute is missing or cannot be parsed.
+
+        Args:
+            tag (TinyTag | None): Tag metadata object that may contain a year attribute, or None.
+
+        Returns:
+            int | None: The four-digit year if successfully parsed, otherwise None.
+        """
         try:
             if getattr(tag, "year", None):
                 return int(str(tag.year)[:4])
@@ -675,7 +802,18 @@ class CollectionExtractor:
         return None
 
     def _parse_number(self, value: str | None) -> int | None:
-        """Parses a string value and returns its integer component if possible."""
+        """Parses an integer from a numeric tag field string.
+
+        This method extracts the leading integer component from values that may
+        be in forms like ``"3"`` or ``"3/12"``, returning None when the input
+        is empty or cannot be converted to an integer.
+
+        Args:
+            value (str | None): Raw tag value that should represent a number, optionally with a total (e.g., ``"3/12"``), or None.
+
+        Returns:
+            int | None: The parsed leading integer, or None if the input is missing or invalid.
+        """
         if not value:
             return None
         try:
@@ -686,7 +824,19 @@ class CollectionExtractor:
     # === File scanning ===
 
     def _scan_music_files(self, job_type: str) -> list[Path]:
-        """Scans the music root for all supported audio files with progress tracking."""
+        """Discovers all supported music files under the music root for an indexing job.
+
+        This method walks the directory tree rooted at the music folder, collects
+        absolute paths to files with supported audio extensions, and periodically
+        updates indexing status so callers can observe discovery progress for the
+        specified job type.
+
+        Args:
+            job_type (str): Label for the current indexing job, such as "rebuilding" or "resyncing".
+
+        Returns:
+            list[Path]: A list of absolute paths to all discovered music files.
+        """
         files = []
         found = 0
 
@@ -705,7 +855,15 @@ class CollectionExtractor:
     # === Main operations ===
 
     def rebuild(self) -> None:
-        """Rebuilds the music collection database from scratch."""
+        """Performs a full rebuild of the music collection index from the current filesystem state.
+
+        This method clears existing track data, scans the music root for all supported files,
+        and queues indexing operations so that the database is fully regenerated to match
+        the contents of the collection.
+
+        Returns:
+            None
+        """
         self._logger.info("Starting full rebuild")
         self._initial_status_event.set()
 
@@ -725,7 +883,16 @@ class CollectionExtractor:
         self.set_initial_indexing_done()
 
     def resync(self) -> None:
-        """Synchronizes the music database with the current state of the file system."""
+        """Synchronizes the database with the current set of music files on disk.
+
+        This method compares the filesystem under the music root with the paths
+        stored in the database, then enqueues add and delete operations so that
+        the index reflects files that have been created, removed, or renamed
+        since the last run.
+
+        Returns:
+            None
+        """
         self._logger.info("Starting resync")
         set_indexing_status(self.data_root, "resyncing", total=-1, current=0)
 
@@ -754,7 +921,15 @@ class CollectionExtractor:
         )
 
     def _scan_filesystem_paths(self) -> set[str]:
-        """Scans the filesystem and returns a set of relative paths to music files."""
+        """Scans the music root on disk and returns the set of all supported file paths.
+
+        This method walks the filesystem tree under the music root, collects
+        POSIX-style relative paths for files with supported extensions, and
+        periodically updates resync progress as files are discovered.
+
+        Returns:
+            set[str]: A set of relative paths for all supported music files currently on disk.
+        """
         fs_paths = set()
         found = 0
 
@@ -772,7 +947,14 @@ class CollectionExtractor:
         return fs_paths
 
     def _get_database_paths(self) -> set[str]:
-        """Gets all paths currently in the database."""
+        """Returns the set of all track paths currently stored in the database.
+
+        This method queries the tracks table for the path column and collects all
+        stored relative paths into a set for efficient comparison with filesystem state.
+
+        Returns:
+            set[str]: A set of relative track paths as stored in the database.
+        """
         with self.get_conn(readonly=True) as conn:
             return {r["path"] for r in conn.execute("SELECT path FROM tracks")}
 
@@ -782,7 +964,18 @@ class CollectionExtractor:
         to_index: Iterable[Path],
         job_type: Literal["rebuilding", "resyncing"],
     ) -> None:
-        """Queues delete and index operations with progress tracking."""
+        """Coordinates and dispatches all file operations for a rebuild or resync job.
+
+        This method materializes the delete and index iterables, decides whether
+        there is any work to perform, and when there is, starts job tracking,
+        enqueues all operations, and blocks until the writer thread has finished
+        processing them.
+
+        Args:
+            to_delete (Iterable[str]): Relative paths of tracks that should be removed from the database.
+            to_index (Iterable[Path]): Absolute paths of files that should be indexed or reindexed.
+            job_type (Literal["rebuilding", "resyncing"]): The type of indexing job these operations belong to.
+        """
         delete_list = list(to_delete)
         index_list = list(to_index)
         total_operations = len(delete_list) + len(index_list)
@@ -797,7 +990,16 @@ class CollectionExtractor:
         self._wait_for_job_completion(job_type, total_operations)
 
     def _start_job(self, job_type: str, total_operations: int) -> None:
-        """Initializes job tracking state."""
+        """Initializes tracking state for a rebuild or resync indexing job.
+
+        This method resets internal progress counters, records the job type and
+        total number of operations to perform, and writes an initial status entry
+        so external callers can monitor the job from the moment it starts.
+
+        Args:
+            job_type (str): Label for the indexing job being started, such as "rebuilding" or "resyncing".
+            total_operations (int): Total number of delete and index operations expected for this job.
+        """
         self._processed_count = 0
         self._total_for_current_job = total_operations
         self._current_job_status = job_type
@@ -806,7 +1008,17 @@ class CollectionExtractor:
     def _queue_operations(
         self, delete_list: list[str], index_list: list[Path], job_type: str
     ) -> None:
-        """Queues all delete and index operations."""
+        """Enqueues delete and index events for all operations in the current job.
+
+        This method converts relative delete paths and absolute index paths into
+        queue events for the writer thread, then appends a final completion event
+        indicating whether the batch belongs to a rebuild or resync job.
+
+        Args:
+            delete_list (list[str]): Relative paths of tracks that should be removed from the database.
+            index_list (list[Path]): Absolute paths of tracks that should be indexed or reindexed.
+            job_type (str): The type of job being processed, such as "rebuilding" or "resyncing".
+        """
         for rel_path in delete_list:
             self._write_queue.put(IndexEvent("DELETE_FILE", Path(rel_path)))
 
@@ -817,7 +1029,16 @@ class CollectionExtractor:
         self._write_queue.put(IndexEvent(done_event))
 
     def _wait_for_job_completion(self, job_type: str, total_operations: int) -> None:
-        """Waits for the job to complete and cleans up."""
+        """Blocks until all queued operations for the current job have been processed.
+
+        This method waits for the writer queue to drain, then clears the external
+        indexing status and logs a summary message indicating that the job type
+        has completed along with the total number of operations performed.
+
+        Args:
+            job_type (str): The type of indexing job being waited on, such as "rebuilding" or "resyncing".
+            total_operations (int): The total number of operations that were scheduled for the job.
+        """
         self._write_queue.join()
         clear_indexing_status(self.data_root)
         self._logger.info(
@@ -827,11 +1048,31 @@ class CollectionExtractor:
     # === Path utilities ===
 
     def _to_relpath(self, path: Path) -> str:
-        """Converts an absolute file path to a relative path with respect to the music root directory."""
+        """Converts an absolute path to a POSIX-style path relative to the music root.
+
+        This method normalizes the given path, strips the music root prefix,
+        and returns a string suitable for stable storage and comparison in the database.
+
+        Args:
+            path (Path): The absolute filesystem path to convert.
+
+        Returns:
+            str: The relative POSIX-style path under the music root.
+        """
         return path.resolve().relative_to(self.music_root).as_posix()
 
     def _to_abspath(self, relpath: str) -> Path:
-        """Converts a relative path to an absolute path within the music root directory."""
+        """Converts a stored relative music path into an absolute filesystem path.
+
+        This method joins the configured music root with the given relative path
+        and returns a Path object that can be used for file system operations.
+
+        Args:
+            relpath (str): The POSIX-style relative path under the music root.
+
+        Returns:
+            Path: The absolute path pointing to the file within the music root.
+        """
         return self.music_root / Path(relpath)
 
     # === Monitoring ===
@@ -853,7 +1094,18 @@ class CollectionExtractor:
             self._observer.join()
 
     def wait_for_indexing_start(self, timeout: float = 5.0) -> bool:
-        """Waits for the initial indexing/rebuild to begin writing status."""
+        """Waits until indexing has started or the specified timeout elapses.
+
+        This method blocks until the internal event indicating the beginning of
+        a rebuild or resync job is set, allowing callers to synchronize with the
+        start of indexing work.
+
+        Args:
+            timeout (float): The maximum number of seconds to wait for indexing to start.
+
+        Returns:
+            bool: True if indexing started before the timeout, or False if the timeout expired first.
+        """
         return self._initial_status_event.wait(timeout=timeout)
 
 
@@ -866,11 +1118,30 @@ class _Watcher(FileSystemEventHandler):
     """Handles file system events for the music collection."""
 
     def __init__(self, extractor: CollectionExtractor) -> None:
-        """Initializes the file system event handler for music collection monitoring."""
+        """Initializes the watcher with a collection extractor used to handle events.
+
+        This constructor stores a reference to the extractor so that relevant
+        filesystem changes can be translated into indexing operations for the
+        music collection.
+
+        Args:
+            extractor (CollectionExtractor): The collection extractor that processes
+                index and delete events for music files.
+        """
         self.extractor = extractor
 
     def on_any_event(self, event: object) -> None:
-        """Handles any file system event for supported music files."""
+        """Transforms relevant filesystem events into indexing queue operations.
+
+        This method ignores directory changes and non-supported file types, then
+        turns create/modify events into INDEX_FILE jobs and delete events into
+        DELETE_FILE jobs so that the writer thread can keep the database in sync
+        with real-time changes.
+
+        Args:
+            event (object): A watchdog-style file system event that provides
+                ``is_directory``, ``src_path``, and ``event_type`` attributes.
+        """
         if event.is_directory:
             return
 
