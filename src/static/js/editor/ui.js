@@ -119,6 +119,18 @@ export function initUI() {
     // Title changes count as "unsaved"
     titleInput.addEventListener("input", markUnsaved);
 
+    // Auto-grow textarea as user types
+    function autoGrowTextarea(element) {
+        element.style.height = 'auto';
+        element.style.height = element.scrollHeight + 'px';
+    }
+
+    // Initialize textarea height and add listener
+    autoGrowTextarea(titleInput);
+    titleInput.addEventListener('input', function() {
+        autoGrowTextarea(this);
+    });
+
     // Save button handler with client ID for idempotent creates
     saveBtn.addEventListener("click", async () => {
         if (playlist.length === 0) {

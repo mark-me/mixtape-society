@@ -29,10 +29,10 @@
     </h1>
 
     <!-- Search bar -->
-    <div class="container-fluid overflow-hidden" id="search-bar">
+    <div class="container-fluid" id="search-bar">
         <div class="row mb-4">
             <div class="col">
-                <div class="position-relative">
+                <div class="position-relative" style="padding: 4px;">
                     <input
                         id="searchInput"
                         type="text"
@@ -115,11 +115,10 @@
                                 </label>
                             </div>
 
-                            <input type="text" id="playlist-title"
-                                class="form-control form-control-lg text-center mt-4 bg-transparent border-0 text-white fw-light"
-                                style="font-size: 1.8rem;"
+                            <textarea id="playlist-title"
+                                class="form-control form-control-lg text-center mt-4 bg-transparent border-0 fw-light playlist-title-input"
                                 placeholder="Name your mixtape..."
-                                value="My Mixtape">
+                                rows="1">My Mixtape</textarea>
                         </div>
 
                         <!-- Tabs for Tracks and Liner Notes -->

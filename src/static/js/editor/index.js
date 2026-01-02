@@ -17,6 +17,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const titleInput = document.getElementById("playlist-title");
         titleInput.value = preloadMixtape.title || "";
+        
+        // Auto-grow the textarea after setting value
+        if (titleInput.tagName === 'TEXTAREA') {
+            titleInput.style.height = 'auto';
+            titleInput.style.height = titleInput.scrollHeight + 'px';
+        }
     }
 
     if (!preloadMixtape || !preloadMixtape.slug) {

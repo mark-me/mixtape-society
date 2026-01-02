@@ -1,4 +1,45 @@
 /* === 1. Search Input === */
+
+/* Search bar container - ensure focus ring isn't clipped */
+#search-bar {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+}
+
+/* === Playlist Title Input === */
+.playlist-title-input {
+    font-size: 1.8rem;
+    line-height: 1.3;
+    overflow: hidden;
+    resize: none;
+    min-height: 2.5rem;
+    max-height: 8rem;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    color: var(--bs-body-color) !important;
+}
+
+/* Auto-grow the textarea as user types */
+.playlist-title-input:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+/* Responsive font sizing for mobile */
+@media (max-width: 576px) {
+    .playlist-title-input {
+        font-size: 1.3rem;
+        max-height: 6rem;
+    }
+}
+
+@media (min-width: 577px) and (max-width: 768px) {
+    .playlist-title-input {
+        font-size: 1.5rem;
+        max-height: 7rem;
+    }
+}
+
 #searchInput {
     height: 58px;
     padding-left: 52px !important;
