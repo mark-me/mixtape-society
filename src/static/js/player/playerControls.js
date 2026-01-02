@@ -2,10 +2,6 @@
 
 /**
  * Quality settings for audio playback
- * - high: 256kbps MP3 (better quality, more bandwidth)
- * - medium: 192kbps MP3 (good balance - DEFAULT)
- * - low: 128kbps MP3 (lower quality, less bandwidth)
- * - original: Original file format (FLAC/WAV - highest quality, most bandwidth)
  */
 const QUALITY_LEVELS = {
     high: { label: 'High (256k)', bandwidth: 'high' },
@@ -13,6 +9,8 @@ const QUALITY_LEVELS = {
     low: { label: 'Low (128k)', bandwidth: 'low' },
     original: { label: 'Original', bandwidth: 'highest' }
 };
+
+const DEFAULT_QUALITY = 'medium';
 
 export function initPlayerControls() {
     const player = document.getElementById('main-player');
@@ -24,19 +22,18 @@ export function initPlayerControls() {
     const bottomTitle = document.getElementById('bottom-now-title');
     const bottomArtistAlbum = document.getElementById('bottom-now-artist-album');
 
-    let currentIndex = -1;   // −1 means nothing playing
-    let currentQuality = localStorage.getItem('audioQuality') || 'medium';
+    let currentIndex = -1;
+    let currentQuality = localStorage.getItem('audioQuality') || DEFAULT_QUALITY;
 
-    /* -----------------------------------------------------------------
-       Quality selector initialization
-       ----------------------------------------------------------------- */
+    /**
+     * Initialize quality selector dropdown and event handlers
+     */
     function initQualitySelector() {
         const qualityBtn = document.getElementById('quality-btn-bottom');
         const qualityMenu = document.getElementById('quality-menu');
 
         if (!qualityBtn || !qualityMenu) return;
 
-        // Update button text to show current quality
         updateQualityButtonText();
 
         // Toggle dropdown
@@ -67,28 +64,42 @@ export function initPlayerControls() {
         });
     }
 
+    /**
+     * Updates quality button text to show current quality
+     */
     function updateQualityButtonText() {
         const qualityBtn = document.getElementById('quality-btn-bottom');
-        if (qualityBtn) {
-            const qualityLabel = QUALITY_LEVELS[currentQuality]?.label || 'Medium';
-            qualityBtn.innerHTML = `<i class="bi bi-gear-fill me-1"></i>${qualityLabel}`;
-        }
+        if (!qualityBtn) return;
+
+        const qualityLabel = QUALITY_LEVELS[currentQuality]?.label || 'Medium';
+        qualityBtn.innerHTML = `<i class="bi bi-gear-fill me-1"></i>${qualityLabel}`;
     }
 
+    /**
+     * Updates active state of quality menu options
+     */
+    function updateQualityMenuState(quality) {
+        document.querySelectorAll('.quality-option').forEach(opt => {
+            const checkIcon = opt.querySelector('.bi-check2');
+            if (opt.dataset.quality === quality) {
+                opt.classList.add('active');
+                if (checkIcon) checkIcon.style.display = 'inline';
+            } else {
+                opt.classList.remove('active');
+                if (checkIcon) checkIcon.style.display = 'none';
+            }
+        });
+    }
+
+    /**
+     * Changes audio quality and reloads current track if playing
+     */
     function changeQuality(newQuality) {
         currentQuality = newQuality;
         localStorage.setItem('audioQuality', newQuality);
 
         updateQualityButtonText();
-
-        // Mark all quality options
-        document.querySelectorAll('.quality-option').forEach(opt => {
-            if (opt.dataset.quality === newQuality) {
-                opt.classList.add('active');
-            } else {
-                opt.classList.remove('active');
-            }
-        });
+        updateQualityMenuState(newQuality);
 
         // If something is playing, reload with new quality
         if (currentIndex >= 0 && player.src) {
@@ -97,16 +108,17 @@ export function initPlayerControls() {
 
             playTrack(currentIndex);
 
-            // Try to resume at the same position
             if (wasPlaying) {
                 player.currentTime = currentTime;
             }
         }
 
-        // Show toast notification
         showQualityToast(newQuality);
     }
 
+    /**
+     * Shows toast notification for quality change
+     */
     function showQualityToast(quality) {
         const toastEl = document.getElementById('qualityToast');
         if (!toastEl) return;
@@ -122,35 +134,82 @@ export function initPlayerControls() {
         toast.show();
     }
 
-    /* -----------------------------------------------------------------
-       Core playback logic (with quality parameter)
-       ----------------------------------------------------------------- */
+    /**
+     * Updates Media Session API metadata for mobile notifications
+     */
+    function updateMediaSession(track) {
+        if (!('mediaSession' in navigator)) return;
+
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: track.dataset.title,
+            artist: track.dataset.artist,
+            album: track.dataset.album || '',
+        });
+
+        // Set action handlers for media controls
+        navigator.mediaSession.setActionHandler('play', () => {
+            player.play();
+        });
+
+        navigator.mediaSession.setActionHandler('pause', () => {
+            player.pause();
+        });
+
+        navigator.mediaSession.setActionHandler('previoustrack', () => {
+            playTrack(currentIndex - 1);
+        });
+
+        navigator.mediaSession.setActionHandler('nexttrack', () => {
+            playTrack(currentIndex + 1);
+        });
+
+        // Update position state when metadata changes
+        updatePositionState();
+    }
+
+    /**
+     * Updates Media Session position state for progress indicator
+     */
+    function updatePositionState() {
+        if (!('mediaSession' in navigator) || !('setPositionState' in navigator.mediaSession)) return;
+
+        if (player.duration && !isNaN(player.duration)) {
+            navigator.mediaSession.setPositionState({
+                duration: player.duration,
+                playbackRate: player.playbackRate,
+                position: player.currentTime
+            });
+        }
+    }
+
+    /**
+     * Builds audio source URL with quality parameter
+     */
+    function buildAudioUrl(basePath, quality) {
+        const urlParams = new URLSearchParams();
+        urlParams.set('quality', quality);
+        return `${basePath}?${urlParams.toString()}`;
+    }
+
+    /**
+     * Plays track at given index with current quality setting
+     */
     function playTrack(index) {
-        // 1. If index is same as current, don't reload the source
+        // If index is same as current, don't reload the source
         if (index === currentIndex && player.src !== '') {
             player.play().catch(e => console.log('Autoplay prevented:', e));
             return;
         }
 
-        // 2. Handle bounds and stopping
+        // Handle bounds and stopping
         if (index < 0 || index >= trackItems.length) {
-            player.pause();
-            player.src = '';
-            container.style.display = 'none';
-            trackItems.forEach(t => t.classList.remove('active-track'));
-            currentIndex = -1;
+            stopPlayback();
             return;
         }
 
         const track = trackItems[index];
 
-        // Build URL with quality parameter
-        const basePath = track.dataset.path;
-        const urlParams = new URLSearchParams();
-        urlParams.set('quality', currentQuality);
-
-        player.src = `${basePath}?${urlParams.toString()}`;
-
+        player.src = buildAudioUrl(track.dataset.path, currentQuality);
         bottomTitle.textContent = track.dataset.title;
         bottomArtistAlbum.textContent = `${track.dataset.artist} • ${track.dataset.album}`;
         container.style.display = 'block';
@@ -159,97 +218,134 @@ export function initPlayerControls() {
         track.classList.add('active-track');
 
         currentIndex = index;
+        
+        // Update Media Session metadata for mobile notifications
+        updateMediaSession(track);
+        
         player.play().catch(e => console.log('Autoplay prevented:', e));
     }
 
-    /* -----------------------------------------------------------------
-       UI helpers (close, navigation, big‑play, auto‑start)
-       ----------------------------------------------------------------- */
-    document.getElementById('big-play-btn')?.addEventListener('click', () => {
-        if (trackItems.length === 0) return;
-        if (currentIndex === -1) playTrack(0);
-        else player.play();
-    });
-    player?.addEventListener('play', syncPlayIcons);
-    player?.addEventListener('pause', syncPlayIcons);
-    prevBtn?.addEventListener('click', () => playTrack(currentIndex - 1));
-    nextBtn?.addEventListener('click', () => playTrack(currentIndex + 1));
-    player?.addEventListener('ended', () => {
-        syncPlayIcons();
-        playTrack(currentIndex + 1);
-    });
-
-    trackItems.forEach((item, i) => {
-        const overlayBtn = item.querySelector('.play-overlay-btn');
-        if (overlayBtn) {
-            overlayBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (i === currentIndex) {
-                    // Same track: toggle pause/resume
-                    if (player.paused) {
-                        player.play().catch(err => console.error("Resume failed:", err));
-                    } else {
-                        player.pause();
-                    }
-                } else {
-                    // New track: load and play
-                    playTrack(i);
-                }
-            });
-        }
-    });
-
-    closeBtn?.addEventListener('click', () => {
+    /**
+     * Stops playback and hides player
+     */
+    function stopPlayback() {
         player.pause();
+        player.src = '';
         container.style.display = 'none';
-    });
-
-    if (window.location.hash === '#play' && trackItems.length > 0) {
-        setTimeout(() => playTrack(0), 500);
-    }
-    if (sessionStorage.getItem('startPlaybackNow') && trackItems.length > 0) {
-        sessionStorage.removeItem('startPlaybackNow');
-        playTrack(0);
+        trackItems.forEach(t => t.classList.remove('active-track'));
+        currentIndex = -1;
     }
 
-    /* -----------------------------------------------------------------
-       Icon‑sync helper
-       ----------------------------------------------------------------- */
+    /**
+     * Syncs play/pause icon states across all track items
+     */
     function syncPlayIcons() {
         trackItems.forEach((item, idx) => {
             const icon = item.querySelector('.play-overlay-btn i');
-            if (icon) {
+            if (!icon) return;
+
+            const isCurrentTrack = idx === currentIndex;
+            const isPlaying = isCurrentTrack && !player.paused;
+
+            // Update icon
+            if (isPlaying) {
+                icon.classList.remove('bi-play-fill');
+                icon.classList.add('bi-pause-fill');
+            } else {
                 icon.classList.remove('bi-pause-fill');
                 icon.classList.add('bi-play-fill');
             }
-            item.classList.remove('playing');
-        });
 
-        if (currentIndex >= 0 && !player.paused) {
-            const activeItem = trackItems[currentIndex];
-            if (activeItem) {
-                activeItem.classList.add('playing');
-                const activeIcon = activeItem.querySelector('.play-overlay-btn i');
-                if (activeIcon) {
-                    activeIcon.classList.remove('bi-play-fill');
-                    activeIcon.classList.add('bi-pause-fill');
-                }
+            // Update track item state
+            if (isPlaying) {
+                item.classList.add('playing');
+            } else {
+                item.classList.remove('playing');
             }
-        } else if (currentIndex >= 0 && player.paused) {
-            // Paused: show play icon on active
-            const activeItem = trackItems[currentIndex];
-            if (activeItem) {
-                activeItem.classList.remove('playing');  // Remove green if paused
-            }
+        });
+    }
+
+    /**
+     * Toggles play/pause for the current track
+     */
+    function togglePlayPause() {
+        if (player.paused) {
+            player.play().catch(err => console.error("Resume failed:", err));
+        } else {
+            player.pause();
         }
     }
 
-    // Initialize quality selector
-    initQualitySelector();
+    /**
+     * Initializes all event listeners
+     */
+    function initEventListeners() {
+        // Big play button
+        document.getElementById('big-play-btn')?.addEventListener('click', () => {
+            if (trackItems.length === 0) return;
+            if (currentIndex === -1) {
+                playTrack(0);
+            } else {
+                player.play();
+            }
+        });
 
-    /* -----------------------------------------------------------------
-       Return the tiny public API that other modules can use.
-       ----------------------------------------------------------------- */
+        // Player events
+        player?.addEventListener('play', syncPlayIcons);
+        player?.addEventListener('pause', syncPlayIcons);
+        player?.addEventListener('ended', () => {
+            syncPlayIcons();
+            playTrack(currentIndex + 1);
+        });
+
+        // Media Session position updates
+        player?.addEventListener('loadedmetadata', updatePositionState);
+        player?.addEventListener('timeupdate', updatePositionState);
+        player?.addEventListener('play', updatePositionState);
+        player?.addEventListener('pause', updatePositionState);
+        player?.addEventListener('ratechange', updatePositionState);
+
+        // Navigation buttons
+        prevBtn?.addEventListener('click', () => playTrack(currentIndex - 1));
+        nextBtn?.addEventListener('click', () => playTrack(currentIndex + 1));
+        closeBtn?.addEventListener('click', stopPlayback);
+
+        // Track item play buttons
+        trackItems.forEach((item, i) => {
+            const overlayBtn = item.querySelector('.play-overlay-btn');
+            if (!overlayBtn) return;
+
+            overlayBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (i === currentIndex) {
+                    togglePlayPause();
+                } else {
+                    playTrack(i);
+                }
+            });
+        });
+    }
+
+    /**
+     * Handles auto-start scenarios (hash or session storage)
+     */
+    function handleAutoStart() {
+        if (trackItems.length === 0) return;
+
+        if (window.location.hash === '#play') {
+            setTimeout(() => playTrack(0), 500);
+        } else if (sessionStorage.getItem('startPlaybackNow')) {
+            sessionStorage.removeItem('startPlaybackNow');
+            playTrack(0);
+        }
+    }
+
+    // Initialize everything
+    initQualitySelector();
+    initEventListeners();
+    handleAutoStart();
+
+    // Return public API
     return {
         playTrack,
         syncPlayIcons,

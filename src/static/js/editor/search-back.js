@@ -159,32 +159,29 @@ function renderResults(data) {
             const track = entry.tracks[0];
             return `
                 <li class="list-group-item d-flex justify-content-between align-items-center mb-2 border rounded">
-                    <div class="d-flex align-items-center flex-grow-1 gap-3 min-w-0">
-                        ${track.cover ? `
-                            <img src="/${track.cover}" alt="Track Cover" class="rounded" style="width: 50px; height: 50px; object-fit: cover; flex-shrink: 0;">
-                        ` : ''}
-                        <div class="flex-grow-1 min-w-0">
-                            <div class="d-flex align-items-center gap-2 mb-1">
-                                <i class="bi bi-music-note-beamed text-track flex-shrink-0"></i>
-                                <strong class="text-truncate">${entry.highlighted_tracks ? entry.highlighted_tracks[0].highlighted : escapeHtml(track.track)}</strong>
-                            </div>
-                            <small class="text-muted d-block text-truncate">${entry.artist}</small>
-                            <small class="text-muted d-block text-truncate">${entry.album}</small>
-                        </div>
+                    <div class="flex-grow-1">
+                        <i class="bi bi-music-note-beamed me-2 text-track"></i>
+                        <strong>${entry.highlighted_tracks ? entry.highlighted_tracks[0].highlighted : escapeHtml(track.track)}</strong><br>
+                        ${track.cover ? `<img src="/${track.cover}" alt="Track Cover" class="ms-2 rounded" style="width: 40px; height: 40px; object-fit: cover;">` : ''}
+                        <small class="text-muted">
+                            ${entry.artist} • ${entry.album}
+                        </small>
                     </div>
-                    <div class="d-flex align-items-center gap-2 flex-shrink-0 ms-2">
-                        <span class="text-muted" style="min-width: 45px; text-align: right;">${formatDuration(track.duration || "?:??")}</span>
-                        <button class="btn btn-track btn-sm preview-btn"
-                                data-path="${escapeHtml(track.path)}"
-                                data-title="${escapeHtml(track.track)}"
-                                data-artist="${escapeHtml(entry.artist)}"
-                                data-album="${escapeHtml(entry.album)}"
-                                data-cover="${escapeHtml(track.cover || '')}">
-                            <i class="bi bi-play-fill"></i>
-                        </button>
-                        <button class="btn btn-success btn-sm add-btn" data-item="${escapeHtml(JSON.stringify(track))}">
-                            <i class="bi bi-plus-circle"></i>
-                        </button>
+                    <div class="d-flex align-items-center">
+                        <div class="track-actions d-flex align-items-center gap-2">
+                            <span class="text-muted me-3">${formatDuration(track.duration || "?:??")}</span>
+                            <button class="btn btn-track btn-sm preview-btn"
+                                    data-path="${escapeHtml(track.path)}"
+                                    data-title="${escapeHtml(track.track)}"
+                                    data-artist="${escapeHtml(entry.artist)}"
+                                    data-album="${escapeHtml(entry.album)}"
+                                    data-cover="${escapeHtml(track.cover || '')}">
+                                <i class="bi bi-play-fill"></i>
+                            </button>
+                            <button class="btn btn-success btn-sm add-btn" data-item="${escapeHtml(JSON.stringify(track))}">
+                                <i class="bi bi-plus-circle"></i>
+                            </button>
+                        </div>
                     </div>
                 </li>`;
         }).join('');

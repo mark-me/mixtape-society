@@ -6,9 +6,29 @@ All notable changes to Mixtape Society are documented here. We follow [Semantic 
 
 Each release rewinds and fast-forwards your mixtape experience—just like a real cassette! 🎧
 
+## 📦 v0.4.1
+
+<span class="md-tag">Test</span>
+
+**🗓️** 2026-01-xx
+
+### ✨ Added
+
+- Fallback cover art
+- Cover art for track search results
+
+### 🔧 Changed
+
+- CSS changed to sematic color system
+- Cleaning up editor and player javascript
+
+[v0.4.1](https://github.com/mark-me/mixtape-society/compare/v0.4.0...v0.4.1)
+
+---
+
 ## 📦 v0.4.0
 
-<span class="md-tag">Unreleased</span>
+<span class="md-tag">Release</span>
 
 **🗓️** 2026-01-01
 
@@ -23,8 +43,9 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 - Saving existing mixtapes results in error
 - Covers not available for non-admin users
+- Playback notification on Mobile progress not in sync with actual playback position.
 
-[v0.3.1](https://github.com/mark-me/mixtape-society/compare/v0.3.0...v0.4.0)
+[v0.4.0](https://github.com/mark-me/mixtape-society/compare/v0.3.0...v0.4.0)
 
 ---
 

@@ -1,72 +1,76 @@
 :root {
     --bs-link-hover-color: #0d6efd;
-
-    /* ===     SEMANTIC COLOR TOKENS - JAZZ LOUNGE ENHANCED
-       Sophisticated colors with improved contrast for all modes
-       =========================== */
-
-    /* === ARTIST COLORS === */
-    /* Deep Burgundy - like wine bars and leather seating */
-    --color-artist: #8b3a3a;
-    --color-artist-rgb: 139, 58, 58;
-    --color-artist-text-emphasis: #6b2020;
-    --color-artist-bg-subtle: rgba(139, 58, 58, 0.12);
-    --color-artist-border-subtle: rgba(139, 58, 58, 0.35);
-
+    
+    /* ============================================
+       SEMANTIC COLOR TOKENS - CASSETTE RAINBOW SCHEME
+       Inspired by colorful cassette tapes and 80s/90s nostalgia
+       ============================================ */
+    
+    /* ==================== ARTIST COLORS ==================== */
+    /* Hot Pink - like cassette tape labels and 80s neon */
+    --color-artist: #ff006e;
+    --color-artist-rgb: 255, 0, 110;
+    --color-artist-text-emphasis: #b30050;
+    --color-artist-bg-subtle: rgba(255, 0, 110, 0.12);
+    --color-artist-border-subtle: rgba(255, 0, 110, 0.35);
+    
     /* Hover and active states */
-    --color-artist-hover: #a04848;
-    --color-artist-active: #762e2e;
-
-    /* === ALBUM COLORS === */
-    /* Navy Blue - like midnight performances */
-    --color-album: #1e3a5f;
-    --color-album-rgb: 30, 58, 95;
-    --color-album-text-emphasis: #152840;
-    --color-album-bg-subtle: rgba(30, 58, 95, 0.12);
-    --color-album-border-subtle: rgba(30, 58, 95, 0.35);
-
+    --color-artist-hover: #ff3385;
+    --color-artist-active: #cc0058;
+    
+    /* ==================== ALBUM COLORS ==================== */
+    /* Electric Blue - like cassette tape reels */
+    --color-album: #3a86ff;
+    --color-album-rgb: 58, 134, 255;
+    --color-album-text-emphasis: #0d5fdb;
+    --color-album-bg-subtle: rgba(58, 134, 255, 0.12);
+    --color-album-border-subtle: rgba(58, 134, 255, 0.35);
+    
     /* Hover and active states */
-    --color-album-hover: #2a4d7c;
-    --color-album-active: #18304f;
-
-    /* === TRACK COLORS === */
-    /* Forest Green - like velvet curtains */
-    --color-track: #2d5a3d;
-    --color-track-rgb: 45, 90, 61;
-    --color-track-text-emphasis: #1d3d28;
-    --color-track-bg-subtle: rgba(45, 90, 61, 0.12);
-    --color-track-border-subtle: rgba(45, 90, 61, 0.35);
-
+    --color-album-hover: #5c9aff;
+    --color-album-active: #2970e0;
+    
+    /* ==================== TRACK COLORS ==================== */
+    /* Lime Green - like play button indicators */
+    --color-track: #06d6a0;
+    --color-track-rgb: 6, 214, 160;
+    --color-track-text-emphasis: #04a378;
+    --color-track-bg-subtle: rgba(6, 214, 160, 0.12);
+    --color-track-border-subtle: rgba(6, 214, 160, 0.35);
+    
     /* Hover and active states */
-    --color-track-hover: #3d704d;
-    --color-track-active: #234830;
+    --color-track-hover: #2edfb3;
+    --color-track-active: #05b88d;
 }
 
-/* Dark mode - warmer, richer colors */
+/* Dark mode adjustments - rainbow colors pop even more in dark mode */
 [data-bs-theme="dark"] {
-    /* Artist - warm burgundy glow */
-    --color-artist: #c65d5d;
-    --color-artist-rgb: 198, 93, 93;
-    --color-artist-bg-subtle: rgba(198, 93, 93, 0.15);
-    --color-artist-border-subtle: rgba(198, 93, 93, 0.4);
-    --color-artist-text-emphasis: #d47676;
-
-    /* Album - rich navy with depth */
-    --color-album: #4a6fa5;
-    --color-album-rgb: 74, 111, 165;
-    --color-album-bg-subtle: rgba(74, 111, 165, 0.15);
-    --color-album-border-subtle: rgba(74, 111, 165, 0.4);
-    --color-album-text-emphasis: #6585b5;
-
-    /* Track - lush forest green */
-    --color-track: #4a8c5f;
-    --color-track-rgb: 74, 140, 95;
-    --color-track-bg-subtle: rgba(74, 140, 95, 0.15);
-    --color-track-border-subtle: rgba(74, 140, 95, 0.4);
-    --color-track-text-emphasis: #64a678;
+    /* Artist - slightly lighter hot pink for dark backgrounds */
+    --color-artist: #ff1a7f;
+    --color-artist-rgb: 255, 26, 127;
+    --color-artist-bg-subtle: rgba(255, 26, 127, 0.15);
+    --color-artist-border-subtle: rgba(255, 26, 127, 0.4);
+    --color-artist-text-emphasis: #ff4d99;
+    
+    /* Album - brighter electric blue for visibility */
+    --color-album: #5c9aff;
+    --color-album-rgb: 92, 154, 255;
+    --color-album-bg-subtle: rgba(92, 154, 255, 0.15);
+    --color-album-border-subtle: rgba(92, 154, 255, 0.4);
+    --color-album-text-emphasis: #7daeff;
+    
+    /* Track - brighter lime green */
+    --color-track: #1ee0ad;
+    --color-track-rgb: 30, 224, 173;
+    --color-track-bg-subtle: rgba(30, 224, 173, 0.15);
+    --color-track-border-subtle: rgba(30, 224, 173, 0.4);
+    --color-track-text-emphasis: #4ae6bd;
 }
 
-/* === SEMANTIC UTILITY CLASSES === */
+/* ============================================
+   SEMANTIC UTILITY CLASSES
+   Use these instead of .text-warning, .bg-success, etc.
+   ============================================ */
 
 /* Text colors */
 .text-artist { color: var(--color-artist) !important; }
@@ -78,30 +82,30 @@
 .text-track-emphasis { color: var(--color-track-text-emphasis) !important; }
 
 /* Background colors */
-.bg-artist {
-    background-color: var(--color-artist) !important;
+.bg-artist { 
+    background-color: var(--color-artist) !important; 
     color: white !important;
 }
-.bg-album {
-    background-color: var(--color-album) !important;
+.bg-album { 
+    background-color: var(--color-album) !important; 
     color: white !important;
 }
-.bg-track {
-    background-color: var(--color-track) !important;
+.bg-track { 
+    background-color: var(--color-track) !important; 
     color: white !important;
 }
 
 /* Subtle backgrounds (for highlighting) */
-.bg-artist-subtle {
-    background-color: var(--color-artist-bg-subtle) !important;
+.bg-artist-subtle { 
+    background-color: var(--color-artist-bg-subtle) !important; 
     color: var(--color-artist-text-emphasis) !important;
 }
-.bg-album-subtle {
-    background-color: var(--color-album-bg-subtle) !important;
+.bg-album-subtle { 
+    background-color: var(--color-album-bg-subtle) !important; 
     color: var(--color-album-text-emphasis) !important;
 }
-.bg-track-subtle {
-    background-color: var(--color-track-bg-subtle) !important;
+.bg-track-subtle { 
+    background-color: var(--color-track-bg-subtle) !important; 
     color: var(--color-track-text-emphasis) !important;
 }
 
@@ -110,7 +114,9 @@
 .border-album { border-color: var(--color-album-border-subtle) !important; }
 .border-track { border-color: var(--color-track-border-subtle) !important; }
 
-/* === BUTTON VARIANTS=== */
+/* ============================================
+   BUTTON VARIANTS
+   ============================================ */
 
 /* Solid buttons */
 .btn-artist {
@@ -192,40 +198,44 @@
     --bs-btn-disabled-color: var(--color-track);
 }
 
-/* === BADGE VARIANTS=== */
+/* ============================================
+   BADGE VARIANTS
+   ============================================ */
 
-.badge-artist {
+.badge-artist { 
     background-color: var(--color-artist) !important;
     color: #fff !important;
 }
 
-.badge-album {
+.badge-album { 
     background-color: var(--color-album) !important;
     color: #fff !important;
 }
 
-.badge-track {
+.badge-track { 
     background-color: var(--color-track) !important;
     color: #fff !important;
 }
 
 /* Subtle badges (lighter background) */
-.badge-artist-subtle {
+.badge-artist-subtle { 
     background-color: var(--color-artist-bg-subtle) !important;
     color: var(--color-artist-text-emphasis) !important;
 }
 
-.badge-album-subtle {
+.badge-album-subtle { 
     background-color: var(--color-album-bg-subtle) !important;
     color: var(--color-album-text-emphasis) !important;
 }
 
-.badge-track-subtle {
+.badge-track-subtle { 
     background-color: var(--color-track-bg-subtle) !important;
     color: var(--color-track-text-emphasis) !important;
 }
 
-/* === ALERT VARIANTS=== */
+/* ============================================
+   ALERT VARIANTS
+   ============================================ */
 
 .alert-artist {
     --bs-alert-color: var(--color-artist-text-emphasis);
@@ -248,7 +258,9 @@
     --bs-alert-link-color: var(--color-track-text-emphasis);
 }
 
-/* === TOAST VARIANTS=== */
+/* ============================================
+   TOAST VARIANTS
+   ============================================ */
 
 .text-bg-artist {
     background-color: var(--color-artist) !important;
@@ -265,7 +277,9 @@
     color: #fff !important;
 }
 
-/* === LIST GROUP VARIANTS=== */
+/* ============================================
+   LIST GROUP VARIANTS
+   ============================================ */
 
 .list-group-item-artist {
     background-color: var(--color-artist-bg-subtle);
@@ -282,7 +296,9 @@
     color: var(--color-track-text-emphasis);
 }
 
-/* === PROGRESS BAR VARIANTS=== */
+/* ============================================
+   PROGRESS BAR VARIANTS
+   ============================================ */
 
 .progress-bar-artist {
     background-color: var(--color-artist) !important;
@@ -296,7 +312,9 @@
     background-color: var(--color-track) !important;
 }
 
-/* === LINK VARIANTS=== */
+/* ============================================
+   LINK VARIANTS
+   ============================================ */
 
 .link-artist {
     color: var(--color-artist) !important;
@@ -331,7 +349,9 @@
     text-decoration-color: var(--color-track-hover) !important;
 }
 
-/* === ORIGINAL BASE STYLES=== */
+/* ============================================
+   ORIGINAL BASE STYLES
+   ============================================ */
 
 body {
     min-height: 100vh;
@@ -362,7 +382,9 @@ footer {
     margin-left: 0 !important;
 }
 
-/* === HELPER CLASSES=== */
+/* ============================================
+   HELPER CLASSES
+   ============================================ */
 
 /* Opacity variants for semantic colors */
 .text-artist.opacity-75 { opacity: 0.75; }
@@ -373,7 +395,7 @@ footer {
 .text-album.opacity-50 { opacity: 0.5; }
 .text-track.opacity-50 { opacity: 0.5; }
 
-/* Gradient backgrounds */
+/* Gradient backgrounds (optional - for special effects) */
 .bg-gradient-artist {
     background: linear-gradient(135deg, var(--color-artist), var(--color-artist-hover)) !important;
     color: white !important;
@@ -405,29 +427,45 @@ footer {
     box-shadow: 0 0 0 0.25rem rgba(var(--color-track-rgb), 0.25);
 }
 
-/* === REFINED JAZZ ENHANCEMENTS
-   Subtle, sophisticated touches=== */
+/* ============================================
+   CASSETTE-SPECIFIC ENHANCEMENTS
+   Fun 80s/90s vibes with rainbow colors
+   ============================================ */
 
-/* Elegant shadows for depth */
-[data-bs-theme="light"] .card {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-[data-bs-theme="dark"] .card {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-}
-
-/* Refined hover states */
+/* Retro glow effect for buttons */
 .btn-artist:hover,
 .btn-album:hover,
 .btn-track:hover {
-    box-shadow: 0 4px 12px rgba(var(--color-artist-rgb), 0.2);
-    transform: translateY(-1px);
+    box-shadow: 0 0 20px rgba(var(--color-artist-rgb), 0.5);
+    transform: translateY(-2px);
     transition: all 0.2s ease;
 }
 
-/* Professional borders */
-.refined-border {
-    border: 1px solid var(--bs-border-color);
-    border-top: 3px solid var(--color-artist);
+/* Rainbow gradient animation (optional - for special elements) */
+@keyframes rainbow-shimmer {
+    0% { filter: hue-rotate(0deg); }
+    100% { filter: hue-rotate(360deg); }
+}
+
+.cassette-shimmer {
+    animation: rainbow-shimmer 10s linear infinite;
+}
+
+/* Neon text effect (optional) */
+.neon-text {
+    text-shadow: 
+        0 0 10px var(--color-artist),
+        0 0 20px var(--color-artist),
+        0 0 30px var(--color-artist);
+}
+
+/* 80s style card borders */
+.cassette-card {
+    border: 2px solid;
+    border-image: linear-gradient(
+        45deg,
+        var(--color-artist),
+        var(--color-album),
+        var(--color-track)
+    ) 1;
 }
