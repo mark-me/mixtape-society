@@ -3,7 +3,7 @@ import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
 from queue import Empty, Queue
-from threading import Event as ThreadEvent, Thread
+from threading import Event as ThreadEvent, Thread, Lock
 from typing import Iterable, Literal, Optional
 
 from tinytag import TinyTag
@@ -91,6 +91,8 @@ class CollectionExtractor:
         self._writer_stop = ThreadEvent()
         self._observer: Optional[Observer] = None
 
+        self._db_lock = Lock()
+
         self._init_db()
 
         self._writer_thread = Thread(
@@ -112,6 +114,8 @@ class CollectionExtractor:
         with sqlite3.connect(self.db_path) as conn:
             conn.execute("PRAGMA journal_mode=WAL;")
             conn.execute("PRAGMA synchronous=NORMAL;")
+            conn.execute("PRAGMA busy_timeout=10000;")  # 10 second timeout
+
             conn.execute(
                 """
                 CREATE TABLE IF NOT EXISTS tracks (
@@ -206,6 +210,8 @@ class CollectionExtractor:
                 "INSERT OR IGNORE INTO meta(key, value) VALUES ('initial_indexing_done', '0')"
             )
 
+            conn.commit()
+
     def is_initial_indexing_done(self) -> bool:
         """
         Checks if the initial indexing of the music collection database has been completed.
@@ -242,12 +248,13 @@ class CollectionExtractor:
             None
         """
         with sqlite3.connect(self.db_path) as conn:
+            conn.execute("PRAGMA busy_timeout=10000;")
             # Quick check – if the FTS table already has rows, skip.
             cnt = conn.execute("SELECT count(*) FROM tracks_fts").fetchone()[0]
             if cnt > 0:
                 return
 
-            # Bulk insert using a single INSERT…SELECT statement – very fast.
+            # Bulk insert using a single INSERT…SELECT statement
             conn.execute(
                 """
                 INSERT INTO tracks_fts(rowid, artist, album, title, albumartist, genre, path, filename, duration, disc_number, track_number)
@@ -274,6 +281,7 @@ class CollectionExtractor:
             conn = sqlite3.connect(self.db_path)
 
         conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA busy_timeout=10000;")
         return conn
 
     # === Writer loop (ONLY writer) ===
@@ -290,6 +298,7 @@ class CollectionExtractor:
         with sqlite3.connect(self.db_path) as conn:
             conn.execute("PRAGMA journal_mode=WAL;")
             conn.execute("PRAGMA synchronous=NORMAL;")
+            conn.execute("PRAGMA busy_timeout=10000;")
 
             processed_in_batch = 0
 
@@ -299,56 +308,75 @@ class CollectionExtractor:
                 except Empty:
                     continue
 
-                if event.type == "CLEAR_DB":
-                    conn.execute("DELETE FROM tracks")
-                    conn.execute("DELETE FROM tracks_fts")  # Clear FTS table as well
-                    conn.commit()
-                    self._logger.info("Database cleared")
+                # CRITICAL FIX: Acquire lock for database operations
+                with self._db_lock:
+                    try:
+                        if event.type == "CLEAR_DB":
+                            conn.execute("DELETE FROM tracks")
+                            conn.execute("DELETE FROM tracks_fts")  # Clear FTS table as well
+                            conn.commit()
+                            # CRITICAL FIX: Checkpoint WAL after clearing
+                            conn.execute("PRAGMA wal_checkpoint(TRUNCATE);")
+                            self._logger.info("Database cleared and checkpointed")
 
-                elif event.type == "DELETE_FILE":
-                    if event.path:
-                        rel_path = self._to_relpath(event.path) if event.path.is_absolute() else str(event.path)
-                        conn.execute("DELETE FROM tracks WHERE path = ?", (rel_path,))
-                    self._processed_count += 1
-                    processed_in_batch += 1
+                        elif event.type == "DELETE_FILE":
+                            if event.path:
+                                rel_path = self._to_relpath(event.path) if event.path.is_absolute() else str(event.path)
+                                conn.execute("DELETE FROM tracks WHERE path = ?", (rel_path,))
+                            self._processed_count += 1
+                            processed_in_batch += 1
 
-                elif event.type == "INDEX_FILE":
-                    if event.path:
-                        self._index_file(conn, event.path)
-                    self._processed_count += 1
-                    processed_in_batch += 1
+                        elif event.type == "INDEX_FILE":
+                            if event.path:
+                                self._index_file(conn, event.path)
+                            self._processed_count += 1
+                            processed_in_batch += 1
 
-                elif event.type in ("REBUILD_DONE", "RESYNC_DONE"):
-                    conn.commit()
-                    # Force final 100% progress
-                    if self._total_for_current_job is not None:
-                        set_indexing_status(
-                            self.data_root,
-                            self._current_job_status,
-                            total=self._total_for_current_job,
-                            current=self._total_for_current_job,
-                        )
-                    self._total_for_current_job = None
-                    self._current_job_status = None
-                    self._processed_count = 0
-                    self._logger.info("Job completed signal processed")
+                        elif event.type in ("REBUILD_DONE", "RESYNC_DONE"):
+                            conn.commit()
+                            # CRITICAL FIX: Checkpoint WAL after major operations
+                            conn.execute("PRAGMA wal_checkpoint(PASSIVE);")
+                            # Force final 100% progress
+                            if self._total_for_current_job is not None:
+                                set_indexing_status(
+                                    self.data_root,
+                                    self._current_job_status,
+                                    total=self._total_for_current_job,
+                                    current=self._total_for_current_job,
+                                )
+                            self._total_for_current_job = None
+                            self._current_job_status = None
+                            self._processed_count = 0
+                            self._logger.info("Job completed signal processed and checkpointed")
 
-                # Commit and update progress periodically (every 50 operations)
-                if processed_in_batch >= 50:
-                    conn.commit()
-                    if self._total_for_current_job is not None:
-                        set_indexing_status(
-                            self.data_root,
-                            self._current_job_status,
-                            total=self._total_for_current_job,
-                            current=self._processed_count,
-                        )
-                    processed_in_batch = 0
+                        # Commit and update progress periodically (every 50 operations)
+                        if processed_in_batch >= 50:
+                            conn.commit()
+                            if self._total_for_current_job is not None:
+                                set_indexing_status(
+                                    self.data_root,
+                                    self._current_job_status,
+                                    total=self._total_for_current_job,
+                                    current=self._processed_count,
+                                )
+                            processed_in_batch = 0
+
+                    except sqlite3.Error as e:
+                        self._logger.error(f"Database error during {event.type}: {e}", exc_info=True)
+                        conn.rollback()
+                        try:
+                            conn.execute("PRAGMA integrity_check;")
+                        except Exception as check_error:
+                            self._logger.error(f"Database integrity check failed: {check_error}")
 
                 self._write_queue.task_done()
 
-            # Final commit on shutdown
-            conn.commit()
+            try:
+                conn.commit()
+                conn.execute("PRAGMA wal_checkpoint(TRUNCATE);")
+                self._logger.info("Writer loop shutdown: committed and checkpointed")
+            except Exception as e:
+                self._logger.error(f"Error during writer loop shutdown: {e}")
 
     # === Metadata extraction ===
 
@@ -365,8 +393,13 @@ class CollectionExtractor:
             None
         """
         try:
+            if not path.exists():
+                self._logger.warning(f"File no longer exists during indexing: {path}")
+                return
+
             tag = TinyTag.get(path, tags=True, duration=True)
-        except Exception:
+        except Exception as e:
+            self._logger.warning(f"Failed to read tags from {path}: {e}")
             tag = None
 
         rel_path = self._to_relpath(path)
@@ -383,28 +416,33 @@ class CollectionExtractor:
                 year = int(str(tag.year)[:4])
         except (AttributeError, ValueError):
             year = None
-        conn.execute(
-            """
-            INSERT OR REPLACE INTO tracks
-            (path, filename, artist, album, title, albumartist, genre,
-            year, duration, mtime, track_number, disc_number)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
-            """,
-            (
-                rel_path,
-                path.name,
-                artist or "Unknown",
-                album or "Unknown",
-                title or "Unknown",
-                getattr(tag, "albumartist", None),
-                getattr(tag, "genre", None),
-                year,
-                getattr(tag, "duration", None),
-                path.stat().st_mtime,
-                track_number,
-                disc_number,
-            ),
-        )
+
+        try:
+            conn.execute(
+                """
+                INSERT OR REPLACE INTO tracks
+                (path, filename, artist, album, title, albumartist, genre,
+                year, duration, mtime, track_number, disc_number)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+                """,
+                (
+                    rel_path,
+                    path.name,
+                    artist or "Unknown",
+                    album or "Unknown",
+                    title or "Unknown",
+                    getattr(tag, "albumartist", None),
+                    getattr(tag, "genre", None),
+                    year,
+                    getattr(tag, "duration", None),
+                    path.stat().st_mtime if path.exists() else None,
+                    track_number,
+                    disc_number,
+                ),
+            )
+        except sqlite3.Error as e:
+            self._logger.error(f"Failed to index {path}: {e}")
+            raise
 
     def _parse_number(self, value: Optional[str]) -> Optional[int]:
         """
@@ -442,6 +480,8 @@ class CollectionExtractor:
         set_indexing_status(self.data_root, "rebuilding", total=-1, current=0)
         self._write_queue.put(IndexEvent("CLEAR_DB"))
 
+        self._write_queue.join()
+
         # Scan files incrementally with progress
         files = []
         found = 0
@@ -475,7 +515,10 @@ class CollectionExtractor:
             Queues delete and index operations with progress tracking.
             Used by both rebuild() and resync().
             """
-            total_operations = len(list(to_delete)) + len(list(to_index))  # Convert to list for len()
+            delete_list = list(to_delete)
+            index_list = list(to_index)
+
+            total_operations = len(delete_list) + len(index_list)
             if total_operations == 0:
                 clear_indexing_status(self.data_root)
                 self._logger.info(f"No {job_type} operations needed")
@@ -487,11 +530,11 @@ class CollectionExtractor:
             set_indexing_status(self.data_root, job_type, total=total_operations, current=0)
 
             # Queue deletes
-            for rel_path in to_delete:
+            for rel_path in delete_list:
                 self._write_queue.put(IndexEvent("DELETE_FILE", Path(rel_path)))
 
             # Queue indexes
-            for abs_path in to_index:
+            for abs_path in index_list:
                 self._write_queue.put(IndexEvent("INDEX_FILE", abs_path))
 
             # Signal completion
@@ -516,26 +559,29 @@ class CollectionExtractor:
 
         set_indexing_status(self.data_root, "resyncing", total=-1, current=0)
 
-        # Incremental scan with progress
-        fs_paths = set()
-        found = 0
-        for root, _, filenames in os.walk(str(self.music_root)):
-            for fn in filenames:
-                if os.path.splitext(fn)[1].lower() in self.SUPPORTED_EXTS:
-                    p = Path(root) / fn
-                    rel_path = self._to_relpath(p)
-                    fs_paths.add(rel_path)
-                    found += 1
-                    if found % 100 == 0:
-                        set_indexing_status(self.data_root, "resyncing", total=-1, current=found)
+        with self._db_lock:
+            # Incremental scan with progress
+            fs_paths = set()
+            found = 0
+            for root, _, filenames in os.walk(str(self.music_root)):
+                for fn in filenames:
+                    if os.path.splitext(fn)[1].lower() in self.SUPPORTED_EXTS:
+                        p = Path(root) / fn
+                        rel_path = self._to_relpath(p)
+                        fs_paths.add(rel_path)
+                        found += 1
+                        if found % 100 == 0:
+                            set_indexing_status(self.data_root, "resyncing", total=-1, current=found)
 
-        with self.get_conn() as conn:
-            db_paths = {r["path"] for r in conn.execute("SELECT path FROM tracks")}
+            with self.get_conn(readonly=True) as conn:
+                db_paths = {r["path"] for r in conn.execute("SELECT path FROM tracks")}
 
         to_add_rel = fs_paths - db_paths
         to_remove_rel = db_paths - fs_paths
 
         to_add_abs = [self._to_abspath(p) for p in to_add_rel]
+
+        self._logger.info(f"Resync: {len(to_add_rel)} to add, {len(to_remove_rel)} to remove")
 
         set_indexing_status(self.data_root, "resyncing", total=len(to_add_rel) + len(to_remove_rel), current=0)
 

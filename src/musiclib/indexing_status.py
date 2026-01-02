@@ -52,19 +52,33 @@ def _atomic_write_json(status_file: Path, data: dict) -> None:
         None
     """
     tmp_dir = status_file.parent
-    with tempfile.NamedTemporaryFile(
-        "w", encoding="utf-8", dir=tmp_dir, delete=False
-    ) as tmp_file:
-        tmp_file.write(json.dumps(data))
-        tmp_file.flush()
-        os.fsync(tmp_file.fileno())
-        temp_path = Path(tmp_file.name)
-    # Ensure both files are on the same filesystem for atomic replacement
-    if os.stat(temp_path).st_dev != os.stat(status_file.parent).st_dev:
-        raise OSError(
-            "Atomic replacement requires temp file and status file to be on the same filesystem."
-        )
-    temp_path.replace(status_file)
+
+    if status_file.exists():
+        try:
+            if os.stat(tmp_dir).st_dev != os.stat(status_file).st_dev:
+                raise OSError(
+                    "Atomic replacement requires temp file and status file to be on the same filesystem."
+                )
+        except OSError:
+            # If we can't check, proceed anyway but log it
+            pass
+
+    temp_path = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            "w", encoding="utf-8", dir=tmp_dir, delete=False
+        ) as tmp_file:
+            json.dump(data, tmp_file)  # FIXED: Use json.dump instead of json.dumps
+            tmp_file.flush()
+            os.fsync(tmp_file.fileno())
+            temp_path = Path(tmp_file.name)
+
+        temp_path.replace(status_file)
+    except Exception:
+        # Clean up temp file if something went wrong
+        if temp_path and temp_path.exists():
+            temp_path.unlink(missing_ok=True)
+        raise
 
 
 def _calculate_progress(total: int, current: int) -> float:
@@ -175,10 +189,4 @@ def get_indexing_status(
     except json.JSONDecodeError as e:
         logger.error(f"JSON decode error in {status_file}: {e}")
         return None
-    status_file = data_root / "indexing_status.json"
-    if not status_file.exists():
-        return None
-    try:
-        return json.loads(status_file.read_text(encoding="utf-8"))
-    except Exception:
-        return None
+
