@@ -6,11 +6,11 @@ All notable changes to Mixtape Society are documented here. We follow [Semantic 
 
 Each release rewinds and fast-forwards your mixtape experience—just like a real cassette! 🎧
 
-## 📦 v0.4.2
+## 📦 v0.5.0
 
 <span class="md-tag">Unreleased</span>
 
-**🗓️** 2026-01-xx
+**🗓️** 2026-01-03
 
 ### ✨ Added
 
@@ -27,7 +27,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 - Top of search bar focus ring cut-off on top
 - Title of mixtape falls off the screen
 
-[v0.4.2](https://github.com/mark-me/mixtape-society/compare/v0.4.1...v0.4.2)
+[v0.5.0](https://github.com/mark-me/mixtape-society/compare/v0.4.1...v0.5.0)
 
 ---
 
