@@ -140,10 +140,27 @@ export function initPlayerControls() {
     function updateMediaSession(track) {
         if (!('mediaSession' in navigator)) return;
 
+        const coverImg = track.querySelector('.track-cover');
+        let artwork = [];
+
+        if (coverImg && coverImg.src) {
+            // Provide multiple sizes – Chrome on Android prefers 512x512 (256x256 on low-end devices)
+            // We'll use the same source for all; the browser will scale as needed
+            artwork = [
+                { src: coverImg.src, sizes: '96x96',   type: 'image/jpeg' },  // or image/png if your covers are PNG
+                { src: coverImg.src, sizes: '128x128', type: 'image/jpeg' },
+                { src: coverImg.src, sizes: '192x192', type: 'image/jpeg' },
+                { src: coverImg.src, sizes: '256x256', type: 'image/jpeg' },
+                { src: coverImg.src, sizes: '384x384', type: 'image/jpeg' },
+                { src: coverImg.src, sizes: '512x512', type: 'image/jpeg' }
+            ];
+        }
+
         navigator.mediaSession.metadata = new MediaMetadata({
             title: track.dataset.title,
             artist: track.dataset.artist,
             album: track.dataset.album || '',
+            artwork: artwork
         });
 
         // Set action handlers for media controls
@@ -224,10 +241,10 @@ export function initPlayerControls() {
         track.classList.add('active-track');
 
         currentIndex = index;
-        
+
         // Update Media Session metadata for mobile notifications
         updateMediaSession(track);
-        
+
         player.play().catch(e => console.log('Autoplay prevented:', e));
     }
 
@@ -310,7 +327,7 @@ export function initPlayerControls() {
         player?.addEventListener('pause', updatePositionState);
         player?.addEventListener('ratechange', updatePositionState);
         player?.addEventListener('seeked', updatePositionState); // Update immediately after seeking
-        
+
         // Throttle timeupdate to once per second to avoid excessive updates
         let lastPositionUpdate = 0;
         player?.addEventListener('timeupdate', () => {
