@@ -135,6 +135,54 @@ export function initPlayerControls() {
     }
 
     /**
+     * Updates Media Session API metadata for mobile notifications
+     */
+    function updateMediaSession(track) {
+        if (!('mediaSession' in navigator)) return;
+
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: track.dataset.title,
+            artist: track.dataset.artist,
+            album: track.dataset.album || '',
+        });
+
+        // Set action handlers for media controls
+        navigator.mediaSession.setActionHandler('play', () => {
+            player.play();
+        });
+
+        navigator.mediaSession.setActionHandler('pause', () => {
+            player.pause();
+        });
+
+        navigator.mediaSession.setActionHandler('previoustrack', () => {
+            playTrack(currentIndex - 1);
+        });
+
+        navigator.mediaSession.setActionHandler('nexttrack', () => {
+            playTrack(currentIndex + 1);
+        });
+
+        // Update position state when metadata changes
+        updatePositionState();
+    }
+
+    /**
+     * Updates Media Session position state for progress indicator
+     */
+    function updatePositionState() {
+        if (!('mediaSession' in navigator) || !('setPositionState' in navigator.mediaSession)) return;
+
+        if (player.duration && !isNaN(player.duration)) {
+            navigator.mediaSession.setPositionState({
+                duration: player.duration,
+                playbackRate: player.playbackRate,
+                position: player.currentTime
+            });
+        }
+    }
+
+    /**
      * Builds audio source URL with quality parameter
      */
     function buildAudioUrl(basePath, quality) {
@@ -170,6 +218,10 @@ export function initPlayerControls() {
         track.classList.add('active-track');
 
         currentIndex = index;
+        
+        // Update Media Session metadata for mobile notifications
+        updateMediaSession(track);
+        
         player.play().catch(e => console.log('Autoplay prevented:', e));
     }
 
@@ -245,6 +297,13 @@ export function initPlayerControls() {
             syncPlayIcons();
             playTrack(currentIndex + 1);
         });
+
+        // Media Session position updates
+        player?.addEventListener('loadedmetadata', updatePositionState);
+        player?.addEventListener('timeupdate', updatePositionState);
+        player?.addEventListener('play', updatePositionState);
+        player?.addEventListener('pause', updatePositionState);
+        player?.addEventListener('ratechange', updatePositionState);
 
         // Navigation buttons
         prevBtn?.addEventListener('click', () => playTrack(currentIndex - 1));

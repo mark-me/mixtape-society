@@ -16,7 +16,6 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 - Fallback cover art
 - Cover art for track search results
--
 
 ### 🔧 Changed
 
@@ -44,6 +43,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 - Saving existing mixtapes results in error
 - Covers not available for non-admin users
+- Playback notification on Mobile progress not in sync with actual playback position.
 
 [v0.4.0](https://github.com/mark-me/mixtape-society/compare/v0.3.0...v0.4.0)
 
