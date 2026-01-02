@@ -8,9 +8,9 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 ## 📦 v0.4.1
 
-<span class="md-tag">Test</span>
+<span class="md-tag">Release</span>
 
-**🗓️** 2026-01-xx
+**🗓️** 2026-01-02
 
 ### ✨ Added
 
