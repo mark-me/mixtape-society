@@ -106,13 +106,12 @@
                                     class="rounded shadow-sm img-fluid"
                                     style="max-width: 260px; aspect-ratio: 1; object-fit: cover; border: 3px solid rgba(255,255,255,0.1);">
 
-                                <label id="cover-upload-btn" class="position-absolute bottom-0 end-0 mb-3 me-3 cursor-pointer">
-                                    <input type="file" id="cover-upload" accept="image/*" class="d-none">
-                                    <span class="btn btn-dark btn-sm rounded-circle shadow-lg d-flex align-items-center justify-content-center"
+                                <button id="cover-upload-btn" class="position-absolute bottom-0 end-0 mb-3 me-3 btn btn-dark btn-sm rounded-circle shadow-lg d-flex align-items-center justify-content-center"
                                         style="width: 48px; height: 48px; border: 3px solid rgba(255,255,255,0.2);">
-                                        <i class="bi bi-camera-fill text-white" style="font-size: 1.3rem;"></i>
-                                    </span>
-                                </label>
+                                    <i class="bi bi-camera-fill text-white" style="font-size: 1.3rem;"></i>
+                                </button>
+                                <!-- Hidden file input, separate from the button -->
+                                <input type="file" id="cover-upload" accept="image/*" class="d-none">
                             </div>
 
                             <textarea id="playlist-title"

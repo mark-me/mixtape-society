@@ -311,9 +311,24 @@ export function initUI() {
     if (coverUploadBtn) {
         coverUploadBtn.addEventListener('click', (e) => {
             e.preventDefault();
+            
+            // Clean up any orphaned modal backdrops before opening
+            cleanupModalBackdrops();
+            
             const coverModal = new bootstrap.Modal(document.getElementById('coverOptionsModal'));
             coverModal.show();
         });
+    }
+
+    /**
+     * Removes any orphaned modal backdrops that might be stuck on the page
+     */
+    function cleanupModalBackdrops() {
+        const backdrops = document.querySelectorAll('.modal-backdrop');
+        backdrops.forEach(backdrop => backdrop.remove());
+        document.body.classList.remove('modal-open');
+        document.body.style.removeProperty('overflow');
+        document.body.style.removeProperty('padding-right');
     }
 
     // Wire up modal options
@@ -322,15 +337,27 @@ export function initUI() {
 
     if (uploadOption) {
         uploadOption.addEventListener('click', () => {
-            document.getElementById('cover-upload').click();
-            bootstrap.Modal.getInstance(document.getElementById('coverOptionsModal')).hide();
+            const modal = bootstrap.Modal.getInstance(document.getElementById('coverOptionsModal'));
+            modal.hide();
+            
+            // Wait for modal to finish hiding before triggering file input
+            // This prevents the file dialog from being blocked
+            setTimeout(() => {
+                document.getElementById('cover-upload').click();
+            }, 300);
         });
     }
 
     if (generateOption) {
         generateOption.addEventListener('click', () => {
-            generateCompositeCover();
-            bootstrap.Modal.getInstance(document.getElementById('coverOptionsModal')).hide();
+            const modal = bootstrap.Modal.getInstance(document.getElementById('coverOptionsModal'));
+            modal.hide();
+            
+            // Wait for modal to fully close before generating composite
+            // This prevents modal stacking issues if alerts need to be shown
+            setTimeout(() => {
+                generateCompositeCover();
+            }, 300);
         });
     }
 
