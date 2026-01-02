@@ -12,6 +12,9 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 **🗓️** 2026-01-xx
 
+### 🐛 Fixed
+
+- Type 2 characters to start searching -> 3 characters
 
 [v0.4.2](https://github.com/mark-me/mixtape-society/compare/v0.4.1...v0.4.2)
 
