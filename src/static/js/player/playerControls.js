@@ -173,12 +173,18 @@ export function initPlayerControls() {
     function updatePositionState() {
         if (!('mediaSession' in navigator) || !('setPositionState' in navigator.mediaSession)) return;
 
-        if (player.duration && !isNaN(player.duration)) {
-            navigator.mediaSession.setPositionState({
-                duration: player.duration,
-                playbackRate: player.playbackRate,
-                position: player.currentTime
-            });
+        // Only update if we have valid duration and position data
+        if (player.duration && !isNaN(player.duration) && isFinite(player.duration)) {
+            try {
+                navigator.mediaSession.setPositionState({
+                    duration: player.duration,
+                    playbackRate: player.playbackRate || 1.0,
+                    position: Math.min(player.currentTime, player.duration) // Ensure position doesn't exceed duration
+                });
+            } catch (error) {
+                // Silently fail if position state can't be set (some browsers don't support it)
+                console.debug('Could not set position state:', error);
+            }
         }
     }
 
@@ -300,10 +306,20 @@ export function initPlayerControls() {
 
         // Media Session position updates
         player?.addEventListener('loadedmetadata', updatePositionState);
-        player?.addEventListener('timeupdate', updatePositionState);
         player?.addEventListener('play', updatePositionState);
         player?.addEventListener('pause', updatePositionState);
         player?.addEventListener('ratechange', updatePositionState);
+        player?.addEventListener('seeked', updatePositionState); // Update immediately after seeking
+        
+        // Throttle timeupdate to once per second to avoid excessive updates
+        let lastPositionUpdate = 0;
+        player?.addEventListener('timeupdate', () => {
+            const now = Date.now();
+            if (now - lastPositionUpdate >= 1000) {
+                updatePositionState();
+                lastPositionUpdate = now;
+            }
+        });
 
         // Navigation buttons
         prevBtn?.addEventListener('click', () => playTrack(currentIndex - 1));
