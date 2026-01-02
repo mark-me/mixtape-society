@@ -20,7 +20,7 @@ function performSearch() {
     localStorage.setItem(STORAGE_KEY, query);
 
     if (query.length < 2) {
-        resultsDiv.innerHTML = '<p class="text-muted text-center my-5">Type at least 2 characters to start searching…</p>';
+        resultsDiv.innerHTML = '<p class="text-muted text-center my-5">Type at least 3 characters to start searching…</p>';
         return;
     }
 
@@ -315,7 +315,7 @@ function loadAlbumDetails(releaseDir, cover, body) {
         .then(details => {
             // Use cover from accordion data if details.cover is not available
             const albumCover = details.cover || cover || '';
-            
+
             const coverDisplay = albumCover ? `
                 <div class="album-detail-cover mb-3">
                     <img src="/${albumCover}" alt="Album Cover" class="rounded shadow-sm">
