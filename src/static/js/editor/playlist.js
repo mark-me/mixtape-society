@@ -3,76 +3,55 @@ import { escapeHtml } from "./utils.js";
 
 const { Sortable } = window;
 
-export let playlist = [];               // exported so other modules (e.g. notes) can read it
+export let playlist = [];
 const playlistOl = document.getElementById("playlist");
 const playlistCount = document.getElementById("playlist-count");
 
 /* -----------------------------------------------------------------
-*  Unsaved‑changes callback
-*
-*  UI code (ui.js) will register a function that should be called
-*  whenever the playlist is mutated (add, clear, remove, reorder).
-*  This decouples the playlist module from the UI and avoids a
-*  circular import.
-* -----------------------------------------------------------------*/
-let unsavedCallback = () => { };               // default — no‑op
+ *  Unsaved-changes callbacks
+ *
+ *  UI code (ui.js) will register functions that should be called
+ *  whenever the playlist is mutated (add, clear, remove, reorder).
+ *  This decouples the playlist module from the UI and avoids a
+ *  circular import.
+ * -----------------------------------------------------------------*/
+let unsavedCallback = () => {};
+let trackRemovedCallback = () => {};
+let trackAddedCallback = () => {};
+
 export function registerUnsavedCallback(cb) {
     if (typeof cb === "function") unsavedCallback = cb;
 }
-
-let trackRemovedCallback = () => {};  // new
 
 export function registerTrackRemovedCallback(cb) {
     if (typeof cb === "function") trackRemovedCallback = cb;
 }
 
-
-let trackAddedCallback = () => {};
-
 export function registerTrackAddedCallback(cb) {
-    // Registers a callback to be invoked whenever a track is added to the playlist.
-    // Allows external modules to hook into playlist growth events, such as updating UI state or metadata.
     if (typeof cb === "function") trackAddedCallback = cb;
 }
 
 export function setPlaylist(newTracks) {
-    // Replace the current contents atomically
     playlist.length = 0;
     newTracks.forEach(t => playlist.push(t));
 }
 
 /**
  * Initializes the playlist UI and event handlers for user interaction.
- * Sets up the playlist display and enables playlist management features.
- *
- * Args:
- *   None.
- *
- * Returns:
- *   None.
  */
 export function initPlaylist() {
-    renderPlaylist();                  // initial empty render
+    renderPlaylist();
     attachPlaylistEvents();
-    setupAudioPlayerListeners();      // Listen for play/pause events
+    setupAudioPlayerListeners();
 }
 
 /**
  * Adds a track item to the playlist if it is not already present.
  * Prevents duplicate tracks and updates the playlist display after addition.
- *
- * Args:
- *   item: The track object to add to the playlist.
- *
- * Returns:
- *   None.
  */
 export function addToPlaylist(item) {
-
-    // ────────────────────────────────────────────────────────────
-    // 1. Safety net: if the item comes from a direct search result,
-    //    it might have a "tracks" array instead of being a flat track.
-    // ────────────────────────────────────────────────────────────
+    // Safety net: if the item comes from a direct search result,
+    // it might have a "tracks" array instead of being a flat track.
     if (item.tracks && Array.isArray(item.tracks) && item.tracks.length > 0) {
         const sub = item.tracks[0];
         item = {
@@ -86,11 +65,7 @@ export function addToPlaylist(item) {
         };
     }
 
-    // ────────────────────────────────────────────────────────────
-    // 2. Normalization: guarantee the exact structure we need
-    //    Now that we have standardized on 'track' in the backend,
-    //    we no longer need the fallback to 'title'.
-    // ────────────────────────────────────────────────────────────
+    // Normalization: guarantee the exact structure we need
     const normalized = {
         artist: item.artist || '',
         album: item.album || '',
@@ -101,15 +76,11 @@ export function addToPlaylist(item) {
         cover: item.cover || ''
     };
 
-    // ────────────────────────────────────────────────────────────
-    // 3. Duplicate check using the normalized fields
-    // ────────────────────────────────────────────────────────────
+    // Duplicate check using the normalized fields
     const exists = playlist.some(t => t.path === item.path);
     if (exists) return;
 
-    // ────────────────────────────────────────────────────────────
-    // 4. Add to playlist and refresh UI
-    // ────────────────────────────────────────────────────────────
+    // Add to playlist and refresh UI
     playlist.push(normalized);
     renderPlaylist();
     updatePlaylistCount();
@@ -118,21 +89,13 @@ export function addToPlaylist(item) {
     unsavedCallback();
 }
 
-
 /**
  * Attaches event handlers for clearing and reordering the playlist in the UI.
- * Enables users to clear all tracks and drag to reorder tracks using Sortable.js.
- *
- * Args:
- *   None.
- *
- * Returns:
- *   None.
  */
 function attachPlaylistEvents() {
     document.getElementById("clear-playlist")
         .addEventListener("click", () => {
-            playlist = [];
+            playlist.length = 0;
             renderPlaylist();
             unsavedCallback();
         });
@@ -150,15 +113,13 @@ function attachPlaylistEvents() {
             playlist.length = 0;
             newOrder.forEach(t => playlist.push(t));
 
-            renderPlaylist();        // updates data-index attributes
-            unsavedCallback();       // ← correct: only unsaved, no toast
+            renderPlaylist();
+            unsavedCallback();
         }
     });
 }
 
 export function updatePlaylistCount() {
-    // Updates the visible playlist count indicator in the UI.
-    // Ensures the displayed track count stays in sync with the current playlist length.
     if (playlistCount) {
         playlistCount.textContent = playlist.length;
     }
@@ -183,7 +144,7 @@ function updatePlayPauseButtons() {
     const player = document.getElementById('global-audio-player');
     const isPlaying = player && !player.paused;
 
-    document.querySelectorAll('.play-track-btn').forEach(btn => {
+    document.querySelectorAll('.play-overlay-btn').forEach(btn => {
         const icon = btn.querySelector('i');
         if (!icon) return;
 
@@ -191,7 +152,7 @@ function updatePlayPauseButtons() {
         const currentSrc = player.src;
 
         // Check if this button's track is currently playing
-        const isThisTrackPlaying = currentSrc && currentSrc.includes(encodeURIComponent(trackPath));
+        const isThisTrackPlaying = currentSrc && currentSrc.includes(trackPath);
 
         if (isThisTrackPlaying && isPlaying) {
             // This track is playing - show pause icon
@@ -205,31 +166,19 @@ function updatePlayPauseButtons() {
     });
 }
 
-// -----------------------------------------------------------------
-// Helper — tiny wrapper around escapeHtml so we don't forget any field
-// -----------------------------------------------------------------
+/**
+ * Helper function to safely escape values for HTML rendering
+ */
 function esc(value) {
-    // Convert undefined/null to empty string first
     if (value == null) return "";
-    // For numbers we can just return the string representation
     if (typeof value === "number") return String(value);
-    // For everything else we run it through escapeHtml (which creates a div,
-    // sets textContent, and returns the escaped HTML).
     return escapeHtml(String(value));
 }
 
 /**
  * Renders the current playlist in the UI and attaches event handlers for playback and removal.
- * Updates the playlist display, enables track playback, and allows users to remove tracks from the playlist.
- *
- * Args:
- *   None.
- *
- * Returns:
- *   None.
  */
 export function renderPlaylist() {
-    // Build the markup safely — every dynamic piece goes through `esc()`.
     playlistOl.innerHTML = playlist.map((item, idx) => `
         <li class="d-flex align-items-center rounded p-3 mb-2 shadow-sm playlist-item bg-body-tertiary border"
             data-index="${esc(idx)}">
@@ -249,18 +198,18 @@ export function renderPlaylist() {
                 </button>
             </div>
 
-            <!-- Text content — critical: min-w-0 enables truncation in flex -->
+            <!-- Text content -->
             <div class="flex-grow-1 min-w-0 me-3">
                 <strong class="text-truncate">${esc(item.track)}</strong>
                 <small class="text-muted text-truncate">${esc(item.artist)} • ${esc(item.album)}</small>
             </div>
 
-            <!-- Duration — fixed width to prevent squeeze -->
+            <!-- Duration -->
             <span class="text-muted me-3 flex-shrink-0" style="min-width: 50px; text-align: right;">
                 ${esc(item.duration) || "?:??"}
             </span>
 
-            <!-- Delete button — always visible -->
+            <!-- Delete button -->
             <button class="btn btn-danger btn-sm flex-shrink-0 remove-btn" data-index="${esc(idx)}">
                 <i class="bi bi-trash-fill"></i>
             </button>
@@ -269,6 +218,7 @@ export function renderPlaylist() {
 
     playlistCount.textContent = `(${playlist.length})`;
 
+    // Attach play/pause button handlers
     document.querySelectorAll('.play-overlay-btn').forEach(btn => {
         btn.onclick = function (e) {
             e.stopPropagation();
@@ -281,14 +231,13 @@ export function renderPlaylist() {
             const playlistItem = this.closest('.playlist-item');
             const icon = this.querySelector('i');
 
-            // Get current source (safely)
+            // Get current source
             const currentSrc = player.src ? player.src.split('/').pop() : '';
             const isThisTrack = currentSrc === path;
 
             // Remove 'playing' class from all items
             document.querySelectorAll('.playlist-item.playing').forEach(el => {
                 el.classList.remove('playing');
-                // Reset icon to play when not playing
                 const btnIcon = el.querySelector('.play-overlay-btn i');
                 if (btnIcon) {
                     btnIcon.classList.replace('bi-pause-fill', 'bi-play-fill');
@@ -334,59 +283,8 @@ export function renderPlaylist() {
             }
         };
     });
-    // === PLAY/PAUSE BUTTONS ===
-    document.querySelectorAll('.play-track-btn').forEach(btn => {
-        btn.onclick = function () {
-            const { path } = this.dataset;
-            if (!path) return;
 
-            const player = document.getElementById('global-audio-player');
-            const container = document.getElementById('audio-player-container');
-            const currentSrc = player.src;
-            const isThisTrackPlaying = currentSrc && currentSrc.includes(path);
-
-            // If this track is already playing, toggle play/pause
-            if (isThisTrackPlaying) {
-                if (player.paused) {
-                    player.play().catch(e => console.error("Play failed:", e));
-                } else {
-                    player.pause();
-                }
-                return;
-            }
-
-            // Otherwise, load and play this track
-            player.src = `/play/${path}`;
-            player.play().catch(e => console.error("Play failed:", e));
-
-            container.style.display = 'block';
-
-            // Update title + highlight with theme-aware classes
-            const item = playlist[this.closest('.playlist-item').dataset.index];
-            document.getElementById('now-playing-title').textContent = item.track;
-            document.getElementById('now-playing-artist').textContent = `${item.artist} • ${item.album}`;
-
-            // Set player cover
-            const playerCover = document.getElementById('now-playing-cover');
-            if (item.cover) {
-                playerCover.src = `/${item.cover}`;
-                playerCover.style.display = 'block';
-            } else {
-                playerCover.style.display = 'none';
-            }
-
-            // Remove highlight from all items
-            document.querySelectorAll('.playlist-item').forEach(el => {
-                el.classList.remove('bg-primary', 'text-white', 'bg-primary-subtle', 'border-primary');
-            });
-
-            // Add theme-aware highlight to current item
-            const playlistItem = this.closest('.playlist-item');
-            playlistItem.classList.add('bg-primary-subtle', 'border-primary');
-        };
-    });
-
-    // Delete buttons
+    // Attach delete button handlers
     document.querySelectorAll('.remove-btn').forEach(btn => {
         btn.onclick = () => {
             const index = Number(btn.dataset.index);

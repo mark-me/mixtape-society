@@ -191,8 +191,8 @@ h4.text-white {
 
 /* Active (now playing) track - better color */
 .track-item.active-track {
-    background: var(--bs-primary-bg-subtle) !important;
-    color: var(--bs-primary-text-emphasis) !important;
+    background: var(--color-track-bg-subtle) !important;
+    color: var(--color-track-text-emphasis) !important;
 }
 
 .track-item.active-track .opacity-75 {
@@ -284,13 +284,13 @@ h4.text-white {
 
 /* Track item playing highlight */
 .track-item.playing {
-    background-color: var(--bs-primary-bg-subtle) !important;
-    border-color: var(--bs-primary) !important;
+    background-color: var(--color-track-bg-subtle) !important;
+    border-color: var(--color-track) !important;
 }
 
 /* --- 5. Big Play Button – Theme Adaptive Outline --- */
 .theme-outline-btn {
-    border-color: var(--bs-primary) !important;
+    border-color: var(--color-track) !important;
     color: var(--bs-primary) !important;
     background-color: transparent !important;
 }

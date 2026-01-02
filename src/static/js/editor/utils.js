@@ -1,13 +1,8 @@
 // static/js/editor/utils.js
+
 /**
  * Converts special characters in a string to their corresponding HTML entities.
  * Prevents HTML injection by escaping user-provided text for safe rendering.
- *
- * Args:
- *   text: The string to be escaped.
- *
- * Returns:
- *   The escaped string with HTML entities.
  */
 export function escapeHtml(text) {
     return text
@@ -17,29 +12,18 @@ export function escapeHtml(text) {
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&apos;");
 }
+
 /**
  * Escapes special characters in a string for use in a regular expression.
  * Ensures that user-provided strings can be safely inserted into regex patterns.
- *
- * Args:
- *   str: The string to be escaped.
- *
- * Returns:
- *   The escaped string safe for regex usage.
  */
 export function escapeRegExp(str) {
     return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
+
 /**
  * Highlights all occurrences of a query string within a given text by wrapping them in a <mark> tag.
  * Returns the text with highlighted matches, or the original text if the query is empty.
- *
- * Args:
- *   text: The string to search within.
- *   query: The substring to highlight.
- *
- * Returns:
- *   The HTML-escaped string with highlighted query matches.
  */
 export function highlightText(text, query) {
     if (!query.trim()) return escapeHtml(text);
@@ -47,20 +31,31 @@ export function highlightText(text, query) {
     return escapeHtml(text).replace(regex, "<mark>$1</mark>");
 }
 
-
+// Modal instance
 const appModalEl = document.getElementById('appModal');
-const appModal   = new bootstrap.Modal(appModalEl);
+const appModal = new bootstrap.Modal(appModalEl);
 
 /**
  * Displays a modal alert dialog with a customizable title, message, and button text.
  * Shows a simple notification to the user that requires acknowledgment.
  *
- * Args:
- *   title: The title of the alert dialog.
- *   message: The message to display in the alert body.
- *   buttonText: The text for the confirmation button.
+ * @param {Object|string} options - Either an options object or a message string
+ * @param {string} options.title - The title of the alert dialog (default: "Notice")
+ * @param {string} options.message - The message to display in the alert body
+ * @param {string} options.buttonText - The text for the confirmation button (default: "OK")
  */
-export function showAlert({ title = "Notice", message, buttonText = "OK" }) {
+export function showAlert(options) {
+    // Support both object and string parameters for backwards compatibility
+    if (typeof options === 'string') {
+        options = { message: options };
+    }
+
+    const {
+        title = "Notice",
+        message,
+        buttonText = "OK"
+    } = options;
+
     document.getElementById('appModalTitle').textContent = title;
     document.getElementById('appModalBody').innerHTML = message;
     document.getElementById('appModalFooter').innerHTML = `
@@ -68,20 +63,19 @@ export function showAlert({ title = "Notice", message, buttonText = "OK" }) {
             ${buttonText}
         </button>
     `;
-    appModal.show();          // `appModal` is the Bootstrap.Modal instance
+    appModal.show();
 }
+
 /**
  * Displays a modal confirmation dialog with customizable title, message, and button texts.
  * Returns a promise that resolves to true if the user confirms, or false if cancelled or dismissed.
  *
- * Args:
- *   title: The title of the confirmation dialog.
- *   message: The message to display in the dialog body.
- *   confirmText: The text for the confirmation button.
- *   cancelText: The text for the cancellation button.
- *
- * Returns:
- *   A Promise that resolves to a boolean indicating the user's choice.
+ * @param {Object} options - Configuration object
+ * @param {string} options.title - The title of the confirmation dialog (default: "Confirm")
+ * @param {string} options.message - The message to display in the dialog body
+ * @param {string} options.confirmText - The text for the confirmation button (default: "Confirm")
+ * @param {string} options.cancelText - The text for the cancellation button (default: "Cancel")
+ * @returns {Promise<boolean>} A Promise that resolves to true if confirmed, false otherwise
  */
 export function showConfirm({
     title = "Confirm",
@@ -106,7 +100,7 @@ export function showConfirm({
 
         confirmBtn.onclick = () => {
             confirmed = true;
-            appModal.hide();               // hide with Bootstrap animation
+            appModal.hide();
             resolve(true);
         };
 
@@ -120,7 +114,14 @@ export function showConfirm({
     });
 }
 
-
+/**
+ * Renders track references in markdown text.
+ * Expands shorthand references like #1, #2-4 into full track information.
+ *
+ * @param {string} text - The text containing track references
+ * @param {Array} tracks - Array of track objects
+ * @returns {string} The text with expanded track references
+ */
 export function renderTrackReferences(text, tracks) {
     if (typeof text !== 'string') return '';
     if (!Array.isArray(tracks) || tracks.length === 0) return text;
@@ -134,7 +135,7 @@ export function renderTrackReferences(text, tracks) {
         const parts = [];
         for (let i = start; i <= end; i++) {
             const t = tracks[i - 1];
-            parts.push(`${i}. ${t.title} – ${t.artist}`);
+            parts.push(`${i}. ${t.title} — ${t.artist}`);
         }
         return parts.join(" → ");
     });
@@ -144,12 +145,18 @@ export function renderTrackReferences(text, tracks) {
         const i = parseInt(num);
         if (i < 1 || i > tracks.length) return match;
         const t = tracks[i - 1];
-        return `**${i}. ${t.title} – ${t.artist}**`;
+        return `**${i}. ${t.title} — ${t.artist}**`;
     });
 
     return text;
 }
 
+/**
+ * Safely encodes JSON for embedding in HTML attributes
+ *
+ * @param {*} json - Any JSON-serializable value
+ * @returns {string} HTML-safe JSON string
+ */
 export function htmlSafeJson(json) {
-    return JSON.stringify(JSON.stringify(json)).slice(1, -1); // removes outer quotes
+    return JSON.stringify(JSON.stringify(json)).slice(1, -1);
 }
