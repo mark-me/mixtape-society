@@ -12,6 +12,14 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 **🗓️** 2026-01-xx
 
+### ✨ Added
+
+- Modal for statistics on the entire collection
+
+### 🔧 Changed
+
+- Moved the resync button to the statistics modal
+
 ### 🐛 Fixed
 
 - Database resync corrupts database

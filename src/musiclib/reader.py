@@ -1520,3 +1520,42 @@ class MusicCollection:
         except Exception as e:
             self._logger.error(f"Failed to process and save image: {e}")
             return False
+
+    def get_collection_stats(self) -> dict:
+        """Returns high-level statistics about the music collection.
+
+        This method queries the tracks table to compute aggregate counts of
+        distinct artists, distinct artist/album combinations, total tracks, and
+        the timestamp of the most recently added track.
+
+        Returns:
+            dict: A dictionary containing ``qty_tracks``, ``qty_artists``,
+            ``qty_albums``, and ``last_added`` (or None when no tracks exist).
+        """
+        with self._get_conn() as conn:
+            cur = conn.execute(
+                """
+                SELECT COUNT(DISTINCT artist) as qty_artists,
+                    COUNT(DISTINCT artist || album) as qty_albums,
+                    COUNT(*) AS qty_tracks,
+                    SUM(duration) AS total_duration,
+                    MAX(mtime) AS time_lastadded
+                FROM tracks
+                """
+            )
+            if rows := cur.fetchall():
+                return {
+                        "num_tracks": rows[0]["qty_tracks"],
+                        "num_artists": rows[0]["qty_artists"],
+                        "num_albums": rows[0]["qty_albums"],
+                        "total_duration": rows[0]["total_duration"],
+                        "last_added": rows[0]["time_lastadded"],
+                    }
+            else:
+                return {
+                    "num_tracks": 0,
+                    "num_artists": 0,
+                    "num_albums": 0,
+                    "total_duration": 0,
+                    "last_added": None,
+                }
