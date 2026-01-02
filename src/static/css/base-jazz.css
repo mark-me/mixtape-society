@@ -1,72 +1,76 @@
 :root {
     --bs-link-hover-color: #0d6efd;
-
-    /* ===     SEMANTIC COLOR TOKENS - JAZZ LOUNGE ENHANCED
-       Sophisticated colors with improved contrast for all modes
-       =========================== */
-
-    /* === ARTIST COLORS === */
-    /* Deep Burgundy - like wine bars and leather seating */
-    --color-artist: #8b3a3a;
-    --color-artist-rgb: 139, 58, 58;
-    --color-artist-text-emphasis: #6b2020;
-    --color-artist-bg-subtle: rgba(139, 58, 58, 0.12);
-    --color-artist-border-subtle: rgba(139, 58, 58, 0.35);
-
+    
+    /* ============================================
+       SEMANTIC COLOR TOKENS - JAZZ LOUNGE SCHEME
+       Inspired by jazz clubs, brass instruments, and vinyl culture
+       ============================================ */
+    
+    /* ==================== ARTIST COLORS ==================== */
+    /* Warm Gold - like brass instruments catching light */
+    --color-artist: #d4a574;
+    --color-artist-rgb: 212, 165, 116;
+    --color-artist-text-emphasis: #9a6f3e;
+    --color-artist-bg-subtle: rgba(212, 165, 116, 0.12);
+    --color-artist-border-subtle: rgba(212, 165, 116, 0.35);
+    
     /* Hover and active states */
-    --color-artist-hover: #a04848;
-    --color-artist-active: #762e2e;
-
-    /* === ALBUM COLORS === */
-    /* Navy Blue - like midnight performances */
-    --color-album: #1e3a5f;
-    --color-album-rgb: 30, 58, 95;
-    --color-album-text-emphasis: #152840;
-    --color-album-bg-subtle: rgba(30, 58, 95, 0.12);
-    --color-album-border-subtle: rgba(30, 58, 95, 0.35);
-
+    --color-artist-hover: #e0b686;
+    --color-artist-active: #c89462;
+    
+    /* ==================== ALBUM COLORS ==================== */
+    /* Rich Brown - like leather record sleeves and wooden speakers */
+    --color-album: #8b5a3c;
+    --color-album-rgb: 139, 90, 60;
+    --color-album-text-emphasis: #5d3b28;
+    --color-album-bg-subtle: rgba(139, 90, 60, 0.12);
+    --color-album-border-subtle: rgba(139, 90, 60, 0.35);
+    
     /* Hover and active states */
-    --color-album-hover: #2a4d7c;
-    --color-album-active: #18304f;
-
-    /* === TRACK COLORS === */
-    /* Forest Green - like velvet curtains */
-    --color-track: #2d5a3d;
-    --color-track-rgb: 45, 90, 61;
-    --color-track-text-emphasis: #1d3d28;
-    --color-track-bg-subtle: rgba(45, 90, 61, 0.12);
-    --color-track-border-subtle: rgba(45, 90, 61, 0.35);
-
+    --color-album-hover: #9f6a4a;
+    --color-album-active: #774a2e;
+    
+    /* ==================== TRACK COLORS ==================== */
+    /* Smoky Blue - like jazz club atmosphere and dim lighting */
+    --color-track: #5b8a9d;
+    --color-track-rgb: 91, 138, 157;
+    --color-track-text-emphasis: #3d5c6a;
+    --color-track-bg-subtle: rgba(91, 138, 157, 0.12);
+    --color-track-border-subtle: rgba(91, 138, 157, 0.35);
+    
     /* Hover and active states */
-    --color-track-hover: #3d704d;
-    --color-track-active: #234830;
+    --color-track-hover: #6b9aad;
+    --color-track-active: #4b7a8d;
 }
 
-/* Dark mode - warmer, richer colors */
+/* Dark mode adjustments - jazz colors work beautifully in dark mode */
 [data-bs-theme="dark"] {
-    /* Artist - warm burgundy glow */
-    --color-artist: #c65d5d;
-    --color-artist-rgb: 198, 93, 93;
-    --color-artist-bg-subtle: rgba(198, 93, 93, 0.15);
-    --color-artist-border-subtle: rgba(198, 93, 93, 0.4);
-    --color-artist-text-emphasis: #d47676;
-
-    /* Album - rich navy with depth */
-    --color-album: #4a6fa5;
-    --color-album-rgb: 74, 111, 165;
-    --color-album-bg-subtle: rgba(74, 111, 165, 0.15);
-    --color-album-border-subtle: rgba(74, 111, 165, 0.4);
-    --color-album-text-emphasis: #6585b5;
-
-    /* Track - lush forest green */
-    --color-track: #4a8c5f;
-    --color-track-rgb: 74, 140, 95;
-    --color-track-bg-subtle: rgba(74, 140, 95, 0.15);
-    --color-track-border-subtle: rgba(74, 140, 95, 0.4);
-    --color-track-text-emphasis: #64a678;
+    /* Artist - warmer glow in dark mode */
+    --color-artist: #e0b686;
+    --color-artist-rgb: 224, 182, 134;
+    --color-artist-bg-subtle: rgba(224, 182, 134, 0.15);
+    --color-artist-border-subtle: rgba(224, 182, 134, 0.4);
+    --color-artist-text-emphasis: #f0c696;
+    
+    /* Album - richer in dark mode */
+    --color-album: #9f6a4a;
+    --color-album-rgb: 159, 106, 74;
+    --color-album-bg-subtle: rgba(159, 106, 74, 0.15);
+    --color-album-border-subtle: rgba(159, 106, 74, 0.4);
+    --color-album-text-emphasis: #b97a5a;
+    
+    /* Track - brighter smoky blue in dark mode */
+    --color-track: #7ba6ba;
+    --color-track-rgb: 123, 166, 186;
+    --color-track-bg-subtle: rgba(123, 166, 186, 0.15);
+    --color-track-border-subtle: rgba(123, 166, 186, 0.4);
+    --color-track-text-emphasis: #9bbdce;
 }
 
-/* === SEMANTIC UTILITY CLASSES === */
+/* ============================================
+   SEMANTIC UTILITY CLASSES
+   Use these instead of .text-warning, .bg-success, etc.
+   ============================================ */
 
 /* Text colors */
 .text-artist { color: var(--color-artist) !important; }
@@ -78,30 +82,30 @@
 .text-track-emphasis { color: var(--color-track-text-emphasis) !important; }
 
 /* Background colors */
-.bg-artist {
-    background-color: var(--color-artist) !important;
+.bg-artist { 
+    background-color: var(--color-artist) !important; 
     color: white !important;
 }
-.bg-album {
-    background-color: var(--color-album) !important;
+.bg-album { 
+    background-color: var(--color-album) !important; 
     color: white !important;
 }
-.bg-track {
-    background-color: var(--color-track) !important;
+.bg-track { 
+    background-color: var(--color-track) !important; 
     color: white !important;
 }
 
 /* Subtle backgrounds (for highlighting) */
-.bg-artist-subtle {
-    background-color: var(--color-artist-bg-subtle) !important;
+.bg-artist-subtle { 
+    background-color: var(--color-artist-bg-subtle) !important; 
     color: var(--color-artist-text-emphasis) !important;
 }
-.bg-album-subtle {
-    background-color: var(--color-album-bg-subtle) !important;
+.bg-album-subtle { 
+    background-color: var(--color-album-bg-subtle) !important; 
     color: var(--color-album-text-emphasis) !important;
 }
-.bg-track-subtle {
-    background-color: var(--color-track-bg-subtle) !important;
+.bg-track-subtle { 
+    background-color: var(--color-track-bg-subtle) !important; 
     color: var(--color-track-text-emphasis) !important;
 }
 
@@ -110,7 +114,9 @@
 .border-album { border-color: var(--color-album-border-subtle) !important; }
 .border-track { border-color: var(--color-track-border-subtle) !important; }
 
-/* === BUTTON VARIANTS=== */
+/* ============================================
+   BUTTON VARIANTS
+   ============================================ */
 
 /* Solid buttons */
 .btn-artist {
@@ -192,40 +198,44 @@
     --bs-btn-disabled-color: var(--color-track);
 }
 
-/* === BADGE VARIANTS=== */
+/* ============================================
+   BADGE VARIANTS
+   ============================================ */
 
-.badge-artist {
+.badge-artist { 
     background-color: var(--color-artist) !important;
     color: #fff !important;
 }
 
-.badge-album {
+.badge-album { 
     background-color: var(--color-album) !important;
     color: #fff !important;
 }
 
-.badge-track {
+.badge-track { 
     background-color: var(--color-track) !important;
     color: #fff !important;
 }
 
 /* Subtle badges (lighter background) */
-.badge-artist-subtle {
+.badge-artist-subtle { 
     background-color: var(--color-artist-bg-subtle) !important;
     color: var(--color-artist-text-emphasis) !important;
 }
 
-.badge-album-subtle {
+.badge-album-subtle { 
     background-color: var(--color-album-bg-subtle) !important;
     color: var(--color-album-text-emphasis) !important;
 }
 
-.badge-track-subtle {
+.badge-track-subtle { 
     background-color: var(--color-track-bg-subtle) !important;
     color: var(--color-track-text-emphasis) !important;
 }
 
-/* === ALERT VARIANTS=== */
+/* ============================================
+   ALERT VARIANTS
+   ============================================ */
 
 .alert-artist {
     --bs-alert-color: var(--color-artist-text-emphasis);
@@ -248,7 +258,9 @@
     --bs-alert-link-color: var(--color-track-text-emphasis);
 }
 
-/* === TOAST VARIANTS=== */
+/* ============================================
+   TOAST VARIANTS
+   ============================================ */
 
 .text-bg-artist {
     background-color: var(--color-artist) !important;
@@ -265,7 +277,9 @@
     color: #fff !important;
 }
 
-/* === LIST GROUP VARIANTS=== */
+/* ============================================
+   LIST GROUP VARIANTS
+   ============================================ */
 
 .list-group-item-artist {
     background-color: var(--color-artist-bg-subtle);
@@ -282,7 +296,9 @@
     color: var(--color-track-text-emphasis);
 }
 
-/* === PROGRESS BAR VARIANTS=== */
+/* ============================================
+   PROGRESS BAR VARIANTS
+   ============================================ */
 
 .progress-bar-artist {
     background-color: var(--color-artist) !important;
@@ -296,7 +312,9 @@
     background-color: var(--color-track) !important;
 }
 
-/* === LINK VARIANTS=== */
+/* ============================================
+   LINK VARIANTS
+   ============================================ */
 
 .link-artist {
     color: var(--color-artist) !important;
@@ -331,7 +349,9 @@
     text-decoration-color: var(--color-track-hover) !important;
 }
 
-/* === ORIGINAL BASE STYLES=== */
+/* ============================================
+   ORIGINAL BASE STYLES
+   ============================================ */
 
 body {
     min-height: 100vh;
@@ -362,7 +382,9 @@ footer {
     margin-left: 0 !important;
 }
 
-/* === HELPER CLASSES=== */
+/* ============================================
+   HELPER CLASSES
+   ============================================ */
 
 /* Opacity variants for semantic colors */
 .text-artist.opacity-75 { opacity: 0.75; }
@@ -373,7 +395,7 @@ footer {
 .text-album.opacity-50 { opacity: 0.5; }
 .text-track.opacity-50 { opacity: 0.5; }
 
-/* Gradient backgrounds */
+/* Gradient backgrounds (optional - for special effects) */
 .bg-gradient-artist {
     background: linear-gradient(135deg, var(--color-artist), var(--color-artist-hover)) !important;
     color: white !important;
@@ -405,29 +427,27 @@ footer {
     box-shadow: 0 0 0 0.25rem rgba(var(--color-track-rgb), 0.25);
 }
 
-/* === REFINED JAZZ ENHANCEMENTS
-   Subtle, sophisticated touches=== */
+/* ============================================
+   JAZZ-SPECIFIC ENHANCEMENTS
+   Subtle touches that enhance the sophisticated aesthetic
+   ============================================ */
 
-/* Elegant shadows for depth */
-[data-bs-theme="light"] .card {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+/* Softer shadows for jazz aesthetic */
+[data-bs-theme="dark"] .hover-shadow:hover {
+    box-shadow: 0 8px 20px rgba(212, 165, 116, 0.15) !important;
 }
 
-[data-bs-theme="dark"] .card {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+/* Vintage paper texture effect (optional) */
+.jazz-texture {
+    background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-size: 50px 50px;
 }
 
-/* Refined hover states */
+/* Warm glow effect for interactive elements */
 .btn-artist:hover,
 .btn-album:hover,
 .btn-track:hover {
-    box-shadow: 0 4px 12px rgba(var(--color-artist-rgb), 0.2);
-    transform: translateY(-1px);
-    transition: all 0.2s ease;
-}
-
-/* Professional borders */
-.refined-border {
-    border: 1px solid var(--bs-border-color);
-    border-top: 3px solid var(--color-artist);
+    box-shadow: 0 4px 12px rgba(var(--color-artist-rgb), 0.3);
 }

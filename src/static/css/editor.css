@@ -83,8 +83,8 @@
     border-color: #86b7fe;
 }
 
-.accordion-button.bg-success { background-color: #198754 !important; }
-.accordion-button.bg-warning { background-color: #ffc107 !important; color: #000 !important; }
+.accordion-button.bg-artist { background-color: var(--color-artist) !important; }
+.accordion-button.bg-album { background-color: var(--color-album) !important; color: white !important; }
 
 
 /* === 2. Drag & Drop Handles === */
@@ -99,14 +99,14 @@
 
 .playlist-ghost {
     opacity: 0.4;
-    background: var(--bs-primary-bg-subtle);
-    border: 2px dashed var(--bs-primary);
+    background: var(--color-track-bg-subtle);
+    border: 2px dashed var(--color-track);
 }
 
 /* Currently playing track in playlist - theme-aware highlighting */
-.playlist-item.bg-primary-subtle {
-    background-color: var(--bs-primary-bg-subtle) !important;
-    border-color: var(--bs-primary) !important;
+.playlist-item.bg-track-subtle {
+    background-color: var(--color-track-bg-subtle) !important;
+    border-color: var(--color-track) !important;
     border-width: 2px !important;
 }
 
@@ -140,7 +140,7 @@ body.reorder-mode .floating-buttons { display: none !important; }
     font-size: 1.2rem;  /* Slightly larger icon */
 }
 #toggle-reorder-mode:hover {
-    background-color: var(--bs-primary-bg-subtle);
+    background-color: var(--color-track-bg-subtle);
 }
 
 #toggle-reorder-mode.active { background-color: var(--bs-primary); color: white; }
@@ -276,13 +276,13 @@ body.reorder-mode .floating-buttons { display: none !important; }
 }
 
 .editor-toolbar a:hover {
-    background-color: var(--bs-primary-bg-subtle) !important;
+    background-color: var(--color-track-bg-subtle) !important;
     color: var(--bs-primary-text-emphasis) !important;
 }
 
 .editor-toolbar a.active,
 .editor-toolbar a:hover {
-    background-color: var(--bs-primary-bg-subtle);
+    background-color: var(--color-track-bg-subtle);
 }
 
 /* Fullscreen mode toolbar */
@@ -323,7 +323,7 @@ body.reorder-mode .floating-buttons { display: none !important; }
 
 /* Selected text */
 .CodeMirror-selected {
-    background: var(--bs-primary-bg-subtle);
+    background: var(--color-track-bg-subtle);
 }
 
 /* Enhancement to preview pane */

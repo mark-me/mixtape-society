@@ -15,6 +15,13 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 ### ✨ Added
 
 - Fallback cover art
+- Cover art for track search results
+-
+
+### 🔧 Changed
+
+- CSS changed to sematic color system
+- Cleaning up editor and player javascript
 
 [v0.4.1](https://github.com/mark-me/mixtape-society/compare/v0.4.0...v0.4.1)
 
