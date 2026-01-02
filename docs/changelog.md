@@ -16,6 +16,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 - Fallback cover art
 - Cover art for track search results
+- Cover art in mobile notification
 
 ### 🔧 Changed
 

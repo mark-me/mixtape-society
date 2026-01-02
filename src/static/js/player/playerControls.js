@@ -12,6 +12,25 @@ const QUALITY_LEVELS = {
 
 const DEFAULT_QUALITY = 'medium';
 
+/**
+ * Guesses the MIME type based on the file extension in the URL
+ * @param {string} url - The image URL
+ * @returns {string} MIME type (falls back to 'image/jpeg')
+ */
+function getMimeTypeFromUrl(url) {
+    const extension = url.split('.').pop().toLowerCase();
+    const mimeMap = {
+        'jpg': 'image/jpeg',
+        'jpeg': 'image/jpeg',
+        'png': 'image/png',
+        'webp': 'image/webp',
+        'gif': 'image/gif',
+        'bmp': 'image/bmp',
+        // Voeg gerust meer toe als je andere formaten ondersteunt
+    };
+    return mimeMap[extension] || 'image/jpeg'; // veilige fallback
+}
+
 export function initPlayerControls() {
     const player = document.getElementById('main-player');
     const container = document.getElementById('bottom-player-container');
@@ -140,19 +159,54 @@ export function initPlayerControls() {
     function updateMediaSession(track) {
         if (!('mediaSession' in navigator)) return;
 
+        const coverImg = track.querySelector('.track-cover');
+        let artwork = [];
+
+        if (coverImg && coverImg.src) {
+            const mimeType = getMimeTypeFromUrl(coverImg.src);
+
+            // Provide multiple sizes – Chrome on Android prefers 512x512 (256x256 on low-end devices)
+            artwork = [
+                { src: coverImg.src, sizes: '96x96',   type: mimeType },
+                { src: coverImg.src, sizes: '128x128', type: mimeType },
+                { src: coverImg.src, sizes: '192x192', type: mimeType },
+                { src: coverImg.src, sizes: '256x256', type: mimeType },
+                { src: coverImg.src, sizes: '384x384', type: mimeType },
+                { src: coverImg.src, sizes: '512x512', type: mimeType }
+            ];
+        }
+
         navigator.mediaSession.metadata = new MediaMetadata({
             title: track.dataset.title,
             artist: track.dataset.artist,
             album: track.dataset.album || '',
+            artwork: artwork
+        });
+
+        // Fallback to mixtape-cover or favicon if there's no track cover
+
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: track.dataset.title,
+            artist: track.dataset.artist,
+            album: track.dataset.album || '',
+            artwork: artwork
         });
 
         // Set action handlers for media controls
         navigator.mediaSession.setActionHandler('play', () => {
-            player.play();
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.playbackState = 'playing';
+            }
+            updatePositionState();
+            syncPlayIcons();
         });
 
         navigator.mediaSession.setActionHandler('pause', () => {
-            player.pause();
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.playbackState = 'paused';
+            }
+            updatePositionState();
+            syncPlayIcons();
         });
 
         navigator.mediaSession.setActionHandler('previoustrack', () => {
@@ -216,6 +270,13 @@ export function initPlayerControls() {
         const track = trackItems[index];
 
         player.src = buildAudioUrl(track.dataset.path, currentQuality);
+        if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {
+        try {
+            navigator.mediaSession.setPositionState(); // Clear state
+        } catch (e) {
+            // Catch browser error if there is no state yet
+        }
+    }
         bottomTitle.textContent = track.dataset.title;
         bottomArtistAlbum.textContent = `${track.dataset.artist} • ${track.dataset.album}`;
         container.style.display = 'block';
@@ -224,10 +285,10 @@ export function initPlayerControls() {
         track.classList.add('active-track');
 
         currentIndex = index;
-        
+
         // Update Media Session metadata for mobile notifications
         updateMediaSession(track);
-        
+
         player.play().catch(e => console.log('Autoplay prevented:', e));
     }
 
@@ -310,7 +371,7 @@ export function initPlayerControls() {
         player?.addEventListener('pause', updatePositionState);
         player?.addEventListener('ratechange', updatePositionState);
         player?.addEventListener('seeked', updatePositionState); // Update immediately after seeking
-        
+
         // Throttle timeupdate to once per second to avoid excessive updates
         let lastPositionUpdate = 0;
         player?.addEventListener('timeupdate', () => {
