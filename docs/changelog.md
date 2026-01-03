@@ -15,14 +15,19 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 ### ✨ Added
 
 - Modal for statistics on the entire collection
+- Improved details in editor for compilation albums
+- Enlarged album cover in album details
+- Hierarchical hints in search results
 
 ### 🔧 Changed
 
 - Moved the resync button to the statistics modal
+- Handling of compilation albums is now uniform
 
 ### 🐛 Fixed
 
 - Database resync corrupts database
+- Watcher corrupts database when changing lots of files in the music collection
 - Type 2 characters to start searching -> 3 characters
 - Top of search bar focus ring cut-off on top
 - Title of mixtape falls off the screen
@@ -384,4 +389,3 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 - Database locks when too many Watcher related updates
 
 [v0.1.1-alpha](https://github.com/mark-me/mixtape-society/compare/v0.1.0...v0.1.1-alpha)
-

@@ -8,12 +8,12 @@ from threading import Event as ThreadEvent, Thread, Lock
 from typing import Iterable, Literal
 
 from tinytag import TinyTag
-from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
 from common.logging import Logger, NullLogger
 
 from .indexing_status import clear_indexing_status, set_indexing_status
+from ._watcher import EnhancedWatcher as _Watcher
 
 # =========================
 # Constants
@@ -64,17 +64,20 @@ class IndexEvent:
 def configure_connection(conn: sqlite3.Connection) -> None:
     """Configures SQLite pragmas for write-ahead logging, durability, and concurrency.
 
-    This function enables WAL mode, tunes the synchronous setting for a balance
-    between safety and performance, and sets a busy timeout so concurrent access
+    This function enables WAL mode, tunes the synchronous setting for maximum
+    safety during bulk operations, and sets a busy timeout so concurrent access
     is less likely to result in immediate locking errors.
 
     Args:
         conn (sqlite3.Connection): The SQLite connection to configure.
     """
     conn.execute("PRAGMA journal_mode=WAL")
-    conn.execute("PRAGMA synchronous=NORMAL")
+    conn.execute("PRAGMA synchronous=FULL")  # Changed from NORMAL for maximum safety
     # PRAGMA doesn't support parameters, but BUSY_TIMEOUT_MS is validated as int at module load
     conn.execute(f"PRAGMA busy_timeout={BUSY_TIMEOUT_MS}")
+    conn.execute("PRAGMA wal_autocheckpoint=1000")
+    conn.execute("PRAGMA cache_size=-64000")  # 64MB cache
+    conn.execute("PRAGMA temp_store=MEMORY")
 
 
 def checkpoint_wal(conn: sqlite3.Connection, mode: str = "PASSIVE") -> None:
@@ -867,18 +870,20 @@ class CollectionExtractor:
         self._logger.info("Starting full rebuild")
         self._initial_status_event.set()
 
-        set_indexing_status(self.data_root, "rebuilding", total=-1, current=0)
-        self._write_queue.put(IndexEvent("CLEAR_DB"))
-        self._write_queue.join()
+        # Pause file monitoring to prevent race conditions with watcher
+        with self._pause_observer():
+            set_indexing_status(self.data_root, "rebuilding", total=-1, current=0)
+            self._write_queue.put(IndexEvent("CLEAR_DB"))
+            self._write_queue.join()
 
-        files = self._scan_music_files("rebuilding")
-        set_indexing_status(self.data_root, "rebuilding", total=len(files), current=0)
+            files = self._scan_music_files("rebuilding")
+            set_indexing_status(self.data_root, "rebuilding", total=len(files), current=0)
 
-        self._queue_file_operations(
-            to_delete=[],
-            to_index=files,
-            job_type="rebuilding",
-        )
+            self._queue_file_operations(
+                to_delete=[],
+                to_index=files,
+                job_type="rebuilding",
+            )
 
         self.set_initial_indexing_done()
 
@@ -894,31 +899,34 @@ class CollectionExtractor:
             None
         """
         self._logger.info("Starting resync")
-        set_indexing_status(self.data_root, "resyncing", total=-1, current=0)
+        
+        # Pause file monitoring to prevent race conditions with watcher
+        with self._pause_observer():
+            set_indexing_status(self.data_root, "resyncing", total=-1, current=0)
 
-        with self._db_lock:
-            fs_paths = self._scan_filesystem_paths()
-            db_paths = self._get_database_paths()
+            with self._db_lock:
+                fs_paths = self._scan_filesystem_paths()
+                db_paths = self._get_database_paths()
 
-        to_add_rel = fs_paths - db_paths
-        to_remove_rel = db_paths - fs_paths
-        to_add_abs = [self._to_abspath(p) for p in to_add_rel]
+            to_add_rel = fs_paths - db_paths
+            to_remove_rel = db_paths - fs_paths
+            to_add_abs = [self._to_abspath(p) for p in to_add_rel]
 
-        self._logger.info(
-            f"Resync: {len(to_add_rel)} to add, {len(to_remove_rel)} to remove"
-        )
-        set_indexing_status(
-            self.data_root,
-            "resyncing",
-            total=len(to_add_rel) + len(to_remove_rel),
-            current=0,
-        )
+            self._logger.info(
+                f"Resync: {len(to_add_rel)} to add, {len(to_remove_rel)} to remove"
+            )
+            set_indexing_status(
+                self.data_root,
+                "resyncing",
+                total=len(to_add_rel) + len(to_remove_rel),
+                current=0,
+            )
 
-        self._queue_file_operations(
-            to_delete=to_remove_rel,
-            to_index=to_add_abs,
-            job_type="resyncing",
-        )
+            self._queue_file_operations(
+                to_delete=to_remove_rel,
+                to_index=to_add_abs,
+                job_type="resyncing",
+            )
 
     def _scan_filesystem_paths(self) -> set[str]:
         """Scans the music root on disk and returns the set of all supported file paths.
@@ -1085,13 +1093,99 @@ class CollectionExtractor:
         self._observer.schedule(_Watcher(self), str(self.music_root), recursive=True)
         self._observer.start()
 
-    def stop(self) -> None:
-        """Stops the database writer thread and file system observer."""
+    def stop(self, timeout: float = 30.0) -> None:
+        """Stops the database writer thread and file system observer.
+        
+        Args:
+            timeout: Maximum time to wait for shutdown (seconds).
+        """
+        # Shutdown watcher first to flush pending events
+        if self._observer:
+            for handler_list in self._observer._handlers.values():
+                for handler in handler_list:
+                    if hasattr(handler, 'shutdown'):
+                        handler.shutdown()
+            self._observer.stop()
+            self._observer.join(timeout=5)
+        
+        # Stop writer thread
         self._writer_stop.set()
         self._writer_thread.join(timeout=5)
+
+    def _pause_observer(self):
+        """Context manager to temporarily pause file monitoring.
+        
+        This prevents race conditions during rebuild/resync operations by ensuring
+        the file watcher doesn't queue duplicate events while these operations
+        are scanning the filesystem and queueing their own events.
+        
+        Returns:
+            Context manager that pauses monitoring on entry and resumes on exit.
+        """
+        from contextlib import contextmanager
+        
+        @contextmanager
+        def pause():
+            # Store current monitoring state
+            was_monitoring = self._observer is not None and self._observer.is_alive()
+            handlers_backup = []
+            
+            if was_monitoring:
+                # Save current handlers before unscheduling
+                for path, handlers in list(self._observer._handlers.items()):
+                    handlers_backup.append((path, list(handlers)))
+                
+                # Unschedule all handlers (pauses monitoring)
+                self._observer.unschedule_all()
+                self._logger.debug("File monitoring paused for rebuild/resync")
+            
+            try:
+                yield
+            finally:
+                # Restore monitoring if it was active
+                if was_monitoring and handlers_backup:
+                    for path, handlers in handlers_backup:
+                        for handler in handlers:
+                            self._observer.schedule(handler, path, recursive=True)
+                    self._logger.debug("File monitoring resumed")
+        
+        return pause()
+
+    def enable_bulk_edit_mode(self) -> None:
+        """Enables bulk edit mode by pausing file system monitoring.
+        
+        Call this before performing bulk file operations (e.g., tagging 100+ files)
+        to prevent event flooding. File changes will not be indexed in real-time
+        while bulk edit mode is active.
+        
+        Example:
+            extractor.enable_bulk_edit_mode()
+            try:
+                # Perform bulk file operations here
+                for file in files:
+                    update_tags(file)
+            finally:
+                extractor.disable_bulk_edit_mode()
+        """
         if self._observer:
-            self._observer.stop()
-            self._observer.join()
+            self._observer.unschedule_all()
+            self._logger.info("File monitoring paused for bulk edit mode")
+
+    def disable_bulk_edit_mode(self) -> None:
+        """Disables bulk edit mode and resyncs the database.
+        
+        Call this after completing bulk file operations. This will resume file
+        system monitoring and trigger a resync to catch all changes made during
+        bulk edit mode.
+        """
+        if self._observer:
+            # Resume monitoring with a new watcher instance
+            watcher = _Watcher(self)
+            self._observer.schedule(watcher, str(self.music_root), recursive=True)
+            self._logger.info("File monitoring resumed, triggering resync")
+        
+        # Trigger resync to catch all changes
+        self.resync()
 
     def wait_for_indexing_start(self, timeout: float = 5.0) -> bool:
         """Waits until indexing has started or the specified timeout elapses.
@@ -1107,49 +1201,3 @@ class CollectionExtractor:
             bool: True if indexing started before the timeout, or False if the timeout expired first.
         """
         return self._initial_status_event.wait(timeout=timeout)
-
-
-# =========================
-# File system watcher
-# =========================
-
-
-class _Watcher(FileSystemEventHandler):
-    """Handles file system events for the music collection."""
-
-    def __init__(self, extractor: CollectionExtractor) -> None:
-        """Initializes the watcher with a collection extractor used to handle events.
-
-        This constructor stores a reference to the extractor so that relevant
-        filesystem changes can be translated into indexing operations for the
-        music collection.
-
-        Args:
-            extractor (CollectionExtractor): The collection extractor that processes
-                index and delete events for music files.
-        """
-        self.extractor = extractor
-
-    def on_any_event(self, event: object) -> None:
-        """Transforms relevant filesystem events into indexing queue operations.
-
-        This method ignores directory changes and non-supported file types, then
-        turns create/modify events into INDEX_FILE jobs and delete events into
-        DELETE_FILE jobs so that the writer thread can keep the database in sync
-        with real-time changes.
-
-        Args:
-            event (object): A watchdog-style file system event that provides
-                ``is_directory``, ``src_path``, and ``event_type`` attributes.
-        """
-        if event.is_directory:
-            return
-
-        path = Path(event.src_path)
-        if path.suffix.lower() not in self.extractor.SUPPORTED_EXTS:
-            return
-
-        if event.event_type in ("created", "modified"):
-            self.extractor._write_queue.put(IndexEvent("INDEX_FILE", path))
-        elif event.event_type == "deleted":
-            self.extractor._write_queue.put(IndexEvent("DELETE_FILE", path))
