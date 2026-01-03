@@ -42,6 +42,7 @@ nav:
   - Getting Started:
     - Getting Started: getting-started.md
     - Editor: editor.md
+    - Collection management: collection-management.md
     - Sharing: sharing.md
     - Deployment: docker.md
   - Development:

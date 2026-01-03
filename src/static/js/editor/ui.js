@@ -119,6 +119,18 @@ export function initUI() {
     // Title changes count as "unsaved"
     titleInput.addEventListener("input", markUnsaved);
 
+    // Auto-grow textarea as user types
+    function autoGrowTextarea(element) {
+        element.style.height = 'auto';
+        element.style.height = element.scrollHeight + 'px';
+    }
+
+    // Initialize textarea height and add listener
+    autoGrowTextarea(titleInput);
+    titleInput.addEventListener('input', function() {
+        autoGrowTextarea(this);
+    });
+
     // Save button handler with client ID for idempotent creates
     saveBtn.addEventListener("click", async () => {
         if (playlist.length === 0) {
@@ -299,9 +311,24 @@ export function initUI() {
     if (coverUploadBtn) {
         coverUploadBtn.addEventListener('click', (e) => {
             e.preventDefault();
+            
+            // Clean up any orphaned modal backdrops before opening
+            cleanupModalBackdrops();
+            
             const coverModal = new bootstrap.Modal(document.getElementById('coverOptionsModal'));
             coverModal.show();
         });
+    }
+
+    /**
+     * Removes any orphaned modal backdrops that might be stuck on the page
+     */
+    function cleanupModalBackdrops() {
+        const backdrops = document.querySelectorAll('.modal-backdrop');
+        backdrops.forEach(backdrop => backdrop.remove());
+        document.body.classList.remove('modal-open');
+        document.body.style.removeProperty('overflow');
+        document.body.style.removeProperty('padding-right');
     }
 
     // Wire up modal options
@@ -310,15 +337,27 @@ export function initUI() {
 
     if (uploadOption) {
         uploadOption.addEventListener('click', () => {
-            document.getElementById('cover-upload').click();
-            bootstrap.Modal.getInstance(document.getElementById('coverOptionsModal')).hide();
+            const modal = bootstrap.Modal.getInstance(document.getElementById('coverOptionsModal'));
+            modal.hide();
+            
+            // Wait for modal to finish hiding before triggering file input
+            // This prevents the file dialog from being blocked
+            setTimeout(() => {
+                document.getElementById('cover-upload').click();
+            }, 300);
         });
     }
 
     if (generateOption) {
         generateOption.addEventListener('click', () => {
-            generateCompositeCover();
-            bootstrap.Modal.getInstance(document.getElementById('coverOptionsModal')).hide();
+            const modal = bootstrap.Modal.getInstance(document.getElementById('coverOptionsModal'));
+            modal.hide();
+            
+            // Wait for modal to fully close before generating composite
+            // This prevents modal stacking issues if alerts need to be shown
+            setTimeout(() => {
+                generateCompositeCover();
+            }, 300);
         });
     }
 

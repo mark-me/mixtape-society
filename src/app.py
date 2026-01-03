@@ -102,6 +102,23 @@ def create_app() -> Flask:
             "started_at": status.get("started_at"),  # ISO string
         }
 
+    @app.route("/collection-stats")
+    @require_auth
+    def collection_stats_json():
+        """
+        Returns collection statistics as JSON.
+        Used by the collection stats modal.
+        """
+        try:
+            stats = collection.get_collection_stats()
+            return jsonify(stats)
+        except Exception as e:
+            logger.error(f"Error fetching collection stats: {e}")
+            return jsonify({
+                "success": False,
+                "error": str(e)
+            }), 500
+
     @app.route("/resync", methods=["POST"])
     @require_auth
     def resync_library():
