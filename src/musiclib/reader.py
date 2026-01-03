@@ -63,7 +63,7 @@ class MusicCollection:
         self.music_root = Path(music_root).resolve()
         self.db_path = Path(db_path)
         self._logger = logger or NullLogger()
-        self._extractor = CollectionExtractor(self.music_root, self.db_path)
+        self._extractor = CollectionExtractor(self.music_root, self.db_path, logger=logger)
 
         track_count = self.count()
         self._startup_mode = "rebuild" if track_count == 0 else "resync"
@@ -692,15 +692,15 @@ class MusicCollection:
 
     def _is_compilation_album(self, release_dir: str) -> bool:
         """Determines if an album is a compilation by checking the number of unique artists.
-        
+
         Args:
             release_dir: The release directory to check.
-            
+
         Returns:
             bool: True if the album has more than 3 unique artists, False otherwise.
         """
         expected_dir = release_dir if release_dir.endswith("/") else f"{release_dir}/"
-        
+
         with self._get_conn() as conn:
             cur = conn.execute(
                 f"""
@@ -1082,10 +1082,10 @@ class MusicCollection:
                     else "Unknown Album"
                 )
                 album_cover = self.get_cover(release_dir)
-                
+
                 # Check if this is a compilation album
                 is_compilation = self._is_compilation_album(release_dir)
-                
+
                 albums.append(
                     {
                         "album": album_name,
