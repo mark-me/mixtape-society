@@ -431,3 +431,35 @@ footer {
     border: 1px solid var(--bs-border-color);
     border-top: 3px solid var(--color-artist);
 }
+
+/* === ACCORDION VISUAL HIERARCHY ===
+   Subtle background tints and border accents for better context awareness */
+
+/* Artist accordion body - burgundy tint with left accent (top level only) */
+.accordion-item:has(> .accordion-header > .bg-artist) > .accordion-collapse > .accordion-body {
+    background-color: var(--color-artist-bg-subtle);
+    border-left: 4px solid var(--color-artist);
+    padding-left: 1.25rem;
+}
+
+/* Album accordion body - navy tint with left accent */
+.accordion-item:has(> .accordion-header > .bg-album) > .accordion-collapse > .accordion-body {
+    background-color: var(--color-album-bg-subtle);
+    border-left: 4px solid var(--color-album);
+    padding-left: 1.25rem;
+}
+
+/* Track items in lists - subtle green tint for context */
+.list-group-item.border.rounded {
+    border-left: 3px solid var(--color-track) !important;
+}
+
+/* Keep album artist subtitle white on colored backgrounds */
+.bg-album .album-artist {
+    color: rgba(255, 255, 255, 0.85) !important;
+}
+
+/* Also apply to album title for consistency */
+.bg-album .album-title {
+    color: white !important;
+}
