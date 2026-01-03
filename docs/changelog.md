@@ -24,6 +24,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 ### 🐛 Fixed
 
 - Database resync corrupts database
+- Watcher corrupts database when changing lots of files in the music collection
 - Type 2 characters to start searching -> 3 characters
 - Top of search bar focus ring cut-off on top
 - Title of mixtape falls off the screen
