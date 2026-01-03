@@ -4,7 +4,7 @@
 
 No accounts, no telemetry, no Spotify – just your music, your server, your rules.
 
-![Mixtape Society screenshot](docs/images/screenshot-browse.png)
+![Mixtape Society screenshot](docs/images/screenshot/browse.png)
 
 ## ✨ Features
 
@@ -42,7 +42,7 @@ Open [http://localhost:5001](http://localhost:5001) – Done!
 - 🙌 [Acknowledgements](https://mark-me.github.io/mixtape-society/about.html#acknowledgements)
 - 📝 [Changelog](https://mark-me.github.io/mixtape-society/changelog.html)
 - 📖 [Full Documentation](https://mark-me.github.io/mixtape-society/index.html)
-  
+
 ## ⚖️ Legal & Copyright Notice
 
 This software is a tool for personal, non-commercial use with legally owned music files.
