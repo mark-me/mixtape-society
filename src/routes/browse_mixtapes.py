@@ -47,10 +47,6 @@ def create_browser_blueprint(
         Returns:
             Response: The rendered template for mixtapes or indexing progress.
         """
-        status = func_processing_status(current_app.config["DATA_ROOT"], logger=logger)
-        if status and status["status"] in ("rebuilding", "resyncing"):
-            return render_template("indexing.html", status=status)
-
         mixtapes = mixtape_manager.list_all()
         return render_template("browse_mixtapes.html", mixtapes=mixtapes)
 

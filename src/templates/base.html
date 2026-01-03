@@ -21,10 +21,11 @@
     {% endblock %}
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/corruptionModals.css') }}" />
     {% block extra_css %}
     {% endblock %}
   </head>
-  <body>
+  <body class="{% if is_authenticated %}authenticated{% endif %}">
     <!-- Navbar -->
     <nav class="navbar navbar-expand-md navbar-dark bg-success shadow-sm sticky-top">
       <div class="container">
@@ -36,8 +37,8 @@
         <div class="d-flex align-items-center ms-auto">
           {% if is_authenticated %}
           <div class="ms-3">
-            <button class="btn btn-outline-light d-flex align-items-center gap-2" 
-                    id="collectionBtn" 
+            <button class="btn btn-outline-light d-flex align-items-center gap-2"
+                    id="collectionBtn"
                     data-bs-toggle="modal"
                     data-bs-target="#collectionStatsModal"
                     title="View collection statistics">
@@ -195,7 +196,7 @@
               <hr class="my-4">
 
               <div class="d-grid">
-                <button class="btn btn-primary d-flex align-items-center justify-content-center gap-2" 
+                <button class="btn btn-primary d-flex align-items-center justify-content-center gap-2"
                         id="resyncBtn">
                   <i class="bi bi-arrow-clockwise"></i>
                   Resync Library
@@ -236,6 +237,69 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- ==== DATABASE CORRUPTION MODAL ==== -->
+    <div class="modal fade" id="corruptionModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i>Database Issue Detected
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p>The music library database needs to be rebuilt.</p>
+            <p>This can happen after unexpected shutdowns or system crashes.</p>
+            <p class="mb-0">
+              <strong>Don't worry</strong> - your music files are safe.
+              Only the database index needs to be recreated.
+            </p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" id="showResetConfirmBtn">
+              Reset Database
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==== DATABASE RESET CONFIRMATION MODAL ==== -->
+    <div class="modal fade" id="confirmResetModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Confirm Database Reset</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p>This will:</p>
+            <ul>
+              <li>Delete the corrupted database</li>
+              <li>Scan all your music files</li>
+              <li>Rebuild the database from scratch</li>
+            </ul>
+            <p class="mb-0">
+              <strong>This may take a few minutes depending on your library size.</strong>
+            </p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-danger" id="confirmResetBtn">
+              <i class="bi bi-arrow-clockwise me-1"></i>Yes, Reset Database
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==== RESET LOADING OVERLAY ==== -->
+    <div id="resetLoadingOverlay">
+      <div class="loading-spinner"></div>
+      <p>Resetting database...</p>
     </div>
 
     <!-- Bootstrap JS -->
