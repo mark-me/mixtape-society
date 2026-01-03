@@ -870,18 +870,20 @@ class CollectionExtractor:
         self._logger.info("Starting full rebuild")
         self._initial_status_event.set()
 
-        set_indexing_status(self.data_root, "rebuilding", total=-1, current=0)
-        self._write_queue.put(IndexEvent("CLEAR_DB"))
-        self._write_queue.join()
+        # Pause file monitoring to prevent race conditions with watcher
+        with self._pause_observer():
+            set_indexing_status(self.data_root, "rebuilding", total=-1, current=0)
+            self._write_queue.put(IndexEvent("CLEAR_DB"))
+            self._write_queue.join()
 
-        files = self._scan_music_files("rebuilding")
-        set_indexing_status(self.data_root, "rebuilding", total=len(files), current=0)
+            files = self._scan_music_files("rebuilding")
+            set_indexing_status(self.data_root, "rebuilding", total=len(files), current=0)
 
-        self._queue_file_operations(
-            to_delete=[],
-            to_index=files,
-            job_type="rebuilding",
-        )
+            self._queue_file_operations(
+                to_delete=[],
+                to_index=files,
+                job_type="rebuilding",
+            )
 
         self.set_initial_indexing_done()
 
@@ -897,31 +899,34 @@ class CollectionExtractor:
             None
         """
         self._logger.info("Starting resync")
-        set_indexing_status(self.data_root, "resyncing", total=-1, current=0)
+        
+        # Pause file monitoring to prevent race conditions with watcher
+        with self._pause_observer():
+            set_indexing_status(self.data_root, "resyncing", total=-1, current=0)
 
-        with self._db_lock:
-            fs_paths = self._scan_filesystem_paths()
-            db_paths = self._get_database_paths()
+            with self._db_lock:
+                fs_paths = self._scan_filesystem_paths()
+                db_paths = self._get_database_paths()
 
-        to_add_rel = fs_paths - db_paths
-        to_remove_rel = db_paths - fs_paths
-        to_add_abs = [self._to_abspath(p) for p in to_add_rel]
+            to_add_rel = fs_paths - db_paths
+            to_remove_rel = db_paths - fs_paths
+            to_add_abs = [self._to_abspath(p) for p in to_add_rel]
 
-        self._logger.info(
-            f"Resync: {len(to_add_rel)} to add, {len(to_remove_rel)} to remove"
-        )
-        set_indexing_status(
-            self.data_root,
-            "resyncing",
-            total=len(to_add_rel) + len(to_remove_rel),
-            current=0,
-        )
+            self._logger.info(
+                f"Resync: {len(to_add_rel)} to add, {len(to_remove_rel)} to remove"
+            )
+            set_indexing_status(
+                self.data_root,
+                "resyncing",
+                total=len(to_add_rel) + len(to_remove_rel),
+                current=0,
+            )
 
-        self._queue_file_operations(
-            to_delete=to_remove_rel,
-            to_index=to_add_abs,
-            job_type="resyncing",
-        )
+            self._queue_file_operations(
+                to_delete=to_remove_rel,
+                to_index=to_add_abs,
+                job_type="resyncing",
+            )
 
     def _scan_filesystem_paths(self) -> set[str]:
         """Scans the music root on disk and returns the set of all supported file paths.
@@ -1106,6 +1111,45 @@ class CollectionExtractor:
         # Stop writer thread
         self._writer_stop.set()
         self._writer_thread.join(timeout=5)
+
+    def _pause_observer(self):
+        """Context manager to temporarily pause file monitoring.
+        
+        This prevents race conditions during rebuild/resync operations by ensuring
+        the file watcher doesn't queue duplicate events while these operations
+        are scanning the filesystem and queueing their own events.
+        
+        Returns:
+            Context manager that pauses monitoring on entry and resumes on exit.
+        """
+        from contextlib import contextmanager
+        
+        @contextmanager
+        def pause():
+            # Store current monitoring state
+            was_monitoring = self._observer is not None and self._observer.is_alive()
+            handlers_backup = []
+            
+            if was_monitoring:
+                # Save current handlers before unscheduling
+                for path, handlers in list(self._observer._handlers.items()):
+                    handlers_backup.append((path, list(handlers)))
+                
+                # Unschedule all handlers (pauses monitoring)
+                self._observer.unschedule_all()
+                self._logger.debug("File monitoring paused for rebuild/resync")
+            
+            try:
+                yield
+            finally:
+                # Restore monitoring if it was active
+                if was_monitoring and handlers_backup:
+                    for path, handlers in handlers_backup:
+                        for handler in handlers:
+                            self._observer.schedule(handler, path, recursive=True)
+                    self._logger.debug("File monitoring resumed")
+        
+        return pause()
 
     def enable_bulk_edit_mode(self) -> None:
         """Enables bulk edit mode by pausing file system monitoring.
