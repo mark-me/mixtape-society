@@ -274,7 +274,17 @@ class CollectionExtractor:
         self._observer: Observer | None = None
         self._db_lock = Lock()
 
-        self._init_db()
+        try:
+            self._init_db()
+        except sqlite3.DatabaseError as e:
+            if (
+                'malformed' not in str(e).lower()
+                and 'corrupt' not in str(e).lower()
+            ):
+                raise
+            self._logger.error(f"Corruption detected: {e}")
+            self._delete_database_files()
+            self._init_db()  # Retry
         self._start_writer_thread()
 
     def _start_writer_thread(self) -> None:
@@ -297,6 +307,13 @@ class CollectionExtractor:
             self._create_triggers(conn)
             self._create_meta_table(conn)
             conn.commit()
+
+    def _delete_database_files(self) -> None:
+        """Deletes corrupted database files."""
+        for suffix in ['', '-wal', '-shm', '-journal']:
+            file_path = Path(str(self.db_path) + suffix)
+            if file_path.exists():
+                file_path.unlink()
 
     def _create_tracks_table(self, conn: sqlite3.Connection) -> None:
         """Ensures the core tracks table exists for storing music metadata.
@@ -899,7 +916,7 @@ class CollectionExtractor:
             None
         """
         self._logger.info("Starting resync")
-        
+
         # Pause file monitoring to prevent race conditions with watcher
         with self._pause_observer():
             set_indexing_status(self.data_root, "resyncing", total=-1, current=0)
@@ -1095,7 +1112,7 @@ class CollectionExtractor:
 
     def stop(self, timeout: float = 30.0) -> None:
         """Stops the database writer thread and file system observer.
-        
+
         Args:
             timeout: Maximum time to wait for shutdown (seconds).
         """
@@ -1107,57 +1124,58 @@ class CollectionExtractor:
                         handler.shutdown()
             self._observer.stop()
             self._observer.join(timeout=5)
-        
+
         # Stop writer thread
         self._writer_stop.set()
         self._writer_thread.join(timeout=5)
 
     def _pause_observer(self):
         """Context manager to temporarily pause file monitoring.
-        
+
         This prevents race conditions during rebuild/resync operations by ensuring
         the file watcher doesn't queue duplicate events while these operations
         are scanning the filesystem and queueing their own events.
-        
+
         Returns:
             Context manager that pauses monitoring on entry and resumes on exit.
         """
-        from contextlib import contextmanager
-        
+
         @contextmanager
         def pause():
-            # Store current monitoring state
+            # Check if observer is running
             was_monitoring = self._observer is not None and self._observer.is_alive()
-            handlers_backup = []
-            
+
             if was_monitoring:
-                # Save current handlers before unscheduling
-                for path, handlers in list(self._observer._handlers.items()):
-                    handlers_backup.append((path, list(handlers)))
-                
-                # Unschedule all handlers (pauses monitoring)
-                self._observer.unschedule_all()
-                self._logger.debug("File monitoring paused for rebuild/resync")
-            
+                # Stop the observer completely
+                self._observer.stop()
+                self._observer.join(timeout=2)
+                self._logger.info("File monitoring paused for rebuild/resync")
+
             try:
                 yield
             finally:
-                # Restore monitoring if it was active
-                if was_monitoring and handlers_backup:
-                    for path, handlers in handlers_backup:
-                        for handler in handlers:
-                            self._observer.schedule(handler, path, recursive=True)
-                    self._logger.debug("File monitoring resumed")
-        
+                # Restart monitoring if it was active
+                if was_monitoring:
+                    # Re-create and start observer from scratch
+                    from watchdog.observers import Observer
+                    from ._watcher import EnhancedWatcher as _Watcher
+
+                    self._observer = Observer()
+                    handler = _Watcher(self)
+                    self._observer.schedule(handler, str(self.music_root), recursive=True)
+                    self._observer.start()
+
+                    self._logger.info("File monitoring resumed")
+
         return pause()
 
     def enable_bulk_edit_mode(self) -> None:
         """Enables bulk edit mode by pausing file system monitoring.
-        
+
         Call this before performing bulk file operations (e.g., tagging 100+ files)
         to prevent event flooding. File changes will not be indexed in real-time
         while bulk edit mode is active.
-        
+
         Example:
             extractor.enable_bulk_edit_mode()
             try:
@@ -1173,7 +1191,7 @@ class CollectionExtractor:
 
     def disable_bulk_edit_mode(self) -> None:
         """Disables bulk edit mode and resyncs the database.
-        
+
         Call this after completing bulk file operations. This will resume file
         system monitoring and trigger a resync to catch all changes made during
         bulk edit mode.
@@ -1183,7 +1201,7 @@ class CollectionExtractor:
             watcher = _Watcher(self)
             self._observer.schedule(watcher, str(self.music_root), recursive=True)
             self._logger.info("File monitoring resumed, triggering resync")
-        
+
         # Trigger resync to catch all changes
         self.resync()
 
