@@ -264,6 +264,10 @@ function loadArtistDetails(artist, body) {
                         <div id="collapse-album-${albumId}"
                             class="accordion-collapse collapse">
                             <div class="accordion-body">
+                                ${album.cover ? `
+                                    <div class="album-detail-cover mb-3">
+                                        <img src="/${album.cover}" alt="Album Cover" class="rounded shadow-sm">
+                                    </div>` : ''}
                                 <button class="btn btn-success btn-sm mb-3 add-album-btn"
                                         data-tracks="${escapeHtml(JSON.stringify(album.tracks))}">
                                     <i class="bi bi-plus-circle me-2"></i>Add whole album

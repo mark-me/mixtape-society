@@ -16,10 +16,12 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 - Modal for statistics on the entire collection
 - Improved details in editor for compilation albums
+- Enlarged album cover in album details
 
 ### 🔧 Changed
 
 - Moved the resync button to the statistics modal
+- Handling of compilation albums is now uniform
 
 ### 🐛 Fixed
 
