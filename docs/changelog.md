@@ -15,6 +15,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 ### ✨ Added
 
 - Modal for statistics on the entire collection
+- Improved details in editor for compilation albums
 
 ### 🔧 Changed
 

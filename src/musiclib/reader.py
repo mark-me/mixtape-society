@@ -92,11 +92,7 @@ class MusicCollection:
         if status and status.get("status") in ("rebuilding", "resyncing"):
             return True
 
-        if status is None and self.count() == 0:
-            return True
-
-        # Otherwise: either done, or no job needed
-        return False
+        return status is None and self.count() == 0
 
     def _start_background_startup_job(self) -> None:
         """Starts a background thread to perform initial indexing or resync of the music collection.
@@ -674,7 +670,7 @@ class MusicCollection:
             list[dict[str, str | float]]: A sequence of database rows containing artist, album, title, path, filename, duration, and release_dir.
         """
         with self._get_conn() as conn:
-            if use_fts := self._use_fts(conn):
+            if use_fts := self._use_fts(conn):  # noqa: F841
                 all_terms = (
                     terms["artist"] + terms["album"] + terms["track"] + terms["general"]
                 )
@@ -990,6 +986,7 @@ class MusicCollection:
         return self._terms_compatible(session.terms, terms)
 
     def _score_text(self, text: str, terms: list[str]) -> int:
+        # sourcery skip: assign-if-exp, reintroduce-else
         """Calculates a relevance score for text based on a list of search terms.
         Prioritizes exact, prefix, and substring matches to influence search ranking.
 
@@ -1181,7 +1178,6 @@ class MusicCollection:
 
             # Album name from first row
             album_name = rows[0]["album"] or "Unknown Album"
-            album_cover = self.get_cover(release_dir)
 
             # Build track list
             track_list = [self._build_track_dict(row) for row in rows]

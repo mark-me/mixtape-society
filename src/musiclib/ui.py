@@ -132,11 +132,12 @@ class MusicCollectionUI(MusicCollection):
                 for term in terms["artist"]:
                     term_lower = term.lower()
                     # Prefer exact quoted match
-                    if f'"{term_lower}"' in query_lower:
-                        if artist_lower == term_lower:
-                            matched = True
-                            break
-                    elif term_lower in artist_lower:
+                    if (
+                        f'"{term_lower}"' in query_lower
+                        and artist_lower == term_lower
+                        or f'"{term_lower}"' not in query_lower
+                        and term_lower in artist_lower
+                    ):
                         matched = True
                         break
                 if not matched:
