@@ -165,21 +165,16 @@ class MusicCollection:
         Raises:
             DatabaseCorruptionError: If database corruption is detected.
         """
-        conn = None
-        try:
-            conn = self._extractor.get_conn(readonly=True).__enter__()
-            yield conn
-        except sqlite3.DatabaseError as e:
-            error_msg = str(e).lower()
-            if any(keyword in error_msg for keyword in ['malformed', 'corrupt', 'damaged', 'disk image']):
-                raise DatabaseCorruptionError(
-                    "The music library database is corrupted and needs to be rebuilt."
-                ) from e
-            raise
-        finally:
-            if conn:
-                with contextlib.suppress(Exception):
-                    conn.close()
+        with self._extractor.get_conn(readonly=True) as conn:
+            try:
+                yield conn
+            except sqlite3.DatabaseError as e:
+                error_msg = str(e).lower()
+                if any(k in error_msg for k in ["malformed", "corrupt", "damaged", "disk image"]):
+                    raise DatabaseCorruptionError(
+                        "The music library database is corrupted and needs to be rebuilt."
+                    ) from e
+                raise
 
     def count(self) -> int:
         """Returns the total number of tracks in the music collection database.

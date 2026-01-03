@@ -1137,7 +1137,8 @@ class CollectionExtractor:
         are scanning the filesystem and queueing their own events.
 
         Returns:
-            Context manager that pauses monitoring on entry and resumes on exit.
+            Context manager that pauses monitoring on entry and resumes on exit,
+            reusing the standard observer setup logic in ``start_monitoring``.
         """
 
         @contextmanager
