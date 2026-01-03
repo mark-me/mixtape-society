@@ -240,6 +240,10 @@ function loadArtistDetails(artist, body) {
                     <div class="album-thumb me-2">
                         <img src="/${album.cover}" alt="Album Cover" class="rounded">
                     </div>` : '';
+                
+                // Show "Various Artists" subtitle for compilation albums
+                const subtitle = album.is_compilation ? 
+                    '<div class="album-artist text-truncate small text-muted">Various Artists</div>' : '';
 
                 html += `
                     <div class="accordion-item">
@@ -250,6 +254,7 @@ function loadArtistDetails(artist, body) {
                                 ${coverThumb}
                                 <div class="flex-grow-1 min-w-0">
                                     <strong class="text-truncate d-block">${escapeHtml(album.album)}</strong>
+                                    ${subtitle}
                                 </div>
                                 <span class="ms-auto small">
                                     <i class="bi bi-music-note-beamed me-1"></i>${album.tracks.length}
@@ -334,7 +339,10 @@ function loadAlbumDetails(releaseDir, cover, body) {
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <div class="flex-grow-1 min-w-0">
                                 <span class="text-truncate d-block">${escapeHtml(track.track)}</span>
-                                <small class="text-muted">${formatDuration(track.duration || "?:??")}</small>
+                                ${details.is_compilation ? 
+                                    `<small class="text-muted">${escapeHtml(track.artist)} • ${formatDuration(track.duration || "?:??")}</small>` :
+                                    `<small class="text-muted">${formatDuration(track.duration || "?:??")}</small>`
+                                }
                             </div>
                             <div class="track-actions d-flex align-items-center gap-2 flex-shrink-0 ms-2">
                                 <button class="btn btn-track btn-sm preview-btn"
