@@ -18,6 +18,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 - Improved details in editor for compilation albums
 - Enlarged album cover in album details
 - Hierarchical hints in search results
+- User are alerted on broken DB and can rebuild from UI
 
 ### 🔧 Changed
 
