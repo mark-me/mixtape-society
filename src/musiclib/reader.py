@@ -1,10 +1,12 @@
+import contextlib
+from contextlib import contextmanager
 import hashlib
 import io
 import re
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-from sqlite3 import Connection
+import sqlite3
 from threading import Thread
 from time import time
 
@@ -16,6 +18,10 @@ from common.logging import Logger, NullLogger
 from ._extractor import CollectionExtractor
 from .indexing_status import get_indexing_status
 
+
+class DatabaseCorruptionError(Exception):
+    """Raised when database corruption is detected."""
+    pass
 
 @dataclass
 class SearchSession:
@@ -149,14 +155,26 @@ class MusicCollection:
         """
         self._extractor.stop()
 
-    def _get_conn(self) -> Connection:
-        """Returns a read-only SQLite connection to the music collection database.
-        Used internally for executing queries against the database.
+    @contextmanager
+    def _get_conn(self):
+        """Returns a read-only SQLite connection with corruption detection.
 
-        Returns:
+        Yields:
             Connection: A read-only SQLite database connection.
+
+        Raises:
+            DatabaseCorruptionError: If database corruption is detected.
         """
-        return self._extractor.get_conn(readonly=True)
+        with self._extractor.get_conn(readonly=True) as conn:
+            try:
+                yield conn
+            except sqlite3.DatabaseError as e:
+                error_msg = str(e).lower()
+                if any(k in error_msg for k in ["malformed", "corrupt", "damaged", "disk image"]):
+                    raise DatabaseCorruptionError(
+                        "The music library database is corrupted and needs to be rebuilt."
+                    ) from e
+                raise
 
     def count(self) -> int:
         """Returns the total number of tracks in the music collection database.
@@ -168,7 +186,7 @@ class MusicCollection:
         with self._get_conn() as conn:
             return conn.execute("SELECT COUNT(*) FROM tracks").fetchone()[0]
 
-    def _use_fts(self, conn: Connection) -> bool:
+    def _use_fts(self, conn: sqlite3.Connection) -> bool:
         """Checks if the full-text search (FTS) table exists in the database.
         Determines whether FTS-based queries can be used for searching tracks.
 
@@ -198,7 +216,7 @@ class MusicCollection:
         return txt.replace('"', '""')
 
     def _search_album_tracks(
-        self, conn: Connection, artist: str, album: str
+        self, conn: sqlite3.Connection, artist: str, album: str
     ) -> list[dict[str, str]]:
         """Fetches all tracks for a given artist and album from the database.
         Returns a list of track details including title, path, filename, and duration.
@@ -423,9 +441,7 @@ class MusicCollection:
             # Remove standalone wildcards
             if term in ("*", "%"):
                 continue
-            # Remove leading/trailing wildcards
-            term = term.strip("*%")
-            if term:
+            if term := term.strip("*%"):
                 cleaned.append(term)
         return cleaned
 

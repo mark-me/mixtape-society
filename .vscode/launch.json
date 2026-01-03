@@ -1,0 +1,57 @@
+{
+  // VSCode launch.json configuration for Flask debugging with database error handling
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python: Flask (Handle DB Errors)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "flask",
+      "env": {
+        "FLASK_APP": "app.py",
+        "FLASK_ENV": "development",
+        "APP_ENV": "development"
+      },
+      "args": [
+        "run",
+        "--no-debugger",
+        "--no-reload"
+      ],
+      "jinja": true,
+      "justMyCode": false,
+      // This tells the debugger to not break on these exceptions
+      "rules": [
+        {
+          "path": "**/sqlite3/**",
+          "include": false
+        }
+      ]
+    },
+    {
+      "name": "Python: Current File",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${file}",
+      "console": "integratedTerminal",
+      "justMyCode": false
+    },
+    {
+      "name": "Python: Flask (Break on All Errors)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "flask",
+      "env": {
+        "FLASK_APP": "app.py",
+        "FLASK_ENV": "development"
+      },
+      "args": [
+        "run",
+        "--no-debugger",
+        "--no-reload"
+      ],
+      "jinja": true,
+      "justMyCode": false
+      // No exception filtering - breaks on all exceptions
+    }
+  ]
+}

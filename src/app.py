@@ -1,10 +1,20 @@
 import logging
 import os
 import sys
+import threading
 from datetime import datetime, timezone
 from pathlib import Path
 
-from flask import Flask, Response, redirect, render_template, abort, send_from_directory, jsonify
+from flask import (
+    Flask,
+    Response,
+    abort,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    send_from_directory,
+)
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -14,7 +24,7 @@ from auth import check_auth, require_auth
 from config import BaseConfig, DevelopmentConfig, ProductionConfig, TestConfig
 from logtools import get_logger, setup_logging
 from mixtape_manager import MixtapeManager
-from musiclib import MusicCollectionUI, get_indexing_status
+from musiclib import DatabaseCorruptionError, MusicCollectionUI, get_indexing_status
 from routes import (
     create_authentication_blueprint,
     create_browser_blueprint,
@@ -64,6 +74,66 @@ def create_app() -> Flask:
     mixtape_manager = MixtapeManager(
         path_mixtapes=config_cls.MIXTAPE_DIR, collection=collection
     )
+
+    @app.errorhandler(DatabaseCorruptionError)
+    def handle_database_corruption(e: DatabaseCorruptionError) -> tuple[Response, int]:
+        """Handles database corruption errors and returns a structured JSON response.
+        Logs the error and informs the client that the music library database must be rebuilt.
+
+        Args:
+            e: The DatabaseCorruptionError instance that was raised.
+
+        Returns:
+            tuple[Response, int]: A JSON response describing the error and the HTTP 500 status code.
+        """
+        logger.error(f"Database corruption detected: {e}")
+
+        # Detect if AJAX request
+        is_ajax = (
+            request.headers.get('X-Requested-With') == 'XMLHttpRequest' or
+            request.headers.get('Accept', '').startswith('application/json') or
+            request.is_json
+        )
+
+        if is_ajax:
+            return jsonify({
+                "error": "database_corrupted",
+                "message": "The music library database needs to be rebuilt.",
+                "requires_reset": True
+            }), 500
+        else:
+            return render_template('database_error.html'), 500
+
+    @app.before_request
+    def check_indexing_before_request():
+        """Check if indexing is in progress and redirect authenticated users."""
+
+        logger.info(f"🔍 CHECK: {request.path}")
+        # Skip these paths
+        # bypass_paths = [
+        #      '/indexing-status', '/',
+        #     '/reset-database', '/check-database-health'
+        # ]
+        bypass_paths = ['/static', '/play', '/indexing-status', '/check-database-health']
+
+        for path in bypass_paths:
+            if request.path.startswith(path):
+                logger.info(f"  ↪ BYPASS: {path}")
+                return None
+
+        is_auth = check_auth()
+        logger.info(f"  Auth: {is_auth}")
+        if not is_auth:
+            return None
+
+        status = get_indexing_status(config_cls.DATA_ROOT, logger=logger)
+        logger.info(f"  Status: {status}")
+
+        if status and status["status"] in ("rebuilding", "resyncing"):
+            logger.info(f"  ✅ REDIRECTING!")
+            return render_template("indexing.html", status=status)
+
+        return None
 
     @app.route("/")
     def landing() -> Response:
@@ -178,6 +248,107 @@ def create_app() -> Flask:
         if not filename.lower().endswith((".jpg", ".jpeg", ".png")):
             abort(404)
         return send_from_directory(covers_dir, filename)
+
+    @app.route("/reset-database", methods=["POST"])
+    @require_auth
+    def reset_database():
+        """Resets the corrupted database and triggers rebuild."""
+        try:
+            # Check if indexing already in progress
+            status = get_indexing_status(config_cls.DATA_ROOT, logger=app.logger)
+            if status and status["status"] in ("rebuilding", "resyncing"):
+                return jsonify({
+                    "success": False,
+                    "error": "Indexing already in progress"
+                }), 409
+
+            logger.warning("Database reset requested by authenticated user")
+
+            # Close collection
+            try:
+                collection.close()
+                logger.info("Collection closed before database reset")
+            except Exception as e:
+                logger.warning(f"Error closing collection: {e}")
+
+            # Delete database files
+            db_path = Path(config_cls.DB_PATH)
+            deleted_files = []
+
+            for suffix in ['', '-wal', '-shm', '-journal']:
+                file_path = Path(str(db_path) + suffix)
+                if file_path.exists():
+                    try:
+                        file_path.unlink()
+                        deleted_files.append(file_path.name)
+                        logger.info(f"Deleted: {file_path}")
+                    except Exception as e:
+                        logger.error(f"Failed to delete {file_path}: {e}")
+                        return jsonify({
+                            "success": False,
+                            "error": f"Failed to delete database: {e}"
+                        }), 500
+
+            # Reinitialize collection (triggers rebuild)
+            def reinitialize():
+                try:
+                    global collection
+                    logger.info("Reinitializing music collection")
+                    collection = MusicCollectionUI(
+                        music_root=config_cls.MUSIC_ROOT,
+                        db_path=config_cls.DB_PATH,
+                        logger=logger
+                    )
+                    logger.info("Collection reinitialized")
+                except Exception as e:
+                    logger.error(f"Error reinitializing: {e}")
+
+            thread = threading.Thread(target=reinitialize, daemon=True)
+            thread.start()
+
+            return jsonify({
+                "success": True,
+                "message": "Database reset. Rebuild started.",
+                "deleted_files": deleted_files
+            })
+
+        except Exception as e:
+            logger.error(f"Error during reset: {e}", exc_info=True)
+            return jsonify({
+                "success": False,
+                "error": str(e)
+            }), 500
+
+
+    @app.route("/check-database-health")
+    @require_auth
+    def check_database_health():
+        """Checks database health proactively."""
+        try:
+            count = collection.count()
+
+            with collection._extractor.get_conn(readonly=True) as conn:
+                result = conn.execute("PRAGMA quick_check").fetchone()[0]
+                is_healthy = result == 'ok'
+
+            return jsonify({
+                "healthy": is_healthy,
+                "track_count": count,
+                "check_result": result
+            })
+
+        except DatabaseCorruptionError:
+            return jsonify({
+                "healthy": False,
+                "error": "Database corruption detected",
+                "requires_reset": True
+            })
+        except Exception as e:
+            logger.error(f"Error checking health: {e}")
+            return jsonify({
+                "healthy": False,
+                "error": str(e)
+            }), 500
 
     # === Context Processors ===
 

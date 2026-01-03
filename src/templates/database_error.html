@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Database Error{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="text-center">
+                <!-- Hidden div with error marker for JavaScript detection -->
+                <div id="database-corruption-detected" style="display: none;" data-error="database_corrupted"></div>
+                
+                <!-- Loading state while modal appears -->
+                <div class="spinner-border text-primary mb-4" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h3 class="mb-3">Database Issue Detected</h3>
+                <p class="text-muted">
+                    Please wait while we prepare the recovery options...
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Auto-trigger modal when this page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Database error page loaded, triggering modal');
+        
+        // Wait a moment for the modal to be initialized
+        setTimeout(function() {
+            if (typeof showCorruptionModal === 'function') {
+                showCorruptionModal();
+            } else {
+                console.error('showCorruptionModal not available');
+                // Fallback: show alert
+                if (confirm('The music library database is corrupted and needs to be rebuilt. Reset now?')) {
+                    fetch('/reset-database', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            window.location.href = '/';
+                        } else {
+                            alert('Error: ' + (data.error || 'Unknown error'));
+                        }
+                    });
+                }
+            }
+        }, 100);
+    });
+</script>
+{% endblock %}

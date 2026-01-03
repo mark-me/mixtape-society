@@ -275,14 +275,26 @@ class MixtapeManager:
             self._logger.error(f"Failed to read mixtape {slug}: {e}")
             return None
 
-        # TODO: Make complete
-        data_verified, has_changed = self._verify_against_collection(data=data)
-        if data_verified:
-            data_verified = self._verify_mixtape_metadata(data=data_verified)
-            data_verified["slug"] = slug
-            return data_verified
-        else:
-            return None
+        try:
+            data_verified, has_changed = self._verify_against_collection(data=data)
+            if data_verified:
+                data_verified = self._verify_mixtape_metadata(data=data_verified)
+                data_verified["slug"] = slug
+                return data_verified
+            else:
+                return None
+        except Exception as e:
+            # Database unavailable (corruption, indexing, etc.)
+            # Just use the mixtape data as-is from the JSON file
+            self._logger.warning(
+                f"Could not verify mixtape {slug} against collection: {e}. "
+                f"Using cached data from JSON."
+            )
+
+        # Always normalize metadata
+        data = self._verify_mixtape_metadata(data=data)
+        data["slug"] = slug
+        return data
 
     def _verify_against_collection(self, data: dict) -> tuple[dict, bool | None]:
         """Verifies and refreshes mixtape track metadata against the music collection.

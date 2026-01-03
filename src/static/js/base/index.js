@@ -6,11 +6,13 @@
 
 import { initThemeSwitcher } from './themeSwitcher.js';
 import { initCollectionStats } from './collectionStats.js';
+import { initDatabaseCorruption } from './databaseCorruption.js';
 
 // Initialize all modules when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     initThemeSwitcher();
     initCollectionStats();
+    initDatabaseCorruption();
     
     // Initialize Bootstrap tooltips
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
