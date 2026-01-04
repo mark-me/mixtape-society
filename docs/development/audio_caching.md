@@ -498,9 +498,9 @@ Track how well caching is working:
 
 ```python
 if cache.is_cached(file, quality):
-    logger.info(f"✓ Cache hit: {file.name}")
+    logger.debug(f"✓ Cache hit: {file.name}")
 else:
-    logger.warning(f"✗ Cache miss: {file.name}")
+    logger.debug(f"✗ Cache miss: {file.name}")
 ```
 
 ## Examples

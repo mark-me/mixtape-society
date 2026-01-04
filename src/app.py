@@ -108,7 +108,7 @@ def create_app() -> Flask:
     def check_indexing_before_request():
         """Check if indexing is in progress and redirect authenticated users."""
 
-        logger.info(f"🔍 CHECK: {request.path}")
+        logger.debug(f"🔍 CHECK: {request.path}")
         # Skip these paths
         # bypass_paths = [
         #      '/indexing-status', '/',
@@ -118,19 +118,19 @@ def create_app() -> Flask:
 
         for path in bypass_paths:
             if request.path.startswith(path):
-                logger.info(f"  ↪ BYPASS: {path}")
+                logger.debug(f"  ↪ BYPASS: {path}")
                 return None
 
         is_auth = check_auth()
-        logger.info(f"  Auth: {is_auth}")
+        logger.debug(f"  Auth: {is_auth}")
         if not is_auth:
             return None
 
         status = get_indexing_status(config_cls.DATA_ROOT, logger=logger)
-        logger.info(f"  Status: {status}")
+        logger.debug(f"  Status: {status}")
 
         if status and status["status"] in ("rebuilding", "resyncing"):
-            logger.info(f"  ✅ REDIRECTING!")
+            logger.debug(f"  ✅ REDIRECTING!")
             return render_template("indexing.html", status=status)
 
         return None
@@ -281,7 +281,7 @@ def create_app() -> Flask:
                     try:
                         file_path.unlink()
                         deleted_files.append(file_path.name)
-                        logger.info(f"Deleted: {file_path}")
+                        logger.debug(f"Deleted: {file_path}")
                     except Exception as e:
                         logger.error(f"Failed to delete {file_path}: {e}")
                         return jsonify({

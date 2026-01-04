@@ -68,7 +68,7 @@ class CacheWorker:
             try:
                 self.audio_cache.transcode_file(file_path, quality)
                 results[quality] = True
-                self.logger.info(f"Cached {file_path.name} at {quality} quality")
+                self.logger.debug(f"Cached {file_path.name} at {quality} quality")
             except Exception as e:
                 results[quality] = False
                 self.logger.error(f"Failed to cache {file_path.name} at {quality}: {e}")
@@ -98,7 +98,7 @@ class CacheWorker:
         total_files = len(track_paths)
         results = {}
 
-        self.logger.info(
+        self.logger.debug(
             f"Starting cache generation for {total_files} tracks at {qualities} quality levels"
         )
 
@@ -114,7 +114,7 @@ class CacheWorker:
             if progress_callback:
                 progress_callback(idx, total_files)
 
-        self.logger.info(f"Cache generation complete for {total_files} tracks")
+        self.logger.debug(f"Cache generation complete for {total_files} tracks")
         return results
 
     def cache_mixtape_async(
@@ -160,7 +160,7 @@ class CacheWorker:
             results[str(path)] = {"skipped": True, "reason": "No transcoding needed"}
 
         if total_files == 0:
-            self.logger.info(f"No files need transcoding ({len(skipped_files)} files skipped)")
+            self.logger.debug(f"No files need transcoding ({len(skipped_files)} files skipped)")
             # Emit final progress if all files were skipped
             if progress_callback:
                 if hasattr(progress_callback, '__call__'):
@@ -169,7 +169,7 @@ class CacheWorker:
 
         completed = 0
 
-        self.logger.info(
+        self.logger.debug(
             f"Starting parallel cache generation for {total_files} tracks "
             f"at {qualities} quality levels (max workers: {self.max_workers})"
         )
@@ -199,7 +199,7 @@ class CacheWorker:
                 if progress_callback:
                     progress_callback(completed, total_files)
 
-        self.logger.info(f"Parallel cache generation complete for {total_files} tracks")
+        self.logger.debug(f"Parallel cache generation complete for {total_files} tracks")
         return results
 
     def verify_mixtape_cache(
@@ -251,7 +251,7 @@ class CacheWorker:
             for quality in qualities:
                 if not self.audio_cache.is_cached(path, quality):
                     files_to_regenerate.append((path, quality))
-                    self.logger.info(
+                    self.logger.debug(
                         f"Cache outdated or missing: {path.name} at {quality}"
                     )
 
@@ -266,7 +266,7 @@ class CacheWorker:
                 self.audio_cache.transcode_file(path, quality, overwrite=True)
                 key = f"{path}_{quality}"
                 results[key] = {"success": True}
-                self.logger.info(f"Regenerated cache: {path.name} at {quality}")
+                self.logger.debug(f"Regenerated cache: {path.name} at {quality}")
             except Exception as e:
                 key = f"{path}_{quality}"
                 results[key] = {"success": False, "error": str(e)}

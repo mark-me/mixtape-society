@@ -557,7 +557,7 @@ class CollectionExtractor:
         conn.execute("DELETE FROM tracks_fts")
         conn.commit()
         checkpoint_wal(conn, "TRUNCATE")
-        self._logger.info("Database cleared and checkpointed")
+        self._logger.debug("Database cleared and checkpointed")
 
     def _delete_file(self, conn: sqlite3.Connection, event: IndexEvent) -> None:
         """Removes a single track record from the database for the given event path.
@@ -619,7 +619,7 @@ class CollectionExtractor:
             )
 
         self._reset_job_state()
-        self._logger.info("Job completed signal processed and checkpointed")
+        self._logger.debug("Job completed signal processed and checkpointed")
 
     def _should_increment_batch(self, event: IndexEvent) -> int:
         """Determines whether an event should contribute to the current batch size.
@@ -701,7 +701,7 @@ class CollectionExtractor:
         try:
             conn.commit()
             checkpoint_wal(conn, "TRUNCATE")
-            self._logger.info("Writer loop shutdown: committed and checkpointed")
+            self._logger.debug("Writer loop shutdown: committed and checkpointed")
         except Exception as e:
             self._logger.error(f"Error during writer loop shutdown: {e}")
 
@@ -1007,7 +1007,7 @@ class CollectionExtractor:
 
         if total_operations == 0:
             clear_indexing_status(self.data_root)
-            self._logger.info(f"No {job_type} operations needed")
+            self._logger.debug(f"No {job_type} operations needed")
             return
 
         self._start_job(job_type, total_operations)
@@ -1066,7 +1066,7 @@ class CollectionExtractor:
         """
         self._write_queue.join()
         clear_indexing_status(self.data_root)
-        self._logger.info(
+        self._logger.debug(
             f"{job_type.capitalize()} completed ({total_operations} operations)"
         )
 
@@ -1150,7 +1150,7 @@ class CollectionExtractor:
                 # Stop the observer completely
                 self._observer.stop()
                 self._observer.join(timeout=2)
-                self._logger.info("File monitoring paused for rebuild/resync")
+                self._logger.debug("File monitoring paused for rebuild/resync")
 
             try:
                 yield
@@ -1166,7 +1166,7 @@ class CollectionExtractor:
                     self._observer.schedule(handler, str(self.music_root), recursive=True)
                     self._observer.start()
 
-                    self._logger.info("File monitoring resumed")
+                    self._logger.debug("File monitoring resumed")
 
         return pause()
 
@@ -1188,7 +1188,7 @@ class CollectionExtractor:
         """
         if self._observer:
             self._observer.unschedule_all()
-            self._logger.info("File monitoring paused for bulk edit mode")
+            self._logger.debug("File monitoring paused for bulk edit mode")
 
     def disable_bulk_edit_mode(self) -> None:
         """Disables bulk edit mode and resyncs the database.
@@ -1201,7 +1201,7 @@ class CollectionExtractor:
             # Resume monitoring with a new watcher instance
             watcher = _Watcher(self)
             self._observer.schedule(watcher, str(self.music_root), recursive=True)
-            self._logger.info("File monitoring resumed, triggering resync")
+            self._logger.debug("File monitoring resumed, triggering resync")
 
         # Trigger resync to catch all changes
         self.resync()
