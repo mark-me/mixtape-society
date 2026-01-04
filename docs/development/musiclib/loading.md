@@ -4,22 +4,65 @@
 
 ## 1. High‑level picture
 
-```mermaid
-flowchart LR
-    FS[File system<br>from *music_root*]
-    Watchdog[Watchdog events]
-    IndexEvent[IndexEvent queue]
-    DBWriter[DB‑writer thread]
-    DB[SQLite DB<br>*tracks* + *tracks_fts*]
-
-    FS --> Watchdog --> IndexEvent --> DBWriter --> DB
-```
-
 * **Watchdog** watches the music directory for creations, modifications, and deletions.
 * Detected changes are turned into **IndexEvent** objects and placed on a thread‑safe `Queue`.
 * A dedicated **writer thread** (`_db_writer_loop`) consumes those events and performs the actual SQLite writes.
 * The database consists of a normal `tracks` table (metadata) and an FTS5 virtual table `tracks_fts` that mirrors the metadata for fast full‑text search.
 * Helper functions in `indexing_status.py` keep a tiny JSON status file (`indexing_status.json`) that the UI can poll to show progress during a **rebuild** or **resync** operation.
+
+### Loading/resyncing process
+
+```mermaid
+flowchart LR
+    A["User initiates process (rebuild() / resync())"] --> B["Log start and set indexing status"]
+    B --> C{"Operation type?"}
+    C -->|"'rebuild()'"| D["Clear database and prepare for file scan"]
+    C -->|"'resync()'"| E["Scan filesystem and compare with DB"]
+
+    D --> F["Scan music root for files to index"]
+    E --> G["Identify changes: files to add or remove"]
+    F --> H["Queue file operations to process"]
+    G --> H
+
+    H --> I["Start job, update counters & status"]
+    I --> J["Process queued file operations (Delete/Index)"]
+
+    J --> K{"Job complete?"}
+    K -->|Yes| L["Finalize job, log completion, clear status"]
+    K -->|No| J
+
+    L --> M["Indexing complete, external indexing status cleared"]
+```
+
+### Monitoring process
+
+```mermaid
+flowchart LR
+    A["'start_monitoring()' called"] --> B{"Is Observer running?"}
+    B -->|Yes| C["No-op (return immediately)"]
+    B -->|No| D["Create and start Observer instance"]
+
+    D --> E["Schedule file watcher for 'music_root'"]
+    E --> F["Start Observer thread"]
+
+    F --> G["FS event in 'music_root' (create/modify/delete)"]
+    G --> H["Process event"]
+
+    H --> I{"Is directory?"}
+    I -->|Yes| J["Ignore event"]
+    I -->|No| K["Check if extension is supported"]
+
+    K -->|No| J
+    K -->|Yes| L["Enqueue event (Index or Delete file)"]
+
+    L --> M["Writer thread processes events"]
+
+    %% Shutdown flow
+    N["'stop()' called"] --> O["Stop writer thread and join"]
+    O --> P{"Is Observer running?"}
+    P -->|Yes| Q["Stop and join Observer thread"]
+    P -->|No| R["No monitoring to stop"]
+```
 
 ## 2. Core data structures
 
@@ -189,104 +232,57 @@ These utilities are deliberately lightweight: they operate purely on the filesys
 
 ```mermaid
 sequenceDiagram
-    participant User as End‑User (UI)
-    participant LUI as Lumo UI / Front‑end
-    participant MC as MusicCollection (high‑level class)
-    participant EX as CollectionExtractor
-    participant DB as SQLite DB (tracks + tracks_fts)
-    participant FS as File System (music_root)
-    participant WS as Watchdog Observer
-    participant Q as IndexEvent Queue
-    participant WT as Writer Thread
-    participant IS as indexing_status.json
+    actor User
+    participant CollectionExtractor
+    participant DBWriterThread
+    participant SQLite as SQLite_DB
+    participant FS
 
-    %% 1. Application start
-    User->>LUI: Open application
-    LUI->>MC: Instantiate MusicCollection(root, db)
-    MC->>EX: Create CollectionExtractor
-    EX->>EX: _init_db()           # create tables, triggers, indexes
-    EX->>WT: Start writer thread (_db_writer_loop)
-    EX->>WS: start_monitoring()
-    WS->>EX: Register _Watcher
+    User->>CollectionExtractor: resync()
+    CollectionExtractor->>CollectionExtractor: set_indexing_status(resyncing, total=-1, current=0)
 
-    %% 2. First launch – maybe empty DB
-    MC->>MC: count() → 0?
-    alt DB empty
-        MC->>MC: schedule background rebuild
-        MC->>EX: rebuild() (queued)
-    else DB has data
-        MC->>MC: schedule background resync (optional)
+    CollectionExtractor->>CollectionExtractor: _scan_filesystem_paths()
+    FS-->>CollectionExtractor: fs_paths (relative)
+    CollectionExtractor->>CollectionExtractor: _get_database_paths()
+    SQLite-->>CollectionExtractor: db_paths (relative)
+
+    CollectionExtractor->>CollectionExtractor: compute to_add_rel, to_remove_rel
+    CollectionExtractor->>CollectionExtractor: to_add_abs = _to_abspath(to_add_rel)
+    CollectionExtractor->>CollectionExtractor: set_indexing_status(resyncing, total, current=0)
+
+    CollectionExtractor->>CollectionExtractor: _start_job("resyncing", total)
+    loop for each path in to_remove_rel
+        CollectionExtractor->>DBWriterThread: enqueue IndexEvent(DELETE_FILE, rel_path)
+    end
+    loop for each path in to_add_abs
+        CollectionExtractor->>DBWriterThread: enqueue IndexEvent(INDEX_FILE, abs_path)
+    end
+    CollectionExtractor->>DBWriterThread: enqueue IndexEvent(RESYNC_DONE)
+
+    loop DB writer loop
+        alt DELETE_FILE
+            DBWriterThread->>SQLite: DELETE FROM tracks WHERE path = rel_path
+        else INDEX_FILE
+            DBWriterThread->>SQLite: _index_file(abs_path) INSERT OR REPLACE
+        end
+        DBWriterThread->>CollectionExtractor: _processed_count++
+        alt batch_size reached
+            DBWriterThread->>SQLite: COMMIT
+            DBWriterThread->>CollectionExtractor: _update_progress_status()
+            CollectionExtractor->>CollectionExtractor: set_indexing_status(resyncing, total, current)
+        end
     end
 
-    %% 3. Background rebuild (runs in writer thread)
-    Note over EX,WT: Rebuild workflow
-    EX->>Q: put(CLEAR_DB)
-    EX->>FS: Walk music_root for supported files
-    FS-->>EX: list of file paths
-    EX->>Q: put(INDEX_FILE, path) for each file
-    loop every 100 files
-        EX->>IS: set_indexing_status(..., total, current)
-    end
-    EX->>Q: put(REBUILD_DONE)
-    Q->>WT: consume events sequentially
-    WT->>DB: DELETE FROM tracks          # CLEAR_DB
-    loop for each INDEX_FILE event
-        WT->>EX: _index_file(conn, path)
-        EX->>DB: INSERT OR REPLACE INTO tracks (...)
-        Note right of DB: Triggers auto‑mirror into tracks_fts
-    end
-    WT->>DB: COMMIT                      # REBUILD_DONE
-    WT->>Q: task_done() (all events processed)
-    Q->>EX: join()                       # wait for queue empty
-    EX->>IS: clear_indexing_status()
-    Note over IS: status file removed
-
-    %% 4. UI polls progress (while rebuilding)
-    loop while rebuilding
-        LUI->>IS: read indexing_status.json
-        IS-->>LUI: {status, progress, …}
-        LUI->>LUI: update progress bar
-    end
-
-    %% 5. Normal operation – live updates
-    WS->>FS: detects file created/modified/deleted
-    WS->>EX: on_any_event(event)
-    alt created or modified
-        EX->>Q: put(INDEX_FILE, path)
-    else deleted
-        EX->>Q: put(DELETE_FILE, path)
-    end
-    Q->>WT: writer thread processes new events
-    alt INDEX_FILE
-        WT->>EX: _index_file(conn, path)
-        EX->>DB: INSERT OR REPLACE INTO tracks (...)
-    else DELETE_FILE
-        WT->>DB: DELETE FROM tracks WHERE path = ?
-    end
-    WT->>DB: periodic COMMIT (every 500 events)
-
-    %% 6. User initiates a search (no DB write)
-    User->>LUI: type query & press Search
-    LUI->>MC: search_highlighting(query, limit)
-    MC->>EX: search_grouped(query, limit)
-    EX->>DB: SELECT … (FTS MATCH or LIKE)
-    DB-->>EX: rows
-    EX->>EX: group by release_dir, detect compilations, sort, apply include_* logic
-    EX-->>MC: ({artists, albums, tracks}, terms)
-    MC->>LUI: results with <mark> highlights & click_query strings
-
-    %% 7. User clicks an artist or album (lazy load)
-    User->>LUI: click on artist/album entry
-    LUI->>MC: search_grouped(click_query, limit)
-    MC->>EX: same path as step 6 (but query is specific)
-    EX->>DB: SELECT detailed rows for that artist/album
-    DB-->>EX: detailed rows
-    EX-->>MC: detailed dic
+    DBWriterThread->>SQLite: COMMIT
+    DBWriterThread->>SQLite: wal_checkpoint(PASSIVE)
+    DBWriterThread->>CollectionExtractor: _handle_job_completion()
+    CollectionExtractor->>CollectionExtractor: set_indexing_status(resyncing, total, current=total)
+    CollectionExtractor->>CollectionExtractor: clear_indexing_status()
 ```
 
 ---
 
-## API extractor/loader
+## 14. API
 
 ### ::: src.musiclib._extractor.EventType
 

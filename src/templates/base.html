@@ -21,48 +21,58 @@
     {% endblock %}
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/corruptionModals.css') }}" />
     {% block extra_css %}
     {% endblock %}
   </head>
-  <body>
+  <body class="{% if is_authenticated %}authenticated{% endif %}">
     <!-- Navbar -->
     <nav class="navbar navbar-expand-md navbar-dark bg-success shadow-sm sticky-top">
       <div class="container">
         <a class="navbar-brand position-relative d-flex align-items-center" href="/mixtapes" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Version v{{ app_version }}">
           <img src="{{ url_for('static', filename='logo.svg') }}" alt="Mixtape Society" width="47" height="30" class="me-2" />
-          Mixtape Society
+          <span class="d-none d-sm-inline">Mixtape Society</span>
+          <span class="d-inline d-sm-none">Mixtape Society</span> <!-- Possible shortening of name -->
         </a>
 
-        <div class="d-flex align-items-center ms-auto">
-          {% if is_authenticated %}
-          <div class="ms-3">
-            <button class="btn btn-outline-light d-flex align-items-center gap-2" 
-                    id="resyncBtn" 
-                    data-bs-toggle="tooltip" 
-                    data-bs-placement="bottom" 
-                    title="Resync music library">
-              <i class="bi bi-arrow-clockwise"></i>
-              <span class="d-none d-md-inline">Resync</span>
-            </button>
-          </div>
-          {% endif %}
+        <button class="navbar-toggler border-0 p-1" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
 
-          <div class="dropdown ms-3">
-            <button class="btn btn-outline-light dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" id="themeNavbarButton">
-              <i class="bi bi-sun-fill" id="themeNavbarIcon"></i>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li><button class="dropdown-item d-flex align-items-center gap-2" data-theme="light"><i class="bi bi-sun-fill"></i> Light</button></li>
-              <li><button class="dropdown-item d-flex align-items-center gap-2" data-theme="dark"><i class="bi bi-moon-stars-fill"></i> Dark</button></li>
-              <li><hr class="dropdown-divider" /></li>
-              <li><button class="dropdown-item d-flex align-items-center gap-2 active" data-theme="auto"><i class="bi bi-circle-half"></i> System</button></li>
-            </ul>
-          </div>
+        <div class="collapse navbar-collapse" id="navbarContent">
+          <div class="navbar-nav ms-auto d-flex align-items-center gap-2 mt-2 mt-md-0">
+            {% if is_authenticated %}
+            <div>
+              <button class="btn btn-outline-light d-flex align-items-center gap-2"
+                      id="collectionBtn"
+                      data-bs-toggle="modal"
+                      data-bs-target="#collectionStatsModal"
+                      title="View collection statistics">
+                <i class="bi bi-music-note-list"></i>
+                <span>Collection</span>
+              </button>
+            </div>
+            {% endif %}
 
-          <div class="ms-3">
-            <a class="nav-link text-white" href="https://github.com/mark-me/mixtape-society" target="_blank" rel="noopener noreferrer" data-bs-toggle="tooltip" data-bs-placement="bottom" title="View source on GitHub">
-              <i class="bi bi-github fs-4"></i>
-            </a>
+            <div class="dropdown">
+              <button class="btn btn-outline-light dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" id="themeNavbarButton">
+                <i class="bi bi-sun-fill" id="themeNavbarIcon"></i>
+                <span class="d-md-none">Theme</span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><button class="dropdown-item d-flex align-items-center gap-2" data-theme="light"><i class="bi bi-sun-fill"></i> Light</button></li>
+                <li><button class="dropdown-item d-flex align-items-center gap-2" data-theme="dark"><i class="bi bi-moon-stars-fill"></i> Dark</button></li>
+                <li><hr class="dropdown-divider" /></li>
+                <li><button class="dropdown-item d-flex align-items-center gap-2 active" data-theme="auto"><i class="bi bi-circle-half"></i> System</button></li>
+              </ul>
+            </div>
+
+            <div>
+              <a class="btn btn-outline-light d-flex align-items-center gap-2" href="https://github.com/mark-me/mixtape-society" target="_blank" rel="noopener noreferrer" data-bs-toggle="tooltip" data-bs-placement="bottom" title="View source on GitHub">
+                <i class="bi bi-github fs-5"></i>
+                <span class="d-md-none">GitHub</span>
+              </a>
+            </div>
           </div>
         </div>
       </div>
@@ -126,6 +136,96 @@
     </div>
     </div>
 
+    <!-- ==== COLLECTION STATS MODAL ==== -->
+    <div class="modal fade" id="collectionStatsModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="bi bi-music-note-list me-2"></i>Collection Statistics
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <!-- Loading state -->
+            <div id="statsLoading" class="text-center py-4">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p class="mt-2 text-muted">Loading collection statistics...</p>
+            </div>
+
+            <!-- Stats content (hidden initially) -->
+            <div id="statsContent" style="display: none;">
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <div class="card text-center bg-artist-subtle border-artist">
+                    <div class="card-body">
+                      <i class="bi bi-person-fill fs-3 text-artist"></i>
+                      <h3 class="mt-2 mb-0 text-artist" id="statsArtists">-</h3>
+                      <p class="text-muted mb-0 small">Artists</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="card text-center bg-album-subtle border-album">
+                    <div class="card-body">
+                      <i class="bi bi-disc fs-3 text-album"></i>
+                      <h3 class="mt-2 mb-0 text-album" id="statsAlbums">-</h3>
+                      <p class="text-muted mb-0 small">Albums</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="card text-center bg-track-subtle border-track">
+                    <div class="card-body">
+                      <i class="bi bi-music-note fs-3 text-track"></i>
+                      <h3 class="mt-2 mb-0 text-track" id="statsTracks">-</h3>
+                      <p class="text-muted mb-0 small">Tracks</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="text-muted">
+                    <i class="bi bi-clock me-1"></i>Total Duration
+                  </span>
+                  <strong id="statsDuration">-</strong>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="text-muted">
+                    <i class="bi bi-calendar-plus me-1"></i>Last Added
+                  </span>
+                  <strong id="statsLastAdded">-</strong>
+                </div>
+              </div>
+
+              <hr class="my-4">
+
+              <div class="d-grid">
+                <button class="btn btn-primary d-flex align-items-center justify-content-center gap-2"
+                        id="resyncBtn">
+                  <i class="bi bi-arrow-clockwise"></i>
+                  Resync Library
+                </button>
+                <small class="text-muted text-center mt-2">
+                  Rescans your music collection for changes
+                </small>
+              </div>
+            </div>
+
+            <!-- Error state (hidden initially) -->
+            <div id="statsError" style="display: none;" class="alert alert-danger">
+              <i class="bi bi-exclamation-triangle me-2"></i>
+              <span id="statsErrorMessage">Failed to load statistics</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ==== RESYNC CONFIRMATION MODAL ==== -->
     <div class="modal fade" id="resyncConfirmModal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
@@ -146,6 +246,69 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- ==== DATABASE CORRUPTION MODAL ==== -->
+    <div class="modal fade" id="corruptionModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i>Database Issue Detected
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p>The music library database needs to be rebuilt.</p>
+            <p>This can happen after unexpected shutdowns or system crashes.</p>
+            <p class="mb-0">
+              <strong>Don't worry</strong> - your music files are safe.
+              Only the database index needs to be recreated.
+            </p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" id="showResetConfirmBtn">
+              Reset Database
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==== DATABASE RESET CONFIRMATION MODAL ==== -->
+    <div class="modal fade" id="confirmResetModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Confirm Database Reset</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p>This will:</p>
+            <ul>
+              <li>Delete the corrupted database</li>
+              <li>Scan all your music files</li>
+              <li>Rebuild the database from scratch</li>
+            </ul>
+            <p class="mb-0">
+              <strong>This may take a few minutes depending on your library size.</strong>
+            </p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-danger" id="confirmResetBtn">
+              <i class="bi bi-arrow-clockwise me-1"></i>Yes, Reset Database
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==== RESET LOADING OVERLAY ==== -->
+    <div id="resetLoadingOverlay">
+      <div class="loading-spinner"></div>
+      <p>Resetting database...</p>
     </div>
 
     <!-- Bootstrap JS -->

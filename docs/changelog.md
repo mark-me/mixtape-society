@@ -6,6 +6,38 @@ All notable changes to Mixtape Society are documented here. We follow [Semantic 
 
 Each release rewinds and fast-forwards your mixtape experience—just like a real cassette! 🎧
 
+## 📦 v0.5.0
+
+<span class="md-tag">Release</span>
+
+**🗓️** 2026-01-04
+
+### ✨ Added
+
+- Modal for statistics on the entire collection
+- Improved details in editor for compilation albums
+- Enlarged album cover in album details
+- Hierarchical hints in search results
+- User are alerted on broken DB and can rebuild from UI -> Shared mixtapes still usable while DB is being rebuilt
+
+### 🔧 Changed
+
+- Moved the resync button to the statistics modal
+- Handling of compilation albums is now uniform
+
+### 🐛 Fixed
+
+- Database resync corrupts database
+- Watcher corrupts database when changing lots of files in the music collection
+- Type 2 characters to start searching -> 3 characters
+- Top of search bar focus ring cut-off on top
+- Title of mixtape falls off the screen
+- Navbar on mobile across two rows
+
+[v0.5.0](https://github.com/mark-me/mixtape-society/compare/v0.4.1...v0.5.0)
+
+---
+
 ## 📦 v0.4.1
 
 <span class="md-tag">Release</span>
@@ -359,4 +391,3 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 - Database locks when too many Watcher related updates
 
 [v0.1.1-alpha](https://github.com/mark-me/mixtape-society/compare/v0.1.0...v0.1.1-alpha)
-

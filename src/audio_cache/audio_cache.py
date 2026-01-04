@@ -26,7 +26,7 @@ QUALITY_SETTINGS = {
 class AudioCache:
     """
     Manages audio file transcoding and caching for bandwidth optimization.
-    
+
     Provides methods to check for cached versions, generate transcoded files,
     and manage the cache directory.
     """
@@ -46,13 +46,13 @@ class AudioCache:
     def _normalize_path(self, path: Path) -> str:
         """
         Normalize a path for consistent hashing.
-        
+
         This ensures that the same file always produces the same hash,
         regardless of how the path was constructed.
-        
+
         Args:
             path: Path to normalize
-            
+
         Returns:
             Normalized path string for hashing
         """
@@ -91,13 +91,13 @@ class AudioCache:
         ext = settings["format"]
 
         cache_filename = f"{path_hash}_{quality}_{bitrate}.{ext}"
-        
+
         # Log for debugging
         self.logger.debug(
             f"Cache path generation: {original_path.name} -> {cache_filename} "
             f"(hash of: {path_str})"
         )
-        
+
         return self.cache_dir / cache_filename
 
     def should_transcode(self, file_path: Path) -> bool:
@@ -137,7 +137,7 @@ class AudioCache:
         # Check if cache is newer than original
         try:
             cache_mtime = cache_path.stat().st_mtime
-            
+
             # Only check mtime if original file exists
             if original_path.exists():
                 original_mtime = original_path.stat().st_mtime
@@ -146,17 +146,17 @@ class AudioCache:
                         f"Cache outdated: {cache_path.name} is older than source"
                     )
                     return False
-            
+
             self.logger.debug(f"Cache hit: {cache_path.name}")
             return True
-            
+
         except OSError as e:
             self.logger.warning(f"Error checking cache status for {cache_path}: {e}")
             return False
 
     def transcode_file(
-        self, 
-        original_path: Path, 
+        self,
+        original_path: Path,
         quality: QualityLevel = "medium",
         overwrite: bool = False
     ) -> Path:
@@ -192,7 +192,7 @@ class AudioCache:
         settings = QUALITY_SETTINGS[quality]
         bitrate = settings["bitrate"]
 
-        self.logger.info(f"Transcoding {original_path.name} to {quality} quality ({bitrate})")
+        self.logger.debug(f"Transcoding {original_path.name} to {quality} quality ({bitrate})")
 
         # Build ffmpeg command
         cmd = [
@@ -215,7 +215,7 @@ class AudioCache:
                 check=True,
                 text=True,
             )
-            self.logger.info(f"Successfully cached: {cache_path}")
+            self.logger.debug(f"Successfully cached: {cache_path}")
             return cache_path
 
         except subprocess.CalledProcessError as e:
@@ -252,8 +252,8 @@ class AudioCache:
         return original_path
 
     def precache_file(
-        self, 
-        original_path: Path, 
+        self,
+        original_path: Path,
         qualities: list[QualityLevel] = None
     ) -> dict[QualityLevel, Path]:
         """

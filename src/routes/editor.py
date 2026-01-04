@@ -338,7 +338,7 @@ def create_editor_blueprint(
             )
             music_root = Path(current_app.config["MUSIC_ROOT"])
 
-            logger.info(
+            logger.debug(
                 f"Starting pre-cache for mixtape '{slug}' "
                 f"({'update' if is_update else 'new'}) with {total_tracks} tracks"
             )
@@ -363,7 +363,7 @@ def create_editor_blueprint(
             # Analyze results
             total_files = len(results)
 
-            logger.info(f"Processing completed: {total_files} results returned")
+            logger.debug(f"Processing completed: {total_files} results returned")
 
             if total_files == 0:
                 # No results means something went wrong
@@ -413,7 +413,7 @@ def create_editor_blueprint(
             # Small delay to ensure completion event is queued
             time.sleep(0.1)
 
-            logger.info(
+            logger.debug(
                 f"Pre-caching completed for '{slug}': "
                 f"cached={cached}, skipped={skipped}, failed={failed}"
             )
