@@ -120,7 +120,7 @@ class MusicCollection:
             try:
                 self._extractor.rebuild()  # This will set status, etc.
                 self._extractor.set_initial_indexing_done()
-                self._logger.info("Initial indexing completed and marked as done")
+                self._logger.debug("Initial indexing completed and marked as done")
             except Exception as e:
                 self._logger.error(f"Initial indexing failed: {e}", exc_info=True)
             finally:
@@ -1287,7 +1287,7 @@ class MusicCollection:
                 # Copy the fallback image to covers directory
                 import shutil
                 shutil.copy2(source_path, fallback_path)
-                self._logger.info(f"Copied fallback cover from {source_path} to {fallback_path}")
+                self._logger.debug(f"Copied fallback cover from {source_path} to {fallback_path}")
             except Exception as e:
                 self._logger.warning(f"Failed to copy fallback cover: {e}")
         else:
@@ -1352,7 +1352,7 @@ class MusicCollection:
             if img_path.exists():
                 try:
                     if self._resize_and_save_cover(img_path, target_path, MAX_SIZE, JPEG_QUALITY, MAX_FILE_SIZE):
-                        self._logger.info(f"Processed cover from {img_path} for {release_dir}")
+                        self._logger.debug(f"Processed cover from {img_path} for {release_dir}")
                         return True
                 except Exception as e:
                     self._logger.error(f"Failed to process cover {img_path}: {e}")
@@ -1365,7 +1365,7 @@ class MusicCollection:
                     tag = TinyTag.get(str(file), image=True)
                     if img_data := tag.get_image():
                         if self._resize_and_save_cover_from_bytes(img_data, target_path, MAX_SIZE, JPEG_QUALITY, MAX_FILE_SIZE):
-                            self._logger.info(
+                            self._logger.debug(
                                 f"Extracted and processed embedded cover from {file} for {release_dir}"
                             )
                             return True
