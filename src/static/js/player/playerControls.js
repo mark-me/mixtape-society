@@ -344,6 +344,16 @@ export function initPlayerControls() {
     }
 
     /**
+     * Updates audio player progress bar coloring
+     */
+    function updateAudioProgress() {
+        if (!player.duration || isNaN(player.duration)) return;
+        
+        const progress = (player.currentTime / player.duration) * 100;
+        player.style.setProperty('--audio-progress', `${progress}%`);
+    }
+
+    /**
      * Initializes all event listeners
      */
     function initEventListeners() {
@@ -364,6 +374,11 @@ export function initPlayerControls() {
             syncPlayIcons();
             playTrack(currentIndex + 1);
         });
+
+        // Audio progress for adaptive theming
+        player?.addEventListener('timeupdate', updateAudioProgress);
+        player?.addEventListener('loadedmetadata', updateAudioProgress);
+        player?.addEventListener('seeked', updateAudioProgress);
 
         // Media Session position updates
         player?.addEventListener('loadedmetadata', updatePositionState);
