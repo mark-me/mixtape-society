@@ -36,6 +36,23 @@ export function initCassettePlayer() {
                 <div class="cassette-deck">
                     <!-- Cassette Tape Body -->
                     <div class="cassette-body">
+                        <!-- White Top Label Section -->
+                        <div class="cassette-top-section">
+                            <!-- Gold Label Area (Left) -->
+                            <div class="cassette-gold-label">
+                                <div class="cassette-gold-label-text">
+                                    MIXTAPE<br>SOCIETY
+                                </div>
+                            </div>
+                            
+                            <!-- Title Area (Right) -->
+                            <div class="cassette-title-area">
+                                <h3 class="cassette-title" id="cassette-title">Mixtape</h3>
+                                <p class="cassette-side" id="cassette-side">Side A</p>
+                                <p class="cassette-track-info" id="cassette-track-info">Track 1 / 12</p>
+                            </div>
+                        </div>
+                        
                         <!-- Transparent Window with Reels -->
                         <div class="cassette-window">
                             <div class="reel-container">

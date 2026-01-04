@@ -1,6 +1,6 @@
 /* ========================================
-   CASSETTE MODE STYLES
-   Retro cassette tape player experience
+   CASSETTE MODE STYLES - Logo Design
+   Styled to match Mixtape Society cassette logo
    ======================================== */
 
 /* --- View Mode Toggle --- */
@@ -65,36 +65,94 @@
     gap: 20px;
 }
 
-/* --- Cassette Tape Design --- */
+/* --- Cassette Tape Design (Matching Logo) --- */
 .cassette-body {
-    background: linear-gradient(145deg, #e0e0e0 0%, #c0c0c0 50%, #a0a0a0 100%);
+    /* Gray cassette body like logo (#868686) */
+    background: linear-gradient(145deg, #9a9a9a 0%, #7a7a7a 50%, #6a6a6a 100%);
     border-radius: 8px;
     padding: 20px;
     box-shadow: 
-        0 8px 16px rgba(0, 0, 0, 0.3),
-        inset 0 2px 4px rgba(255, 255, 255, 0.3);
+        0 8px 16px rgba(0, 0, 0, 0.4),
+        inset 0 2px 4px rgba(255, 255, 255, 0.2),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.3);
     position: relative;
     aspect-ratio: 2 / 1.3;
+    border: 3px solid #5a5a5a;
 }
 
+/* White top label section */
+.cassette-top-section {
+    position: absolute;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    height: 22%;
+    background: #fff;
+    border-radius: 3px;
+    border: 2px solid #999;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    gap: 10px;
+}
+
+/* Gold label area (left side like logo) */
+.cassette-gold-label {
+    background: linear-gradient(135deg, #ffc107 0%, #d4aa00 50%, #b8920d 100%);
+    height: 100%;
+    width: 25%;
+    border-radius: 2px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 
+        inset 0 1px 2px rgba(255, 255, 255, 0.5),
+        inset 0 -1px 2px rgba(0, 0, 0, 0.2);
+    flex-shrink: 0;
+}
+
+.cassette-gold-label-text {
+    font-family: Arial, sans-serif;
+    font-size: 7px;
+    font-weight: bold;
+    color: #000;
+    text-align: center;
+    line-height: 1.3;
+    text-transform: uppercase;
+}
+
+/* Title area (right side) */
+.cassette-title-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+}
+
+/* Transparent window with reels (like logo) */
 .cassette-window {
     position: absolute;
-    top: 30px;
+    top: 42%;
     left: 50%;
     transform: translateX(-50%);
     width: 85%;
-    height: 45%;
-    background: rgba(0, 0, 0, 0.7);
+    height: 48%;
+    background: rgba(0, 0, 0, 0.90);
     border-radius: 6px;
-    border: 2px solid #666;
+    border: 2px solid #504f4f;
     overflow: hidden;
     display: flex;
     justify-content: space-around;
     align-items: center;
-    padding: 20px;
+    padding: 15px;
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.8);
 }
 
-/* --- Spinning Reels --- */
+/* --- Spinning Reels (Dark gray like logo #504f4f) --- */
 .reel-container {
     display: flex;
     gap: 40px;
@@ -105,10 +163,11 @@
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    background: radial-gradient(circle, #333 20%, #1a1a1a 21%, #1a1a1a 40%, #000 100%);
+    /* Dark gray reels matching logo */
+    background: radial-gradient(circle, #606060 20%, #504f4f 21%, #504f4f 40%, #3a3939 100%);
     position: relative;
     box-shadow: 
-        0 4px 8px rgba(0, 0, 0, 0.5),
+        0 4px 8px rgba(0, 0, 0, 0.6),
         inset 0 2px 4px rgba(255, 255, 255, 0.1);
 }
 
@@ -121,11 +180,10 @@
     width: 30px;
     height: 30px;
     border-radius: 50%;
-    background: #444;
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+    background: #3a3a3a;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6);
 }
 
-/* Spinning animation */
 .reel.spinning {
     animation: reelSpin 2s linear infinite;
 }
@@ -151,7 +209,7 @@
     left: 50%;
     width: 2px;
     height: 45%;
-    background: #555;
+    background: #6a6a6a;
     transform-origin: bottom center;
 }
 
@@ -162,7 +220,7 @@
 .reel-spoke:nth-child(5) { transform: translate(-50%, -100%) rotate(240deg); }
 .reel-spoke:nth-child(6) { transform: translate(-50%, -100%) rotate(300deg); }
 
-/* Tape between reels */
+/* Tape between reels (brown magnetic tape) */
 .tape-strip {
     width: 100px;
     height: 8px;
@@ -185,42 +243,59 @@
 .tape-strip::before { left: 33%; }
 .tape-strip::after { left: 66%; }
 
-/* --- Cassette Label --- */
+/* --- Cassette Label Styling --- */
 .cassette-label {
-    position: absolute;
-    bottom: 15px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 80%;
-    background: white;
-    padding: 12px;
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    text-align: center;
+    /* Not displayed - content moved to top section */
+    display: none;
 }
 
 .cassette-title {
-    font-family: 'Courier New', monospace;
+    font-family: 'Courier New', monospace, Arial, sans-serif;
     font-weight: bold;
-    font-size: 14px;
+    font-size: 11px;
     color: #000;
-    margin: 0 0 4px 0;
+    margin: 0 0 2px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
+
+.cassette-side {
+    font-size: 9px;
+    color: #666;
+    margin: 0;
+    font-weight: 600;
+}
+
+.cassette-track-info {
+    font-size: 8px;
+    color: #999;
+    margin: 2px 0 0 0;
+    line-height: 1.2;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.cassette-side {
-    font-size: 11px;
-    color: #666;
-    margin: 0;
+/* Bottom screws decoration (for realism) */
+.cassette-body::before,
+.cassette-body::after {
+    content: '';
+    position: absolute;
+    bottom: 10px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #4a4a4a, #2a2a2a);
+    box-shadow: 
+        inset 0 1px 2px rgba(0, 0, 0, 0.5),
+        0 1px 2px rgba(255, 255, 255, 0.1);
+    border: 1px solid #3a3a3a;
 }
 
-.cassette-track-info {
-    font-size: 10px;
-    color: #999;
-    margin: 4px 0 0 0;
-}
+.cassette-body::before { left: 20px; }
+.cassette-body::after { right: 20px; }
 
 /* --- Control Deck --- */
 .control-deck {
@@ -397,6 +472,19 @@
         height: 40px;
         font-size: 16px;
     }
+
+    .cassette-gold-label-text {
+        font-size: 6px;
+    }
+
+    .cassette-title {
+        font-size: 9px;
+    }
+
+    .cassette-side,
+    .cassette-track-info {
+        font-size: 7px;
+    }
 }
 
 @media (max-width: 768px) and (orientation: portrait) {
@@ -432,6 +520,26 @@
     .tape-counter {
         font-size: 16px;
         padding: 6px 12px;
+    }
+
+    .cassette-gold-label {
+        width: 28%;
+    }
+
+    .cassette-gold-label-text {
+        font-size: 6px;
+    }
+
+    .cassette-title {
+        font-size: 10px;
+    }
+
+    .cassette-side {
+        font-size: 8px;
+    }
+
+    .cassette-track-info {
+        font-size: 7px;
     }
 }
 
