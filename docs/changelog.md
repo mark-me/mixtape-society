@@ -32,6 +32,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 - Type 2 characters to start searching -> 3 characters
 - Top of search bar focus ring cut-off on top
 - Title of mixtape falls off the screen
+- Navbar on mobile across two rows
 
 [v0.5.0](https://github.com/mark-me/mixtape-society/compare/v0.4.1...v0.5.0)
 

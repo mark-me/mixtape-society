@@ -31,39 +31,48 @@
       <div class="container">
         <a class="navbar-brand position-relative d-flex align-items-center" href="/mixtapes" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Version v{{ app_version }}">
           <img src="{{ url_for('static', filename='logo.svg') }}" alt="Mixtape Society" width="47" height="30" class="me-2" />
-          Mixtape Society
+          <span class="d-none d-sm-inline">Mixtape Society</span>
+          <span class="d-inline d-sm-none">MTS</span>
         </a>
 
-        <div class="d-flex align-items-center ms-auto">
-          {% if is_authenticated %}
-          <div class="ms-3">
-            <button class="btn btn-outline-light d-flex align-items-center gap-2"
-                    id="collectionBtn"
-                    data-bs-toggle="modal"
-                    data-bs-target="#collectionStatsModal"
-                    title="View collection statistics">
-              <i class="bi bi-music-note-list"></i>
-              <span class="d-none d-md-inline">Collection</span>
-            </button>
-          </div>
-          {% endif %}
+        <button class="navbar-toggler border-0 p-1" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
 
-          <div class="dropdown ms-3">
-            <button class="btn btn-outline-light dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" id="themeNavbarButton">
-              <i class="bi bi-sun-fill" id="themeNavbarIcon"></i>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li><button class="dropdown-item d-flex align-items-center gap-2" data-theme="light"><i class="bi bi-sun-fill"></i> Light</button></li>
-              <li><button class="dropdown-item d-flex align-items-center gap-2" data-theme="dark"><i class="bi bi-moon-stars-fill"></i> Dark</button></li>
-              <li><hr class="dropdown-divider" /></li>
-              <li><button class="dropdown-item d-flex align-items-center gap-2 active" data-theme="auto"><i class="bi bi-circle-half"></i> System</button></li>
-            </ul>
-          </div>
+        <div class="collapse navbar-collapse" id="navbarContent">
+          <div class="navbar-nav ms-auto d-flex align-items-center gap-2 mt-2 mt-md-0">
+            {% if is_authenticated %}
+            <div>
+              <button class="btn btn-outline-light d-flex align-items-center gap-2"
+                      id="collectionBtn"
+                      data-bs-toggle="modal"
+                      data-bs-target="#collectionStatsModal"
+                      title="View collection statistics">
+                <i class="bi bi-music-note-list"></i>
+                <span>Collection</span>
+              </button>
+            </div>
+            {% endif %}
 
-          <div class="ms-3">
-            <a class="nav-link text-white" href="https://github.com/mark-me/mixtape-society" target="_blank" rel="noopener noreferrer" data-bs-toggle="tooltip" data-bs-placement="bottom" title="View source on GitHub">
-              <i class="bi bi-github fs-4"></i>
-            </a>
+            <div class="dropdown">
+              <button class="btn btn-outline-light dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" id="themeNavbarButton">
+                <i class="bi bi-sun-fill" id="themeNavbarIcon"></i>
+                <span class="d-md-none">Theme</span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><button class="dropdown-item d-flex align-items-center gap-2" data-theme="light"><i class="bi bi-sun-fill"></i> Light</button></li>
+                <li><button class="dropdown-item d-flex align-items-center gap-2" data-theme="dark"><i class="bi bi-moon-stars-fill"></i> Dark</button></li>
+                <li><hr class="dropdown-divider" /></li>
+                <li><button class="dropdown-item d-flex align-items-center gap-2 active" data-theme="auto"><i class="bi bi-circle-half"></i> System</button></li>
+              </ul>
+            </div>
+
+            <div>
+              <a class="btn btn-outline-light d-flex align-items-center gap-2" href="https://github.com/mark-me/mixtape-society" target="_blank" rel="noopener noreferrer" data-bs-toggle="tooltip" data-bs-placement="bottom" title="View source on GitHub">
+                <i class="bi bi-github fs-5"></i>
+                <span class="d-md-none">GitHub</span>
+              </a>
+            </div>
           </div>
         </div>
       </div>
@@ -102,7 +111,7 @@
     </div>
 
     <!-- ==== NAVIGATION GUARD MODAL (custom "Leave page?") ==== -->
-    <div class="modal fade" id="navigateAwayModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-fade" id="navigateAwayModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
 
