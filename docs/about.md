@@ -54,6 +54,7 @@ Mixtape Society leverages several fantastic open-source libraries and tools. A b
 - **[Bootstrap 5](https://getbootstrap.com/)** – The entire responsive UI, cards, buttons, modals, and grid system
 - **[Bootstrap Icons](https://icons.getbootstrap.com/)** – All the lovely icons you see everywhere
 - **[Sortable.js](https://sortablejs.github.io/Sortable/)** – Drag-and-drop reordering in the editor
+- **[Vibrant.js](https://jariz.github.io/vibrant.js/)** – Extract prominent colors from an image.
 
 ## ⚖️ License
 
