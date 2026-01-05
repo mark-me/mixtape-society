@@ -431,92 +431,18 @@ def create_editor_blueprint(
             logger.error(f"Pre-caching failed for mixtape '{slug}': {e}")
             logger.exception("Detailed error:")
 
-    # TODO: Either remove or move to MixtapeManager
-    def _process_cover(cover_data: str, slug: str) -> str | None:
-        """
-        Processes and saves a cover image from base64-encoded data.
-
-        Decodes the image data, resizes the image, and saves it as a JPEG file in the covers directory.
-        Returns the relative path to the saved cover image, or None if processing fails.
-
-        Args:
-            cover_data: The base64-encoded image data string.
-            slug: The unique identifier for the mixtape.
-
-        Returns:
-            str | None: The relative path to the saved cover image, or None if processing fails.
-        """
-        if not cover_data or not cover_data.startswith("data:image"):
-            return None
-        try:
-            _, b64data = cover_data.split(",", 1)
-            image = Image.open(BytesIO(b64decode(b64data)))
-            cover_path = current_app.config["COVER_DIR"] / f"{slug}.jpg"
-            image = _cover_resize(image=image)
-            image.save(cover_path, "JPEG", quality=100)
-            return f"covers/{slug}.jpg"
-        except Exception as e:
-            logger.error(f"Cover opslaan mislukt voor {slug}: {e}")
-            return None
-
-    # TODO: Either remove or move to MixtapeManager
-    def _cover_resize(image: Image, new_width: int = 1200) -> Image:
-        """
-        Resizes the given image to a specified width while maintaining aspect ratio.
-
-        Calculates the new height to preserve the image's proportions and resizes using high-quality Lanczos filtering.
-
-        Args:
-            image: The PIL Image object to resize.
-            new_width: The desired width of the resized image (default is 1200).
-
-        Returns:
-            Image: The resized PIL Image object.
-        """
-        width, height = image.size
-        new_height = int(height * (new_width / width)) if width > new_width else height
-        image = image.resize((new_width, new_height), Image.LANCZOS)
-        return image
-
-    # TODO: Either remove or move to MixtapeManager
-    def _get_default_cover(track_path: str, slug: str) -> str | None:
-        """
-        Attempts to find and copy a default cover image from the track's album directory.
-
-        Searches for common cover image filenames and copies the first found image to the covers directory. Returns the relative path to the copied image, or None if no cover is found.
-
-        Args:
-            track_path: The path to the track file.
-            slug: The unique identifier for the mixtape.
-
-        Returns:
-            str | None: The relative path to the copied cover image, or None if no cover is found.
-        """
-        music_root = Path(current_app.config["MUSIC_ROOT"]).resolve()
-        full_track_path = music_root / track_path
-        album_dir = full_track_path.parent
-        possible = [
-            "cover.jpg",
-            "folder.jpg",
-            "album.jpg",
-            "front.jpg",
-        ]
-        for file in album_dir.iterdir():
-            if file.is_file() and file.name.lower() in possible:
-                dest = current_app.config["COVER_DIR"] / f"{slug}.jpg"
-                shutil.copy(file, dest)
-                return f"covers/{slug}.jpg"
-        for name in possible:
-            src = album_dir / name
-            if src.exists():
-                dest = current_app.config["COVER_DIR"] / f"{slug}.jpg"
-                shutil.copy(src, dest)
-                return f"covers/{slug}.jpg"
-        return None
-
     @editor.route("/generate_composite", methods=["POST"])
     @require_auth
     def generate_composite() -> Response:
+        """
+        Generates a composite cover image from a list of individual cover images.
+
+        Accepts a JSON payload containing cover identifiers, composes them into a grid image, and returns the result as a data URL.
+        Validates the input list and returns JSON error responses for invalid requests or generation failures.
+
+        Returns:
+            Response: A JSON response containing the composite image data URL or an error message.
+        """
         data = request.get_json()
         if not data or not isinstance(data.get("covers"), list):
             return jsonify({"error": "Missing covers list"}), 400
