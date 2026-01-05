@@ -6,6 +6,20 @@ All notable changes to Mixtape Society are documented here. We follow [Semantic 
 
 Each release rewinds and fast-forwards your mixtape experience—just like a real cassette! 🎧
 
+## 📦 v0.5.1
+
+<span class="md-tag">Development</span>
+
+**🗓️** 2026-01-05
+
+### ✨ Added
+
+- Adaptive theming bases on the mixtape cover for playback
+
+[v0.5.1](https://github.com/mark-me/mixtape-society/compare/v0.5.0...v0.5.1)
+
+---
+
 ## 📦 v0.5.0
 
 <span class="md-tag">Release</span>
@@ -391,3 +405,5 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 - Database locks when too many Watcher related updates
 
 [v0.1.1-alpha](https://github.com/mark-me/mixtape-society/compare/v0.1.0...v0.1.1-alpha)
+
+
