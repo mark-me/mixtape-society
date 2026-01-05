@@ -35,10 +35,6 @@ sequenceDiagram
     User->>Flask: HTTP POST /editor/save (mixtape data)
     Flask->>EditorBlueprint: save_mixtape()
     EditorBlueprint->>EditorBlueprint: _generate_slug(title)
-    EditorBlueprint->>EditorBlueprint: _process_cover(cover_data, slug)
-    alt No cover and tracks exist
-        EditorBlueprint->>EditorBlueprint: _get_default_cover(track_path, slug)
-    end
     EditorBlueprint->>EditorBlueprint: _save_mixtape_json(json_path, data)
     EditorBlueprint->>FileSystem: Write JSON file
     EditorBlueprint-->>Flask: JSON response (success or error)
@@ -55,8 +51,6 @@ sequenceDiagram
 
 * **Helper Functions**
     * `_generate_slug(title)`: Creates a unique, URL-safe identifier for each mixtape.
-    * `_process_cover(cover_data, slug)`: Decodes and saves a base64-encoded cover image.
-    * `_get_default_cover(track_path, slug)`: Attempts to find and copy a default cover image from the track's album directory if no cover is provided.
     * `_save_mixtape_json(json_path, data)`: Serializes and writes mixtape data to a JSON file.
     * `_finalize_highlight(item)`: Placeholder for formatting search result items.
 * **Authentication** All routes require authentication via the `@require_auth` decorator.
