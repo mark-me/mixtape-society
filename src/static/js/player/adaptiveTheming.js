@@ -226,16 +226,22 @@ function applyColorScheme(colors, isDark) {
     if (gradient) {
         root.style.setProperty('--adaptive-bg-gradient', gradient);
         document.body.style.backgroundImage = gradient;
-        console.log('🌈 Background gradient applied:', gradient.substring(0, 100) + '...');
+        if (window.__ADAPTIVE_THEME_DEBUG__) {
+            console.log('🌈 Background gradient applied:', gradient.substring(0, 100) + '...');
+        }
     } else {
-        console.warn('⚠️ Failed to create background gradient');
+        if (window.__ADAPTIVE_THEME_DEBUG__) {
+            console.warn('⚠️ Failed to create background gradient');
+        }
     }
-    
+
     // Force audio player to use track color
     const audioPlayer = document.getElementById('main-player');
     if (audioPlayer) {
         audioPlayer.style.accentColor = colors.track;
-        console.log('🎵 Audio player accent color set to:', colors.track);
+        if (window.__ADAPTIVE_THEME_DEBUG__) {
+            console.log('🎵 Audio player accent color set to:', colors.track);
+        }
     }
 }
 
