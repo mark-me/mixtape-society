@@ -14,7 +14,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 ### ✨ Added
 
-- Adative theming bases on the mixtape cover for playback
+- Adaptive theming bases on the mixtape cover for playback
 
 [v0.5.1](https://github.com/mark-me/mixtape-society/compare/v0.5.0...v0.5.1)
 
@@ -405,4 +405,5 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 - Database locks when too many Watcher related updates
 
 [v0.1.1-alpha](https://github.com/mark-me/mixtape-society/compare/v0.1.0...v0.1.1-alpha)
+
 
