@@ -1,10 +1,7 @@
-import math
-import shutil
 import threading
 import time
-from base64 import b64decode
 from datetime import datetime
-from io import BytesIO
+
 from pathlib import Path
 
 from flask import (
@@ -16,7 +13,6 @@ from flask import (
     request,
     stream_with_context,
 )
-from PIL import Image
 
 from audio_cache import (
     ProgressCallback,
