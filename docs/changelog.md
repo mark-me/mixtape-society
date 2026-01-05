@@ -1,7 +1,5 @@
 # Changelog
 
-## 📦 v0.5.2
-
 ![Changelog](images/changelog.png){ align=right width="90" }
 
 All notable changes to Mixtape Society are documented here. We follow [Semantic Versioning](https://semver.org/) and the spirit of [Keep a Changelog](https://keepachangelog.com/).
