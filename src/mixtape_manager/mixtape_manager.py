@@ -1,8 +1,11 @@
 import json
-from pathlib import Path
-from datetime import datetime
 from base64 import b64decode
+from datetime import datetime
+from io import BytesIO
+from pathlib import Path
 from typing import Optional
+
+from PIL import Image
 
 from common.logging import Logger, NullLogger
 from musiclib import MusicCollection
@@ -186,11 +189,9 @@ class MixtapeManager:
         if cover_value := mixtape_data.pop("cover", None):
             if cover_value.startswith("data:image"):
                 try:
-                    cover_bytes = b64decode(cover_value.split(",", 1)[1])
-                    cover_path = self.path_cover / f"{slug}.jpg"
-                    with open(cover_path, "wb") as f:
-                        f.write(cover_bytes)
-                    mixtape_data["cover"] = f"covers/{slug}.jpg"
+                    path_cover = self._process_cover(cover_data=cover_value, slug=slug)
+                    if path_cover:
+                        mixtape_data["cover"] = path_cover
                 except Exception as e:
                     self._logger.error(f"Failed to save new cover for {slug}: {e}")
             else:
@@ -201,6 +202,51 @@ class MixtapeManager:
 
         self._logger.info(f"Saved mixtape '{title}' as '{slug}'")
         return slug
+
+    def _process_cover(self, cover_data: str, slug: str) -> str | None:
+        """
+        Processes and saves a cover image from base64-encoded data.
+
+        Decodes the image data, resizes the image, and saves it as a JPEG file in the covers directory.
+        Returns the relative path to the saved cover image, or None if processing fails.
+
+        Args:
+            cover_data: The base64-encoded image data string.
+            slug: The unique identifier for the mixtape.
+
+        Returns:
+            str | None: The relative path to the saved cover image, or None if processing fails.
+        """
+        if not cover_data or not cover_data.startswith("data:image"):
+            return None
+        try:
+            _, b64data = cover_data.split(",", 1)
+            image = Image.open(BytesIO(b64decode(b64data)))
+            image = self._cover_resize(image=image)
+            file_cover = self.path_cover / f"{slug}.jpg"
+            image.save(file_cover, "JPEG", quality=100)
+            return f"covers/{file_cover.name}"
+        except Exception as e:
+            self._logger.exception(f"Cover opslaan mislukt voor {slug}: {e}")
+            return None
+
+    def _cover_resize(self, image: Image, new_width: int = 1200) -> Image:
+        """
+        Resizes the given image to a specified width while maintaining aspect ratio.
+
+        Calculates the new height to preserve the image's proportions and resizes using high-quality Lanczos filtering.
+
+        Args:
+            image: The PIL Image object to resize.
+            new_width: The desired width of the resized image (default is 1200).
+
+        Returns:
+            Image: The resized PIL Image object.
+        """
+        width, height = image.size
+        new_height = int(height * (new_width / width)) if width > new_width else height
+        image = image.resize((new_width, new_height), Image.LANCZOS)
+        return image
 
     def delete(self, slug: str) -> None:
         """

@@ -1,8 +1,28 @@
 # Changelog
 
+![Changelog](images/changelog.png){ align=right width="90" }
+
+All notable changes to Mixtape Society are documented here. We follow [Semantic Versioning](https://semver.org/) and the spirit of [Keep a Changelog](https://keepachangelog.com/).
+
+Each release rewinds and fast-forwards your mixtape experience—just like a real cassette! 🎧
+
+## 📦 v0.5.2
+
+<span class="md-tag">Development</span>
+
+**🗓️** 2026-01-xx
+
+### ✨ Added
+
+- Cover resizing to reduce bandwidth needs
+
+[Changes since last version](https://github.com/mark-me/mixtape-society/compare/v0.5.1...v0.5.2)
+
+---
+
 ## 📦 v0.5.1
 
-![Changelog](images/changelog.png){ align=right width="90" }
+<span class="md-tag">Release</span>
 
 All notable changes to Mixtape Society are documented here. We follow [Semantic Versioning](https://semver.org/) and the spirit of [Keep a Changelog](https://keepachangelog.com/).
 
