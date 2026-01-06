@@ -53,16 +53,16 @@ classDiagram
 
 ### Minimal JSON structure (all fields are optional unless noted)
 
-| Field        | Type            | Description |
-|-------------|------------------|-------------|
-| title       | str              | Human-readable title (used for slug generation). |
-| client_id   | str              | Optional identifier that ties a mixtape to a specific client/device. |
-| created_at  | ISO-8601 str     | Set on first save; auto-filled if missing. |
-| updated_at  | ISO-8601 str     | Refreshed on every save or update. |
-| cover       | str              | Relative path to the JPEG cover (`covers/<slug>.jpg`) or a data-URI (`data:image/...`). |
-| liner_notes | str              | Free-form notes; defaults to `""`. |
-| tracks      | list[dict]       | Each entry must contain at least `path` (relative to the music root). Other keys (`artist`, `album`, `track`, `duration`, `filename`, `cover`) are filled/validated on read. |
-| slug        | str (added on output) | Filesystem-safe identifier derived from `title`, added by the manager on output. |
+| Field         | Type             | Description |
+| ------------- | ---------------- |-------------|
+| `title`         | `str`              | Human-readable title (used for slug generation). |
+| `client_id`     | `str`              | Optional identifier that ties a mixtape to a specific client/device. |
+| `created_at`    | ISO-8601 `str`     | Set on first save; auto-filled if missing. |
+| `updated_at`    | ISO-8601 `str`     | Refreshed on every save or update. |
+| `cover`         | `str`              | Relative path to the JPEG cover (`covers/<slug>.jpg`) or a data-URI (`data:image/...`). |
+| `liner_notes`   | `str`              | Free-form notes; defaults to `""`. |
+| `tracks`        | `list[dict]`       | Each entry must contain at least `path` (relative to the music root). Other keys (`artist`, `album`, `track`, `duration`, `filename`, `cover`) are filled/validated on read. |
+| `slug`          | `str` (added on output) | Filesystem-safe identifier derived from `title`, added by the manager on output. |
 
 ## Public API
 
@@ -70,10 +70,10 @@ classDiagram
 |-----------|-----------|--------------|
 | save | `save(mixtape_data: dict) → str` | Creates a new mixtape or updates an existing one (when a matching `client_id` is found). Returns the slug. |
 | update | `update(slug: str, updated_data: dict) → str` | Overwrites the JSON for the given slug while preserving `client_id`, `created_at`, and the slug itself. Refreshes `updated_at`. |
-| get | `get(slug: str) → dict \| None` | Loads a mixtape, validates each track against the live `MusicCollection`, normalises metadata, and returns the enriched dict (or `None` if the file is missing or unreadable). |
+| get | `get(slug: str) → dict \| None` | Loads a mixtape, validates each track against the live `MusicCollection`, normalizes metadata, and returns the enriched dict (or `None` if the file is missing or unreadable). |
 | list_all | `list_all() → list[dict]` | Returns all mixtapes sorted by `updated_at` (newest first). Corrupted files are skipped with a warning. |
 | delete | `delete(slug: str) → None` | Removes the JSON file and any associated cover image (`covers/<slug>.jpg`). |
-| _internal helpers_ | _(private, prefixed with `_`)_ | Internal helpers; see the Behaviour Details section for the most important ones (`_process_cover`, `_cover_resize`, `_sanitize_title`, `_generate_unique_slug`, `_verify_against_collection`, …). |
+| _internal helpers_ | _(private, prefixed with `_`)_ | Internal helpers; see the Behavior Details section for the most important ones (`_process_cover`, `_cover_resize`, `_sanitize_title`, `_generate_unique_slug`, `_verify_against_collection`, …). |
 
 ## Behavior Details
 
@@ -104,24 +104,24 @@ classDiagram
 | `_save_with_slug` | Handles cover persistence during save operations. | If `cover` starts with `data:image`, delegates to `_process_cover`. If it is a plain string (already a relative path), it is stored unchanged. Errors during cover processing are logged but do not abort the mixtape save. |
 
 * The JPEG is saved with quality = 100 (lossless as far as JPEG permits).
-* The filename on disk is exactly covers/<slug>.jpg – the method builds the relative path string for the JSON field.
+* The filename on disk is exactly `covers/<slug>.jpg` – the method builds the relative path string for the JSON field.
 
 ### Verification against the music collection
 
-* get(slug) loads the JSON, then calls _verify_against_collection.
-* For each track it fetches the canonical record from the injected MusicCollection (self.collection.get_track(path=Path(track* ["path"]))).
-* Missing or stale fields (artist, album, track, filename, duration, cover) are refreshed.
+* `get(slug)` loads the JSON, then calls `_verify_against_collection.`
+* For each track it fetches the canonical record from the injected MusicCollection (`self.collection.get_track(path=Path(track* ["path"]))`).
+* Missing or stale fields (`artist`, `album`, `track`, `filename`, `duration`, `cover`) are refreshed.
 * If the collection cannot be accessed (e.g., DB corruption) the method falls back to the raw JSON and logs a warning.
 
 ### Legacy field conversion
 
-* Older mixtapes stored a track title under the key title. _convert_old_mixtape renames that key to track so the rest of the code can rely on a uniform schema.
+* Older mixtapes stored a track title under the key `title`. `_convert_old_mixtape` renames that key to `track` so the rest of the code can rely on a uniform schema.
 
 ### Error handling & robustness
 
-* Corrupted JSON files – both list_all and _find_by_client_id catch json.JSONDecodeError / OSError, log a warning, and simply skip the offending file.
-* Cover‑image failures – _process_cover catches any exception, logs an error, and returns None. The mixtape is still saved; the cover field will be omitted or retain its previous value.
-* Missing slug on update – update raises FileNotFoundError if the target JSON does not exist, making the failure explicit to the caller.
+* **Corrupted JSON files** – both `list_all` and `_find_by_client_id` catch json.JSONDecodeError / OSError, log a warning, and simply skip the offending file.
+* **Cover‑image failures** – `_process_cover` catches any exception, logs an error, and returns None. The mixtape is still saved; the `cover` field will be omitted or retain its previous value.
+* **Missing slug on update** – `update` raises `FileNotFoundError` if the target JSON does not exist, making the failure explicit to the caller.
 
 ## Sequence Diagram
 

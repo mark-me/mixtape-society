@@ -42,8 +42,16 @@
 
 ## 7. Cover Art & Visual Polish
 
-- Fallback to folder.jpg / Cover.jpg / embedded art (already does this) → add auto-generated mosaic or gradient if missing
-- Support for .webp covers (smaller files)
+- Cover format
+    - Now Always JPEG, quality 100, max width 1200 px.
+    - Add a configuration option (max_width, jpeg_quality, or even support PNG/WebP).
+- Image validation
+    - Now: Only checks that the string starts with `data:image`.
+    - Verify MIME type (image/jpeg, image/png) before decoding, reject oversized payloads early.
+- Async I/O
+    - Now: All file operations are blocking.
+    - Switch to aiofiles + async methods if you need non-blocking behavior in a high-throughput API server.                                                                                      |
+
 
 ## 8. Multi-Library & Multi-User Support
 
