@@ -292,4 +292,4 @@ sequenceDiagram
 
 ### ::: src.musiclib.indexing_status
 
-### ::: src.musiclib._extractor.EnhancedWatcher
+### ::: src.musiclib._watcher.EnhancedWatcher
