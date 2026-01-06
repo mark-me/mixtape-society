@@ -89,7 +89,7 @@ docker compose -f docker/docker-compose.yml up -d
 
 The compose file mounts the source code into the container, so you can edit files locally and see changes instantly (no hot‑reload inside the container, but the Flask dev server picks up changes).
 
-**Useful shortcuts**
+### Useful shortcuts
 
 | Command | What it does |
 |--------|---------------|
@@ -147,11 +147,11 @@ Each blueprint has its own Markdown file that details the routes, request flow, 
 ```mermaid
 flowchart TD
     subgraph Client
-        UI[Web UI (browser/editor)]
+        UI["Web UI (browser/editor)"]
     end
 
     subgraph Server
-        A[Flask app (app.py)]
+        A["Flask app (app.py)"]
         B[MusicCollectionUI]
         C[MixtapeManager]
         D[AudioCache]
