@@ -72,6 +72,7 @@
 {% block extra_css %}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/play_mixtape.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/cassette.css') }}">
 {% endblock %}
 
 
@@ -179,7 +180,7 @@
                                     </div>
                                 </div>
 
-                                <audio id="main-player" controls class="w-100 flex-grow-1 mx-md-3" style="height: 38px;"></audio>
+                                <audio id="main-player" controls class="w-100 flex-grow-1 mx-md-3" style="height: 38px;" crossorigin="anonymous"></audio>
                             </div>
                         </div>
                     </div>

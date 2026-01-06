@@ -11,6 +11,11 @@ if os.getenv("APP_ENV", "development") != "production":
 BASE_DIR = Path(__file__).parent.parent  # src/
 
 class BaseConfig:
+    """Base configuration shared by all application environments.
+
+    This configuration defines paths, credentials, and caching settings that
+    control how the app accesses music, stores data, and manages audio cache.
+    """
     # 1. Music library location
     MUSIC_ROOT = Path(os.getenv("MUSIC_ROOT", "/music"))
 
@@ -44,6 +49,11 @@ class BaseConfig:
 
     @classmethod
     def ensure_dirs(cls):
+        """Create all required data and cache directories if they do not exist.
+
+        This method prepares the filesystem so the application can safely store
+        databases, mixtapes, covers, and cached audio files.
+        """
         cls.DATA_ROOT.mkdir(parents=True, exist_ok=True)
         cls.MIXTAPE_DIR.mkdir(parents=True, exist_ok=True)
         cls.COVER_DIR.mkdir(parents=True, exist_ok=True)
@@ -51,17 +61,32 @@ class BaseConfig:
 
 
 class DevelopmentConfig(BaseConfig):
+    """Development configuration used when running the app locally.
+
+    This configuration enables debugging and uses local defaults suitable for
+    iterative development.
+    """
     DEBUG = True
     PASSWORD = os.getenv("PASSWORD", "dev-password")
 
 
 class TestConfig(BaseConfig):
+    """Test configuration tailored for running the application's automated tests.
+
+    This configuration isolates test data and music paths to avoid affecting
+    development or production environments.
+    """
     PASSWORD = "test-password"
     DATA_ROOT = Path("/tmp/mixtape-test-data")  # isolated for tests
     MUSIC_ROOT = Path("/tmp/test-music")
 
 
 class ProductionConfig(BaseConfig):
+    """Production configuration for running the app in deployed environments.
+
+    This configuration relies solely on environment variables and disables
+    development-focused settings like debugging.
+    """
     DEBUG = False
     # In production we trust only environment variables (set via docker-compose)
     PASSWORD = os.getenv("PASSWORD")

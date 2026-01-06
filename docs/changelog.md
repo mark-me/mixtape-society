@@ -1,8 +1,37 @@
 # Changelog
 
+![Changelog](images/changelog.png){ align=right width="90" }
+
+All notable changes to Mixtape Society are documented here. We follow [Semantic Versioning](https://semver.org/) and the spirit of [Keep a Changelog](https://keepachangelog.com/).
+
+Each release rewinds and fast-forwards your mixtape experience—just like a real cassette! 🎧
+
+## 📦 v0.5.2
+
+<span class="md-tag">Release</span>
+
+**🗓️** 2026-01-06
+
+### ✨ Added
+
+- Mixtape cover resizing to reduce bandwidth needs
+- Added cassette tape look option to playback
+
+### 🔧 Changed
+
+- Normalize cover images to RGB and handle transparency correctly before saving as JPEG, while slightly adjusting JPEG output settings.
+
+### 🐛 Fixed
+
+- Prevent unnecessary resizing of small cover images
+
+[Changes since last version](https://github.com/mark-me/mixtape-society/compare/v0.5.1...v0.5.2)
+
+---
+
 ## 📦 v0.5.1
 
-![Changelog](images/changelog.png){ align=right width="90" }
+<span class="md-tag">Release</span>
 
 All notable changes to Mixtape Society are documented here. We follow [Semantic Versioning](https://semver.org/) and the spirit of [Keep a Changelog](https://keepachangelog.com/).
 
@@ -403,8 +432,3 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 - Database locks when too many Watcher related updates
 
 [Changes since previous version](https://github.com/mark-me/mixtape-society/compare/v0.1.0...v0.1.1-alpha)
-
-
-
-
-

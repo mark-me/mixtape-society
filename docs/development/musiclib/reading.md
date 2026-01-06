@@ -14,7 +14,7 @@ Most applications should call the UI-facing method.
 
 ---
 
-## 1. Entry points
+## 🚀 Entry points
 
 ### UI-facing search (recommended)
 
@@ -40,7 +40,7 @@ This method is primarily used internally by the UI layer.
 
 ---
 
-## 2. Query language
+## 🔎 Query language
 
 The query parser recognizes **tagged terms** and **general free-text terms**.
 
@@ -72,12 +72,13 @@ love
 
   ```
   artist:"The Beatles"
+  album:'Purple Rain'
   ```
 * Backslashes can escape special characters inside quoted values
 
 ---
 
-## 3. Parsed term structure
+## ⚙️ Parsed term structure
 
 The query is normalized into a dictionary:
 
@@ -98,7 +99,7 @@ This structure is returned alongside the search results and reused for:
 
 ---
 
-## 4. Search execution model
+## ⚡ Search execution model
 
 ### Pass-one candidate collection
 
@@ -123,7 +124,7 @@ This produces ranked candidate sets for artists, albums, and tracks.
 
 ---
 
-## 5. Result grouping and hierarchy
+## 🏘️ Result grouping and hierarchy
 
 After scoring, results are assembled into a hierarchical structure:
 
@@ -142,7 +143,7 @@ The engine decides which groups to include based on the query:
 
 ---
 
-## 6. UI result model
+## 🎯 UI result model
 
 The UI layer converts grouped results into a **single flat list** of result objects via the function `search_highlighting`.
 
@@ -220,7 +221,7 @@ Each object has a `type` field and a shape appropriate for rendering.
 
 ---
 
-## 7. Lazy loading
+## 💤 Lazy loading
 
 Artist and album results include a `click_query` field.
 
@@ -234,7 +235,7 @@ This keeps the API stateless and avoids nested payloads.
 
 ---
 
-## 8. Highlighting
+## ✨ Highlighting
 
 All matched terms are automatically highlighted:
 
@@ -252,7 +253,7 @@ This behavior is **UI-specific** and not part of the core search engine.
 
 ---
 
-## 9. Match explanations
+## 💡 Match explanations
 
 Each result may include a `reasons` list explaining *why* it matched:
 
@@ -264,7 +265,23 @@ These are intended for UI hints, badges, or tooltips.
 
 ---
 
-## 10. Summary
+## 👀. Real‑time monitoring
+
+`MusicCollection.start_monitoring()` creates a `watchdog.observers.Observer` that uses the
+`EnhancedWatcher` class (defined in `src/musiclib/_watcher.py`).
+The enhanced watcher adds two important behaviours that differ from a naïve `FileSystemEventHandler`:
+
+| Feature | What it does | Why it matters |
+|---------|--------------|----------------|
+| **Debounce delay** (`DEBOUNCE_DELAY = 2.0 s`) | After the last change to a given file, the watcher waits 2 seconds before queuing an `INDEX_FILE` or `DELETE_FILE` event. | Prevents a burst of rapid edits (e.g., a tag‑editing batch) from generating many separate index operations, which could corrupt the DB. |
+| **Coalescing** | Multiple `created`/`modified` events for the same path are merged into a single `INDEX_FILE` event; a later `deleted` event overrides any pending `modified` events. | Guarantees that the final state of the file is what gets indexed. |
+| **Graceful shutdown** (`shutdown()` method) | Cancels all pending timers and flushes any remaining events to the write queue before the observer is stopped. | Ensures no file‑system changes are lost when the application exits. |
+
+The rest of the monitoring flow (observer start/stop, queue → writer thread) remains exactly as described in the original diagram.
+
+---
+
+## 📄 Summary
 
 In short, searching works as follows:
 
@@ -277,10 +294,10 @@ In short, searching works as follows:
 
 This design allows the UI to deliver a fast, expressive, and navigable search experience without embedding deep hierarchies in a single response.
 
-## API Searching
+## 🌐 API
 
 Only the following methods are considered stable public APIs:
-`MusicCollection.search_grouped`, `MusicCollectionUI.search_highlighting`, `MusicCollection.rebuild`, `MusicCollection.resync`, `MusicCollection.close`.
+`MusicCollection.search_grouped`, `MusicCollectionUI.search_highlighting`, `MusicCollection.rebuild`, `MusicCollection.resync`, `MusicCollection.close`, `MusicCollection.get_collection_stats`.
 
 ### ::: src.musiclib.reader.MusicCollection
 
