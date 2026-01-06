@@ -6,16 +6,16 @@ The Mixtape Editor lets you craft personal mixtapes by searching your music libr
 
 ![Editing a Mixtape](images/screenshot/editing.png)
 
-## Features
+## ✨ Features
 
 - Live search with result highlighting
 - Drag-and-drop track reordering (Sortable.js)
-- Automatic cover extraction from the first track’s album
+- Automatic cover extraction from the different cover arts.
 - Manual cover upload (drag or paste)
 - Title auto-sanitizes to create clean URLs
 - One-click “Save” → instantly get a public link
 
-## How to Create a Mixtape
+## 🎶 How to Create a Mixtape
 
 1. **Start a New Mixtape**
 

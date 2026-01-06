@@ -2,14 +2,14 @@
 
 # Collection Management
 
-## Overview
+## 🌍 Overview
 
 The Collection Management feature provides two key capabilities:
 
 1. **View Statistics** - Get an overview of your music library with counts of artists, albums, tracks, total duration, and information about recently added music
 2. **Resync Library** - Update your music database when you've added, removed, or modified music files
 
-## Accessing Collection Management
+## 🔑 Accessing Collection Management
 
 To access collection management:
 
@@ -21,7 +21,7 @@ To access collection management:
 !!! note
     You must be logged in to access collection management features.
 
-## Collection Statistics
+## 📊 Collection Statistics
 
 When you open the Collection Management modal, you'll see current statistics about your music library.
 
@@ -55,7 +55,7 @@ Shows the age of the most recently added track in your collection:
 !!! tip
     The statistics automatically refresh each time you open the modal, ensuring you always see up-to-date information.
 
-## Resyncing Your Library
+## 🔄 Resyncing Your Library
 
 Resyncing is essential for keeping your music database in sync with your actual music files. You should resync whenever you make changes to your music directory.
 
@@ -103,7 +103,7 @@ Once the resync completes:
 - Deleted tracks will no longer appear
 - Updated metadata will be reflected throughout the application
 
-## Understanding the Resync Process
+## 🧠 Understanding the Resync Process
 
 ### Initial Indexing vs. Resync
 
@@ -127,7 +127,7 @@ During a resync:
 - ❌ Application settings
 - ❌ Your login credentials
 
-## Common Questions
+## ❓ Common Questions
 
 ### Why are my new files not showing up?
 
@@ -153,7 +153,7 @@ No, resyncing only updates the music database. Your created mixtapes and their t
 
 Resync whenever you make changes to your music collection. There's no harm in resyncing frequently - it simply ensures your database stays current.
 
-## Troubleshooting
+## ⚠️ Troubleshooting
 
 ### Statistics won't load
 
