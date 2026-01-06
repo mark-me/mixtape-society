@@ -40,15 +40,25 @@ extra_css:
 nav:
   - Home: index.md
   - Getting Started:
-    - Getting Started: getting-started.md
-    - Editor: editor.md
-    - Collection management: collection-management.md
-    - Sharing: sharing.md
-    - Deployment: docker.md
-  - Development:
-    - Overview: development/intro.md
-    - Architecture:
-      - Project modules: development/project_modules.md
+    - Overview: getting-started.md
+    - Installation:
+      - Local Development (Docker): development/docker.md
+      - Production Deployment: docker.md
+    - Editor Guide: editor.md
+    - Collection Management: collection-management.md
+    - Sharing & Public Links: sharing.md
+  - Architecture:
+    - Project Overview: development/intro.md
+    - Core Components:
+      - Music Library (musiclib):
+        - Introduction: development/musiclib/intro.md
+        - Reader: development/musiclib/reading.md
+        - Loader: development/musiclib/loading.md
+      - Mixtape Manager: development/mixtape_manager.md
+      - Audio Caching: development/audio_caching.md
+      - Configuration: development/configuration.md
+      - Utilities: development/utilities.md
+    - Flask app:
       - Main App: development/app.md
       - Common: development/common.md
       - Routes:
@@ -57,16 +67,6 @@ nav:
         - Playback: development/routes/playback.md
         - Authentication: development/routes/authentication.md
         - OpenGraph: development/routes/opengraph_images.md
-      - Core:
-        - Music Library (musiclib):
-          - Introduction: development/musiclib/intro.md
-          - Reader: development/musiclib/reading.md
-          - Loader: development/musiclib/loading.md
-        - Mixtape Manager: development/mixtape_manager.md
-        - Audio Caching: development/audio_caching.md
-        - Configuration: development/configuration.md
-        - Utilities: development/utilities.md
-    - Local Development: development/docker.md
     - Roadmap: development/roadmap.md
   - Changelog: changelog.md
   - About: about.md

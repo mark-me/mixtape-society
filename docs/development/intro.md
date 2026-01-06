@@ -1,101 +1,197 @@
-# Development
+# Development Guide – Mixtape Society
 
 ![Development](../images/development.png){ align=right width="90" }
 
-Welcome to the development guide for Mixtape Society. This section covers everything you need to contribute, from setup to architecture and future plans.
+Welcome to the **Mixtape Society** development guide. This section explains how the project is organized, how to set up a local development environment, how to run tests, and where to find the architectural documentation.
 
-## Why This Structure?
+---
 
-The project is modularized to separate concerns: core modules (e.g., musiclib, mixtape_manager) handle domain logic without depending on Flask, while routes focus on web interactions. This makes testing easier, improves maintainability, and allows potential extensions (e.g., CLI tools).
+## 📂 Project Structure
 
-## Prerequisites
+- 📁 **mixtape‑society/**
+  - 🐳 **docker/** – Dockerfiles & Compose configs
+  - 📚 **docs/** – MkDocs source (this folder)
+  - 👷‍♀️ **.github/**
+    - ⚙️ **workflows/**
+      - `docker-image.yml` – Build Docker images on GHCR
+      - `docs.yml` – Publish GitHub Pages
+  - 📄 `.gitignore` – Ignored files for Git
+  - 📄 `LICENSE` – Project license
+  - 📄 `mkdocs.yml` – MkDocs site configuration
+  - 📄 `pyproject.toml` – Poetry‑style project metadata
+  - 📄 `.python-version` – Python version pinning (3.13+)
+  - 📄 `README.md` – Repository overview
+  - 📂 **src/**
+    - `app.py` – Flask entry point
+    - 📂 `audio_cache/` – Audio transcoding & caching
+    - `auth.py` – Authentication utilities
+    - 📂 `common/` – Infrastructure‑free abstractions
+    - 📂 `config/` – Environment‑variable handling
+    - 📂 `logtools/` – Structured logging helpers
+    - 📂 `mixtape_manager/` – Mixtape persistence layer
+    - 📂 `musiclib/` – Music indexing (TinyTag + SQLite)
+    - 📂 `routes/` – Flask blueprints (browser, editor, …)
+    - 📂 `static/`
+      - 📂 `css/` – Stylesheets for Jinja2 templates
+      - 📂 `js/` – Front‑end scripts
+    - 📂 `templates/` – Jinja2 views
+    - 📂 `utilities/` – Miscellaneous helper functions
+  - 📄 `uv.lock` – uv‑managed lockfile
 
-- Python 3.13+ (managed via `.python-version` and uv)
-- uv (install: `curl -LsSf https://astral.sh/uv/install.sh | sh`)
-- Docker (for containerized runs)
+!!! TIP
+    The `src/` package is deliberately **framework‑agnostic**; core modules (`musiclib`, `mixtape_manager`, `audio_cache`) contain no Flask imports, making them easy to unit‑test.
 
-## Project Structure
+---
 
-```bash
-mixtape-society
-├── docker                      → Dockerfiles and compose configs
-├── docs                        → This documentation
-├── .github                     → GitHub Actions workflows
-│   └── workflows
-│       ├── docker-image.yml    → Building Docker images on ghcr
-│       └── docs.yml            → Building github pages
-├── .gitignore                  → Ignored files for git
-├── LICENSE                     → License file
-├── mkdocs.yml                  → Docs site config
-├── pyproject.toml              → Project config + dependencies
-├── .python-version             → Python version pinning
-├── README.md                   → Project README
-├── src                         → Source code
-│   ├── app.py                  → Main Flask entrypoint
-│   ├── auth.py                 → Auth handling
-│   ├── common                  → infrastructure-free abstractions
-│   ├── config                  → Env/config module
-│   ├── logtools                → Logging utilities
-│   ├── mixtape_manager         → Mixtape persistence
-│   ├── musiclib                → Music indexing (TinyTag + SQLite)
-│   ├── routes                  → Flask route handlers
-│   ├── static                  → Static assets
-│   │   ├──css                  → Styling of Jinja2 views
-│   │   └──js                   → JavaScript for Jinja2 views
-│   ├── templates               → Jinja2 views
-│   └── utilities               → Additional tools
-└── uv.lock                     → uv-managed dependency lockfile
-```
+## 🛠️ Prerequisites
 
-## Local Dev Workflow for uv
+| Tool | Minimum Version | Install Command |
+|------|----------------|-----------------|
+| **Python** | 3.13+ (pinned in `.python-version`) | Use your system package manager or `pyenv` |
+| **uv** (modern Python package manager) | Latest | `curl -LsSf https://astral.sh/uv/install.sh | sh` |
+| **Docker** (optional, for containerised dev) | Engine ≥ 20.10 | Follow Docker’s official install guide |
 
-```bash
-uv sync                   # Install deps
-uv sync --extra dev       # Install dev deps
-uv run python app.py      # Dev server
-uv add flask              # Add new dep (updates pyproject.toml)
-```
+**Why `uv`?** It resolves and installs dependencies **without a `requirements.txt`**, speeds up virtual‑environment creation, and produces a deterministic `uv.lock`.
 
-No pip or requirements.txt needed – uv manages everything.
+---
 
-## Docker Development
+## 🚀 Local Development Workflow (uv)
 
 ```bash
-docker build -t mixtape-society:dev .
-# Or with compose: docker compose build
+# 1️⃣ Install runtime dependencies
+uv sync
+
+# 2️⃣ Install development‑only dependencies (testing, linting, docs)
+uv sync --extra dev
+
+# 3️⃣ Run the Flask development server
+uv run python -m app
+
+# 4️⃣ Add a new runtime dependency (updates pyproject.toml & uv.lock)
+uv add <package-name>
 ```
 
-Hot-reload not included (use local uv for that). Prod images auto-built on push to main.
+*All commands are executed from the repository root.*
 
-## Testing
+The development server automatically reloads when you edit files (Flask’s built‑in reloader is enabled because `APP_ENV=development`).
+
+## 🐳 Docker‑Based Development
+
+The repository ships with a **Docker Compose** configuration for rapid iteration:
 
 ```bash
-# Local
-APP_ENV=test uv run python -m pytest
+# Build the development image
+docker compose -f docker/docker-compose.yml build
 
-# Docker
-docker compose -f docker-compose.test.yml up --abort-on-container-exit
+# Start the stack (Flask + optional reverse‑proxy)
+docker compose -f docker/docker-compose.yml up -d
 ```
 
-### Rebuilding Music Collection Index
+The compose file mounts the source code into the container, so you can edit files locally and see changes instantly (no hot‑reload inside the container, but the Flask dev server picks up changes).
 
-```bash
-uv run -c "from musiclib import MusicCollection; MusicCollection(MUSIC_ROOT).rebuild()"
+### Useful shortcuts
+
+| Command | What it does |
+|--------|---------------|
+| `docker compose logs -f mixtape` | Tail the Flask logs. |
+| `docker compose exec mixtape bash` | Drop into the container shell. |
+| `docker compose down -v` | Tear down and delete the persisted volume (useful for a clean start). |
+
+## 📐 Architectural Documentation
+
+This section dives into the inner workings of **Mixtape Society**. Each page focuses on a specific subsystem, explains its responsibilities, and shows how it interacts with the rest of the project.
+
+---
+
+### Core Modules
+
+| Module | What it does | Documentation |
+|--------|--------------|---------------|
+| **Music Library (`musiclib`)** | Handles scanning, indexing, and full‑text search of the audio collection (TinyTag + SQLite FTS5). | [`development/musiclib/intro.md`](musiclib/intro.md) |
+| **Mixtape Manager** | Persists mixtape JSON files, manages cover images, and provides CRUD operations. | [`development/mixtape_manager.md`](mixtape_manager.md) |
+| **Audio Caching** | Transcodes FLAC files to MP3/OGG on‑demand, stores them in a cache, and streams via HTTP range requests. | [`development/audio_caching.md`](audio_caching.md) |
+| **Configuration** | Centralised environment‑variable handling, directory layout, and defaults. | [`development/configuration.md`](configuration.md) |
+| **Utilities** | Helper functions (logging, image processing, misc tools). | [`development/utilities.md`](utilities.md) |
+
+### Flask Application (Entry Point)
+
+The **`app.py`** file wires everything together:
+
+* Initializes the Flask app, CORS, and rate limiting.
+* Sets up core services (`MusicCollectionUI`, `MixtapeManager`, `AudioCache`).
+* Registers blueprints for **auth**, **browser**, **play**, **editor**, and **OG‑cover** routes.
+* Provides global error handling (e.g., `DatabaseCorruptionError`).
+
+📄 [**Read the full walkthrough**](app.md)
+
+### Blueprint / Route Overview
+
+| Blueprint | URL Prefix | Primary Concern |
+|-----------|------------|-----------------|
+| **Authentication** | `/auth` | Login / logout, session handling. |
+| **Browser** | `/mixtapes` | List, play, delete, and serve static mixtape files. |
+| **Play** | `/play` | Audio streaming endpoint (`/play/<slug>`), range requests, and public player page. |
+| **Editor** | `/editor` | Mixtape creation / editing UI, JSON save, cover generation, and background caching trigger. |
+| **OG‑Cover** | `/og` | Dynamic Open‑Graph images for social sharing. |
+
+Each blueprint has its own Markdown file that details the routes, request flow, and any special middleware:
+
+* [Browser UI & mixtape management](routes/browse_mixtapes.md)
+* [Editor UI, save logic, and progress modal.](routes/editor.md)
+* [Streaming, MIME detection, and range handling.](routes/playback.md)
+* [Session‑based login flow.](routes/authentication.md)
+* [OG image generation.](routes/opengraph_images.md)
+
+## 🔀 Data Flow Summary
+
+```mermaid
+flowchart TD
+    subgraph Client
+        UI["Web UI"]
+    end
+
+    subgraph Server
+        A["Flask app (app.py)"]
+        B[MusicCollectionUI]
+        C[MixtapeManager]
+        D[AudioCache]
+        E[Routes]
+    end
+
+    UI -->|HTTP request| A
+    A -->|calls| B
+    A -->|calls| C
+    A -->|calls| D
+    A -->|dispatches to| E
+
+    B -->|reads/writes| SQLite[(SQLite DB)]
+    C -->|reads/writes| JSON[(Mixtape JSON files)]
+    D -->|stores| Cache[(Cached audio files)]
+
+    style Client stroke:#333,stroke-width:1px
+    style Server stroke:#333,stroke-width:1px
 ```
 
-## Contributing
+*The diagram illustrates how a request travels from the browser through the Flask entry point, into the core services, and finally reaches the persistent storage.*
 
-PRs welcome! To contribute:
+## 🛡️ Contributing Guidelines
 
-- Fork the repo and create a feature branch.
-- Install dev deps with `uv sync --extra dev`.
-- Run tests: `uv run pytest`.
-- Submit a PR against main with a clear description.
+1. Fork the repository and create a feature branch (`git checkout -b feature/awesome-feature`).
+2. Install dev dependencies (`uv sync --extra dev`).
+3. Lint & format (`uv run ruff check . && uv run ruff format .`).
+4. Commit with a clear, conventional‑commit‑style message.
+5. Open a Pull Request targeting `master`. Include:
+    * A concise description of the change.
+    * Screenshots or diagrams if UI is affected.
+    * A reference to any related issue (Closes #123).
 
- Ideas:
+!!! TIP
+    Code Style – Follow the existing codebase: type hints everywhere, use `logtools.get_logger` for logging, and keep Flask‑specific code inside the `routes/` package.
 
-* Multi-user auth
-* M3U export
-* Mobile PWA support
+## 🧭 Where to Go Next?
 
-See `pyproject.toml` for dev dependencies and the [Roadmap](roadmap.md) for more inspiration.
+* Deep dive into a module – Click any link in the tables above.
+* Explore the code – All source files live under `src/` (e.g., `src/musiclib/reader.py`).
+* Contribute – Follow the guidelines in this page and submit a PR.
+
+Happy hacking! 🎧🚀
