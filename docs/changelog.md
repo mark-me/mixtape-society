@@ -8,18 +8,22 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 ## 📦 v0.5.2
 
-<span class="md-tag">Development</span>
+<span class="md-tag">Release</span>
 
-**🗓️** 2026-01-xx
+**🗓️** 2026-01-06
 
 ### ✨ Added
 
 - Mixtape cover resizing to reduce bandwidth needs
 - Added cassette tape look option to playback
 
+### 🔧 Changed
+
+- Normalize cover images to RGB and handle transparency correctly before saving as JPEG, while slightly adjusting JPEG output settings.
+
 ### 🐛 Fixed
 
-- Smaller than 1200 pixels mixtape cover art malformed
+- Prevent unnecessary resizing of small cover images
 
 [Changes since last version](https://github.com/mark-me/mixtape-society/compare/v0.5.1...v0.5.2)
 
