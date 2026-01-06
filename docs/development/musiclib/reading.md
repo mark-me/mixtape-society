@@ -14,7 +14,7 @@ Most applications should call the UI-facing method.
 
 ---
 
-## 1. Entry points
+## 🚀 Entry points
 
 ### UI-facing search (recommended)
 
@@ -40,7 +40,7 @@ This method is primarily used internally by the UI layer.
 
 ---
 
-## 2. Query language
+## 🔎 Query language
 
 The query parser recognizes **tagged terms** and **general free-text terms**.
 
@@ -78,7 +78,7 @@ love
 
 ---
 
-## 3. Parsed term structure
+## ⚙️ Parsed term structure
 
 The query is normalized into a dictionary:
 
@@ -99,7 +99,7 @@ This structure is returned alongside the search results and reused for:
 
 ---
 
-## 4. Search execution model
+## ⚡ Search execution model
 
 ### Pass-one candidate collection
 
@@ -124,7 +124,7 @@ This produces ranked candidate sets for artists, albums, and tracks.
 
 ---
 
-## 5. Result grouping and hierarchy
+## 🏘️ Result grouping and hierarchy
 
 After scoring, results are assembled into a hierarchical structure:
 
@@ -143,7 +143,7 @@ The engine decides which groups to include based on the query:
 
 ---
 
-## 6. UI result model
+## 🎯 UI result model
 
 The UI layer converts grouped results into a **single flat list** of result objects via the function `search_highlighting`.
 
@@ -221,7 +221,7 @@ Each object has a `type` field and a shape appropriate for rendering.
 
 ---
 
-## 7. Lazy loading
+## 💤 Lazy loading
 
 Artist and album results include a `click_query` field.
 
@@ -235,7 +235,7 @@ This keeps the API stateless and avoids nested payloads.
 
 ---
 
-## 8. Highlighting
+## ✨ Highlighting
 
 All matched terms are automatically highlighted:
 
@@ -253,7 +253,7 @@ This behavior is **UI-specific** and not part of the core search engine.
 
 ---
 
-## 9. Match explanations
+## 💡 Match explanations
 
 Each result may include a `reasons` list explaining *why* it matched:
 
@@ -265,7 +265,7 @@ These are intended for UI hints, badges, or tooltips.
 
 ---
 
-## 10. Real‑time monitoring
+## 👀. Real‑time monitoring
 
 `MusicCollection.start_monitoring()` creates a `watchdog.observers.Observer` that uses the
 `EnhancedWatcher` class (defined in `src/musiclib/_watcher.py`).
@@ -281,7 +281,7 @@ The rest of the monitoring flow (observer start/stop, queue → writer thread) r
 
 ---
 
-## 11. Summary
+## 📄 Summary
 
 In short, searching works as follows:
 
@@ -294,7 +294,7 @@ In short, searching works as follows:
 
 This design allows the UI to deliver a fast, expressive, and navigable search experience without embedding deep hierarchies in a single response.
 
-## API Searching
+## 🌐 API
 
 Only the following methods are considered stable public APIs:
 `MusicCollection.search_grouped`, `MusicCollectionUI.search_highlighting`, `MusicCollection.rebuild`, `MusicCollection.resync`, `MusicCollection.close`, `MusicCollection.get_collection_stats`.

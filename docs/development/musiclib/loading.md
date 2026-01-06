@@ -2,7 +2,7 @@
 
 # Creating/maintaining the music collection database
 
-## 1. High‑level picture
+## 📘 High‑level picture
 
 * **Watchdog** watches the music directory for creations, modifications, and deletions.
 * Detected changes are turned into **IndexEvent** objects and placed on a thread‑safe `Queue`.
@@ -64,7 +64,7 @@ flowchart LR
     P -->|No| R["No monitoring to stop"]
 ```
 
-## 2. Core data structures
+## 🧱 Core data structures
 
 | Name                 | Type                                             | Purpose                                                                                                                                                     |
 |----------------------|--------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -75,7 +75,7 @@ flowchart LR
 | `tracks` table       | SQLite table with columns `path, filename, artist, album, title, albumartist, genre, year, duration, mtime` | Stores the canonical metadata for each audio file.                                                                                                          |
 | `tracks_fts`         | SQLite FTS5 virtual table mirroring most columns of `tracks` | Enables fast full‑text search across artist, album, title, etc.
 
-## 3. Database initialization
+## 🗄️ Database initialization
 
 Started in `_init_db`:
 
@@ -88,7 +88,7 @@ Started in `_init_db`:
 
 Result: the DB is ready for both ordinary queries and full‑text search without any manual maintenance.
 
-## 4. Full‑text table boot‑strap
+## 🛠️ Full‑text table boot‑strap
 
 Starts in `_populate_fts_if_needed`
 
@@ -99,7 +99,7 @@ Starts in `_populate_fts_if_needed`
 
 This routine is called once after a fresh DB creation or after a manual purge of the FTS table.
 
-## 5. Public connection helper
+## 🔗 Public connection helper
 
 Function `get_conn`:
 
@@ -109,7 +109,7 @@ Function `get_conn`:
 
 All higher‑level code (search, UI, etc.) obtains connections via this method.
 
-## 6. Writer thread
+## ✍️ Writer thread
 
 Function `_db_writer_loop`
 
@@ -128,7 +128,7 @@ Function `_db_writer_loop`
 * Errors are caught and logged via the injected Logger.
 * When the loop exits, it commits any remaining work and closes the connection.
 
-## 7. Metadata extraction
+## 🔍 Metadata extraction
 
 Function `_index_file`:
 
@@ -149,7 +149,7 @@ Function `_index_file`:
 
 ---
 
-## 8. Full rebuild
+## 🏗️ Full rebuild
 
 Function: `rebuild`
 
@@ -167,7 +167,7 @@ Function: `rebuild`
 
 ---
 
-## 9. Incremental resynchronisation
+## 🔄 Incremental resynchronisation
 
 Function: `resync`
 
@@ -186,7 +186,7 @@ Function: `resync`
 
 ---
 
-## 10. Real‑time monitoring
+## 👀 Real‑time monitoring
 
 * **`start_monitoring`** creates a `watchdog.observers.Observer` (if none exists), registers a `EnhancedWatcher` instance for the `music_root`, and starts the observer thread.
 
@@ -200,7 +200,7 @@ Function: `resync`
 
 ---
 
-## 11. Graceful shutdown
+## 🛑 Graceful shutdown
 
 Function `stop`
 
@@ -210,7 +210,7 @@ Function `stop`
 
 ---
 
-## 12. Indexing‑status helper
+## 📝 Indexing‑status helper
 
 File `indexing_status.py`:
 
@@ -228,7 +228,7 @@ These utilities are deliberately lightweight: they operate purely on the filesys
 
 ---
 
-## 13. End‑to‑end flow for a typical user session
+## 🧑‍💻 End‑to‑end flow for a typical user session
 
 ```mermaid
 sequenceDiagram
@@ -282,7 +282,7 @@ sequenceDiagram
 
 ---
 
-## 14. API
+## 🌐 API
 
 ### ::: src.musiclib._extractor.EventType
 

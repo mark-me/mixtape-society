@@ -1,8 +1,8 @@
 ![Musiclib](../../images/music-library.png){ align=right width="90" }
 
-# 🎵 Musiclib - Music Collection handling
+# Musiclib - Music Collection handling
 
-## Overview and introduction
+## 📘Overview and introduction
 
 The musiclib package is the heart of the mixtape music‑collection service.
 It turns a plain directory tree of audio files into a searchable, fully‑indexed library that can be queried instantly from the UI.
@@ -85,7 +85,7 @@ classDiagram
 
 ---
 
-## 1. What the module does
+## 🧩 What the module does
 
 | Goal                         | How it’s achieved                                                                                                                                                     |
 |------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -98,7 +98,7 @@ classDiagram
 
 ---
 
-## 2. Core building blocks
+## 🧱 Core building blocks
 
 | Module / Class          | Primary responsibility                                                                                                                                                                                                 |
 |--------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -109,7 +109,7 @@ classDiagram
 
 ---
 
-## 3. Data flow – from file system to UI
+## 🔀 Data flow – from file system to UI
 
 1. **Startup** – `MusicCollection` creates a `CollectionExtractor`. The extractor initializes the SQLite schema and launches the writer thread.
 1. **Initial population** – If the DB is empty, `MusicCollection` schedules a rebuild. The rebuild walks the entire `music_root`, enqueues an `INDEX_FILE` event for every supported file, and updates `indexing_status.json` so the UI can show progress.
@@ -119,7 +119,7 @@ classDiagram
 
 ---
 
-## 4. Why the design choices matter
+## 💡 Why the design choices matter
 
 | Design decision                                 | Benefit                                                                                                                                                              |
 |-------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -133,7 +133,7 @@ classDiagram
 
 ---
 
-## 5. Quick mental model
+## 🧠 Quick mental model
 
 ```mermaid
 flowchart LR
@@ -162,7 +162,7 @@ The UI never talks directly to the filesystem; it always goes through MusicColle
 
 ---
 
-## 6. Getting started (for developers)
+## 🚀 Getting started (for developers)
 
 1. Instantiate the high‑level class:
 
@@ -196,7 +196,7 @@ The UI never talks directly to the filesystem; it always goes through MusicColle
 
 ---
 
-## 7. Where to look next
+## 🧭 Where to look next
 
 * `_extractor.py` – for the low‑level DB schema, triggers, and the writer‑loop logic.
 * `reader.py` – for the query parser (`parse_query`) and the grouping algorithm that decides which artists/albums/tracks to return.
