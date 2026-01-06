@@ -26,7 +26,6 @@ theme:
     - navigation.top
     - navigation.indexes
     - navigation.sections
-    - toc.integrate
     - content.code.copy
     - content.code.select
     - content.action.edit
