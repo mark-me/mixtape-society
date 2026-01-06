@@ -617,17 +617,32 @@ body.cassette-mode #bottom-player-container {
 
 /* Mobile landscape Walkman layout */
 @media (max-width: 932px) and (orientation: landscape) {
+    /* Hide navbar in landscape mode */
+    nav.navbar {
+        display: none !important;
+    }
+
+    /* Hide view mode toggle in landscape */
+    .view-mode-toggle {
+        display: none;
+    }
+
     #cassette-player-container {
-        padding: 10px;
+        padding: 15px;
+        height: 100vh; /* Full viewport height now that navbar is hidden */
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .cassette-deck {
         flex-direction: row;
-        align-items: center;
+        align-items: center; /* Changed from stretch to center */
         justify-content: center;
         gap: 12px;
-        max-width: 100%;
-        height: 100%;
+        max-width: 90vw;
+        height: auto;
+        max-height: calc(100vh - 30px); /* Account for padding */
     }
 
     /* Show side panels */
@@ -635,9 +650,12 @@ body.cassette-mode #bottom-player-container {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 15px;
+        justify-content: space-between; /* Better distribution */
+        gap: 10px;
         width: 70px;
         height: 100%;
+        max-height: 280px; /* Match cassette */
+        flex-shrink: 0;
         background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
         border-radius: 8px;
         padding: 12px 8px;
@@ -660,6 +678,7 @@ body.cassette-mode #bottom-player-container {
     /* Panel spacer */
     .panel-spacer {
         flex: 1;
+        min-height: 20px; /* Ensure minimum spacing */
     }
 
     /* Status indicators */
@@ -723,22 +742,18 @@ body.cassette-mode #bottom-player-container {
 
     /* Cassette body - maintains aspect ratio in center */
     .cassette-body {
-        flex: 1;
-        max-width: 400px;
+        flex-shrink: 0;
+        width: auto;
         height: 100%;
+        max-height: 280px;
         aspect-ratio: 2 / 1.3;
         position: relative;
         /* Add a viewing window effect */
-        background: rgba(0, 0, 0, 0.3);
-        padding: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    /* Create inner cassette that's visible through the "window" */
-    .cassette-body > * {
-        position: absolute;
+        background: linear-gradient(145deg, #9a9a9a 0%, #7a7a7a 50%, #6a6a6a 100%);
+        padding: 2.5%;
+        border-radius: 8px;
+        border: 3px solid #5a5a5a;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
     }
 
     /* Top brand bar overlay */
@@ -746,8 +761,7 @@ body.cassette-mode #bottom-player-container {
         content: 'MIXTAPE SOCIETY';
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        padding: 0 15px;
+        justify-content: center;
         position: absolute;
         top: 0;
         left: 0;
@@ -763,6 +777,12 @@ body.cassette-mode #bottom-player-container {
         font-size: 14px;
         font-family: 'Arial Black', sans-serif;
         text-shadow: 2px 2px 3px rgba(0,0,0,0.5);
+        padding: 0;
+    }
+
+    /* Keep cassette screws hidden in walkman mode */
+    .cassette-body::after {
+        display: none;
     }
 
     /* Control deck - now overlays bottom of cassette */
