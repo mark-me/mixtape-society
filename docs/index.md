@@ -1,12 +1,26 @@
+---
+title: Mixtape Society
+description: Private, self‑hosted web app to create and share beautiful music mixtapes from your own library.
+author: Mark Zwart
+extra:
+  css_class: home-page
+---
+
 ![Mixtape Society](images/favicon.svg){ align=right width="90" }
 
 # Mixtape Society
 
-A private, self-hosted web app to create and share beautiful music mixtapes from your own library.
+A private, self‑hosted web app to create and share beautiful music mixtapes from your own library.
 
-Create your own mixtapes from your music collection and share them with friends via public links. Recipients can listen to the mixtape directly in their web browser, no account or app required.
-
-Creating a mixtape is as simple as adding songs into a playlist. Customize the look and feel with cover art and liner notes, then share the link with anyone.
+> **🚀 Quick start**
+>
+> 1️⃣ Install the Docker image (see **Getting Started → Installation**).
+>
+> 2️⃣ Run `docker compose up`.
+>
+> 3️⃣ Open `http://localhost:8000` and create your first mixtape.
+>
+> 👉 [Read the full Getting Started guide](getting-started.md)
 
 ## The looks
 
@@ -22,9 +36,9 @@ Share mixtapes with friends and family. Recipients can listen to the mixtape dir
 
 ## Why Mixtape Society?
 
-- No ads, no tracking, no accounts
-- Works completely offline after the first indexing
-- Public share links that anyone can open
-- Feels like giving someone a real cassette
+- ✅ **No ads, no tracking, no accounts** – pure privacy.
+- 💾 **Works offline** after the first indexing.
+- 🔗 **Public share links** – anyone can listen without an account.
+- 📼 **Cassette‑style experience** – nostalgic UI with modern tech.
 
 Start with the [Getting Started](getting-started.md) guide.

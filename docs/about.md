@@ -1,3 +1,11 @@
+---
+title: About Mixtape Society
+description: The story, goals and contributors behind the self‑hosted Mixtape Society web app.
+author: Mark Zwart
+extra:
+  css_class: about-page
+---
+
 ![Mixtape Society Logo](images/logo.svg){ align=right width="90" }
 
 # About Mixtape Society
@@ -58,7 +66,7 @@ Mixtape Society leverages several fantastic open-source libraries and tools. A b
 
 ## ⚖️ License
 
-Mixtape Society is released under the [MIT License](https://mit-license.org/). Feel free to fork, modify, and share—but remember, users are responsible for their own music content (no copyrighted media is included or distributed).
+Mixtape Society is released under the [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT). Feel free to fork, modify, and share—but remember, users are responsible for their own music content (no copyrighted media is included or distributed).
 
 ## 👥🔧 Get Involved
 
