@@ -12,15 +12,14 @@ extra:
 
 A private, self‑hosted web app to create and share beautiful music mixtapes from your own library.
 
-> **🚀 Quick start**
->
-> 1️⃣ Install the Docker image (see **Getting Started → Installation**).
->
-> 2️⃣ Run `docker compose up`.
->
-> 3️⃣ Open `http://localhost:8000` and create your first mixtape.
->
-> 👉 [Read the full Getting Started guide](getting-started.md)
+!!! TIP "Quick start"
+    1️⃣ Install the Docker image (see **Getting Started → Installation**).
+
+    2️⃣ Run `docker compose up`.
+
+    3️⃣ Open `http://localhost:8000` and create your first mixtape.
+
+    👉 [Read the full Getting Started guide](getting-started.md)
 
 ## The looks
 
