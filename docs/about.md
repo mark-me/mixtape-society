@@ -38,7 +38,7 @@ Mixtape Society leverages several fantastic open-source libraries and tools. A b
 - **[Flask-CORS](https://flask-cors.readthedocs.io/)** – Simple cross-origin resource sharing
 - **[Flask-Limiter](https://flask-limiter.readthedocs.io/)** – Rate limiting for the login route
 - **[Flask-Login](https://flask-login.readthedocs.io/)** – Session management
-- **[FFmpeg](https://ffmpeg.org/) - Transcoding audio quality
+- **[FFmpeg](https://ffmpeg.org/)** - Transcoding audio quality
 - **[Gunicorn](https://gunicorn.org/)** – Production WSGI server
 - **[Pillow](https://python-pillow.org/)** – Image processing for uploaded covers and OpenGraph image generation
 - **[python-dotenv](https://github.com/theskumar/python-dotenv)** – Easy .env file support
