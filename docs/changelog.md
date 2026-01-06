@@ -136,7 +136,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 - White theme browsing mixtapes, mixtape title invisible
 - No version information extracted from the repository
 
-[v0.3.0](https://github.com/mark-me/mixtape-society/compare/v0.2.5...v0.3.0)
+[Changes since previous version](https://github.com/mark-me/mixtape-society/compare/v0.2.5...v0.3.0)
 
 ---
 
@@ -161,7 +161,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 - Player control text is illegible in the white theme
 - Editor search result play preview button not in sync with player controls
 
-[v0.2.5](https://github.com/mark-me/mixtape-society/compare/v0.2.2...v0.2.5)
+[Changes since previous version](https://github.com/mark-me/mixtape-society/compare/v0.2.2...v0.2.5)
 
 ---
 
@@ -191,7 +191,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 - Track title not rendering on playlist
 
-[v0.2.2](https://github.com/mark-me/mixtape-society/compare/v0.2.1...v0.2.2)
+[Changes since previous version](https://github.com/mark-me/mixtape-society/compare/v0.2.1...v0.2.2)
 
 ---
 
@@ -207,7 +207,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 - Fixed album sorting for artists to case insensitive
 - Made cover validation more robust
 
-[v0.2.1](https://github.com/mark-me/mixtape-society/compare/v0.2.0...v0.2.1)
+[Changes since previous version](https://github.com/mark-me/mixtape-society/compare/v0.2.0...v0.2.1)
 
 ---
 
@@ -229,7 +229,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 - Better player display on smaller screens
 - Redundant JavaScript removed from editor.html
 
-[v0.2.0](https://github.com/mark-me/mixtape-society/compare/v0.1.8-alpha...v0.2.0)
+[Changes since previous version](https://github.com/mark-me/mixtape-society/compare/v0.1.8-alpha...v0.2.0)
 
 ---
 
@@ -270,7 +270,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 - Loading at first start-up in musiclib
 - Progress report on loading in musiclib
 
-[v0.1.8-alpha](https://github.com/mark-me/mixtape-society/compare/v0.1.7-alpha...v0.1.8-alpha)
+[Changes since previous version](https://github.com/mark-me/mixtape-society/compare/v0.1.7-alpha...v0.1.8-alpha)
 
 ---
 
@@ -290,7 +290,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 - Logo and favicon
 - Documentation line-up with app style
 
-[v0.1.7-alpha](https://github.com/mark-me/mixtape-society/compare/v0.1.6-alpha...v0.1.7-alpha)
+[Changes since previous version](https://github.com/mark-me/mixtape-society/compare/v0.1.6-alpha...v0.1.7-alpha)
 
 ---
 
@@ -309,7 +309,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 - Covers not showing for users that are not logged in
 - Editor headers change according to creating or editing mixtape
 
-[v0.1.6-alpha](https://github.com/mark-me/mixtape-society/compare/v0.1.5-alpha...v0.1.6-alpha)
+[Changes since previous version](https://github.com/mark-me/mixtape-society/compare/v0.1.5-alpha...v0.1.6-alpha)
 
 ---
 
@@ -334,7 +334,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 - Fixed Dockerfile by starting app from factory function
 
-[v0.1.5-alpha](https://github.com/mark-me/mixtape-society/compare/v0.1.4-alpha...v0.1.5-alpha)
+[Changes since previous version](https://github.com/mark-me/mixtape-society/compare/v0.1.4-alpha...v0.1.5-alpha)
 
 ---
 
@@ -360,7 +360,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 - Favicon theme adherence
 - Deleting a mixtape actually works
 
-[v0.1.4-alpha](https://github.com/mark-me/mixtape-society/compare/v0.1.3-alpha...v0.1.4-alpha)
+[Changes since previous version](https://github.com/mark-me/mixtape-society/compare/v0.1.3-alpha...v0.1.4-alpha)
 
 ---
 
@@ -381,7 +381,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 - Moving away from editing a mixtape then returning would lose changes
 
-[v0.1.3-alpha](https://github.com/mark-me/mixtape-society/compare/v0.1.2-alpha...v0.1.3-alpha)
+[Changes since previous version](https://github.com/mark-me/mixtape-society/compare/v0.1.2-alpha...v0.1.3-alpha)
 
 ---
 
@@ -395,7 +395,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 - Made Mixtape browser responsive
 
-[v0.1.2-alpha](https://github.com/mark-me/mixtape-society/compare/v0.1.1-alpha...v0.1.2-alpha)
+[Changes since previous version](https://github.com/mark-me/mixtape-society/compare/v0.1.1-alpha...v0.1.2-alpha)
 
 ---
 
@@ -422,8 +422,4 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 - Password handling with strange characters
 - Database locks when too many Watcher related updates
 
-[v0.1.1-alpha](https://github.com/mark-me/mixtape-society/compare/v0.1.0...v0.1.1-alpha)
-
-
-
-
+[Changes since previous version](https://github.com/mark-me/mixtape-society/compare/v0.1.0...v0.1.1-alpha)
