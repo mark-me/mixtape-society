@@ -87,7 +87,7 @@ All modules share a single source of truth (`playlist` array) and communicate vi
 | Toasts | “Track added”, “Track removed”, and “Public link copied” toasts (Bootstrap). |
 | Progress Modal (injected by `progressModal.js`) | Not in the template; created dynamically when saving. |
 
-All elements use **Bootstrap 5** utilities and custom CSS variables (`--color‑track`, `--bs-body-bg`, etc.) for semantic Theming.
+All elements use **Bootstrap 5** utilities and custom CSS variables (`--color‑track`, `--bs-body-bg`, etc.) for light/dark and semantic Theming.
 
 ## JavaScript Modules & Their Responsibilities
 
