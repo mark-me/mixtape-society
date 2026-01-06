@@ -147,7 +147,7 @@ Each blueprint has its own Markdown file that details the routes, request flow, 
 ```mermaid
 flowchart TD
     subgraph Client
-        UI["Web UI (browser/editor)"]
+        UI["Web UI"]
     end
 
     subgraph Server
