@@ -124,7 +124,7 @@ The **`app.py`** file wires everything together:
 
 📄 [**Read the full walkthrough**](app.md)
 
-### 🗺️ Blueprint / Route Overview
+### Blueprint / Route Overview
 
 | Blueprint | URL Prefix | Primary Concern |
 |-----------|------------|-----------------|
@@ -188,7 +188,7 @@ flowchart TD
 !!! TIP
     Code Style – Follow the existing codebase: type hints everywhere, use `logtools.get_logger` for logging, and keep Flask‑specific code inside the `routes/` package.
 
-## Where to Go Next?
+## 🧭 Where to Go Next?
 
 * Deep dive into a module – Click any link in the tables above.
 * Explore the code – All source files live under `src/` (e.g., `src/musiclib/reader.py`).
