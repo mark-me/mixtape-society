@@ -34,6 +34,23 @@ export function initCassettePlayer() {
         return `
             <div id="cassette-player-container">
                 <div class="cassette-deck">
+                    <!-- Left Side Panel (for Walkman mode) -->
+                    <div class="side-panel side-panel-left">
+                        <div class="screw"></div>
+                        <div class="vertical-branding">MIXTAPE</div>
+                        <div class="panel-spacer"></div>
+                        <div class="status-indicator">
+                            <div class="status-light" id="status-play"></div>
+                            <div class="status-label">PLAY</div>
+                        </div>
+                        <div class="status-indicator">
+                            <div class="status-light" id="status-rec"></div>
+                            <div class="status-label">REC</div>
+                        </div>
+                        <div class="panel-spacer"></div>
+                        <div class="screw"></div>
+                    </div>
+
                     <!-- Cassette Tape Body -->
                     <div class="cassette-body">
                         <!-- White Top Label Section -->
@@ -63,11 +80,10 @@ export function initCassettePlayer() {
                                 <div class="tape-strips">
                                     <svg viewBox="0 0 512 324.62" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
                                         <!-- Tape coming INTO left cog from bottom -->
-                                        <path d="M 93.509 125.6l-61.144 103.99c-2.527-1.587-4.254-4.343-4.419-7.505l58.997-100.34z" fill="#504f4f"/>
+                                        <path d="M 93.509 125.6l-61.144 103.99c-2.527-1.587-4.254-4.343-4.419-7.505l58.997-100.34z" fill="#3a2a1a"/>
 
                                         <!-- Tape going OUT from right cog -->
-                                        <!--  <polygon points="465.86,231.07 457.02,231.07 399,132.39 405.57,128.53" fill="#504f4f"/> -->
-                                        <polygon points="465.86,231.07 457.02,231.07 397,80.39 403.57,81.53" fill="#504f4f"/>
+                                        <polygon points="465.86,231.07 457.02,231.07 397,80.39 403.57,81.53" fill="#3a2a1a"/>
                                     </svg>
                                 </div>
 
@@ -228,6 +244,23 @@ export function initCassettePlayer() {
                             </div>
                         </div>
                     </div>
+
+                    <!-- Right Side Panel (for Walkman mode) -->
+                    <div class="side-panel side-panel-right">
+                        <div class="screw"></div>
+                        <div class="vertical-branding">SOCIETY</div>
+                        <div class="panel-spacer"></div>
+                        <div class="status-indicator">
+                            <div class="status-light active" id="status-power"></div>
+                            <div class="status-label">PWR</div>
+                        </div>
+                        <div class="status-indicator">
+                            <div class="status-light" id="status-battery"></div>
+                            <div class="status-label">BATT</div>
+                        </div>
+                        <div class="panel-spacer"></div>
+                        <div class="screw"></div>
+                    </div>
                 </div>
             </div>
         `;
@@ -318,13 +351,16 @@ export function initCassettePlayer() {
     function toggleReels(playing) {
         const leftReel = document.getElementById('left-reel');
         const rightReel = document.getElementById('right-reel');
+        const playLight = document.getElementById('status-play');
 
         if (playing) {
             leftReel?.classList.add('spinning');
             rightReel?.classList.add('spinning');
+            playLight?.classList.add('active');
         } else {
             leftReel?.classList.remove('spinning');
             rightReel?.classList.remove('spinning');
+            playLight?.classList.remove('active');
         }
     }
 
