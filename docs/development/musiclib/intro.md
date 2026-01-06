@@ -53,11 +53,12 @@ classDiagram
         -_write_queue.put(event)
     }
 
-    %% ==== _Watcher (filesystem event handler) ====
-    class _Watcher {
+    %% ==== EnhancedWatcher (filesystem event handler) ====
+    class EnhancedWatcher {
         -CollectionExtractor extractor
-        +_Watcher(extractor)
+        +EnhancedWatcher(extractor)
         +on_any_event(event)
+        +shutdown()
     }
 
     %% ==== Indexing status helpers (module-level functions) ====
@@ -75,10 +76,10 @@ classDiagram
     %% ==== Relationships ====
     CollectionExtractor --> IndexEvent : produces / consumes
     CollectionExtractor --> EventType : uses literals
-    CollectionExtractor --> _Watcher : creates & registers
+    CollectionExtractor --> EnhancedWatcher : creates & registers
     CollectionExtractor --> indexing_status : writes progress JSON
-    _Watcher --> IndexEvent : enqueues events
-    _Watcher --> CollectionExtractor : holds reference
+    EnhancedWatcher --> IndexEvent : enqueues events
+    EnhancedWatcher --> CollectionExtractor : holds reference
     indexing_status ..> Path : works with filesystem paths
 ```
 
@@ -88,7 +89,7 @@ classDiagram
 
 | Goal                         | How it’s achieved                                                                                                                                                     |
 |------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Detect every supported audio file | A **watchdog observer** monitors the `music_root` directory in real time.                                                                                             |
+| Detect every supported audio file | A **watchdog observer** (implemented as `EnhancedWatcher`) monitors the `music_root` directory in real time. It includes a 2 second debounce to coalesce rapid edits and avoid duplicate indexing. |
 | Extract reliable metadata    | `tinytag.TinyTag` reads ID3/metadata tags (artist, album, title, year, duration, etc.).                                                                            |
 | Persist metadata efficiently | A **SQLite** database stores the canonical rows (`tracks` table) and an **FTS5** virtual table (`tracks_fts`) that mirrors the same columns for lightning‑fast full‑text search. |
 | Keep the DB in sync          | A **single writer thread** serialises all write operations (adds, deletes, clears) via a thread‑safe `Queue[IndexEvent]`.                                             |
@@ -128,6 +129,7 @@ classDiagram
 | **Watchdog‑driven live sync**                   | Users see newly added songs appear instantly; deletions are reflected without a full rescan.                                                                         |
 | **Separation of concerns** (`_extractor` vs. `reader` vs. `ui`) | Keeps low‑level DB handling isolated from query parsing and UI formatting, making the code easier to test and extend.                                                |
 | **Typed `IndexEvent` dataclass**                | Improves readability, reduces bugs caused by mismatched queue payloads, and makes future event types straightforward to add.                                          |
+| **Debouncing in the watcher** (`EnhancedWatcher`) | Prevents a flood of `INDEX_FILE` events when a user edits a file repeatedly (e.g., retagging). Guarantees only the final state is indexed, reducing DB churn and corruption risk. |
 
 ---
 
@@ -136,12 +138,12 @@ classDiagram
 ```mermaid
 flowchart LR
     %% Nodes
-    FS[Filesystem<br/>audio files]
-    WD[Watchdog<br/>Observer]
+    FS[Filesystem audio files]
+    WD[EnhancedWatcher Observer]
     Q[IndexEvent Queue]
-    WT[Writer Thread<br/>processes events]
-    DB[SQLite DB<br/>*tracks + tracks_fts*]
-    UI[MusicCollection<br>UI layer]
+    WT[Writer Thread processes events]
+    DB[SQLite DB *tracks + tracks_fts*]
+    UI[MusicCollection UI layer]
 
     %% Main data flow
     FS --> WD
@@ -166,7 +168,10 @@ The UI never talks directly to the filesystem; it always goes through MusicColle
 
     ```python
     from musiclib import MusicCollectionUI
-    mc = MusicCollectionUI(music_root="/path/to/music", db_path="/path/to/db.sqlite")
+    mc = MusicCollectionUI(
+        music_root="/path/to/music",
+        db_path="/path/to/db.sqlite"
+    )   # Starts the watchdog observer and, if the DB is empty, schedules an initial rebuild.
     ```
 
 2. Run a query (the UI does this internally):
@@ -197,5 +202,6 @@ The UI never talks directly to the filesystem; it always goes through MusicColle
 * `reader.py` – for the query parser (`parse_query`) and the grouping algorithm that decides which artists/albums/tracks to return.
 * `ui.py` – for the presentation helpers (highlighting, safe filenames, click‑query generation).
 * `indexing_status.py` – for the atomic JSON status handling used by the UI progress bar.
+* `_watcher.py` – the `EnhancedWatcher` implementation that adds debouncing and graceful shutdown of pending events.
 
 That’s the complete picture of the `musiclib` module: a tightly coupled pipeline that turns a folder of audio files into a fast, searchable, and continuously synchronized music library.

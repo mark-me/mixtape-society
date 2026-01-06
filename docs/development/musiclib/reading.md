@@ -72,6 +72,7 @@ love
 
   ```
   artist:"The Beatles"
+  album:'Purple Rain'
   ```
 * Backslashes can escape special characters inside quoted values
 
@@ -264,7 +265,23 @@ These are intended for UI hints, badges, or tooltips.
 
 ---
 
-## 10. Summary
+## 10. Real‑time monitoring
+
+`MusicCollection.start_monitoring()` creates a `watchdog.observers.Observer` that uses the
+`EnhancedWatcher` class (defined in `src/musiclib/_watcher.py`).
+The enhanced watcher adds two important behaviours that differ from a naïve `FileSystemEventHandler`:
+
+| Feature | What it does | Why it matters |
+|---------|--------------|----------------|
+| **Debounce delay** (`DEBOUNCE_DELAY = 2.0 s`) | After the last change to a given file, the watcher waits 2 seconds before queuing an `INDEX_FILE` or `DELETE_FILE` event. | Prevents a burst of rapid edits (e.g., a tag‑editing batch) from generating many separate index operations, which could corrupt the DB. |
+| **Coalescing** | Multiple `created`/`modified` events for the same path are merged into a single `INDEX_FILE` event; a later `deleted` event overrides any pending `modified` events. | Guarantees that the final state of the file is what gets indexed. |
+| **Graceful shutdown** (`shutdown()` method) | Cancels all pending timers and flushes any remaining events to the write queue before the observer is stopped. | Ensures no file‑system changes are lost when the application exits. |
+
+The rest of the monitoring flow (observer start/stop, queue → writer thread) remains exactly as described in the original diagram.
+
+---
+
+## 11. Summary
 
 In short, searching works as follows:
 
@@ -280,7 +297,7 @@ This design allows the UI to deliver a fast, expressive, and navigable search ex
 ## API Searching
 
 Only the following methods are considered stable public APIs:
-`MusicCollection.search_grouped`, `MusicCollectionUI.search_highlighting`, `MusicCollection.rebuild`, `MusicCollection.resync`, `MusicCollection.close`.
+`MusicCollection.search_grouped`, `MusicCollectionUI.search_highlighting`, `MusicCollection.rebuild`, `MusicCollection.resync`, `MusicCollection.close`, `MusicCollection.get_collection_stats`.
 
 ### ::: src.musiclib.reader.MusicCollection
 

@@ -80,19 +80,18 @@ class MusicCollectionUI(MusicCollection):
 
     @staticmethod
     def _escape_for_query(name: str) -> str:
-        """Escapes a string for use in a search query.
-
-        Returns the input string wrapped in single quotes unless it contains a single quote,
-        in which case it is wrapped in double quotes with any double quotes escaped.
-
-        Args:
-            name: The string to escape for query usage.
-
-        Returns:
-            The escaped string suitable for use in a search query.
         """
-        # Prefer single quotes; if name has single quote, fall back to escaped double
-        return f"'{name}'" if "'" not in name else f""""{name.replace('"', '"')}\""""
+        Escapes a string for inclusion in a search query.
+
+        * If the string contains no single‑quote characters, it is wrapped in single quotes:
+        `'Prince'`.
+        * If a single quote is present, the string is wrapped in double quotes:
+        `"O'Connor"`.
+
+        This mirrors the quoting rules used by the query parser in ``reader.py``.
+        """
+        # Single‑quote is preferred; fall back to double‑quote when needed.
+        return f"'{name}'" if "'" not in name else f'"{name}"'
 
     def _should_filter_strict(self, terms: dict) -> tuple[bool, bool]:
         """Determines if strict filtering should be applied based on search terms.
