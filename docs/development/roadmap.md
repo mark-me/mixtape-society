@@ -97,3 +97,17 @@ A super-light Flutter or Tauri app that just points to your self-hosted instance
 | Cover thumbnail generation | Covers are served directly from the file system. | Serve scaled thumbnails via a dedicated route (`/mixtapes/thumb/<slug>`) to reduce bandwidth on the browse page. |
 | Permissions | All authenticated users can edit/delete any mixtape. | Tie mixtapes to a user ID (`owner_id`) and restrict edit/delete to the owner (or admins). |
 | Progressive enhancement | JavaScript is required for copy/delete. | Provide graceful degradation (e.g., plain links for copy, a server-side delete confirmation page) for users with JS disabled. |
+
+## 14. Base page and app
+
+| Area | Current State | Suggested Improvements |
+|------|---------------|------------------------|
+| Theme persistence | Stored in `localStorage['theme']`. | Add a server-side preference (user profile) so the choice survives across devices. |
+| Modular CSS | One monolithic `base.css`. | Split into component-level files (navbar, modals, toasts) and use a build step (e.g., PostCSS) for easier maintenance. |
+| Accessibility | Basic ARIA attributes on modals/buttons. | Add `aria-live="polite"` to toasts, ensure focus trapping inside modals, and provide high-contrast color variants. |
+| Internationalisation | Hard-coded English strings. | Integrate Flask-Babel and expose a `gettext` filter in Jinja to support multiple locales. |
+| Progressive Enhancement | Many features rely on JavaScript (copy, delete, theme). | Provide graceful fallbacks: a plain link for copying (mailto fallback), a server-side confirmation page for delete, and a CSS-only dark-mode toggle. |
+| Testing | No unit tests for `base.html` or the global JS. | Add Selenium / Playwright integration tests that verify the theme switcher, indexing modal, and database-corruption flow. |
+| Security | CSRF protection is handled globally by Flask-WTF (not shown). | Ensure all POST endpoints (`/reset-database`, `/delete/<slug>`, `/resync`) validate a CSRF token. |
+| Performance | All static assets are CDN-served individually. | Bundle CSS/JS with a tool like Webpack or Rollup, enable HTTP/2 server push, and add integrity attributes for Subresource Integrity (SRI). |
+
