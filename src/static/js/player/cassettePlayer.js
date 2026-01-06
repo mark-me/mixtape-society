@@ -269,7 +269,6 @@ export function initCassettePlayer() {
 
         // Toggle visibility
         const cassetteContainer = document.getElementById('cassette-player-container');
-        const modernContainer = document.getElementById('bottom-player-container');
 
         if (mode === 'cassette') {
             cassetteContainer?.classList.add('active');
@@ -337,10 +336,15 @@ export function initCassettePlayer() {
         if (!player || audioContext) return;
 
         try {
+            // Create AudioContext
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+            // Try to create media element source
+            // This will fail if CORS headers aren't set properly
             const source = audioContext.createMediaElementSource(player);
             analyser = audioContext.createAnalyser();
             analyser.fftSize = 256;
+            analyser.smoothingTimeConstant = 0.8; // Smooth the VU meter movement
 
             source.connect(analyser);
             analyser.connect(audioContext.destination);
@@ -348,37 +352,84 @@ export function initCassettePlayer() {
             const bufferLength = analyser.frequencyBinCount;
             dataArray = new Uint8Array(bufferLength);
 
+            console.log('✅ Audio visualization initialized successfully');
             updateVUMeters();
         } catch (error) {
-            console.warn('Audio visualization not available:', error);
+            console.warn('⚠️ Audio visualization failed (likely CORS issue):', error.message);
+            console.warn('VU meters will use fallback animation');
+
+            // Use fallback animation when Web Audio API fails
+            useFallbackVUMeters();
         }
+    }
+
+    /**
+     * Fallback VU meters when Web Audio API is blocked by CORS
+     */
+    function useFallbackVUMeters() {
+        console.log('Using fallback VU meter animation');
+
+        function animateFallbackVUMeters() {
+            if (!isPlaying) return;
+
+            // Simulate realistic VU meter movement
+            const leftMeter = document.getElementById('vu-meter-left');
+            const rightMeter = document.getElementById('vu-meter-right');
+
+            // Random but realistic values (30-80% range with occasional peaks)
+            const baseLevel = 40 + Math.random() * 30;
+            const leftLevel = baseLevel + Math.random() * 10;
+            const rightLevel = baseLevel + Math.random() * 10 - 5;
+
+            // Occasional peaks
+            const peak = Math.random() > 0.95 ? 20 : 0;
+
+            if (leftMeter) leftMeter.style.width = `${Math.min(95, leftLevel + peak)}%`;
+            if (rightMeter) rightMeter.style.width = `${Math.min(95, rightLevel + peak)}%`;
+
+            // Update at 60fps
+            if (isPlaying) {
+                requestAnimationFrame(animateFallbackVUMeters);
+            }
+        }
+
+        animateFallbackVUMeters();
     }
 
     /**
      * Update VU meters based on audio levels
      */
     function updateVUMeters() {
-        if (!analyser || !dataArray) return;
-
-        analyser.getByteFrequencyData(dataArray);
-
-        // Calculate average level
-        let sum = 0;
-        for (let i = 0; i < dataArray.length; i++) {
-            sum += dataArray[i];
+        // If no analyser, we're using fallback
+        if (!analyser || !dataArray) {
+            useFallbackVUMeters();
+            return;
         }
-        const average = sum / dataArray.length;
-        const percentage = (average / 255) * 100;
 
-        // Update both meters (simulating stereo)
-        const leftMeter = document.getElementById('vu-meter-left');
-        const rightMeter = document.getElementById('vu-meter-right');
+        try {
+            analyser.getByteFrequencyData(dataArray);
 
-        if (leftMeter) leftMeter.style.width = `${percentage}%`;
-        if (rightMeter) rightMeter.style.width = `${percentage * 0.95}%`; // Slightly different for effect
+            // Calculate average level
+            let sum = 0;
+            for (let i = 0; i < dataArray.length; i++) {
+                sum += dataArray[i];
+            }
+            const average = sum / dataArray.length;
+            const percentage = Math.min(95, (average / 255) * 100); // Cap at 95%
 
-        if (isPlaying) {
-            requestAnimationFrame(updateVUMeters);
+            // Update both meters (simulating stereo)
+            const leftMeter = document.getElementById('vu-meter-left');
+            const rightMeter = document.getElementById('vu-meter-right');
+
+            if (leftMeter) leftMeter.style.width = `${percentage}%`;
+            if (rightMeter) rightMeter.style.width = `${percentage * 0.95}%`; // Slightly different for effect
+
+            if (isPlaying) {
+                requestAnimationFrame(updateVUMeters);
+            }
+        } catch (error) {
+            console.warn('VU meter update failed, switching to fallback');
+            useFallbackVUMeters();
         }
     }
 
@@ -476,8 +527,17 @@ export function initCassettePlayer() {
                 pauseBtn.style.display = 'block';
                 isPlaying = true;
                 toggleReels(true);
-                if (!audioContext) initAudioVisualization();
-                updateVUMeters();
+
+                // Initialize audio visualization or use fallback
+                if (!audioContext) {
+                    initAudioVisualization();
+                } else if (!analyser) {
+                    // Audio context exists but analyser failed (CORS issue)
+                    useFallbackVUMeters();
+                } else {
+                    // Real audio visualization
+                    updateVUMeters();
+                }
             }
         });
 
