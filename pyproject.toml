@@ -21,6 +21,9 @@ dependencies = [
     "watchdog>=6.0.0",
 ]
 
+[tool.uv]
+package = true
+
 [tool.hatch.build.targets.wheel]
 packages = ["src"]  # Include alles in src/ (je app.py, routes/, etc.)
 sources = { "src" = "src" }  # Map src/ naar zichzelf in de wheel
