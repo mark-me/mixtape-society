@@ -26,6 +26,12 @@
 ## 3. Transcoding / Streaming Optimisation
 
 - HLS streaming fallback for very large FLAC files (>100 MB) to enable instant seeking
+- Cache eviction policy
+  - Manual clear via admin endpoint.
+  - Implement an LRU or size‑based eviction strategy inside AudioCache.
+- Range‑request optimisations
+  - Reads the requested slice into memory (f.read(length)).
+  - Stream directly from the file using werkzeug.wsgi.wrap_file for very large files.
 
 ## 4. Smart Features (without becoming bloated)
 
@@ -51,7 +57,6 @@
 - Async I/O
     - Now: All file operations are blocking.
     - Switch to aiofiles + async methods if you need non-blocking behavior in a high-throughput API server.                                                                                      |
-
 
 ## 8. Multi-Library & Multi-User Support
 
