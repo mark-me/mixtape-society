@@ -198,10 +198,13 @@ The UI never talks directly to the filesystem; it always goes through MusicColle
 
 ## 🧭 Where to look next
 
-* `_extractor.py` – for the low‑level DB schema, triggers, and the writer‑loop logic.
-* `reader.py` – for the query parser (`parse_query`) and the grouping algorithm that decides which artists/albums/tracks to return.
-* `ui.py` – for the presentation helpers (highlighting, safe filenames, click‑query generation).
-* `indexing_status.py` – for the atomic JSON status handling used by the UI progress bar.
-* `_watcher.py` – the `EnhancedWatcher` implementation that adds debouncing and graceful shutdown of pending events.
+* [DB Loading](loading.md) for:
+  * low‑level DB schema, triggers, the writer‑loop logic and
+  * the atomic JSON status handling used by the UI progress bar.
+* [DB reading](reading.md) for:
+  * the query parser,
+  * grouping algorithm that decides which artists/albums/tracks to return,
+  * presentation helpers (highlighting, safe filenames, click‑query generation) and
+  * Real‑time monitoring of changes in your music collection
 
 That’s the complete picture of the `musiclib` module: a tightly coupled pipeline that turns a folder of audio files into a fast, searchable, and continuously synchronized music library.
