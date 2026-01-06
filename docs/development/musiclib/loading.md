@@ -79,7 +79,7 @@ flowchart LR
 
 Started in `_init_db`:
 
-1. Opens a temporary connection (`sqlite3.connect(self.db_path)`).
+1. Opens a connection (`sqlite3.connect(self.db_path)`).
 2. Sets WAL journal mode and normal sync for better concurrency.
 3. Creates the tracks `table` if it does not exist.
 4. Creates three case‑insensitive indexes on `artist`, `album`, and `title`.
@@ -114,7 +114,7 @@ All higher‑level code (search, UI, etc.) obtains connections via this method.
 Function `_db_writer_loop`
 
 * Runs forever until _writer_stop is set.
-* Pulls an IndexEvent from _write_queue with a 0.5 s timeout (so it can notice the stop flag).
+* Pulls an IndexEvent from _write_queue with a 1.0 s timeout (so it can notice the stop flag).
 * Handles each event type:
 
     | Event type      | Action performed                                                                                                                   |
@@ -124,7 +124,7 @@ Function `_db_writer_loop`
     | `DELETE_FILE`   | `DELETE FROM tracks WHERE path = ?`.                                                                                               |
     | `REBUILD_DONE` / `RESYNC_DONE` | `conn.commit()` – flushes any pending changes.                                                                          |
 
-* After every 500 processed events it forces a commit to keep the transaction size reasonable.
+* After every 50 processed events it forces a commit to keep the transaction size reasonable.
 * Errors are caught and logged via the injected Logger.
 * When the loop exits, it commits any remaining work and closes the connection.
 
@@ -188,9 +188,9 @@ Function: `resync`
 
 ## 10. Real‑time monitoring
 
-* **`start_monitoring`** creates a `watchdog.observers.Observer` (if none exists), registers a `_Watcher` instance for the `music_root`, and starts the observer thread.
+* **`start_monitoring`** creates a `watchdog.observers.Observer` (if none exists), registers a `EnhancedWatcher` instance for the `music_root`, and starts the observer thread.
 
-* **`_Watcher`** inherits from `FileSystemEventHandler`. Its `on_any_event` method:
+* **`EnhancedWatcher `** inherits from `FileSystemEventHandler`. Its `on_any_event` method:
     1. Ignores directory events.
     1. Filters out files whose extensions are not in `SUPPORTED_EXTS`.
     1. For `created` or `modified` events → enqueues `INDEX_FILE`.
@@ -292,4 +292,4 @@ sequenceDiagram
 
 ### ::: src.musiclib.indexing_status
 
-### ::: src.musiclib._extractor._Watcher
+### ::: src.musiclib._extractor.EnhancedWatcher

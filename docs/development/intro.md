@@ -32,6 +32,7 @@ mixtape-society
 ├── README.md                   → Project README
 ├── src                         → Source code
 │   ├── app.py                  → Main Flask entrypoint
+│   ├── audio_cache             → Transcoding FLAC to MP3 files
 │   ├── auth.py                 → Auth handling
 │   ├── common                  → infrastructure-free abstractions
 │   ├── config                  → Env/config module
