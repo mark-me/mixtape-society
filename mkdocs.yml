@@ -94,6 +94,9 @@ markdown_extensions:
   - attr_list
   - md_in_html
   - admonition
+  - toc:
+      permalink: true
+      toc_depth: 2
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.tasklist:

@@ -18,7 +18,7 @@ Config (BaseConfig)     | og_cover
 
 All routes are mounted under the appropriate URL prefixes (`/auth`, `/mixtapes`, `/play`, `/editor`, `/og`).
 
-## Configuration & Environment Selection
+## ⚙️ Configuration & Environment Selection
 
 `app.py` determines the configuration class based on the `APP_ENV` environment variable:
 
@@ -31,7 +31,7 @@ All routes are mounted under the appropriate URL prefixes (`/auth`, `/mixtapes`,
 
 The selected class is instantiated, its `ensure_dirs()` method creates required directories (`MIXTAPE_DIR`, `CACHE_DIR`, `LOGS`, etc.), and the instance is returned from `get_configuration()`.
 
-## Flask Application Creation (create_app) – Step‑by‑Step
+## 🧪 Flask Application Creation (create_app) – Step‑by‑Step
 
 1. Instantiate Flask
 
@@ -56,7 +56,7 @@ The selected class is instantiated, its `ensure_dirs()` method creates required 
 10. **Blueprint registration** – Auth, Browser, Play, Editor, OG Cover are attached with their respective URL prefixes.
 11. **Return** – The fully configured `app` object.
 
-## Core Services & Dependency Wiring
+## 🔌 Core Services & Dependency Wiring
 
 | Service | Construction | Primary responsibilities |
 |---------|-------------|-------------------------|
@@ -67,7 +67,7 @@ The selected class is instantiated, its `ensure_dirs()` method creates required 
 
 All services are singletons attached to the Flask app (or passed explicitly to blueprints) so that they share the same DB connections and caches.
 
-## Error Handling (Database Corruption)
+## ⚠️ Error Handling (Database Corruption)
 
 ```python
 @app.errorhandler(DatabaseCorruptionError)
@@ -93,7 +93,7 @@ def handle_database_corruption(e):
 
 **If the request is AJAX (or `Accept: application/json`), a JSON payload is returned; otherwise the user sees a friendly `database_error.html` page.**
 
-## Request‑Level Hooks
+## 🔗 Request‑Level Hooks
 
 ### Indexing Guard (`check_indexing_before_request`)
 
@@ -107,7 +107,7 @@ def handle_database_corruption(e):
 
 * If the user is not authenticated, the guard does **nothing** (letting the view decide whether to redirect)
 
-## Public Routes
+## 🌐 Public Routes
 
 | Route | Method | Description |
 |-------|--------|-------------|
@@ -120,7 +120,7 @@ def handle_database_corruption(e):
 | `/reset-database` | POST (auth) | Deletes the SQLite DB files (`*.db`, `*-wal`, `*-shm`, `*-journal`), recreates the `MusicCollectionUI` (triggers a rebuild), and returns a JSON summary. |
 | `/check-database-health` | GET (auth) | Runs a quick `PRAGMA quick_check` on the DB and returns `{ healthy: true/false, error?, requires_reset? }`. Used by the front-end health monitor. |
 
-## Template Context Processors
+## 🎨 Template Context Processors
 
 | Processor | Injected Variable | Use Cases |
 |-----------|-----------------|-----------|
@@ -131,7 +131,7 @@ def handle_database_corruption(e):
 
 These variables are **available in every template** without needing to pass them explicitly.
 
-## Jinja Filter – `to_datetime`
+## ⏳ Jinja Filter – `to_datetime`
 
 ```python
 @app.template_filter("to_datetime")
@@ -146,7 +146,7 @@ def to_datetime_filter(s, fmt="%Y-%m-%d %H:%M:%S"):
 
 *Converts a string timestamp (custom format or ISO‑8601) into a `datetime` object for formatting (`{{ ts|to_datetime("%b %d, %Y") }}`).*
 
-## Blueprint Registration
+## 📜 Blueprint Registration
 
 ```python
 app.register_blueprint(
@@ -183,7 +183,7 @@ app.register_blueprint(
 
 *Each blueprint lives in `routes/` and encapsulates a coherent feature set (authentication, browsing, playback, editing, Open‑Graph cover generation).*
 
-## Application Runner
+## 🏃‍♂️ Application Runner
 
 ```python
 def serve(debug: bool = True) -> None:
@@ -195,7 +195,7 @@ if __name__ == "__main__":
 ```
 *Running python `app.py` starts the development server on **port 5000** (accessible from any interface). In production you would typically use Gunicorn or another WSGI server.*
 
-## Base Layout (`base.html`)
+## 🗂️ Base Layout (`base.html`)
 
 `base.html` is the **master template** that all pages extend. It defines the global UI skeleton, navigation, theme handling, and reusable modals/toasts.
 

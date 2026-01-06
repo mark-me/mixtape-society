@@ -4,7 +4,7 @@
 
 The `browse_mixtapes` Flask blueprint (`routes/browse_mixtapes.py`) that powers the Mixtapes listing page, file serving, and redirection to the public player. It explains the routes, authentication flow, interaction with MixtapeManager, and the front‑end assets (browse_mixtapes.html, CSS, and JavaScript).
 
-## High‑Level Overview
+## 🌍 High‑Level Overview
 
 | Component | Responsibility |
 |-----------|----------------|
@@ -14,7 +14,7 @@ The `browse_mixtapes` Flask blueprint (`routes/browse_mixtapes.py`) that powers 
 | Static assets (`static/css/browse_mixtapes.css`, `static/js/browser/*.js`) | Provide responsive styling, copy-to-clipboard toast, and delete-confirmation modal logic. |
 | Authentication (`auth.py`) | `@require_auth` decorator and `check_auth()` helper ensure only logged-in users can reach any route in this blueprint. |
 
-## Blueprint & Route Map
+## 🗺️ Flask Blueprint & Routes
 
 | HTTP Method | URL Pattern                    | View Function               | Description |
 |-------------|--------------------------------|-----------------------------|-------------|
@@ -26,14 +26,14 @@ The `browse_mixtapes` Flask blueprint (`routes/browse_mixtapes.py`) that powers 
 
 All routes are wrapped with `@require_auth` (except the `before_request` hook, which performs the same check).
 
-## Authentication & Access Control
+## 🔑 Authentication & Access Control
 
 * **Decorator** – `@require_auth` (imported from `auth.py`) checks the session for a valid user. If the check fails, the decorator returns a redirect to the login page.
 * **Blueprint‑wide guard** – `@browser.before_request` executes `check_auth()` for every request hitting this blueprint. This is a defensive second line; even if a route is accidentally left undecorated, the guard will still enforce authentication.
 
 **Result**: Only logged‑in users can view the mixtape list, play a mixtape, download files, or delete a mixtape.
 
-## Data Flow & Server‑Side Logic
+## 🔄 Data Flow & Server‑Side Logic
 
 ### Listing Mixtapes (`GET` `/mixtapes/`)
 
@@ -87,7 +87,7 @@ All routes are wrapped with `@require_auth` (except the `before_request` hook, w
 * All routes catch generic `Exception` and log the traceback via the injected `logger`.
 * Errors are reported to the client as JSON with a descriptive `error` field and an appropriate HTTP status code (`400`, `404`, `500`).
 
-## Template Rendering (`browse_mixtapes.html`)
+## 🖥️ UI Layout (Jinja Template – `browse_mixtapes.html`)
 
 | Section | Details |
 |---------|---------|
@@ -101,7 +101,7 @@ All routes are wrapped with `@require_auth` (except the `before_request` hook, w
 
 All UI elements use **Bootstrap 5** utilities and custom CSS variables (`--bs-body-bg`, `--bs-border-color`) to stay theme‑aware (light/dark modes).
 
-## Static Assets (CSS & JS)
+## 🧱 Static Assets (CSS & JS)
 
 ### `browse_mixtapes.css`
 
@@ -119,7 +119,7 @@ All UI elements use **Bootstrap 5** utilities and custom CSS variables (`--bs-bo
 
 All scripts are ES6 modules (`type="module"`), ensuring they are loaded after the DOM is ready and that they don’t pollute the global namespace.
 
-## Class & Sequence Diagrams
+## 📐 Class & Sequence Diagrams
 
 ### Class Diagram
 
@@ -187,6 +187,6 @@ sequenceDiagram
     BrowserJS->>BrowserJS: Show success toast, reload page
 ```
 
-## API
+## 🔌 API
 
 ### ::: src.routes.browse_mixtapes

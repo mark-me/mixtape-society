@@ -4,7 +4,7 @@
 It explains how the Flask blueprint (`play`) validates requests, resolves file paths, chooses the correct MIME type, handles quality‑aware caching, supports HTTP range requests, and serves the public mixtape page.
 All statements below are verified against the current source files (`routes/play.py`, the static JavaScript/CSS assets, and the auxiliary `audio_cache` module).
 
-## High‑Level Overview
+## 🌍 High‑Level Overview
 
 | Responsibility                                                                 | Implementation                                      |
 |---------------------------------------------------------------------------------|-----------------------------------------------------|
@@ -18,7 +18,7 @@ All statements below are verified against the current source files (`routes/play
 | Admin cache utilities (`/admin/cache/*`)                                        | `cache_stats()`, `clear_cache()`                     |
 All routes live under the Flask Blueprint named `play`.
 
-## Blueprint & Route Map
+## 🗺️ Flask Blueprint & Routes
 
 ```python
 play = Blueprint("play", __name__)   # registered in the main Flask app
@@ -32,7 +32,7 @@ play = Blueprint("play", __name__)   # registered in the main Flask app
 | `GET`         | `/admin/cache/stats`      | `cache_stats()`          | Returns JSON with cache size (bytes) and number of cached files.             |
 | `POST`        | `/admin/cache/clear`      | `clear_cache()`          | Clears the audio cache; optional `older_than_days` query param.              |
 
-## Request Flow (Detailed Sequence)
+## 🔄 Request Flow (Detailed Sequence)
 
 ```mermaid
 sequenceDiagram
@@ -69,7 +69,7 @@ sequenceDiagram
 
 *The diagram now includes the **quality / cache decision** step (`_get_serving_path`).*
 
-## Core Helper Functions
+## 🔧 Core Helper Functions
 
 | Function | Signature | What it does |
 |---------|-----------|--------------|
@@ -83,14 +83,14 @@ sequenceDiagram
 | `cache_stats` | `dict cache_stats()` | Returns `{ "cache_size_bytes": …, "cache_size_mb": …, "cached_files": … }`. |
 | `clear_cache` | `dict clear_cache()` | Deletes cached files (optionally older than X days) and returns `{ "deleted_files": n, "message": … }`. |
 
-##  Quality & Caching Logic
+## 💾 Quality & Caching Logic
 
 *Implemented in `routes/play.py` and the auxiliary `audio_cache.py` module.*
 
 
 **Why this matters** – The client can request a lower bitrate to save bandwidth on mobile connections, while the server can pre‑populate the cache (via a background job) for faster subsequent deliveries.
 
-## HTTP Range Support
+## 📶 HTTP Range Support
 
 Only activated when the request contains a `Range` header.
 
@@ -104,7 +104,7 @@ Only activated when the request contains a `Range` header.
     - CORS & cache headers identical to the full‑file response.
 4. **Error** – Out‑of‑bounds ranges → **416 Range Not Satisfiable**.
 
-## Response Headers & Logging
+## 📜 Response Headers & Logging
 
 | Header                         | Value (example)                          | Reason |
 |--------------------------------|------------------------------------------|--------|
@@ -123,7 +123,7 @@ Only activated when the request contains a `Range` header.
 
 All logs include the request path and the selected serving path, making troubleshooting straightforward.
 
-## Error Handling & Status Codes
+## ⚠️ Error Handling & Status Codes
 
 | Situation | Flask call | HTTP status | Log level |
 |----------|------------|-------------|-----------|
@@ -133,7 +133,7 @@ All logs include the request path and the selected serving path, making troubles
 | Unexpected I/O error while reading the file | `abort(500)` (caught in `_handle_range_request`) | 500 Internal Server Error | error |
 | General uncaught exception in `stream_audio` | Propagates → Flask’s default error handling | 500 | error |
 
-## Static Assets that Complement the Endpoint
+## 🧱 Static Assets that Complement the Endpoint
 
 | Asset | Path | Role |
 |-------|------|------|
@@ -148,7 +148,7 @@ All logs include the request path and the selected serving path, making troubles
 
 These assets are loaded by `play_mixtape.html` (the template rendered by `public_play`). They rely on the **JSON API** exposed by the Flask routes (e.g., `/play/<file_path>` for streaming, `/covers/<filename>` for cover art).
 
-## Class & Sequence Diagrams
+## 📐 Class & Sequence Diagrams
 
 ### Blueprint/Class Diagram
 
@@ -187,7 +187,7 @@ classDiagram
     _get_serving_path ..> AudioCache : uses
 ```
 
-## Updated Sequence Diagram
+## 🔁 Sequence Diagram
 
 ```mermaid
 sequenceDiagram
@@ -222,6 +222,6 @@ sequenceDiagram
     FlaskApp-->>Client: Stream audio bytes
 ```
 
-## API
+## 🔌 API
 
 ### ::: src.routes.play

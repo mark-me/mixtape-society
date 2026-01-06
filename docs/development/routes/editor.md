@@ -4,7 +4,7 @@
 
 The file `routes/editor.py` acts as the backend interface for the mixtape editor UI, managing the lifecycle of mixtape creation and editing, integrating with the music library, and handling file storage for mixtape data and cover images. It ensures that only authenticated users can access editor functionality. Its primary responsibility is to provide endpoints for creating, editing, searching, and saving mixtapes, including handling cover images and metadata. The file uses authentication, interacts with a music collection, and manages mixtape data as JSON files on disk.
 
-## High‑Level Overview
+## 🌍 High‑Level Overview
 
 The Mixtape Editor is a full‑featured UI that lets a logged‑in user:
 
@@ -17,7 +17,7 @@ The Mixtape Editor is a full‑featured UI that lets a logged‑in user:
 
 All of this lives under the Flask blueprint editor (`/editor/*`) and is protected by the `@require_auth` decorator.
 
-## Flask Blueprint & Routes
+## 🗺️ Flask Blueprint & Routes
 
 
 | HTTP Method | URL Pattern                        | Handler                   | Key Behaviour |
@@ -33,7 +33,7 @@ All of this lives under the Flask blueprint editor (`/editor/*`) and is protecte
 
 All routes are protected by `@require_auth`, so unauthenticated users are redirected to the login flow.
 
-## Data Flow & Server‑Side Logic
+## 🔄 Data Flow & Server‑Side Logic
 
 1. Creating a New Mixtape
     * `new_mixtape()` builds an empty dict (`title`, `cover`, `liner_notes`, `tracks`, `slug`, `timestamps`) and renders `editor.html` with preload_mixtape set to that dict.
@@ -55,7 +55,7 @@ All routes are protected by `@require_auth`, so unauthenticated users are redire
 5. Composite Cover Generation (`generate_composite`)
     * Receives an array of cover URLs, builds a grid composite (via `CoverCompositor.generate_grid_composite`) and returns a data‑URL (`image/png;base64,…`).
 
-## Client‑Side Architecture
+## 🏛️ Client‑Side Architecture
 
 All editor‑related scripts live under `static/js/editor/`.
 They are **module‑scoped** (ES6 `import`/`export`) and loaded by `index.js` after the DOM is ready.
@@ -73,7 +73,7 @@ They are **module‑scoped** (ES6 `import`/`export`) and loaded by `index.js` af
 
 All modules share a single source of truth (`playlist` array) and communicate via **callback registration** (unsaved‑changes, toast notifications). No circular imports occur.
 
-## UI Layout (Jinja Template – `editor.html`)
+## 🖥️ UI Layout (Jinja Template – `editor.html`)
 
 | Section | Description |
 |---------|-------------|
@@ -89,7 +89,7 @@ All modules share a single source of truth (`playlist` array) and communicate vi
 
 All elements use **Bootstrap 5** utilities and custom CSS variables (`--color‑track`, `--bs-body-bg`, etc.) for light/dark and semantic Theming.
 
-## JavaScript Modules & Their Responsibilities
+## 🧱 Static JavaScript Modules
 
 ### Page Load (`index.js`)
 
@@ -184,7 +184,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 **Summary** – The editor page is a tightly‑coupled SPA‑style UI built on vanilla JavaScript, Bootstrap, and a handful of third‑party libraries (Sortable.js, EasyMDE, marked, DOMPurify). All user actions funnel through the central `playlist` model, which synchronises the visual list, the global audio player, and the back‑end save endpoint. Unsaved‑change detection, background audio‑caching progress, and cover‑generation utilities provide a polished, production‑ready experience.
 
-## Interaction Flow (Typical User Journey)
+## 🛤️ Interaction Flow (Typical User Journey)
 
 1. **Open** the editor (`/editor/` or `/editor/<slug>`).
 2. **Page loads** → `index.js` pre‑populates playlist, cover, title, and liner notes (if editing).
@@ -201,7 +201,7 @@ document.addEventListener("DOMContentLoaded", () => {
 9. **Progress Modal** receives SSE events → updates progress bar & log.
     * When `completed` → “Close” button enabled → user
 
-## Core Helper Functions (Back‑End)
+## 🔧 Core Helper Functions (Back‑End)
 
 | Function | File | Purpose |
 |----------|------|---------|
@@ -221,7 +221,7 @@ document.addEventListener("DOMContentLoaded", () => {
 * **Timestamp handling** – `MixtapeManager` adds `created_at` and `updated_at` ISO‑8601 timestamps on creation; `updated_at` is refreshed on each edit.
 * **Client‑ID reuse** – `save_mixtape` preserves the original `client_id` when updating, ensuring idempotent uploads.
 
-## API Contract (JSON Schemas)
+## 📄 API Contract (JSON Schemas)
 
 ### Save Payload (`POST` `/editor/save`)
 
@@ -315,6 +315,6 @@ document.addEventListener("DOMContentLoaded", () => {
 }
 ```
 
-## API
+## 🔌 API
 
 ### ::: src.routes.editor

@@ -4,7 +4,7 @@
 
 This document explains every configuration option used by the Mixtape Society application, how the values are sourced (environment variables, .env file, or defaults), the directory layout that results, and the Docker‑specific considerations. The description directly to the implementation in `src/config/config.py`.
 
-## How Configuration Is Loaded
+## 📥 How Configuration Is Loaded
 
 ```python
 # src/config/config.py
@@ -23,7 +23,7 @@ if os.getenv("APP_ENV", "development") != "production":
 
 After the optional `.env` load, the module defines a **`BASE_DIR`** (`src/`) and a hierarchy of configuration classes.
 
-## Core Paths & Their Defaults
+## 🛤️ Core Paths & Their Defaults
 
 | Setting | Default (when no env var) | Meaning |
 |---------|---------------------------|---------|
@@ -37,7 +37,7 @@ After the optional `.env` load, the module defines a **`BASE_DIR`** (`src/`) and
 !!! IMPORTANT
     `DB_PATH`, `MIXTAPE_DIR`, `COVER_DIR`, and `AUDIO_CACHE_DIR` are derived from `DATA_ROOT`. You must not set them directly – change `DATA_ROOT` instead.
 
-## Environment Variables (full list)
+## 🌱 Environment Variables (full list)
 
 | Variable | Where it is read | Default (if not set) | Description |
 |----------|-----------------|---------------------|-------------|
@@ -59,7 +59,7 @@ All variables can be supplied via:
 * Docker environment variables (`-e VAR=value` or `environment:` block in `docker-compose.yml`).
 * Direct export in the shell (`export VAR=value`).
 
-## Derived Paths (never set directly)
+## 🔗 Derived Paths (never set directly)
 
 ```python
 class BaseConfig:
@@ -71,7 +71,7 @@ class BaseConfig:
 
 Because these are computed **once** when the class is defined, they automatically follow any change to `DATA_ROOT`. Changing `DB_PATH` or `MIXTAPE_DIR` manually would have no effect and could cause path mismatches.
 
-## Directory Creation (`ensure_dirs`)
+## 📁 Directory Creation (`ensure_dirs`)
 
 ```python
 @classmethod
@@ -86,7 +86,7 @@ def ensure_dirs(cls):
 
 It guarantees that all writable directories exist before any component tries to write files. If a directory already exists, `exist_ok=True` prevents an error.
 
-## Configuration Classes
+## 🏷️ Configuration Classes
 
 | Class | Inherits from | Overrides / Special behaviour |
 |-------|---------------|-------------------------------|
@@ -111,7 +111,7 @@ else:
 
 For more information look at the [Docker Deployment](../docker.md) documentation.
 
-## Typical Scenarios (what you’ll see on disk)
+## 🖼️ Typical Scenarios (what you’ll see on disk)
 
 | Scenario | APP_ENV | MUSIC_ROOT | DATA_ROOT | Resulting layout (host side) |
 |----------|---------|------------|-----------|-------------------------------|
@@ -120,7 +120,7 @@ For more information look at the [Docker Deployment](../docker.md) documentation
 | Docker prod | production | /music (mounted read-only) | /app/collection-data (mounted read-write) | Inside the container the same layout as above; on the host you’ll see the folder you bound to `/app/collection-data`. |
 | Automated tests | test | /tmp/test-music (created by the test harness) | /tmp/mixtape-test-data | Temporary directories that are cleaned up after the test suite finishes. |
 
-## Best‑Practice Recommendations
+## 💡 Best‑Practice Recommendations
 
 1. **Never commit a `.env`** containing secrets. Keep passwords out of source control.
 2. **In production**, set `APP_PASSWORD` (or any other secret) via the orchestration platform (Docker‑Compose `env_file`, Kubernetes secret, etc.). The app will refuse to start without it.

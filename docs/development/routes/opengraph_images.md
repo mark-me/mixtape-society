@@ -10,6 +10,6 @@ The main responsibilities of this file are:
 - Overlaying the logo onto a cover image at a configurable position and scale.
 - Serving the composited image via a Flask route, with input validation and caching.
 
-## API
+## 🔌 API
 
 ### ::: src.routes.logo_on_cover

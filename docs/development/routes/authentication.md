@@ -31,7 +31,7 @@ The file `src/auth.py` defines simple authentication utilities for a Flask appli
 
 In the larger system, this module centralizes basic auth checks so route handlers can easily enforce authentication without duplicating logic.
 
-## API
+## 🔌 API
 
 ### ::: src.routes.authentication
 

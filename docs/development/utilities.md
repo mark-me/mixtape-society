@@ -2,7 +2,7 @@
 
 # Utilities
 
-## Git version utility
+## 🔖 Git version utility
 
 ![versioning](../images/version.png){ align=right width="70" }
 
@@ -10,7 +10,11 @@ The `version_info.py` file provides `get_version()` to access Git version inform
 
 It attempts to retrieve the latest Git tag, formats the version string to include commit distance and hash when not on a tag, and gracefully falls back to a default value ("dev") if Git is unavailable or an error occurs. This ensures that the application always has a meaningful version identifier, useful for debugging, deployment, and user information.
 
-## Cover image compositor
+### API `get_version`
+
+#### ::: src.utils.version_info
+
+## 🖼️ Cover image compositor
 
 ![cover composition](../images/album_cover.png){ align=right width="70" }
 
@@ -22,12 +26,6 @@ This file `cover_compositor.py` defines a `CoverCompositor` utility that generat
 - Performs basic image processing (center square crop, slight contrast boost).
 - Outputs the final composite as a base64-encoded JPEG data URL (`data:image/jpeg;base64,...`), suitable for embedding directly in HTML or APIs without separate image hosting.
 
-## API
-
-### `get_version`
-
-#### ::: src.utils.version_info
-
-### `CoverCompositor`
+### API `CoverCompositor`
 
 #### ::: src.utils.cover_compositor.CoverCompositor
