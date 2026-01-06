@@ -222,7 +222,8 @@ class MixtapeManager:
             _, b64data = cover_data.split(",", 1)
             image = Image.open(BytesIO(b64decode(b64data)))
             image = self._cover_resize(image=image)
-            image.save(self.path_cover / slug, "JPEG", quality=100)
+            file_cover = self.path_cover / f"{slug}.jpg"
+            image.save(file_cover, "JPEG", quality=100)
             return f"covers/{slug}.jpg"
         except Exception as e:
             self._logger.error(f"Cover opslaan mislukt voor {slug}: {e}")
