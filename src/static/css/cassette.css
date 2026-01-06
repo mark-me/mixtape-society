@@ -627,40 +627,69 @@ body.cassette-mode #bottom-player-container {
         display: none;
     }
 
+    /* Prevent body overflow */
+    body {
+        overflow: hidden;
+        height: 100vh;
+    }
+
     #cassette-player-container {
-        padding: 15px;
-        height: 100vh; /* Full viewport height now that navbar is hidden */
+        padding: 0;
+        height: 100vh;
+        width: 100vw;
         display: flex;
         align-items: center;
         justify-content: center;
+        position: fixed; /* Fix to viewport */
+        top: 0;
+        left: 0;
+        overflow: hidden;
     }
 
     .cassette-deck {
-        flex-direction: row;
-        align-items: center; /* Changed from stretch to center */
-        justify-content: center;
-        gap: 12px;
-        max-width: 90vw;
-        height: auto;
-        max-height: calc(100vh - 30px); /* Account for padding */
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center;
+        justify-content: space-between; /* Space items apart */
+        flex-wrap: nowrap;
+        gap: 0;
+        width: 100%;
+        height: 100%;
+        max-height: 100vh;
+        position: relative;
     }
 
-    /* Show side panels */
+    /* Show side panels - FULL HEIGHT, ANCHORED TO EDGES */
     .side-panel {
-        display: flex;
+        display: flex !important;
         flex-direction: column;
         align-items: center;
-        justify-content: space-between; /* Better distribution */
+        justify-content: space-between;
         gap: 10px;
         width: 70px;
-        height: 100%;
-        max-height: 280px; /* Match cassette */
+        min-width: 70px;
+        max-width: 70px;
+        height: 100vh;
+        max-height: 100vh;
         flex-shrink: 0;
         background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
-        border-radius: 8px;
-        padding: 12px 8px;
+        border-radius: 0;
+        padding: 15px 8px;
         border: 2px solid #1a1a1a;
         box-shadow: inset 0 1px 3px rgba(255, 255, 255, 0.1);
+        position: absolute; /* Position absolutely to anchor to edges */
+        z-index: 200;
+        top: 0;
+    }
+
+    .side-panel-left {
+        left: 0; /* Anchor to left edge */
+        border-right: none;
+    }
+
+    .side-panel-right {
+        right: 0; /* Anchor to right edge */
+        border-left: none;
     }
 
     /* Vertical branding text */
@@ -740,20 +769,23 @@ body.cassette-mode #bottom-player-container {
         transform: translate(-50%, -50%);
     }
 
-    /* Cassette body - maintains aspect ratio in center */
+    /* Cassette body - centered between panels */
     .cassette-body {
-        flex-shrink: 0;
-        width: auto;
-        height: 100%;
-        max-height: 280px;
-        aspect-ratio: 2 / 1.3;
-        position: relative;
-        /* Add a viewing window effect */
+        flex-shrink: 1;
+        height: 90vh;
+        width: calc(90vh * 1.538);
+        max-width: calc(100vw - 160px); /* Account for both panels */
+        max-height: 90vh;
+        position: absolute; /* Position absolutely to center */
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%); /* Perfect centering */
         background: linear-gradient(145deg, #9a9a9a 0%, #7a7a7a 50%, #6a6a6a 100%);
         padding: 2.5%;
         border-radius: 8px;
         border: 3px solid #5a5a5a;
         box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+        z-index: 1; /* Behind panels */
     }
 
     /* Top brand bar overlay */
