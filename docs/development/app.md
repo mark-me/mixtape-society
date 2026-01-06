@@ -4,7 +4,7 @@
 
 The file `app.py` defines the main Flask application for the "mixtape-society" project. It is responsible for initializing the web server, configuring the application based on the environment, setting up core services (such as music collection management), and registering routes and blueprints for handling various web requests. The file serves as the entry point for the application, orchestrating authentication, static file serving, and integration with modular route handlers.
 
-## High‑Level Architecture
+## 🏛️ High‑Level Architecture
 
 Flask App (`create_app() → Flask()`)
 
@@ -447,6 +447,6 @@ At the very end of `base.html` (just before `</body>`):
 
 *`extra_js` is a block that child templates can extend (e.g., the editor page loads its own modules). The base `index.js` pulls in the theme switcher, collection‑stats loader, and database‑corruption detection.*
 
-## API
+## 🔌 API
 
 ### ::: src.app

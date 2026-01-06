@@ -282,7 +282,7 @@ sequenceDiagram
 
 ---
 
-## 🌐 API
+## 🔌 API
 
 ### ::: src.musiclib._extractor.EventType
 

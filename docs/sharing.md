@@ -27,7 +27,7 @@ How Sharing Works
     Anyone with the link opens a beautiful, standalone player: full tracklist, cover art, play/pause, seeking, and next/previous controls. It works perfectly on desktop, phone, or tablet.
 
 
-## Key Features
+## ✨ Key Features
 
 - No login required — Recipients stream directly in their browser.
 - Permanent links — They never expire (unless you delete the mixtape).

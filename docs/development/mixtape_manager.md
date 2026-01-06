@@ -6,7 +6,7 @@ The `mixtape_manager` package defines the `MixtapeManager` class, This class act
 
 It is responsible for managing the storage, retrieval, and organization of mixtape data and their associated cover images on disk. It provides a high-level interface for saving, deleting, listing, and loading mixtape metadata, handling both JSON data and image files. The class ensures that mixtape data is consistently stored, cover images are processed from base64, and metadata is maintained for easy retrieval and display.
 
-## Architecture Overview
+## 🏛️ Architecture Overview
 
 ```mermaid
 classDiagram
@@ -38,7 +38,7 @@ classDiagram
 * **Cover sub‑directory** – `path_cover = path_mixtapes / "covers"` (created automatically).
 * **Dependency** – `Pillow` (`PIL.Image`) is required for cover‑image resizing.
 
-## Filesystem Layout & JSON Schema
+## 📂 Filesystem Layout & JSON Schema
 
 ```bash
 /path/to/mixtapes/
@@ -64,18 +64,7 @@ classDiagram
 | `tracks`        | `list[dict]`       | Each entry must contain at least `path` (relative to the music root). Other keys (`artist`, `album`, `track`, `duration`, `filename`, `cover`) are filled/validated on read. |
 | `slug`          | `str` (added on output) | Filesystem-safe identifier derived from `title`, added by the manager on output. |
 
-## Public API
-
-| Method     | Signature | What it does |
-|-----------|-----------|--------------|
-| save | `save(mixtape_data: dict) → str` | Creates a new mixtape or updates an existing one (when a matching `client_id` is found). Returns the slug. |
-| update | `update(slug: str, updated_data: dict) → str` | Overwrites the JSON for the given slug while preserving `client_id`, `created_at`, and the slug itself. Refreshes `updated_at`. |
-| get | `get(slug: str) → dict \| None` | Loads a mixtape, validates each track against the live `MusicCollection`, normalizes metadata, and returns the enriched dict (or `None` if the file is missing or unreadable). |
-| list_all | `list_all() → list[dict]` | Returns all mixtapes sorted by `updated_at` (newest first). Corrupted files are skipped with a warning. |
-| delete | `delete(slug: str) → None` | Removes the JSON file and any associated cover image (`covers/<slug>.jpg`). |
-| _internal helpers_ | _(private, prefixed with `_`)_ | Internal helpers; see the Behavior Details section for the most important ones (`_process_cover`, `_cover_resize`, `_sanitize_title`, `_generate_unique_slug`, `_verify_against_collection`, …). |
-
-## Behavior Details
+## ⚙️ Behavior Details
 
 ### Slug generation & uniqueness
 
@@ -123,7 +112,7 @@ classDiagram
 * **Cover‑image failures** – `_process_cover` catches any exception, logs an error, and returns None. The mixtape is still saved; the `cover` field will be omitted or retain its previous value.
 * **Missing slug on update** – `update` raises `FileNotFoundError` if the target JSON does not exist, making the failure explicit to the caller.
 
-## Sequence Diagram
+## 🔁 Sequence Diagram
 
 ```mermaid
 sequenceDiagram
@@ -154,6 +143,6 @@ sequenceDiagram
     MixtapeManager-->>Client: (none)
 ```
 
-## API
+## 🔌 API
 
 ### ::: src.mixtape_manager.mixtape_manager.MixtapeManager

@@ -265,7 +265,7 @@ These are intended for UI hints, badges, or tooltips.
 
 ---
 
-## 👀. Real‑time monitoring
+## 👀 Real‑time monitoring
 
 `MusicCollection.start_monitoring()` creates a `watchdog.observers.Observer` that uses the
 `EnhancedWatcher` class (defined in `src/musiclib/_watcher.py`).
@@ -294,7 +294,7 @@ In short, searching works as follows:
 
 This design allows the UI to deliver a fast, expressive, and navigable search experience without embedding deep hierarchies in a single response.
 
-## 🌐 API
+## 🔌 API
 
 Only the following methods are considered stable public APIs:
 `MusicCollection.search_grouped`, `MusicCollectionUI.search_highlighting`, `MusicCollection.rebuild`, `MusicCollection.resync`, `MusicCollection.close`, `MusicCollection.get_collection_stats`.

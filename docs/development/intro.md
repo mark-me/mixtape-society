@@ -97,7 +97,7 @@ The compose file mounts the source code into the container, so you can edit file
 | `docker compose exec mixtape bash` | Drop into the container shell. |
 | `docker compose down -v` | Tear down and delete the persisted volume (useful for a clean start). |
 
-## 📐 Architectural Documentation
+## 🏛️ Architectural Documentation
 
 This section dives into the inner workings of **Mixtape Society**. Each page focuses on a specific subsystem, explains its responsibilities, and shows how it interacts with the rest of the project.
 
@@ -105,13 +105,13 @@ This section dives into the inner workings of **Mixtape Society**. Each page foc
 
 ### Core Modules
 
-| Module | What it does | Documentation |
-|--------|--------------|---------------|
-| **Music Library (`musiclib`)** | Handles scanning, indexing, and full‑text search of the audio collection (TinyTag + SQLite FTS5). | [`development/musiclib/intro.md`](musiclib/intro.md) |
-| **Mixtape Manager** | Persists mixtape JSON files, manages cover images, and provides CRUD operations. | [`development/mixtape_manager.md`](mixtape_manager.md) |
-| **Audio Caching** | Transcodes FLAC files to MP3/OGG on‑demand, stores them in a cache, and streams via HTTP range requests. | [`development/audio_caching.md`](audio_caching.md) |
-| **Configuration** | Centralised environment‑variable handling, directory layout, and defaults. | [`development/configuration.md`](configuration.md) |
-| **Utilities** | Helper functions (logging, image processing, misc tools). | [`development/utilities.md`](utilities.md) |
+| Module | What it does |
+|--------|--------------|
+| **[Music Library (`musiclib`)](musiclib/intro.md)** | Handles scanning, indexing, and full‑text search of the audio collection (TinyTag + SQLite FTS5). |
+| **[Mixtape Manager](mixtape_manager.md)** | Persists mixtape JSON files, manages cover images, and provides CRUD operations. |
+| **[Audio Caching](audio_caching.md)** | Transcodes FLAC files to MP3/OGG on‑demand, stores them in a cache, and streams via HTTP range requests. |
+| **[Configuration](configuration.md)** | Centralised environment‑variable handling, directory layout, and defaults. |
+| **[Utilities](utilities.md)** | Helper functions (logging, image processing, misc tools). |
 
 ### Flask Application (Entry Point)
 

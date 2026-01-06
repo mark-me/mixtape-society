@@ -6,7 +6,7 @@ Launch your own Mixtape Society server and start crafting mixtapes from your mus
 
 We recommend **Docker** for most users: it is the quickest and most reliable way.
 
-### Quickest Way: One-Command Docker Run
+## 🚀 Quickest Way: One-Command Docker Run
 
 ```bash
 docker run -d \
@@ -22,7 +22,7 @@ docker run -d \
 
 → Open [http://localhost:5000](http://localhost:5000), log in with your password, and let it index your library (check logs if needed: docker logs -f mixtape-society).
 
-## Prefer Docker Compose or More Options?
+## 🏗️ Prefer Docker Compose or More Options?
 
 See the full [Docker Deployment](docker.md) guide for:
 
@@ -31,7 +31,7 @@ See the full [Docker Deployment](docker.md) guide for:
 - HTTPS via reverse proxy
 - Troubleshooting & tips
 
-### Local Development (for contributors)
+## 🛠️ Local Development (for contributors)
 
 ```bash
 git clone https://github.com/mark-me/mixtape-society.git

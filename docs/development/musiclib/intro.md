@@ -2,7 +2,7 @@
 
 # Musiclib - Music Collection handling
 
-## 📘Overview and introduction
+## 📘 Overview and introduction
 
 The musiclib package is the heart of the mixtape music‑collection service.
 It turns a plain directory tree of audio files into a searchable, fully‑indexed library that can be queried instantly from the UI.

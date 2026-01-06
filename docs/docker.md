@@ -4,7 +4,7 @@
 
 Deploying Mixtape Society with Docker is the easiest and most reliable way to get your private mixtape server up and running—perfect for home servers, VPS, or NAS devices.
 
-## Why Docker?
+## 🐋 Why Docker?
 
 | Benefit | Explanation |
 |---------|------------|
@@ -14,7 +14,7 @@ Deploying Mixtape Society with Docker is the easiest and most reliable way to ge
 | Persistence | Docker volumes keep your SQLite DB, mixtape JSON files, cover images, and audio-cache across container upgrades or restarts. |
 | Automatic Updates | Pull the latest image from GitHub Container Registry (`ghcr.io/...`) and restart – the new version starts instantly. |
 
-## Official Image
+## ✅ Official Image
 
 The official, automatically‑built image lives at:
 
@@ -24,7 +24,7 @@ ghcr.io/mark-me/mixtape-society:latest
 
 *Tags are rebuilt on every release tag for `master`. Use a specific tag (e.g. `v1.4.2`) for reproducible deployments.*
 
-## Quick‑Start One‑Liner
+## 🚀 Quick‑Start One‑Liner
 
 Replace the placeholders with paths that exist on your host:
 
@@ -52,7 +52,7 @@ docker run -d \
 
 After the container starts, open [http://localhost:5000](http://localhost:5000), log in with the password you set, and let the indexing run (check progress with `docker logs -f mixtape-society`).
 
-## Full Docker‑Compose Setup (Production Ready)
+## 🏗️ Full Docker‑Compose Setup (Production Ready)
 
 Create a directory (e.g. `docker`/) and place the following two files inside it.
 
@@ -109,7 +109,7 @@ docker compose pull          # fetch latest image
 docker compose up -d --no-deps --force-recreate mixtape   # restart only the app container
 ```
 
-## Configuration Mapping (Env ↔ Filesystem)
+## 🔄 Configuration Mapping (Env ↔ Filesystem)
 
 | Config variable (Python) | Docker-Compose / docker run mapping | Default (if omitted) | Where it ends up on the host |
 |--------------------------|-----------------------------------|--------------------|------------------------------|
@@ -122,8 +122,7 @@ docker compose up -d --no-deps --force-recreate mixtape   # restart only the app
 
 All derived paths (`DB_PATH`, `MIXTAPE_DIR`, `COVER_DIR`, `AUDIO_CACHE_DIR`) are automatically calculated from `DATA_ROOT` inside the container, so you never need to set them manually.
 
-
-## Volume Layout Explained
+## 📦 Volume Layout Explained
 
 Inside the container (`/app/collection-data`):
 
@@ -153,7 +152,7 @@ If you prefer a **bind‑mount** (easier to explore manually), replace the volum
 
 Make sure the host directory is writable by the UID/GID the container runs as (default `1000:1000`).
 
-## Running Behind a Reverse Proxy (HTTPS & Domain)
+## 🌐 Running Behind a Reverse Proxy (HTTPS & Domain)
 
 For external access you’ll typically terminate TLS at a reverse proxy (Traefik, Nginx Proxy Manager, Caddy, TSDProxy, etc.). Below is a minimal Traefik example that assumes you already have Traefik running on the same Docker network.
 
@@ -287,7 +286,7 @@ volumes:
 * It will request a Let’s Encrypt certificate for the hostname you supplied (`mixtape.yourdomain.com`).
 * Certificates are stored in the `tsdproxy_data` volume, so they survive container restarts and updates.
 
-## Common Gotchas & Troubleshooting
+## ⚠️ Common Gotchas & Troubleshooting
 
 | Symptom | Likely Cause | Fix |
 |---------|--------------|-----|
@@ -299,7 +298,7 @@ volumes:
 | Cover images not showing | Wrong `COVER_DIR` mount or missing `covers/` sub-folder. | The container automatically creates `covers/` under `MIXTAPE_DIR`. Ensure the volume is persistent and not overwritten on each `docker compose up`. |
 | SSL handshake errors behind proxy | Proxy terminates TLS but forwards HTTP to Flask on the wrong port. | Make sure the proxy forwards to port 5000 (the Flask server) and that the `X-Forwarded-Proto` header is respected (Flask handles it automatically).
 
-## Building a Custom Image (Optional)
+## 🛠️ Building a Custom Image (Optional)
 
 If you need to add extra Python packages, modify the UI, or pin a specific commit, you can build your own image:
 

@@ -107,7 +107,7 @@ else:
     config_cls = DevelopmentConfig
 ```
 
-## Docker Integration
+## 🐳 Docker Integration
 
 For more information look at the [Docker Deployment](../docker.md) documentation.
 
@@ -130,6 +130,6 @@ For more information look at the [Docker Deployment](../docker.md) documentation
 6. **If you change `DATA_ROOT` after the app has started**, you must delete the old DB and mixtape folder (or run a migration script) because the paths are baked into the SQLite DB.
 7. Run the test suite with `APP_ENV=test` (or simply `pytest` which forces `TestConfig`). This isolates filesystem side‑effects to `/tmp`.
 
-## API
+## 🔌 API
 
 ### ::: src.config.config
