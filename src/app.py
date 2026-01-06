@@ -183,7 +183,7 @@ def create_app() -> Flask:
             stats = collection.get_collection_stats()
             return jsonify(stats)
         except Exception as e:
-            logger.error(f"Error fetching collection stats: {e}")
+            logger.exception(f"Error fetching collection stats: {e}")
             return jsonify({
                 "success": False,
                 "error": str(e)
@@ -213,7 +213,7 @@ def create_app() -> Flask:
                     collection.resync()
                     logger.info("Music library resync completed successfully")
                 except Exception as e:
-                    logger.error(f"Error during resync: {e}")
+                    logger.exception(f"Error during resync: {e}")
 
             thread = threading.Thread(target=run_resync, daemon=True)
             thread.start()
@@ -222,7 +222,7 @@ def create_app() -> Flask:
             return jsonify({"success": True})
 
         except Exception as e:
-            logger.error(f"Error initiating resync: {e}")
+            logger.exception(f"Error initiating resync: {e}")
             return jsonify({
                 "success": False,
                 "error": str(e)
@@ -283,7 +283,7 @@ def create_app() -> Flask:
                         deleted_files.append(file_path.name)
                         logger.debug(f"Deleted: {file_path}")
                     except Exception as e:
-                        logger.error(f"Failed to delete {file_path}: {e}")
+                        logger.exception(f"Failed to delete {file_path}: {e}")
                         return jsonify({
                             "success": False,
                             "error": f"Failed to delete database: {e}"
@@ -301,7 +301,7 @@ def create_app() -> Flask:
                     )
                     logger.info("Collection reinitialized")
                 except Exception as e:
-                    logger.error(f"Error reinitializing: {e}")
+                    logger.exception(f"Error reinitializing: {e}")
 
             thread = threading.Thread(target=reinitialize, daemon=True)
             thread.start()

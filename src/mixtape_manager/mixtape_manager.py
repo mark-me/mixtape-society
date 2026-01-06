@@ -190,7 +190,8 @@ class MixtapeManager:
             if cover_value.startswith("data:image"):
                 try:
                     path_cover = self._process_cover(cover_data=cover_value, slug=slug)
-                    mixtape_data["cover"] = path_cover
+                    if path_cover:
+                        mixtape_data["cover"] = path_cover
                 except Exception as e:
                     self._logger.error(f"Failed to save new cover for {slug}: {e}")
             else:
@@ -222,10 +223,11 @@ class MixtapeManager:
             _, b64data = cover_data.split(",", 1)
             image = Image.open(BytesIO(b64decode(b64data)))
             image = self._cover_resize(image=image)
-            image.save(self.path_cover / slug, "JPEG", quality=100)
-            return f"covers/{slug}.jpg"
+            file_cover = self.path_cover / f"{slug}.jpg"
+            image.save(file_cover, "JPEG", quality=100)
+            return f"covers/{file_cover.name}"
         except Exception as e:
-            self._logger.error(f"Cover opslaan mislukt voor {slug}: {e}")
+            self._logger.exception(f"Cover opslaan mislukt voor {slug}: {e}")
             return None
 
     def _cover_resize(self, image: Image, new_width: int = 1200) -> Image:
