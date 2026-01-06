@@ -86,3 +86,14 @@
 ## 12. Optional Companion Mobile App (future)
 
 A super-light Flutter or Tauri app that just points to your self-hosted instance (basically a webview + native controls + background playback). Many users would love this.
+
+## 13. Browser page
+
+| Area | Current implementation | Suggested enhancements |
+|------|----------------------|------------------------|
+| Pagination | All mixtapes are loaded at once (`list_all`). | Add `limit`/`offset` parameters to `MixtapeManager.list_all` and UI pagination controls for large libraries. |
+| Search | No search endpoint for mixtapes. | Introduce `/mixtapes/search?q=` that filters by title/artist, returning JSON for a live-search UI. |
+| Bulk actions | Only single-item delete. | Add “Select → Delete” or “Export” bulk actions, with a new API endpoint (`POST /mixtapes/bulk_delete`). |
+| Cover thumbnail generation | Covers are served directly from the file system. | Serve scaled thumbnails via a dedicated route (`/mixtapes/thumb/<slug>`) to reduce bandwidth on the browse page. |
+| Permissions | All authenticated users can edit/delete any mixtape. | Tie mixtapes to a user ID (`owner_id`) and restrict edit/delete to the owner (or admins). |
+| Progressive enhancement | JavaScript is required for copy/delete. | Provide graceful degradation (e.g., plain links for copy, a server-side delete confirmation page) for users with JS disabled. |
