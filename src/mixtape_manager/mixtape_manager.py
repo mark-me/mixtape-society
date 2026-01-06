@@ -222,9 +222,26 @@ class MixtapeManager:
         try:
             _, b64data = cover_data.split(",", 1)
             image = Image.open(BytesIO(b64decode(b64data)))
+            
+            # Convert to RGB mode for JPEG compatibility
+            # Handle transparency by adding white background
+            if image.mode in ("RGBA", "LA", "P"):
+                # Create white background
+                background = Image.new("RGB", image.size, (255, 255, 255))
+                if image.mode == "P":
+                    image = image.convert("RGBA")
+                # Paste image on white background using alpha channel as mask
+                if image.mode in ("RGBA", "LA"):
+                    background.paste(image, mask=image.split()[-1])
+                else:
+                    background.paste(image)
+                image = background
+            elif image.mode != "RGB":
+                image = image.convert("RGB")
+            
             image = self._cover_resize(image=image)
             file_cover = self.path_cover / f"{slug}.jpg"
-            image.save(file_cover, "JPEG", quality=100)
+            image.save(file_cover, "JPEG", quality=95, optimize=True)
             return f"covers/{file_cover.name}"
         except Exception as e:
             self._logger.exception(f"Cover opslaan mislukt voor {slug}: {e}")
@@ -235,16 +252,19 @@ class MixtapeManager:
         Resizes the given image to a specified width while maintaining aspect ratio.
 
         Calculates the new height to preserve the image's proportions and resizes using high-quality Lanczos filtering.
+        If the image width is 1200 or smaller, the original image is returned unchanged.
 
         Args:
             image: The PIL Image object to resize.
             new_width: The desired width of the resized image (default is 1200).
 
         Returns:
-            Image: The resized PIL Image object.
+            Image: The resized PIL Image object, or the original if width <= new_width.
         """
         width, height = image.size
-        new_height = int(height * (new_width / width)) if width > new_width else height
+        if width <= new_width:
+            return image
+        new_height = int(height * (new_width / width))
         image = image.resize((new_width, new_height), Image.LANCZOS)
         return image
 
