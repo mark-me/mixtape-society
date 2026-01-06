@@ -14,7 +14,12 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 ### ✨ Added
 
-- Cover resizing to reduce bandwidth needs
+- Mixtape cover resizing to reduce bandwidth needs
+- Added cassette tape look option to playback
+
+### 🐛 Fixed
+
+- Smaller than 1200 pixels mixtape cover art malformed
 
 [Changes since last version](https://github.com/mark-me/mixtape-society/compare/v0.5.1...v0.5.2)
 
