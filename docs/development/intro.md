@@ -124,7 +124,7 @@ The **`app.py`** file wires everything together:
 
 📄 [**Read the full walkthrough**](app.md)
 
-### Blueprint / Route Overview
+### 🗺️ Blueprint / Route Overview
 
 | Blueprint | URL Prefix | Primary Concern |
 |-----------|------------|-----------------|
@@ -142,7 +142,7 @@ Each blueprint has its own Markdown file that details the routes, request flow, 
 * [Session‑based login flow.](routes/authentication.md)
 * [OG image generation.](routes/opengraph_images.md)
 
-## Data Flow Summary
+## 🔀 Data Flow Summary
 
 ```mermaid
 flowchart TD
@@ -168,8 +168,8 @@ flowchart TD
     C -->|reads/writes| JSON[(Mixtape JSON files)]
     D -->|stores| Cache[(Cached audio files)]
 
-    style Client fill:#f9f9f9,stroke:#333,stroke-width:1px
-    style Server fill:#e8f4ff,stroke:#333,stroke-width:1px
+    style Client stroke:#333,stroke-width:1px
+    style Server stroke:#333,stroke-width:1px
 ```
 
 *The diagram illustrates how a request travels from the browser through the Flask entry point, into the core services, and finally reaches the persistent storage.*
