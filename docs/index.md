@@ -10,7 +10,7 @@ extra:
 
 # Mixtape Society
 
-A private, self‑hosted web app to create and share beautiful music mixtapes from your own library.
+A private, self‑hosted web app to create and share beautiful, add-free music mixtapes.
 
 !!! TIP "Quick start"
     1️⃣ Install the Docker image (see **Getting Started → Installation**).
