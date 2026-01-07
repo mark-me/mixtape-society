@@ -481,7 +481,7 @@
 
     /* Cassette body scales naturally with container */
     /* Font sizes scale with em units automatically */
-    
+
     /* Control deck adjustments for mobile */
     .control-deck {
         padding: 15px;
@@ -677,7 +677,7 @@ body.cassette-mode #bottom-player-container {
         border-radius: 0;
         padding: 15px 8px;
         border: 2px solid #1a1a1a; /* Black border on all sides */
-        box-shadow: 
+        box-shadow:
             inset 0 2px 4px rgba(255, 255, 255, 0.15),    /* Top light bevel */
             inset 2px 0 4px rgba(255, 255, 255, 0.08),    /* Left light */
             inset -2px 0 4px rgba(255, 255, 255, 0.08),   /* Right light */
@@ -830,44 +830,46 @@ body.cassette-mode #bottom-player-container {
         display: none;
     }
 
-    /* Top brand bar - separate, between panels */
+    /* Top brand bar - FULL WIDTH, behind side panels */
     .cassette-deck::before {
         content: 'MIXTAPE SOCIETY';
         display: flex;
         align-items: center;
-        justify-content: flex-start; /* Left align instead of center */
-        padding-left: 20px; /* Padding so text doesn't touch edge */
+        justify-content: flex-start;
+        padding-left: calc(50% - (90vh * 1.538 / 2) + 20px); /* Start after left panel + 15px spacing */
         position: absolute;
         top: 0;
-        left: calc(50% - (90vh * 1.538 / 2)); /* Align with left edge of cassette */
-        width: calc(90vh * 1.538); /* Match cassette width */
-        max-width: calc(100vw - 160px);
+        left: 0;
+        right: 0;
+        width: 100vw;
         height: 50px;
         background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
         border-bottom: 2px solid #1a1a1a;
         box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-        z-index: 150; /* Above cassette (1), below panels (200) */
+        z-index: 50;
         color: #ffc107;
         font-weight: bold;
         font-size: 16px;
         font-family: 'Arial Black', sans-serif;
         text-shadow: 2px 2px 3px rgba(0,0,0,0.5);
-        white-space: nowrap; /* Keep on one line */
+        white-space: nowrap;
     }
 
-    /* Control deck - AT BOTTOM OF SCREEN, BETWEEN PANELS */
+    /* Control deck - FULL WIDTH AT BOTTOM, behind side panels */
     .control-deck {
         position: absolute;
-        bottom: 0; /* Stick to bottom of screen */
-        left: calc(50% - (90vh * 1.538 / 2)); /* Left edge: right side of MIXTAPE panel */
-        width: calc(90vh * 1.538); /* Width of cassette */
-        max-width: calc(100vw - 160px);
+        bottom: 0;
+        left: 0; /* Full width from left edge */
+        right: 0; /* Full width to right edge */
+        width: 100vw; /* Full viewport width */
         background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
         padding: 12px 15px;
         border-radius: 0;
         border-top: 2px solid #1a1a1a;
         box-shadow: 0 -2px 8px rgba(0,0,0,0.5);
-        z-index: 10; /* Above cassette but below panels */
+        z-index: 50; /* Below side panels (200) but above cassette (1) */
+        display: flex;
+        justify-content: center; /* Center the buttons */
     }
 
     /* Regroup buttons for Walkman layout */
