@@ -355,18 +355,7 @@ export function initCassettePlayer() {
         if (!isMobile()) return;
         
         try {
-            const element = document.documentElement;
-            
-            if (element.requestFullscreen) {
-                await element.requestFullscreen();
-            } else if (element.webkitRequestFullscreen) { // Safari
-                await element.webkitRequestFullscreen();
-            } else if (element.mozRequestFullScreen) { // Firefox
-                await element.mozRequestFullScreen();
-            } else if (element.msRequestFullscreen) { // IE/Edge
-                await element.msRequestFullscreen();
-            }
-            
+            await requestFullscreenOn(document.documentElement);
             console.log('✓ Entered fullscreen');
         } catch (error) {
             console.log('Fullscreen request failed:', error);
@@ -378,25 +367,55 @@ export function initCassettePlayer() {
      */
     async function exitFullscreen() {
         try {
-            if (document.fullscreenElement || 
-                document.webkitFullscreenElement || 
-                document.mozFullScreenElement || 
-                document.msFullscreenElement) {
-                
-                if (document.exitFullscreen) {
-                    await document.exitFullscreen();
-                } else if (document.webkitExitFullscreen) {
-                    await document.webkitExitFullscreen();
-                } else if (document.mozCancelFullScreen) {
-                    await document.mozCancelFullScreen();
-                } else if (document.msExitFullscreen) {
-                    await document.msExitFullscreen();
-                }
-                
+            if (isFullscreen()) {
+                await exitFullscreenMode();
                 console.log('✓ Exited fullscreen');
             }
         } catch (error) {
             console.log('Exit fullscreen failed:', error);
+        }
+    }
+
+    // Track if listeners have been initialized (singleton pattern)
+    let listenersInitialized = false;
+    
+    /**
+     * Helper: Check if currently in fullscreen
+     */
+    function isFullscreen() {
+        return !!(document.fullscreenElement || 
+                 document.webkitFullscreenElement || 
+                 document.mozFullScreenElement || 
+                 document.msFullscreenElement);
+    }
+
+    /**
+     * Helper: Request fullscreen on element
+     */
+    async function requestFullscreenOn(element) {
+        if (element.requestFullscreen) {
+            return await element.requestFullscreen();
+        } else if (element.webkitRequestFullscreen) {
+            return await element.webkitRequestFullscreen();
+        } else if (element.mozRequestFullScreen) {
+            return await element.mozRequestFullScreen();
+        } else if (element.msRequestFullscreen) {
+            return await element.msRequestFullscreen();
+        }
+    }
+
+    /**
+     * Helper: Exit fullscreen
+     */
+    async function exitFullscreenMode() {
+        if (document.exitFullscreen) {
+            return await document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            return await document.webkitExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+            return await document.mozCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+            return await document.msExitFullscreen();
         }
     }
 
@@ -655,12 +674,7 @@ export function initCassettePlayer() {
             // (Re-)enter fullscreen and orientation lock on mobile
             // This handles both initial entry and re-entry after phone lock
             if (isMobile() && currentMode === 'cassette') {
-                const isFullscreen = !!(document.fullscreenElement || 
-                                       document.webkitFullscreenElement || 
-                                       document.mozFullScreenElement || 
-                                       document.msFullscreenElement);
-                
-                if (!isFullscreen) {
+                if (!isFullscreen()) {
                     await enterFullscreen();
                 }
                 await lockOrientationLandscape();
@@ -805,31 +819,18 @@ export function initCassettePlayer() {
     }
 
     /**
-     * Initialize everything
+     * Initialize global event listeners (singleton - only runs once)
      */
-    function init() {
-        // Create cassette HTML
-        const cassetteHTML = createCassetteHTML();
-        document.body.insertAdjacentHTML('beforeend', cassetteHTML);
-
-        // Create view toggle
-        createViewToggle();
-
-        // Initialize controls
-        initCassetteControls();
-
-        // Listen for track changes
-        listenForTrackChanges();
+    function initGlobalListeners() {
+        if (listenersInitialized) {
+            console.log('⚠️ Global listeners already initialized, skipping');
+            return;
+        }
 
         // Listen for fullscreen changes (phone lock/unlock will exit fullscreen)
         const handleFullscreenChange = async () => {
-            const isFullscreen = !!(document.fullscreenElement || 
-                                   document.webkitFullscreenElement || 
-                                   document.mozFullScreenElement || 
-                                   document.msFullscreenElement);
-            
             // If we're in cassette mode but fullscreen was exited (e.g., phone lock/unlock)
-            if (currentMode === 'cassette' && !isFullscreen && isMobile()) {
+            if (currentMode === 'cassette' && !isFullscreen() && isMobile()) {
                 console.log('📱 Fullscreen exited (phone lock?)');
                 
                 // Only unlock orientation if tape is NOT playing
@@ -856,15 +857,41 @@ export function initCassettePlayer() {
             }
         };
 
-        // Multiple events to catch different ways user can leave
-        window.addEventListener('beforeunload', handlePageUnload);
-        window.addEventListener('pagehide', handlePageUnload);
-        document.addEventListener('visibilitychange', () => {
+        const handleVisibilityChange = () => {
             if (document.hidden && currentMode === 'cassette' && isMobile()) {
                 console.log('👁️ Page hidden - restoring orientation preference');
                 unlockOrientation();
             }
-        });
+        };
+
+        // Multiple events to catch different ways user can leave
+        window.addEventListener('beforeunload', handlePageUnload);
+        window.addEventListener('pagehide', handlePageUnload);
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        listenersInitialized = true;
+        console.log('✓ Global listeners initialized');
+    }
+
+    /**
+     * Initialize everything
+     */
+    function init() {
+        // Create cassette HTML
+        const cassetteHTML = createCassetteHTML();
+        document.body.insertAdjacentHTML('beforeend', cassetteHTML);
+
+        // Create view toggle
+        createViewToggle();
+
+        // Initialize controls
+        initCassetteControls();
+
+        // Listen for track changes
+        listenForTrackChanges();
+
+        // Initialize global listeners (singleton)
+        initGlobalListeners();
 
         // Apply saved mode (but orientation lock won't work until user clicks)
         // Note: Just sets the UI mode, fullscreen/orientation requires user gesture
