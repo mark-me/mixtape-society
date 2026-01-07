@@ -84,10 +84,10 @@ export function initCassettePlayer() {
                                 <div class="tape-strips">
                                     <svg viewBox="0 0 512 324.62" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
                                         <!-- Tape coming INTO left cog from bottom -->
-                                        <path d="M 93.509 125.6l-61.144 103.99c-2.527-1.587-4.254-4.343-4.419-7.505l58.997-100.34z" fill="#3a2a1a"/>
+                                        <path d="M 93.509 125.6l-61.144 103.99c-2.527-1.587-4.254-4.343-4.419-7.505l58.997-100.34z" fill="#504f4f"/>
 
                                         <!-- Tape going OUT from right cog -->
-                                        <polygon points="465.86,231.07 457.02,231.07 397,80.39 403.57,81.53" fill="#3a2a1a"/>
+                                        <polygon points="465.86,231.07 457.02,231.07 397,80.39 403.57,81.53" fill="#504f4f"/>
                                     </svg>
                                 </div>
 
@@ -299,7 +299,7 @@ export function initCassettePlayer() {
     async function lockOrientationLandscape() {
         // Only on mobile devices
         if (!isMobile()) return;
-        
+
         try {
             // Try Screen Orientation API
             if (screen.orientation && screen.orientation.lock) {
@@ -310,8 +310,8 @@ export function initCassettePlayer() {
             console.log('Screen Orientation API not available:', error);
             // Fallback: try deprecated method
             try {
-                const lockOrientation = screen.lockOrientation || 
-                                       screen.mozLockOrientation || 
+                const lockOrientation = screen.lockOrientation ||
+                                       screen.mozLockOrientation ||
                                        screen.msLockOrientation;
                 if (lockOrientation) {
                     lockOrientation('landscape');
@@ -335,8 +335,8 @@ export function initCassettePlayer() {
         } catch (error) {
             // Try deprecated method
             try {
-                const unlockOrientation = screen.unlockOrientation || 
-                                         screen.mozUnlockOrientation || 
+                const unlockOrientation = screen.unlockOrientation ||
+                                         screen.mozUnlockOrientation ||
                                          screen.msUnlockOrientation;
                 if (unlockOrientation) {
                     unlockOrientation();
@@ -353,7 +353,7 @@ export function initCassettePlayer() {
      */
     async function enterFullscreen() {
         if (!isMobile()) return;
-        
+
         try {
             await requestFullscreenOn(document.documentElement);
             console.log('✓ Entered fullscreen');
@@ -378,14 +378,14 @@ export function initCassettePlayer() {
 
     // Track if listeners have been initialized (singleton pattern)
     let listenersInitialized = false;
-    
+
     /**
      * Helper: Check if currently in fullscreen
      */
     function isFullscreen() {
-        return !!(document.fullscreenElement || 
-                 document.webkitFullscreenElement || 
-                 document.mozFullScreenElement || 
+        return !!(document.fullscreenElement ||
+                 document.webkitFullscreenElement ||
+                 document.mozFullScreenElement ||
                  document.msFullscreenElement);
     }
 
@@ -423,7 +423,7 @@ export function initCassettePlayer() {
      * Check if device is mobile
      */
     function isMobile() {
-        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
             || window.innerWidth <= 932;
     }
 
@@ -441,10 +441,10 @@ export function initCassettePlayer() {
             </div>
         `;
         document.body.appendChild(hint);
-        
+
         // Show notification
         setTimeout(() => hint.classList.add('show'), 100);
-        
+
         // Auto-hide after 5 seconds
         setTimeout(() => {
             hint.classList.remove('show');
@@ -470,13 +470,13 @@ export function initCassettePlayer() {
         if (mode === 'cassette') {
             cassetteContainer?.classList.add('active');
             document.body.classList.add('cassette-mode');
-            
+
             // On mobile: enter fullscreen and lock to landscape
             // These MUST be called from user gesture (button click)
             if (isMobile()) {
                 await enterFullscreen();
                 await lockOrientationLandscape();
-                
+
                 // Show hint on first time entering Walkman mode
                 const hasSeenHint = localStorage.getItem('walkmanHintSeen');
                 if (!hasSeenHint) {
@@ -487,7 +487,7 @@ export function initCassettePlayer() {
         } else {
             cassetteContainer?.classList.remove('active');
             document.body.classList.remove('cassette-mode');
-            
+
             // Exit fullscreen and unlock orientation when switching to modern
             if (isMobile()) {
                 await exitFullscreen();
@@ -670,7 +670,7 @@ export function initCassettePlayer() {
         // Play button
         playBtn?.addEventListener('click', async () => {
             playButtonSound('click');
-            
+
             // (Re-)enter fullscreen and orientation lock on mobile
             // This handles both initial entry and re-entry after phone lock
             if (isMobile() && currentMode === 'cassette') {
@@ -679,7 +679,7 @@ export function initCassettePlayer() {
                 }
                 await lockOrientationLandscape();
             }
-            
+
             player.play();
             playBtn.style.display = 'none';
             pauseBtn.style.display = 'block';
@@ -832,7 +832,7 @@ export function initCassettePlayer() {
             // If we're in cassette mode but fullscreen was exited (e.g., phone lock/unlock)
             if (currentMode === 'cassette' && !isFullscreen() && isMobile()) {
                 console.log('📱 Fullscreen exited (phone lock?)');
-                
+
                 // Only unlock orientation if tape is NOT playing
                 if (!isPlaying) {
                     console.log('⏹️ Tape not playing - restoring user orientation preference');
@@ -843,7 +843,7 @@ export function initCassettePlayer() {
                 }
             }
         };
-        
+
         document.addEventListener('fullscreenchange', handleFullscreenChange);
         document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
         document.addEventListener('mozfullscreenchange', handleFullscreenChange);
@@ -899,7 +899,7 @@ export function initCassettePlayer() {
         if (currentMode === 'cassette') {
             cassetteContainer?.classList.add('active');
             document.body.classList.add('cassette-mode');
-            
+
             // Show hint on mobile if starting in cassette mode
             if (isMobile() && currentMode === 'cassette') {
                 console.log('💡 Tip: Click any button to enable fullscreen and landscape lock');
