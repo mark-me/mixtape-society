@@ -288,23 +288,38 @@ export function initCassettePlayer() {
 
         // Add click handlers
         toggle.querySelectorAll('.view-mode-btn').forEach(btn => {
-            btn.addEventListener('click', () => switchMode(btn.dataset.mode));
+            btn.addEventListener('click', async () => await switchMode(btn.dataset.mode));
         });
     }
 
     /**
      * Lock screen orientation to landscape (mobile only)
+     * Must be called from a user gesture (button click)
      */
     async function lockOrientationLandscape() {
         // Only on mobile devices
         if (!isMobile()) return;
         
         try {
+            // Try Screen Orientation API
             if (screen.orientation && screen.orientation.lock) {
                 await screen.orientation.lock('landscape');
+                console.log('✓ Orientation locked to landscape');
             }
         } catch (error) {
-            console.log('Orientation lock not supported or failed:', error);
+            console.log('Screen Orientation API not available:', error);
+            // Fallback: try deprecated method
+            try {
+                const lockOrientation = screen.lockOrientation || 
+                                       screen.mozLockOrientation || 
+                                       screen.msLockOrientation;
+                if (lockOrientation) {
+                    lockOrientation('landscape');
+                    console.log('✓ Orientation locked (deprecated API)');
+                }
+            } catch (e) {
+                console.log('Orientation lock not supported:', e);
+            }
         }
     }
 
@@ -315,9 +330,73 @@ export function initCassettePlayer() {
         try {
             if (screen.orientation && screen.orientation.unlock) {
                 screen.orientation.unlock();
+                console.log('✓ Orientation unlocked');
             }
         } catch (error) {
-            console.log('Orientation unlock failed:', error);
+            // Try deprecated method
+            try {
+                const unlockOrientation = screen.unlockOrientation || 
+                                         screen.mozUnlockOrientation || 
+                                         screen.msUnlockOrientation;
+                if (unlockOrientation) {
+                    unlockOrientation();
+                    console.log('✓ Orientation unlocked (deprecated API)');
+                }
+            } catch (e) {
+                console.log('Orientation unlock failed:', e);
+            }
+        }
+    }
+
+    /**
+     * Enter fullscreen mode
+     */
+    async function enterFullscreen() {
+        if (!isMobile()) return;
+        
+        try {
+            const element = document.documentElement;
+            
+            if (element.requestFullscreen) {
+                await element.requestFullscreen();
+            } else if (element.webkitRequestFullscreen) { // Safari
+                await element.webkitRequestFullscreen();
+            } else if (element.mozRequestFullScreen) { // Firefox
+                await element.mozRequestFullScreen();
+            } else if (element.msRequestFullscreen) { // IE/Edge
+                await element.msRequestFullscreen();
+            }
+            
+            console.log('✓ Entered fullscreen');
+        } catch (error) {
+            console.log('Fullscreen request failed:', error);
+        }
+    }
+
+    /**
+     * Exit fullscreen mode
+     */
+    async function exitFullscreen() {
+        try {
+            if (document.fullscreenElement || 
+                document.webkitFullscreenElement || 
+                document.mozFullScreenElement || 
+                document.msFullscreenElement) {
+                
+                if (document.exitFullscreen) {
+                    await document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    await document.webkitExitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    await document.mozCancelFullScreen();
+                } else if (document.msExitFullscreen) {
+                    await document.msExitFullscreen();
+                }
+                
+                console.log('✓ Exited fullscreen');
+            }
+        } catch (error) {
+            console.log('Exit fullscreen failed:', error);
         }
     }
 
@@ -332,7 +411,7 @@ export function initCassettePlayer() {
     /**
      * Switch between modern and cassette mode
      */
-    function switchMode(mode) {
+    async function switchMode(mode) {
         currentMode = mode;
         localStorage.setItem('playerMode', mode);
 
@@ -347,13 +426,22 @@ export function initCassettePlayer() {
         if (mode === 'cassette') {
             cassetteContainer?.classList.add('active');
             document.body.classList.add('cassette-mode');
-            // Lock to landscape on mobile
-            lockOrientationLandscape();
+            
+            // On mobile: enter fullscreen and lock to landscape
+            // These MUST be called from user gesture (button click)
+            if (isMobile()) {
+                await enterFullscreen();
+                await lockOrientationLandscape();
+            }
         } else {
             cassetteContainer?.classList.remove('active');
             document.body.classList.remove('cassette-mode');
-            // Unlock orientation when switching to modern
-            unlockOrientation();
+            
+            // Exit fullscreen and unlock orientation when switching to modern
+            if (isMobile()) {
+                await exitFullscreen();
+                await unlockOrientation();
+            }
         }
     }
 
@@ -529,8 +617,15 @@ export function initCassettePlayer() {
         if (!player) return;
 
         // Play button
-        playBtn?.addEventListener('click', () => {
+        playBtn?.addEventListener('click', async () => {
             playButtonSound('click');
+            
+            // Trigger fullscreen and orientation lock on mobile (requires user gesture)
+            if (isMobile() && currentMode === 'cassette') {
+                await enterFullscreen();
+                await lockOrientationLandscape();
+            }
+            
             player.play();
             playBtn.style.display = 'none';
             pauseBtn.style.display = 'block';
@@ -598,9 +693,9 @@ export function initCassettePlayer() {
 
         // Panel mode toggle button (on MIXTAPE panel)
         const panelToggleBtn = document.getElementById('panel-mode-toggle');
-        panelToggleBtn?.addEventListener('click', () => {
+        panelToggleBtn?.addEventListener('click', async () => {
             playButtonSound('click');
-            switchMode('modern'); // Switch to modern mode
+            await switchMode('modern'); // Switch to modern mode
         });
 
         // Update counter during playback
@@ -686,8 +781,18 @@ export function initCassettePlayer() {
         // Listen for track changes
         listenForTrackChanges();
 
-        // Apply saved mode
-        switchMode(currentMode);
+        // Apply saved mode (but orientation lock won't work until user clicks)
+        // Note: Just sets the UI mode, fullscreen/orientation requires user gesture
+        const cassetteContainer = document.getElementById('cassette-player-container');
+        if (currentMode === 'cassette') {
+            cassetteContainer?.classList.add('active');
+            document.body.classList.add('cassette-mode');
+            
+            // Show hint on mobile if starting in cassette mode
+            if (isMobile() && currentMode === 'cassette') {
+                console.log('💡 Tip: Click any button to enable fullscreen and landscape lock');
+            }
+        }
 
         console.log('🎵 Cassette player initialized');
     }
