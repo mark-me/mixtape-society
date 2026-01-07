@@ -194,19 +194,11 @@ export function initPlayerControls() {
 
         // Set action handlers for media controls
         navigator.mediaSession.setActionHandler('play', () => {
-            if ('mediaSession' in navigator) {
-                navigator.mediaSession.playbackState = 'playing';
-            }
-            updatePositionState();
-            syncPlayIcons();
+            player.play().catch(e => console.log('Media Session play failed:', e));
         });
 
         navigator.mediaSession.setActionHandler('pause', () => {
-            if ('mediaSession' in navigator) {
-                navigator.mediaSession.playbackState = 'paused';
-            }
-            updatePositionState();
-            syncPlayIcons();
+            player.pause();
         });
 
         navigator.mediaSession.setActionHandler('previoustrack', () => {

@@ -34,6 +34,27 @@ export function initCassettePlayer() {
         return `
             <div id="cassette-player-container">
                 <div class="cassette-deck">
+                    <!-- Left Side Panel (for Walkman mode) -->
+                    <div class="side-panel side-panel-left">
+                        <div class="screw"></div>
+                        <div class="vertical-branding">MIXTAPE</div>
+                        <div class="panel-spacer"></div>
+                        <div class="status-indicator">
+                            <div class="status-light" id="status-play"></div>
+                            <div class="status-label">PLAY</div>
+                        </div>
+                        <div class="status-indicator">
+                            <div class="status-light" id="status-rec"></div>
+                            <div class="status-label">REC</div>
+                        </div>
+                        <div class="panel-spacer"></div>
+                        <!-- Mode toggle button -->
+                        <button class="panel-mode-toggle" id="panel-mode-toggle" title="Switch to Modern Mode">
+                            <i class="bi bi-list"></i>
+                        </button>
+                        <div class="screw"></div>
+                    </div>
+
                     <!-- Cassette Tape Body -->
                     <div class="cassette-body">
                         <!-- White Top Label Section -->
@@ -63,11 +84,10 @@ export function initCassettePlayer() {
                                 <div class="tape-strips">
                                     <svg viewBox="0 0 512 324.62" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
                                         <!-- Tape coming INTO left cog from bottom -->
-                                        <path d="M 93.509 125.6l-61.144 103.99c-2.527-1.587-4.254-4.343-4.419-7.505l58.997-100.34z" fill="#504f4f"/>
+                                        <path d="M 93.509 125.6l-61.144 103.99c-2.527-1.587-4.254-4.343-4.419-7.505l58.997-100.34z" fill="#3a2a1a"/>
 
                                         <!-- Tape going OUT from right cog -->
-                                        <!--  <polygon points="465.86,231.07 457.02,231.07 399,132.39 405.57,128.53" fill="#504f4f"/> -->
-                                        <polygon points="465.86,231.07 457.02,231.07 397,80.39 403.57,81.53" fill="#504f4f"/>
+                                        <polygon points="465.86,231.07 457.02,231.07 397,80.39 403.57,81.53" fill="#3a2a1a"/>
                                     </svg>
                                 </div>
 
@@ -228,6 +248,23 @@ export function initCassettePlayer() {
                             </div>
                         </div>
                     </div>
+
+                    <!-- Right Side Panel (for Walkman mode) -->
+                    <div class="side-panel side-panel-right">
+                        <div class="screw"></div>
+                        <div class="vertical-branding">SOCIETY</div>
+                        <div class="panel-spacer"></div>
+                        <div class="status-indicator">
+                            <div class="status-light active" id="status-power"></div>
+                            <div class="status-label">PWR</div>
+                        </div>
+                        <div class="status-indicator">
+                            <div class="status-light" id="status-battery"></div>
+                            <div class="status-label">BATT</div>
+                        </div>
+                        <div class="panel-spacer"></div>
+                        <div class="screw"></div>
+                    </div>
                 </div>
             </div>
         `;
@@ -251,14 +288,174 @@ export function initCassettePlayer() {
 
         // Add click handlers
         toggle.querySelectorAll('.view-mode-btn').forEach(btn => {
-            btn.addEventListener('click', () => switchMode(btn.dataset.mode));
+            btn.addEventListener('click', async () => await switchMode(btn.dataset.mode));
         });
+    }
+
+    /**
+     * Lock screen orientation to landscape (mobile only)
+     * Must be called from a user gesture (button click)
+     */
+    async function lockOrientationLandscape() {
+        // Only on mobile devices
+        if (!isMobile()) return;
+        
+        try {
+            // Try Screen Orientation API
+            if (screen.orientation && screen.orientation.lock) {
+                await screen.orientation.lock('landscape');
+                console.log('✓ Orientation locked to landscape');
+            }
+        } catch (error) {
+            console.log('Screen Orientation API not available:', error);
+            // Fallback: try deprecated method
+            try {
+                const lockOrientation = screen.lockOrientation || 
+                                       screen.mozLockOrientation || 
+                                       screen.msLockOrientation;
+                if (lockOrientation) {
+                    lockOrientation('landscape');
+                    console.log('✓ Orientation locked (deprecated API)');
+                }
+            } catch (e) {
+                console.log('Orientation lock not supported:', e);
+            }
+        }
+    }
+
+    /**
+     * Unlock screen orientation (restores user's auto-rotate preference)
+     */
+    async function unlockOrientation() {
+        try {
+            if (screen.orientation && screen.orientation.unlock) {
+                screen.orientation.unlock();
+                console.log('✓ Orientation unlocked - user auto-rotate preference restored');
+            }
+        } catch (error) {
+            // Try deprecated method
+            try {
+                const unlockOrientation = screen.unlockOrientation || 
+                                         screen.mozUnlockOrientation || 
+                                         screen.msUnlockOrientation;
+                if (unlockOrientation) {
+                    unlockOrientation();
+                    console.log('✓ Orientation unlocked (deprecated API) - user preference restored');
+                }
+            } catch (e) {
+                console.log('Orientation unlock failed:', e);
+            }
+        }
+    }
+
+    /**
+     * Enter fullscreen mode
+     */
+    async function enterFullscreen() {
+        if (!isMobile()) return;
+        
+        try {
+            await requestFullscreenOn(document.documentElement);
+            console.log('✓ Entered fullscreen');
+        } catch (error) {
+            console.log('Fullscreen request failed:', error);
+        }
+    }
+
+    /**
+     * Exit fullscreen mode
+     */
+    async function exitFullscreen() {
+        try {
+            if (isFullscreen()) {
+                await exitFullscreenMode();
+                console.log('✓ Exited fullscreen');
+            }
+        } catch (error) {
+            console.log('Exit fullscreen failed:', error);
+        }
+    }
+
+    // Track if listeners have been initialized (singleton pattern)
+    let listenersInitialized = false;
+    
+    /**
+     * Helper: Check if currently in fullscreen
+     */
+    function isFullscreen() {
+        return !!(document.fullscreenElement || 
+                 document.webkitFullscreenElement || 
+                 document.mozFullScreenElement || 
+                 document.msFullscreenElement);
+    }
+
+    /**
+     * Helper: Request fullscreen on element
+     */
+    async function requestFullscreenOn(element) {
+        if (element.requestFullscreen) {
+            return await element.requestFullscreen();
+        } else if (element.webkitRequestFullscreen) {
+            return await element.webkitRequestFullscreen();
+        } else if (element.mozRequestFullScreen) {
+            return await element.mozRequestFullScreen();
+        } else if (element.msRequestFullscreen) {
+            return await element.msRequestFullscreen();
+        }
+    }
+
+    /**
+     * Helper: Exit fullscreen
+     */
+    async function exitFullscreenMode() {
+        if (document.exitFullscreen) {
+            return await document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            return await document.webkitExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+            return await document.mozCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+            return await document.msExitFullscreen();
+        }
+    }
+
+    /**
+     * Check if device is mobile
+     */
+    function isMobile() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
+            || window.innerWidth <= 932;
+    }
+
+    /**
+     * Show brief notification to user about how to exit
+     */
+    function showExitHint() {
+        // Create notification element
+        const hint = document.createElement('div');
+        hint.className = 'walkman-exit-hint';
+        hint.innerHTML = `
+            <div class="hint-content">
+                <span class="hint-icon">ℹ️</span>
+                <span>Tap the button on the left panel to exit Walkman mode</span>
+            </div>
+        `;
+        document.body.appendChild(hint);
+        
+        // Show notification
+        setTimeout(() => hint.classList.add('show'), 100);
+        
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+            hint.classList.remove('show');
+            setTimeout(() => hint.remove(), 300);
+        }, 5000);
     }
 
     /**
      * Switch between modern and cassette mode
      */
-    function switchMode(mode) {
+    async function switchMode(mode) {
         currentMode = mode;
         localStorage.setItem('playerMode', mode);
 
@@ -273,9 +470,29 @@ export function initCassettePlayer() {
         if (mode === 'cassette') {
             cassetteContainer?.classList.add('active');
             document.body.classList.add('cassette-mode');
+            
+            // On mobile: enter fullscreen and lock to landscape
+            // These MUST be called from user gesture (button click)
+            if (isMobile()) {
+                await enterFullscreen();
+                await lockOrientationLandscape();
+                
+                // Show hint on first time entering Walkman mode
+                const hasSeenHint = localStorage.getItem('walkmanHintSeen');
+                if (!hasSeenHint) {
+                    showExitHint();
+                    localStorage.setItem('walkmanHintSeen', 'true');
+                }
+            }
         } else {
             cassetteContainer?.classList.remove('active');
             document.body.classList.remove('cassette-mode');
+            
+            // Exit fullscreen and unlock orientation when switching to modern
+            if (isMobile()) {
+                await exitFullscreen();
+                await unlockOrientation();
+            }
         }
     }
 
@@ -318,13 +535,16 @@ export function initCassettePlayer() {
     function toggleReels(playing) {
         const leftReel = document.getElementById('left-reel');
         const rightReel = document.getElementById('right-reel');
+        const playLight = document.getElementById('status-play');
 
         if (playing) {
             leftReel?.classList.add('spinning');
             rightReel?.classList.add('spinning');
+            playLight?.classList.add('active');
         } else {
             leftReel?.classList.remove('spinning');
             rightReel?.classList.remove('spinning');
+            playLight?.classList.remove('active');
         }
     }
 
@@ -448,8 +668,18 @@ export function initCassettePlayer() {
         if (!player) return;
 
         // Play button
-        playBtn?.addEventListener('click', () => {
+        playBtn?.addEventListener('click', async () => {
             playButtonSound('click');
+            
+            // (Re-)enter fullscreen and orientation lock on mobile
+            // This handles both initial entry and re-entry after phone lock
+            if (isMobile() && currentMode === 'cassette') {
+                if (!isFullscreen()) {
+                    await enterFullscreen();
+                }
+                await lockOrientationLandscape();
+            }
+            
             player.play();
             playBtn.style.display = 'none';
             pauseBtn.style.display = 'block';
@@ -513,6 +743,13 @@ export function initCassettePlayer() {
             setTimeout(() => {
                 cassetteBody?.classList.remove('ejecting');
             }, 500);
+        });
+
+        // Panel mode toggle button (on MIXTAPE panel)
+        const panelToggleBtn = document.getElementById('panel-mode-toggle');
+        panelToggleBtn?.addEventListener('click', async () => {
+            playButtonSound('click');
+            await switchMode('modern'); // Switch to modern mode
         });
 
         // Update counter during playback
@@ -582,6 +819,61 @@ export function initCassettePlayer() {
     }
 
     /**
+     * Initialize global event listeners (singleton - only runs once)
+     */
+    function initGlobalListeners() {
+        if (listenersInitialized) {
+            console.log('⚠️ Global listeners already initialized, skipping');
+            return;
+        }
+
+        // Listen for fullscreen changes (phone lock/unlock will exit fullscreen)
+        const handleFullscreenChange = async () => {
+            // If we're in cassette mode but fullscreen was exited (e.g., phone lock/unlock)
+            if (currentMode === 'cassette' && !isFullscreen() && isMobile()) {
+                console.log('📱 Fullscreen exited (phone lock?)');
+                
+                // Only unlock orientation if tape is NOT playing
+                if (!isPlaying) {
+                    console.log('⏹️ Tape not playing - restoring user orientation preference');
+                    await unlockOrientation();
+                } else {
+                    console.log('▶️ Tape still playing - keeping landscape lock, will re-enter fullscreen on next interaction');
+                    // Keep orientation locked, re-enter fullscreen on next button press
+                }
+            }
+        };
+        
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+        document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+        document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+        // Restore orientation when user quits/leaves the page
+        const handlePageUnload = async () => {
+            if (currentMode === 'cassette' && isMobile()) {
+                console.log('👋 User leaving page - restoring orientation preference');
+                await unlockOrientation();
+            }
+        };
+
+        const handleVisibilityChange = () => {
+            if (document.hidden && currentMode === 'cassette' && isMobile()) {
+                console.log('👁️ Page hidden - restoring orientation preference');
+                unlockOrientation();
+            }
+        };
+
+        // Multiple events to catch different ways user can leave
+        window.addEventListener('beforeunload', handlePageUnload);
+        window.addEventListener('pagehide', handlePageUnload);
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        listenersInitialized = true;
+        console.log('✓ Global listeners initialized');
+    }
+
+    /**
      * Initialize everything
      */
     function init() {
@@ -598,8 +890,21 @@ export function initCassettePlayer() {
         // Listen for track changes
         listenForTrackChanges();
 
-        // Apply saved mode
-        switchMode(currentMode);
+        // Initialize global listeners (singleton)
+        initGlobalListeners();
+
+        // Apply saved mode (but orientation lock won't work until user clicks)
+        // Note: Just sets the UI mode, fullscreen/orientation requires user gesture
+        const cassetteContainer = document.getElementById('cassette-player-container');
+        if (currentMode === 'cassette') {
+            cassetteContainer?.classList.add('active');
+            document.body.classList.add('cassette-mode');
+            
+            // Show hint on mobile if starting in cassette mode
+            if (isMobile() && currentMode === 'cassette') {
+                console.log('💡 Tip: Click any button to enable fullscreen and landscape lock');
+            }
+        }
 
         console.log('🎵 Cassette player initialized');
     }

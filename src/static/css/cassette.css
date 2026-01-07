@@ -481,7 +481,7 @@
 
     /* Cassette body scales naturally with container */
     /* Font sizes scale with em units automatically */
-    
+
     /* Control deck adjustments for mobile */
     .control-deck {
         padding: 15px;
@@ -604,4 +604,409 @@
 /* --- Modern Player Hide --- */
 body.cassette-mode #bottom-player-container {
     display: none !important;
+}
+
+/* ========================================
+   WALKMAN MODE - Mobile Landscape
+   ======================================== */
+
+/* Side panels - hidden by default, shown in mobile landscape */
+.side-panel {
+    display: none;
+}
+
+/* Mobile landscape Walkman layout */
+@media (max-width: 932px) and (orientation: landscape) {
+    /* Hide navbar in landscape mode */
+    nav.navbar {
+        display: none !important;
+    }
+
+    /* Hide view mode toggle in landscape */
+    .view-mode-toggle {
+        display: none;
+    }
+
+    /* Prevent body overflow */
+    body {
+        overflow: hidden;
+        height: 100vh;
+    }
+
+    #cassette-player-container {
+        padding: 0;
+        margin: 0; /* Remove any margin */
+        height: 100vh;
+        width: 100vw;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        top: 0;
+        left: 0;
+        overflow: hidden;
+    }
+
+    .cassette-deck {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: nowrap;
+        gap: 0;
+        width: 100vw; /* Full viewport width */
+        height: 100vh; /* Full viewport height */
+        position: relative;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Show side panels - FULL HEIGHT, STRETCH FROM SCREEN EDGE TO CASSETTE EDGE */
+    .side-panel {
+        display: flex !important;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        width: auto; /* Allow stretching */
+        min-width: 70px;
+        height: calc(100vh - 2px); /* Subtract border width so bottom border is visible */
+        position: absolute;
+        z-index: 200;
+        top: 0; /* Stick to top of screen */
+        bottom: auto; /* Don't stick to bottom, use height instead */
+        background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
+        border-radius: 0;
+        padding: 15px 8px;
+        border: 2px solid #1a1a1a; /* Black border on all sides */
+        box-shadow:
+            inset 0 2px 4px rgba(255, 255, 255, 0.15),    /* Top light bevel */
+            inset 2px 0 4px rgba(255, 255, 255, 0.08),    /* Left light */
+            inset -2px 0 4px rgba(255, 255, 255, 0.08),   /* Right light */
+            inset 0 -2px 6px rgba(0, 0, 0, 0.5);          /* Bottom shadow */
+    }
+
+    .side-panel-left {
+        left: 0 !important; /* Stick to left edge of screen */
+        right: calc(50% + (90vh * 1.538 / 2)) !important; /* Stretch to left edge of cassette */
+        border-right: none;
+    }
+
+    .side-panel-right {
+        left: calc(50% + (90vh * 1.538 / 2)) !important; /* Start at right edge of cassette */
+        right: 0 !important; /* Stretch to right edge of screen */
+        border-left: none;
+    }
+
+    /* Vertical branding text */
+    .vertical-branding {
+        writing-mode: vertical-rl;
+        text-orientation: mixed;
+        font-size: 12px;
+        font-weight: bold;
+        color: #666;
+        letter-spacing: 2px;
+        font-family: 'Arial Black', sans-serif;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Panel spacer */
+    .panel-spacer {
+        flex: 1;
+        min-height: 20px; /* Ensure minimum spacing */
+    }
+
+    /* Status indicators */
+    .status-indicator {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .status-light {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #333;
+        border: 2px solid #222;
+        transition: all 0.3s;
+    }
+
+    .status-light.active {
+        background: #4caf50;
+        box-shadow: 0 0 12px rgba(76, 175, 80, 0.9);
+    }
+
+    #status-battery.active {
+        background: #f44336;
+        box-shadow: 0 0 12px rgba(244, 67, 54, 0.9);
+    }
+
+    .status-label {
+        font-size: 7px;
+        color: #666;
+        text-align: center;
+        font-family: monospace;
+        writing-mode: vertical-rl;
+        text-orientation: mixed;
+        letter-spacing: 1px;
+    }
+
+    /* Decorative screws */
+    .screw {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: radial-gradient(circle, #4a4a4a, #2a2a2a);
+        border: 1px solid #1a1a1a;
+        position: relative;
+        box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.1);
+    }
+
+    .screw::after {
+        content: '';
+        position: absolute;
+        width: 60%;
+        height: 2px;
+        background: #1a1a1a;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    /* Panel mode toggle button - subtle on MIXTAPE panel */
+    .panel-mode-toggle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(145deg, #4a4a4a, #2a2a2a);
+        border: 2px solid #1a1a1a;
+        color: #666;
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .panel-mode-toggle:hover {
+        background: linear-gradient(145deg, #5a5a5a, #3a3a3a);
+        color: #999;
+        box-shadow: 0 3px 6px rgba(0,0,0,0.4);
+    }
+
+    .panel-mode-toggle:active {
+        transform: translateY(2px);
+        box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+
+    /* Walkman exit hint notification */
+    .walkman-exit-hint {
+        position: fixed;
+        top: 60px; /* Below top bar */
+        left: 50%;
+        transform: translateX(-50%) translateY(-20px);
+        z-index: 1000;
+        opacity: 0;
+        transition: all 0.3s ease-out;
+        pointer-events: none;
+    }
+
+    .walkman-exit-hint.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    .hint-content {
+        background: rgba(0, 0, 0, 0.9);
+        color: #ffc107;
+        padding: 12px 20px;
+        border-radius: 8px;
+        border: 2px solid #ffc107;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+        white-space: nowrap;
+        max-width: 90vw;
+    }
+
+    .hint-icon {
+        font-size: 18px;
+    }
+
+    /* Cassette body - centered between panels, shifted down slightly */
+    .cassette-body {
+        flex-shrink: 1;
+        height: 90vh;
+        width: calc(90vh * 1.538);
+        max-width: calc(100vw - 160px);
+        max-height: 90vh;
+        position: absolute;
+        left: 50%;
+        top: 55%; /* Shifted from 50% to 55% to show more label */
+        transform: translate(-50%, -50%);
+        background: linear-gradient(145deg, #9a9a9a 0%, #7a7a7a 50%, #6a6a6a 100%);
+        padding: 2.5%;
+        border-radius: 8px;
+        border: 3px solid #5a5a5a;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+        z-index: 1; /* Behind panels and top bar */
+    }
+
+    /* Remove top bar from cassette body */
+    .cassette-body::before {
+        display: none !important;
+    }
+
+    /* Keep cassette screws hidden in walkman mode */
+    .cassette-body::after {
+        display: none;
+    }
+
+    /* Top brand bar - FULL WIDTH, behind side panels */
+    .cassette-deck::before {
+        content: 'MIXTAPE SOCIETY';
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        padding-left: calc(50% - (90vh * 1.538 / 2) + 20px); /* Start after left panel + 15px spacing */
+        position: absolute;
+        top: 0;
+        left: 0 !important;
+        right: auto;
+        width: 100vw !important;
+        height: 50px;
+        background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
+        border-bottom: 2px solid #1a1a1a;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+        z-index: 50;
+        color: #ffc107;
+        font-weight: bold;
+        font-size: 16px;
+        font-family: 'Arial Black', sans-serif;
+        text-shadow: 2px 2px 3px rgba(0,0,0,0.5);
+        white-space: nowrap;
+        box-sizing: border-box;
+        margin: 0;
+    }
+
+    /* Control deck - FULL WIDTH AT BOTTOM, behind side panels */
+    .control-deck {
+        position: absolute;
+        bottom: 0;
+        left: 0; /* Full width from left edge */
+        right: 0; /* Full width to right edge */
+        width: 100vw; /* Full viewport width */
+        background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
+        padding: 12px 15px;
+        border-radius: 0;
+        border-top: 2px solid #1a1a1a;
+        box-shadow: 0 -2px 8px rgba(0,0,0,0.5);
+        z-index: 50; /* Below side panels (200) but above cassette (1) */
+        display: flex;
+        justify-content: center; /* Center the buttons */
+    }
+
+    /* Regroup buttons for Walkman layout */
+    .cassette-buttons {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 0;
+    }
+
+    /* Button groups */
+    .cassette-btn {
+        width: 45px;
+        height: 38px;
+        font-size: 16px;
+    }
+
+    .cassette-btn.play {
+        width: 60px;
+        height: 48px;
+        font-size: 24px;
+        order: 2;
+    }
+
+    .cassette-btn.rewind {
+        order: 1;
+    }
+
+    .cassette-btn.forward {
+        order: 3;
+    }
+
+    .cassette-btn.stop {
+        order: 4;
+        width: 42px;
+        height: 35px;
+        font-size: 15px;
+    }
+
+    .cassette-btn.eject {
+        order: 5;
+        width: 42px;
+        height: 35px;
+        font-size: 15px;
+    }
+
+    .cassette-btn.pause {
+        order: 2;
+        width: 60px;
+        height: 48px;
+        font-size: 24px;
+    }
+
+    /* Hide tape counter and VU meters in Walkman mode */
+    .tape-counter-container,
+    .vu-meters {
+        display: none;
+    }
+
+    /* Add info labels at bottom */
+    .control-deck::after {
+        content: '';
+        display: block;
+        margin-top: 8px;
+    }
+}
+
+/* Very small landscape screens */
+@media (max-width: 700px) and (orientation: landscape) {
+    .side-panel {
+        width: 60px;
+        padding: 10px 6px;
+        gap: 12px;
+    }
+
+    .vertical-branding {
+        font-size: 10px;
+    }
+
+    .cassette-btn {
+        width: 40px;
+        height: 35px;
+        font-size: 14px;
+    }
+
+    .cassette-btn.play,
+    .cassette-btn.pause {
+        width: 50px;
+        height: 42px;
+        font-size: 20px;
+    }
+
+    .cassette-btn.stop,
+    .cassette-btn.eject {
+        width: 38px;
+        height: 32px;
+        font-size: 14px;
+    }
 }
