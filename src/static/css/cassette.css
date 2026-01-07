@@ -635,12 +635,13 @@ body.cassette-mode #bottom-player-container {
 
     #cassette-player-container {
         padding: 0;
+        margin: 0; /* Remove any margin */
         height: 100vh;
         width: 100vw;
         display: flex;
         align-items: center;
         justify-content: center;
-        position: fixed; /* Fix to viewport */
+        position: fixed;
         top: 0;
         left: 0;
         overflow: hidden;
@@ -650,13 +651,14 @@ body.cassette-mode #bottom-player-container {
         display: flex !important;
         flex-direction: row !important;
         align-items: center;
-        justify-content: space-between; /* Space items apart */
+        justify-content: space-between;
         flex-wrap: nowrap;
         gap: 0;
-        width: 100%;
-        height: 100%;
-        max-height: 100vh;
+        width: 100vw; /* Full viewport width */
+        height: 100vh; /* Full viewport height */
         position: relative;
+        margin: 0;
+        padding: 0;
     }
 
     /* Show side panels - FULL HEIGHT, STRETCH FROM SCREEN EDGE TO CASSETTE EDGE */
@@ -685,14 +687,14 @@ body.cassette-mode #bottom-player-container {
     }
 
     .side-panel-left {
-        left: 0; /* Stick to left edge of screen */
-        right: calc(50% + (90vh * 1.538 / 2)); /* Stretch to left edge of cassette */
+        left: 0 !important; /* Stick to left edge of screen */
+        right: calc(50% + (90vh * 1.538 / 2)) !important; /* Stretch to left edge of cassette */
         border-right: none;
     }
 
     .side-panel-right {
-        left: calc(50% + (90vh * 1.538 / 2)); /* Start at right edge of cassette */
-        right: 0; /* Stretch to right edge of screen */
+        left: calc(50% + (90vh * 1.538 / 2)) !important; /* Start at right edge of cassette */
+        right: 0 !important; /* Stretch to right edge of screen */
         border-left: none;
     }
 
@@ -839,9 +841,9 @@ body.cassette-mode #bottom-player-container {
         padding-left: calc(50% - (90vh * 1.538 / 2) + 20px); /* Start after left panel + 15px spacing */
         position: absolute;
         top: 0;
-        left: 0;
-        right: 0;
-        width: 100vw;
+        left: 0 !important;
+        right: auto;
+        width: 100vw !important;
         height: 50px;
         background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
         border-bottom: 2px solid #1a1a1a;
@@ -853,6 +855,8 @@ body.cassette-mode #bottom-player-container {
         font-family: 'Arial Black', sans-serif;
         text-shadow: 2px 2px 3px rgba(0,0,0,0.5);
         white-space: nowrap;
+        box-sizing: border-box;
+        margin: 0;
     }
 
     /* Control deck - FULL WIDTH AT BOTTOM, behind side panels */
