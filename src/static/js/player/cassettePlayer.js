@@ -48,6 +48,10 @@ export function initCassettePlayer() {
                             <div class="status-label">REC</div>
                         </div>
                         <div class="panel-spacer"></div>
+                        <!-- Mode toggle button -->
+                        <button class="panel-mode-toggle" id="panel-mode-toggle" title="Switch to Modern Mode">
+                            <i class="bi bi-list"></i>
+                        </button>
                         <div class="screw"></div>
                     </div>
 
@@ -289,6 +293,43 @@ export function initCassettePlayer() {
     }
 
     /**
+     * Lock screen orientation to landscape (mobile only)
+     */
+    async function lockOrientationLandscape() {
+        // Only on mobile devices
+        if (!isMobile()) return;
+        
+        try {
+            if (screen.orientation && screen.orientation.lock) {
+                await screen.orientation.lock('landscape');
+            }
+        } catch (error) {
+            console.log('Orientation lock not supported or failed:', error);
+        }
+    }
+
+    /**
+     * Unlock screen orientation (allow portrait again)
+     */
+    async function unlockOrientation() {
+        try {
+            if (screen.orientation && screen.orientation.unlock) {
+                screen.orientation.unlock();
+            }
+        } catch (error) {
+            console.log('Orientation unlock failed:', error);
+        }
+    }
+
+    /**
+     * Check if device is mobile
+     */
+    function isMobile() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
+            || window.innerWidth <= 932;
+    }
+
+    /**
      * Switch between modern and cassette mode
      */
     function switchMode(mode) {
@@ -306,9 +347,13 @@ export function initCassettePlayer() {
         if (mode === 'cassette') {
             cassetteContainer?.classList.add('active');
             document.body.classList.add('cassette-mode');
+            // Lock to landscape on mobile
+            lockOrientationLandscape();
         } else {
             cassetteContainer?.classList.remove('active');
             document.body.classList.remove('cassette-mode');
+            // Unlock orientation when switching to modern
+            unlockOrientation();
         }
     }
 
@@ -549,6 +594,13 @@ export function initCassettePlayer() {
             setTimeout(() => {
                 cassetteBody?.classList.remove('ejecting');
             }, 500);
+        });
+
+        // Panel mode toggle button (on MIXTAPE panel)
+        const panelToggleBtn = document.getElementById('panel-mode-toggle');
+        panelToggleBtn?.addEventListener('click', () => {
+            playButtonSound('click');
+            switchMode('modern'); // Switch to modern mode
         });
 
         // Update counter during playback

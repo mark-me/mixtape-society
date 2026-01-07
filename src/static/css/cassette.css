@@ -769,6 +769,34 @@ body.cassette-mode #bottom-player-container {
         transform: translate(-50%, -50%);
     }
 
+    /* Panel mode toggle button - subtle on MIXTAPE panel */
+    .panel-mode-toggle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(145deg, #4a4a4a, #2a2a2a);
+        border: 2px solid #1a1a1a;
+        color: #666;
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .panel-mode-toggle:hover {
+        background: linear-gradient(145deg, #5a5a5a, #3a3a3a);
+        color: #999;
+        box-shadow: 0 3px 6px rgba(0,0,0,0.4);
+    }
+
+    .panel-mode-toggle:active {
+        transform: translateY(2px);
+        box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+
     /* Cassette body - centered between panels */
     .cassette-body {
         flex-shrink: 1;
