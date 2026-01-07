@@ -481,7 +481,7 @@
 
     /* Cassette body scales naturally with container */
     /* Font sizes scale with em units automatically */
-    
+
     /* Control deck adjustments for mobile */
     .control-deck {
         padding: 15px;
@@ -802,47 +802,52 @@ body.cassette-mode #bottom-player-container {
         flex-shrink: 1;
         height: 90vh;
         width: calc(90vh * 1.538);
-        max-width: calc(100vw - 160px); /* Account for both panels */
+        max-width: calc(100vw - 160px);
         max-height: 90vh;
-        position: absolute; /* Position absolutely to center */
+        position: absolute;
         left: 50%;
         top: 50%;
-        transform: translate(-50%, -50%); /* Perfect centering */
+        transform: translate(-50%, -50%);
         background: linear-gradient(145deg, #9a9a9a 0%, #7a7a7a 50%, #6a6a6a 100%);
         padding: 2.5%;
         border-radius: 8px;
         border: 3px solid #5a5a5a;
         box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
-        z-index: 1; /* Behind panels */
+        z-index: 1; /* Behind panels and top bar */
     }
 
-    /* Top brand bar overlay */
+    /* Remove top bar from cassette body */
     .cassette-body::before {
+        display: none !important;
+    }
+
+    /* Keep cassette screws hidden in walkman mode */
+    .cassette-body::after {
+        display: none;
+    }
+
+    /* Top brand bar - separate, between panels */
+    .cassette-deck::before {
         content: 'MIXTAPE SOCIETY';
         display: flex;
         align-items: center;
         justify-content: center;
         position: absolute;
         top: 0;
-        left: 0;
-        right: 0;
-        height: 12%;
+        left: calc(50% - (90vh * 1.538 / 2)); /* Align with left edge of cassette */
+        width: calc(90vh * 1.538); /* Match cassette width */
+        max-width: calc(100vw - 160px);
+        height: 50px;
         background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
-        border-radius: 8px 8px 0 0;
         border-bottom: 2px solid #1a1a1a;
         box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-        z-index: 100;
+        z-index: 150; /* Above cassette (1), below panels (200) */
         color: #ffc107;
         font-weight: bold;
-        font-size: 14px;
+        font-size: 16px;
         font-family: 'Arial Black', sans-serif;
         text-shadow: 2px 2px 3px rgba(0,0,0,0.5);
-        padding: 0;
-    }
-
-    /* Keep cassette screws hidden in walkman mode */
-    .cassette-body::after {
-        display: none;
+        white-space: nowrap; /* Keep on one line */
     }
 
     /* Control deck - AT BOTTOM OF SCREEN, BETWEEN PANELS */
