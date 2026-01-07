@@ -10,7 +10,7 @@ The Mixtape Editor lets you craft personal mixtapes by searching your music libr
 
 - Live search with result highlighting
 - Drag-and-drop track reordering (Sortable.js)
-- Automatic cover extraction from the different cover arts.
+- Automatic cover extraction from the available cover art.
 - Manual cover upload (drag or paste)
 - Title auto-sanitizes to create clean URLs
 - One-click “Save” → instantly get a public link
