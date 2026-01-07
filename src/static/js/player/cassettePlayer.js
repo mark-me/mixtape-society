@@ -409,6 +409,31 @@ export function initCassettePlayer() {
     }
 
     /**
+     * Show brief notification to user about how to exit
+     */
+    function showExitHint() {
+        // Create notification element
+        const hint = document.createElement('div');
+        hint.className = 'walkman-exit-hint';
+        hint.innerHTML = `
+            <div class="hint-content">
+                <span class="hint-icon">ℹ️</span>
+                <span>Tap the button on the left panel to exit Walkman mode</span>
+            </div>
+        `;
+        document.body.appendChild(hint);
+        
+        // Show notification
+        setTimeout(() => hint.classList.add('show'), 100);
+        
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+            hint.classList.remove('show');
+            setTimeout(() => hint.remove(), 300);
+        }, 5000);
+    }
+
+    /**
      * Switch between modern and cassette mode
      */
     async function switchMode(mode) {
@@ -432,6 +457,13 @@ export function initCassettePlayer() {
             if (isMobile()) {
                 await enterFullscreen();
                 await lockOrientationLandscape();
+                
+                // Show hint on first time entering Walkman mode
+                const hasSeenHint = localStorage.getItem('walkmanHintSeen');
+                if (!hasSeenHint) {
+                    showExitHint();
+                    localStorage.setItem('walkmanHintSeen', 'true');
+                }
             }
         } else {
             cassetteContainer?.classList.remove('active');

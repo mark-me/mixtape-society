@@ -803,6 +803,42 @@ body.cassette-mode #bottom-player-container {
         box-shadow: 0 1px 2px rgba(0,0,0,0.3);
     }
 
+    /* Walkman exit hint notification */
+    .walkman-exit-hint {
+        position: fixed;
+        top: 60px; /* Below top bar */
+        left: 50%;
+        transform: translateX(-50%) translateY(-20px);
+        z-index: 1000;
+        opacity: 0;
+        transition: all 0.3s ease-out;
+        pointer-events: none;
+    }
+
+    .walkman-exit-hint.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    .hint-content {
+        background: rgba(0, 0, 0, 0.9);
+        color: #ffc107;
+        padding: 12px 20px;
+        border-radius: 8px;
+        border: 2px solid #ffc107;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+        white-space: nowrap;
+        max-width: 90vw;
+    }
+
+    .hint-icon {
+        font-size: 18px;
+    }
+
     /* Cassette body - centered between panels, shifted down slightly */
     .cassette-body {
         flex-shrink: 1;
