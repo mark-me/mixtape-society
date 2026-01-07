@@ -324,13 +324,13 @@ export function initCassettePlayer() {
     }
 
     /**
-     * Unlock screen orientation (allow portrait again)
+     * Unlock screen orientation (restores user's auto-rotate preference)
      */
     async function unlockOrientation() {
         try {
             if (screen.orientation && screen.orientation.unlock) {
                 screen.orientation.unlock();
-                console.log('✓ Orientation unlocked');
+                console.log('✓ Orientation unlocked - user auto-rotate preference restored');
             }
         } catch (error) {
             // Try deprecated method
@@ -340,7 +340,7 @@ export function initCassettePlayer() {
                                          screen.msUnlockOrientation;
                 if (unlockOrientation) {
                     unlockOrientation();
-                    console.log('✓ Orientation unlocked (deprecated API)');
+                    console.log('✓ Orientation unlocked (deprecated API) - user preference restored');
                 }
             } catch (e) {
                 console.log('Orientation unlock failed:', e);
@@ -620,9 +620,17 @@ export function initCassettePlayer() {
         playBtn?.addEventListener('click', async () => {
             playButtonSound('click');
             
-            // Trigger fullscreen and orientation lock on mobile (requires user gesture)
+            // (Re-)enter fullscreen and orientation lock on mobile
+            // This handles both initial entry and re-entry after phone lock
             if (isMobile() && currentMode === 'cassette') {
-                await enterFullscreen();
+                const isFullscreen = !!(document.fullscreenElement || 
+                                       document.webkitFullscreenElement || 
+                                       document.mozFullScreenElement || 
+                                       document.msFullscreenElement);
+                
+                if (!isFullscreen) {
+                    await enterFullscreen();
+                }
                 await lockOrientationLandscape();
             }
             
@@ -780,6 +788,26 @@ export function initCassettePlayer() {
 
         // Listen for track changes
         listenForTrackChanges();
+
+        // Listen for fullscreen changes (phone lock/unlock will exit fullscreen)
+        const handleFullscreenChange = async () => {
+            const isFullscreen = !!(document.fullscreenElement || 
+                                   document.webkitFullscreenElement || 
+                                   document.mozFullScreenElement || 
+                                   document.msFullscreenElement);
+            
+            // If we're in cassette mode but fullscreen was exited (e.g., phone lock)
+            if (currentMode === 'cassette' && !isFullscreen && isMobile()) {
+                console.log('📱 Fullscreen exited (phone lock?), will re-enter on next interaction');
+                // Don't auto re-enter immediately as it might annoy user
+                // Instead, re-enter on next play/button press
+            }
+        };
+        
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+        document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+        document.addEventListener('MSFullscreenChange', handleFullscreenChange);
 
         // Apply saved mode (but orientation lock won't work until user clicks)
         // Note: Just sets the UI mode, fullscreen/orientation requires user gesture
