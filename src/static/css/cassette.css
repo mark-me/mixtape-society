@@ -481,7 +481,7 @@
 
     /* Cassette body scales naturally with container */
     /* Font sizes scale with em units automatically */
-
+    
     /* Control deck adjustments for mobile */
     .control-deck {
         padding: 15px;
@@ -797,7 +797,7 @@ body.cassette-mode #bottom-player-container {
         box-shadow: 0 1px 2px rgba(0,0,0,0.3);
     }
 
-    /* Cassette body - centered between panels */
+    /* Cassette body - centered between panels, shifted down slightly */
     .cassette-body {
         flex-shrink: 1;
         height: 90vh;
@@ -806,7 +806,7 @@ body.cassette-mode #bottom-player-container {
         max-height: 90vh;
         position: absolute;
         left: 50%;
-        top: 50%;
+        top: 55%; /* Shifted from 50% to 55% to show more label */
         transform: translate(-50%, -50%);
         background: linear-gradient(145deg, #9a9a9a 0%, #7a7a7a 50%, #6a6a6a 100%);
         padding: 2.5%;
