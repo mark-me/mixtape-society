@@ -3,6 +3,7 @@ import { initSearch } from "./search.js";
 import { initEditorNotes } from "./editorNotes.js";
 import { initUI, activateInitialNotesTab } from "./ui.js";
 import { initPlaylist, setPlaylist } from "./playlist.js";
+import { initEditorQRShare } from './editorQrShare.js';
 
 const preloadMixtape = window.PRELOADED_MIXTAPE;
 
@@ -17,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const titleInput = document.getElementById("playlist-title");
         titleInput.value = preloadMixtape.title || "";
-        
+
         // Auto-grow the textarea after setting value
         if (titleInput.tagName === 'TEXTAREA') {
             titleInput.style.height = 'auto';
@@ -48,6 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
    initSearch();
    initPlaylist();
    initUI();
+   initEditorQRShare();
 
     // ---------------------------------------------------------------
     // 4️⃣  Activate the appropriate sub‑tab (Write vs Preview)
