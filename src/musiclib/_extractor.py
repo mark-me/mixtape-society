@@ -1,6 +1,6 @@
 import os
 import sqlite3
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from dataclasses import dataclass
 from pathlib import Path
 from queue import Empty, Queue
@@ -814,11 +814,9 @@ class CollectionExtractor:
         Returns:
             int | None: The four-digit year if successfully parsed, otherwise None.
         """
-        try:
+        with suppress(AttributeError, ValueError):
             if getattr(tag, "year", None):
                 return int(str(tag.year)[:4])
-        except (AttributeError, ValueError):
-            pass
         return None
 
     def _parse_number(self, value: str | None) -> int | None:

@@ -138,7 +138,6 @@ def create_app() -> Flask:
         logger.debug(f"  Status: {status}")
 
         if status and status["status"] in ("rebuilding", "resyncing"):
-            logger.debug(f"  ✅ REDIRECTING!")
             return render_template("indexing.html", status=status)
 
         return None
