@@ -85,7 +85,7 @@ def create_qr_blueprint(
                 description="QR code generation not available. Install qrcode library.",
             )
         except Exception as e:
-            logger.exception("QR code generation failed")
+            logger.exception(f"QR code generation failed: {e}")
             abort(500, description="Failed to generate QR code")
 
     @qr.route("/qr/<slug>/download")
@@ -161,7 +161,7 @@ def create_qr_blueprint(
                 description="QR code generation not available. Install qrcode library.",
             )
         except Exception as e:
-            logger.exception("QR code download failed")
+            logger.exception(f"QR code download failed: {e}")
             abort(500, description="Failed to generate QR code")
 
     return qr

@@ -220,7 +220,9 @@ def _draw_title_text(
 
     # Truncate title if too long
     max_chars = 30
-    display_title = title if len(title) <= max_chars else title[:max_chars-3] + "..."
+    display_title = (
+        title if len(title) <= max_chars else f"{title[:max_chars - 3]}..."
+    )
 
     # Get text bounding box
     bbox = draw.textbbox((0, 0), display_title, font=font)
