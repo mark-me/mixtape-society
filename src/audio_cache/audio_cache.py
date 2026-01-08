@@ -9,7 +9,7 @@ requirements during playback.
 import hashlib
 import subprocess
 from pathlib import Path
-from typing import Optional, Literal
+from typing import Literal
 
 from common.logging import Logger, NullLogger
 
@@ -209,7 +209,7 @@ class AudioCache:
         ]
 
         try:
-            result = subprocess.run(
+            subprocess.run(
                 cmd,
                 capture_output=True,
                 check=True,
@@ -246,10 +246,7 @@ class AudioCache:
 
         cache_path = self.get_cache_path(original_path, quality)
 
-        if self.is_cached(original_path, quality):
-            return cache_path
-
-        return original_path
+        return cache_path if self.is_cached(original_path, quality) else original_path
 
     def precache_file(
         self,
@@ -292,10 +289,11 @@ class AudioCache:
         Returns:
             Total size in bytes.
         """
-        total_size = 0
-        for file_path in self.cache_dir.rglob("*"):
-            if file_path.is_file():
-                total_size += file_path.stat().st_size
+        total_size = sum(
+            file_path.stat().st_size
+            for file_path in self.cache_dir.rglob("*")
+            if file_path.is_file()
+        )
         return total_size
 
     def clear_cache(self, older_than_days: int | None = None) -> int:
