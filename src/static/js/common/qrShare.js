@@ -1,71 +1,117 @@
-// static/js/editor/qrShare.js
+// static/js/common/qrShare.js
 
 /**
- * QR code sharing functionality for the editor page
- * Shows share button only when mixtape is saved
+ * Common QR code sharing functionality
+ * Works across browser, editor, and player pages
  */
 
-export function initEditorQRShare() {
-    const shareBtn = document.getElementById('share-playlist');
-    const qrModal = document.getElementById('qrShareModal');
-    
-    if (!shareBtn || !qrModal) {
-        console.warn('QR share components not found in editor');
+// Store current slug when modal is opened
+let currentModalSlug = null;
+
+/**
+ * Initialize QR sharing for a specific context
+ * 
+ * @param {Object} options - Configuration options
+ * @param {string} options.shareButtonSelector - CSS selector for share button(s)
+ * @param {string} options.modalId - ID of the QR modal
+ * @param {Function} options.getSlug - Function to get the current mixtape slug
+ * @param {boolean} options.autoShow - Whether button should always be visible (default: false)
+ */
+export function initQRShare(options = {}) {
+    const {
+        shareButtonSelector = '.qr-share-btn',
+        modalId = 'qrShareModal',
+        getSlug = null,
+        autoShow = false
+    } = options;
+
+    const modal = initModal(modalId);
+    if (!modal) {
+        console.warn('QR share modal not found');
         return;
     }
-    
-    // Initialize Bootstrap modal
-    const modal = new bootstrap.Modal(qrModal);
-    
-    // Show share button when mixtape is saved
-    updateShareButtonVisibility();
-    
-    // Listen for save events to update share button
-    document.addEventListener('mixtape-saved', (e) => {
-        updateShareButtonVisibility();
+
+    // Initialize all share buttons
+    const shareButtons = document.querySelectorAll(shareButtonSelector);
+    shareButtons.forEach(btn => {
+        initShareButton(btn, modal, getSlug, autoShow);
     });
+
+    // Setup modal buttons
+    setupModalButtons(modal, getSlug);
+
+    // Listen for dynamic updates (e.g., after save in editor)
+    document.addEventListener('mixtape-saved', (e) => {
+        updateShareButtons(shareButtonSelector, autoShow);
+    });
+}
+
+/**
+ * Initialize Bootstrap modal
+ */
+function initModal(modalId) {
+    const modalEl = document.getElementById(modalId);
+    if (!modalEl) return null;
     
-    // Show QR modal when share button is clicked
-    shareBtn.addEventListener('click', () => {
-        const slug = getCurrentSlug();
+    return new bootstrap.Modal(modalEl);
+}
+
+/**
+ * Initialize a single share button
+ */
+function initShareButton(button, modal, getSlugFn, autoShow) {
+    // Show button if autoShow or if slug exists
+    if (autoShow) {
+        button.style.display = '';
+    } else {
+        const slug = getSlugFromButton(button, getSlugFn);
+        if (slug) {
+            button.style.display = '';
+        }
+    }
+
+    // Click handler
+    button.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const slug = getSlugFromButton(button, getSlugFn);
         if (slug) {
             showQRModal(modal, slug);
         } else {
             showError('Please save your mixtape first');
         }
     });
-    
-    // Setup download button
-    const downloadBtn = document.getElementById('qr-download-btn');
-    if (downloadBtn) {
-        downloadBtn.addEventListener('click', () => {
-            const slug = getCurrentSlug();
-            if (slug) {
-                downloadQRCode(slug);
-            }
-        });
-    }
-    
-    // Setup copy link button
-    const copyLinkBtn = document.getElementById('qr-copy-link-btn');
-    if (copyLinkBtn) {
-        copyLinkBtn.addEventListener('click', () => {
-            copyShareLink();
-        });
-    }
 }
 
 /**
- * Get current mixtape slug
+ * Get slug from button or custom function
  */
-function getCurrentSlug() {
-    // Check editing slug input
+function getSlugFromButton(button, getSlugFn) {
+    // Try custom function first
+    if (getSlugFn) {
+        const slug = getSlugFn(button);
+        if (slug) return slug;
+    }
+    
+    // Try data attribute
+    if (button.dataset.slug) {
+        return button.dataset.slug;
+    }
+    
+    // Try getting from editing input (editor page)
     const editingInput = document.getElementById('editing-slug');
     if (editingInput && editingInput.value) {
         return editingInput.value;
     }
     
-    // Check preloaded data
+    // Try getting from URL (player page)
+    const match = window.location.pathname.match(/\/share\/([^\/]+)/);
+    if (match) {
+        return match[1];
+    }
+    
+    // Try from preloaded data (editor page)
     if (window.PRELOADED_MIXTAPE && window.PRELOADED_MIXTAPE.slug) {
         return window.PRELOADED_MIXTAPE.slug;
     }
@@ -74,23 +120,22 @@ function getCurrentSlug() {
 }
 
 /**
- * Update share button visibility based on save state
+ * Update visibility of share buttons after save
  */
-function updateShareButtonVisibility() {
-    const shareBtn = document.getElementById('share-playlist');
-    const slug = getCurrentSlug();
+function updateShareButtons(selector, autoShow) {
+    if (autoShow) return; // Already always visible
     
-    if (!shareBtn) return;
-    
-    if (slug) {
-        shareBtn.style.display = '';
-    } else {
-        shareBtn.style.display = 'none';
-    }
+    const buttons = document.querySelectorAll(selector);
+    buttons.forEach(btn => {
+        const slug = getSlugFromButton(btn, null);
+        if (slug) {
+            btn.style.display = '';
+        }
+    });
 }
 
 /**
- * Show QR code modal and load QR image
+ * Show QR modal with loading state
  */
 function showQRModal(modal, slug) {
     const qrImg = document.getElementById('qr-code-img');
@@ -98,6 +143,9 @@ function showQRModal(modal, slug) {
     const qrError = document.getElementById('qr-error');
     
     if (!qrImg) return;
+    
+    // Store current slug for modal buttons
+    currentModalSlug = slug;
     
     // Show modal
     modal.show();
@@ -108,7 +156,7 @@ function showQRModal(modal, slug) {
     if (qrError) qrError.style.display = 'none';
     
     // Build QR URL
-    const qrUrl = `/qr/${slug}.png?size=400&logo=true`;
+    const qrUrl = `/qr/${encodeURIComponent(slug)}.png?size=400&logo=true`;
     
     // Load QR code image
     const img = new Image();
@@ -134,7 +182,71 @@ function showQRModal(modal, slug) {
 }
 
 /**
- * Download QR code as PNG file
+ * Setup modal action buttons (download, copy link)
+ */
+function setupModalButtons(modal, getSlugFn) {
+    // Download button
+    const downloadBtn = document.getElementById('qr-download-btn');
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', async () => {
+            const slug = getCurrentSlug(getSlugFn);
+            if (slug) {
+                await downloadQRCode(slug);
+            }
+        });
+    }
+    
+    // Copy link button
+    const copyLinkBtn = document.getElementById('qr-copy-link-btn');
+    if (copyLinkBtn) {
+        copyLinkBtn.addEventListener('click', async () => {
+            const slug = getCurrentSlug(getSlugFn);
+            if (slug) {
+                await copyShareLink(slug);
+            }
+        });
+    }
+}
+
+/**
+ * Get current slug from modal context
+ */
+function getCurrentSlug(getSlugFn) {
+    // First, try the stored slug from when modal was opened
+    if (currentModalSlug) {
+        return currentModalSlug;
+    }
+    
+    // Then try custom function (without parameters)
+    if (getSlugFn) {
+        try {
+            const slug = getSlugFn();
+            if (slug) return slug;
+        } catch (e) {
+            console.warn('getSlug function error:', e);
+        }
+    }
+    
+    // Try various sources
+    const editingInput = document.getElementById('editing-slug');
+    if (editingInput && editingInput.value) {
+        return editingInput.value;
+    }
+    
+    const match = window.location.pathname.match(/\/share\/([^\/]+)/);
+    if (match) {
+        return match[1];
+    }
+    
+    if (window.PRELOADED_MIXTAPE && window.PRELOADED_MIXTAPE.slug) {
+        return window.PRELOADED_MIXTAPE.slug;
+    }
+    
+    return null;
+}
+
+/**
+ * Download enhanced QR code with cover art
  */
 async function downloadQRCode(slug) {
     const downloadBtn = document.getElementById('qr-download-btn');
@@ -147,7 +259,7 @@ async function downloadQRCode(slug) {
     downloadBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Generating...';
     
     try {
-        const response = await fetch(`/qr/${slug}/download?size=800&include_cover=true&include_title=true`);
+        const response = await fetch(`/qr/${encodeURIComponent(slug)}/download?size=800&include_cover=true&include_title=true`);
         
         if (!response.ok) {
             throw new Error('Download failed');
@@ -189,13 +301,7 @@ async function downloadQRCode(slug) {
 /**
  * Copy share link to clipboard
  */
-async function copyShareLink() {
-    const slug = getCurrentSlug();
-    if (!slug) {
-        showToast('No mixtape to share', 'danger');
-        return;
-    }
-    
+async function copyShareLink(slug) {
     const shareUrl = `${window.location.origin}/share/${slug}`;
     
     try {
@@ -263,20 +369,18 @@ function showToast(message, type = 'success') {
 }
 
 /**
- * Show error in QR modal
+ * Show error message
  */
 function showError(message) {
     showToast(message, 'danger');
 }
 
 /**
- * Export function to manually trigger share
+ * Helper function to preload QR code (optional optimization)
  */
-export function triggerShare() {
-    const shareBtn = document.getElementById('share-playlist');
-    if (shareBtn && shareBtn.style.display !== 'none') {
-        shareBtn.click();
-    } else {
-        showError('Please save your mixtape first');
-    }
+export function preloadQRCode(slug) {
+    if (!slug) return;
+    
+    const img = new Image();
+    img.src = `/qr/${encodeURIComponent(slug)}.png?size=400&logo=true`;
 }

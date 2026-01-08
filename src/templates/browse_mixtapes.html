@@ -46,10 +46,10 @@
                 class="action-btn btn-play" title="Play">
                     <i class="bi bi-play-fill"></i>
                 </a>
-                <button class="action-btn btn-share copy-btn"
-                        data-url="{{ url_for('play.public_play', slug=m.slug, _external=True) }}"
-                        title="Copy public link">
-                    <i class="bi bi-share-fill"></i>
+                <button class="action-btn btn-share qr-share-btn"
+                        data-slug="{{ m.slug }}"
+                        title="Share with QR code">
+                    <i class="bi bi-qr-code"></i>
                 </button>
                 <button class="action-btn btn-delete" title="Delete"
                         data-slug="{{ m.slug }}"

@@ -3,7 +3,7 @@ import { initSearch } from "./search.js";
 import { initEditorNotes } from "./editorNotes.js";
 import { initUI, activateInitialNotesTab } from "./ui.js";
 import { initPlaylist, setPlaylist } from "./playlist.js";
-import { initEditorQRShare } from './editorQrShare.js';
+import { initQRShare } from '../common/qrShare.js';
 
 const preloadMixtape = window.PRELOADED_MIXTAPE;
 
@@ -46,10 +46,20 @@ document.addEventListener("DOMContentLoaded", () => {
     // ---------------------------------------------------------------
     // 3️⃣  Initialise the rest of the UI (search, playlist UI, etc.)
     // ---------------------------------------------------------------
-   initSearch();
-   initPlaylist();
-   initUI();
-   initEditorQRShare();
+    initSearch();
+    initPlaylist();
+    initUI();
+
+    // Initialize QR share for editor page
+    initQRShare({
+        shareButtonSelector: '#big-share-btn',
+        modalId: 'qrShareModal',
+        getSlug: () => {
+            const match = window.location.pathname.match(/\/share\/([^\/]+)/);
+            return match ? match[1] : null;
+        },
+        autoShow: true
+    });
 
     // ---------------------------------------------------------------
     // 4️⃣  Activate the appropriate sub‑tab (Write vs Preview)
