@@ -6,6 +6,20 @@ All notable changes to Mixtape Society are documented here. We follow [Semantic 
 
 Each release rewinds and fast-forwards your mixtape experience—just like a real cassette! 🎧
 
+## 📦 v0.5.5
+
+<span class="md-tag">Development</span>
+
+**🗓️** 2026-01-xx
+
+### ✨ Added
+
+- Sharing through QR codes
+
+[Changes since last version](https://github.com/mark-me/mixtape-society/compare/v0.5.4...v0.5.5)
+
+---
+
 ## 📦 v0.5.4
 
 <span class="md-tag">Release</span>

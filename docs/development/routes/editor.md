@@ -8,28 +8,32 @@ The file `routes/editor.py` acts as the backend interface for the mixtape editor
 
 The Mixtape Editor is a full‑featured UI that lets a logged‑in user:
 
-* **Search** the music library (powered by `MusicCollectionUI.search_highlighting`).
-* **Add** individual tracks or whole albums to a playlist (the mixtape).
-* **Re‑order** tracks via drag‑and‑drop (Sortable.js).
-* **Edit** the mixtape title, liner notes (EasyMDE markdown editor), and cover art (upload or auto‑generated composite).
-* **Save** a new mixtape or **update** an existing one (via `MixtapeManager`).
-* **Monitor** background audio‑caching progress through a Server‑Sent Events (SSE) stream and a Bootstrap‑styled **progress modal**.
+| Feature | Description |
+| --------- | ------------- |
+| **Search & add tracks** | Unchanged – powered by `MusicCollectionUI.search_highlighting`. |
+| **Playlist management** | Unchanged – drag-and-drop, reorder, delete, preview. |
+| **Cover handling** | Upload a custom image or generate a composite cover from track art. |
+| **Save / update** | Creates or updates a mixtape JSON file on disk. |
+| **Background audio-caching** | Triggered after a successful save (optional). |
+| **QR-code sharing** | After a mixtape is saved, a Share button appears. Clicking it opens a modal that shows a simple QR (preview) and lets the user download an enhanced QR that includes the mixtape’s cover and title. |
+| **Progress modal** | Shows background-caching progress via SSE. |
 
 All of this lives under the Flask blueprint editor (`/editor/*`) and is protected by the `@require_auth` decorator.
 
 ## 🗺️ Flask Blueprint & Routes
 
-
-| HTTP Method | URL Pattern                        | Handler                   | Key Behaviour |
-|-------------|-----------------------------------|---------------------------|---------------|
-| GET         | `/editor/`                         | `new_mixtape()`           | Renders a blank editor (`preload_mixtape` contains empty fields). |
-| GET         | `/editor/<slug>`                   | `edit_mixtape(slug)`      | Loads mixtape JSON via `MixtapeManager.get(slug)` and renders the editor pre-filled. |
-| GET         | `/editor/search?q=`                | `search()`                | Returns up to 50 highlighted results (artist/album/track) as JSON. Minimum query length = 3. |
-| GET         | `/editor/artist_details?artist=`   | `artist_details()`        | Returns JSON `{artist, albums:[{album, cover, tracks,…}], …}`. 400 if missing. |
-| GET         | `/editor/album_details?release_dir=` | `album_details()`        | Returns JSON `{artist, album, tracks:[…], cover, is_compilation}`. 400 if missing. |
-| POST        | `/editor/save`                     | `save_mixtape()`          | Accepts a JSON payload (title, cover, liner_notes, tracks, optional slug). Handles create (new UUID) and update (existing slug). Returns `{success:true, slug, url,…}`. |
-| GET         | `/editor/progress/<slug>`          | `progress_stream(slug)`   | Server-Sent Events (SSE) that emit `{type:"connected"}` then `{step, status, message, current, total}` objects. Used by ProgressModal. |
-| POST        | `/editor/generate_composite`       | `generate_composite()`    | Takes `{covers: [url,…]}` → returns `{data_url: "data:image/png;base64,…"}` (composite cover). 400/500 on error. |
+| HTTP | URL Pattern | Handler | Key Behaviour |
+| ----- | ---------- | ------- | ------------- |
+| `GET` | `/editor/` | `new_mixtape()` | Renders a blank editor (`preload_mixtape` contains empty fields). |
+| `GET` | `/editor/<slug>` | `edit_mixtape(slug)` | Loads mixtape JSON via `MixtapeManager.get(slug)` and renders the editor pre-filled. |
+| `GET` | `/editor/search?q=` | `search()` | Returns up to 50 highlighted results (artist/album/track) as JSON. Minimum query length = 3. |
+| `GET` | `/editor/artist_details?artist=` | `artist_details()` | Returns JSON `{artist, albums:[{album, cover, tracks,…}], …}`. 400 if missing. |
+| `GET` | `/editor/album_details?release_dir=` | `album_details()` | Returns JSON `{artist, album, tracks:[…], cover, is_compilation}`. 400 if missing. |
+| `POST` | `/editor/save` | `save_mixtape()` | Accepts a JSON payload (`title, cover, liner_notes, tracks, optional slug`). Handles create (new UUID) and update (existing slug). Returns `{success:true, slug, url,…}`. |
+| `GET` | `/editor/progress/<slug>` | `progress_stream(slug)` | Server-Sent Events (SSE) that emit `{type:"connected"}` then `{step, status, message, current, total}` objects. Used by Progress Modal. |
+| `POST` | `/editor/generate_composite` | `generate_composite()` | Takes `{covers: [url,…]}` → returns `{data_url: "data:image/png;base64,…"}` (composite cover). 400/500 on error. |
+| `GET` | `/qr/<slug>.png` | `qr.generate_qr(slug)` | Simple QR code (PNG) that encodes the public mixtape URL. Optional query params: `size` (max 800) and `logo` (true/false). |
+| `GET` | `/qr/<slug>/download` | `qr.download_qr(slug)` | Enhanced QR code (PNG) that can include the mixtape’s cover art, title banner, and optional logo. Optional query params: `size` (max 1200), `include_cover`, `include_title`. |
 
 All routes are protected by `@require_auth`, so unauthenticated users are redirected to the login flow.
 
@@ -88,6 +92,25 @@ All modules share a single source of truth (`playlist` array) and communicate vi
 | Progress Modal (injected by `progressModal.js`) | Not in the template; created dynamically when saving. |
 
 All elements use **Bootstrap 5** utilities and custom CSS variables (`--color‑track`, `--bs-body-bg`, etc.) for light/dark and semantic Theming.
+
+## 📤 Share Mixtape (QR Code)
+
+| Feature | Description |
+|---------|-------------|
+| **Share button** | Appears in the playlist card header after a mixtape has been saved. `<button id="share-playlist" …>` is hidden by default and shown when a `slug` exists. |
+| **QR Share Modal** | Defined at the bottom of `editor.html` (`#qrShareModal`). Contains a loading spinner, an `<img id="qr-code-img">` placeholder, an error alert, a **Copy Link** button, and a **Download** button. |
+| **Simple QR** | `GET /qr/<slug>.png?size=400&logo=true` – returns a plain QR‑code PNG (logo optional). |
+| **Enhanced QR** | `GET /qr/<slug>/download?size=800&include_cover=true&include_title=true` – returns a PNG that includes the mixtape’s cover art, a title banner, and an optional logo. Served as a downloadable attachment. |
+| **Client‑side module** | `static/js/editor/qrShare.js` handles button clicks, opens the modal, loads the QR image, and wires the **Copy** and **Download** actions. |
+| **Server‑side blueprint** | `routes/qr_blueprint.py` (registered under `/qr`). See the dedicated API page `docs/routes/qr.md`. |
+
+### How the QR flow fits into the editor
+
+1. After a successful `POST /editor/save`, the server returns a JSON payload that includes the final `slug`.
+2. The front‑end stores this `slug` in the hidden `<input id="editing-slug">`.
+3. `qrShare.js` listens for the custom `mixtape-saved` event (dispatched by the editor UI) and makes the **Share** button visible.
+4. Clicking the button opens the **QR Share Modal**. The module builds the appropriate URL (`/qr/<slug>.png` for preview, `/qr/<slug>/download` for download) and swaps the loading spinner for the generated image.
+5. The **Copy Link** button copies the public share URL (`/share/<slug>`) to the clipboard, while the **Download** button triggers a file download of the enhanced QR image.
 
 ## 🧱 Static JavaScript Modules
 
