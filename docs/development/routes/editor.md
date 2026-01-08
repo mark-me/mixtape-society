@@ -65,7 +65,7 @@ All editor‑related scripts live under `static/js/editor/`.
 They are **module‑scoped** (ES6 `import`/`export`) and loaded by `index.js` after the DOM is ready.
 
 | Module | Exported Symbol(s) | Core Responsibility |
-|--------|------------------|------------------|
+| ------ | ------------------ | ------------------- |
 | `index.js` | – | Bootstraps the whole page: preload mixtape data, initialise EasyMDE, search, playlist, UI, and set the initial “Liner-Notes” sub-tab. |
 | `search.js` | `initSearch` | Debounced search input → `/editor/search` → render grouped results (artists, albums, tracks). Handles lazy loading of album/artist details, “Add” buttons, and preview play/pause. |
 | `playlist.js` | `playlist, initPlaylist, addToPlaylist, setPlaylist, register*Callback` | Manages the playlist array, renders the sortable list, handles track-play preview, removal, and “Add whole album” actions. Emits callbacks for unsaved-changes and toast notifications. |
@@ -73,6 +73,7 @@ They are **module‑scoped** (ES6 `import`/`export`) and loaded by `index.js` af
 | `ui.js` | `initUI, activateInitialNotesTab` | Handles cover upload/composite modal, Save button (including client-id handling), floating-button behaviour, unsaved-changes detection, navigation guard, and the bottom audio player. |
 | `progressModal.js` | `showProgressModal` | Constructs a Bootstrap modal that displays a progress bar, log of caching events, and a “Close” button that appears only after completion. Connects to the SSE endpoint. |
 | `utils.js` | `escapeHtml, escapeRegExp, highlightText, showAlert, showConfirm, renderTrackReferences, htmlSafeJson` | Miscellaneous helpers used across the UI (HTML escaping, markdown rendering, modal dialogs). |
+| `qrShare.js` | `initEditorQRShare`, `triggerShare` | **Front‑end QR integration** – shows the **QR Share Modal**, loads the QR image, handles the **Download** and **Copy‑link** actions, and toggles the Share button visibility based on save state. |
 | `coverCompositor.js` (via `utils.CoverCompositor`) | – | Generates a composite cover image from a set of track covers (used by `/editor/generate_composite`). |
 
 All modules share a single source of truth (`playlist` array) and communicate via **callback registration** (unsaved‑changes, toast notifications). No circular imports occur.
@@ -80,8 +81,8 @@ All modules share a single source of truth (`playlist` array) and communicate vi
 ## 🖥️ UI Layout (Jinja Template – `editor.html`)
 
 | Section | Description |
-|---------|-------------|
-| Header (`<h1>`) | Dynamically shows “Create Mixtape”, “Edit Mixtape”, or “Edit: <title>”. |
+| ------- | ----------- |
+| Header (`<h1>`) | Dynamically shows “Create Mixtape”, “Edit Mixtape”, or “Edit: `title`”. |
 | Search Bar | Large pill-shaped input with a search icon, info-popover (advanced search tips), and a loading spinner. |
 | Results Column (`col-lg-7`) | Card titled Library – initially shows a placeholder; populated by `search.js` with artists, albums, and tracks. |
 | Mixtape Column (`col-lg-5`) | Card titled My Mixtape – contains cover image + upload button, title textarea, tabs (Tracks / Liner Notes), playlist `<ol>` (rendered by `playlist.js`), and a Clear button. |
@@ -92,25 +93,6 @@ All modules share a single source of truth (`playlist` array) and communicate vi
 | Progress Modal (injected by `progressModal.js`) | Not in the template; created dynamically when saving. |
 
 All elements use **Bootstrap 5** utilities and custom CSS variables (`--color‑track`, `--bs-body-bg`, etc.) for light/dark and semantic Theming.
-
-## 📤 Share Mixtape (QR Code)
-
-| Feature | Description |
-|---------|-------------|
-| **Share button** | Appears in the playlist card header after a mixtape has been saved. `<button id="share-playlist" …>` is hidden by default and shown when a `slug` exists. |
-| **QR Share Modal** | Defined at the bottom of `editor.html` (`#qrShareModal`). Contains a loading spinner, an `<img id="qr-code-img">` placeholder, an error alert, a **Copy Link** button, and a **Download** button. |
-| **Simple QR** | `GET /qr/<slug>.png?size=400&logo=true` – returns a plain QR‑code PNG (logo optional). |
-| **Enhanced QR** | `GET /qr/<slug>/download?size=800&include_cover=true&include_title=true` – returns a PNG that includes the mixtape’s cover art, a title banner, and an optional logo. Served as a downloadable attachment. |
-| **Client‑side module** | `static/js/editor/qrShare.js` handles button clicks, opens the modal, loads the QR image, and wires the **Copy** and **Download** actions. |
-| **Server‑side blueprint** | `routes/qr_blueprint.py` (registered under `/qr`). See the dedicated API page `docs/routes/qr.md`. |
-
-### How the QR flow fits into the editor
-
-1. After a successful `POST /editor/save`, the server returns a JSON payload that includes the final `slug`.
-2. The front‑end stores this `slug` in the hidden `<input id="editing-slug">`.
-3. `qrShare.js` listens for the custom `mixtape-saved` event (dispatched by the editor UI) and makes the **Share** button visible.
-4. Clicking the button opens the **QR Share Modal**. The module builds the appropriate URL (`/qr/<slug>.png` for preview, `/qr/<slug>/download` for download) and swaps the loading spinner for the generated image.
-5. The **Copy Link** button copies the public share URL (`/share/<slug>`) to the clipboard, while the **Download** button triggers a file download of the enhanced QR image.
 
 ## 🧱 Static JavaScript Modules
 
@@ -224,10 +206,149 @@ document.addEventListener("DOMContentLoaded", () => {
 9. **Progress Modal** receives SSE events → updates progress bar & log.
     * When `completed` → “Close” button enabled → user
 
+## 📤 QR‑Code Sharing
+
+### Share Button & Visibility
+
+* The **Share** button (`#share-playlist`) is hidden (`display:none`) until the editor has a valid `slug`.
+* The client‑side module `static/js/editor/qrShare.js` listens for the custom **`mixtape-saved`** event (dispatched by `ui.js` after a successful `POST` `/editor/save`). When the event fires, the module calls `updateShareButtonVisibility()` which sets `shareBtn.style.display = ''`.
+* If the user opens an existing mixtape (`/editor/<slug>`), the hidden input `#editing-slug` already contains the `slug`, so the button is shown immediately on page load.
+
+### QR Share Modal
+
+The modal contains three UI states:
+
+| State | Element | Behaviour |
+| ----- | ------- | --------- |
+| Loading | `#qr-loading` (spinner) | Shown while the QR image is being fetched. |
+| Success | `#qr-code-img` | Displayed once the PNG loads (`onload` event). |
+| Error | `#qr-error` | Shown if the image request fails (e.g., 404 or server error). |
+
+The **Copy** Link button copies the public mixtape URL (`/share/<slug>`) to the clipboard and shows a toast (`#shareToast`). The **Download** button triggers the **enhanced QR** endpoint (`/qr/<slug>/download?...`) and forces a file download with a friendly filename (`<Mixtape‑Title>-qr-code.png`).
+
+### Backend QR Blueprint (`/qr/...`)
+
+Implemented in `routes/qr_blueprint.py` and exposed via the `qr` Flask blueprint:
+
+| Route | Method | Description |
+| ----- | ------ | ----------- |
+| `/qr/<slug>.png` | `GET` | Returns a simple QR PNG (`size` = size px, optional logo). |
+| `/qr/<slug>/download` | `GET` | Returns an enhanced QR PNG that can include the mixtape’s cover art, title banner, and optional logo. |
+
+Both routes:
+
+* Validate that the mixtape exists (`MixtapeManager.get(slug)`).
+* Resolve the optional logo (`static/logo.svg` → fallback `static/logo.png`).
+* For the **download** endpoint, also resolve the mixtape cover (`app.config["COVER_DIR"]`).
+* Use the **`qr_generator`** package (`generate_mixtape_qr` / `generate_mixtape_qr_with_cover`).
+* Return **`Cache‑Control: public, max-age=3600`** and an appropriate **`Content‑Disposition`** header (`inline` for the preview, `attachment` for the download).
+
+!!! Important
+  The QR blueprint is registered separately from the editor blueprint:
+
+  ```python
+  # app.py (excerpt)
+  from routes.qr_blueprint import create_qr_blueprint
+  app.register_blueprint(
+      create_qr_blueprint(mixtape_manager, logger=get_logger(__name__)),
+      url_prefix="/qr",
+  )
+```
+
+### Front‑End Integration (`static/js/editor/qrShare.js`)
+
+Key functions (full source in `editorQrShare.js`):
+
+| Function | What it does |
+| -------- | ------------ |
+| `initEditorQRShare()` | Finds the Share button and modal, registers the mixtape-saved listener, toggles button visibility, and wires up the modal’s Copy and Download actions. |
+| `showQRModal(modal, slug)` | Builds the preview URL (`/qr/<slug>.png?...`), shows the loading spinner, loads the image, and handles success/error UI transitions. |
+| `downloadQRCode(slug)` | Calls `/qr/<slug>/download?...` with `size=800&include_cover=true&include_title=true`, parses the `Content-Disposition` header for a friendly filename, and triggers a browser download. |
+| `copyShareLink()` | Copies the public share URL (`window.location.origin + "/share/" + slug`) to the clipboard and shows a toast. |
+| `triggerShare()` | Public helper that can be called from other scripts (e.g., a keyboard shortcut) to open the QR modal programmatically. |
+
+The module is imported at the bottom of `editor.html`:
+
+```html
+<script type="module" src="{{ url_for('static', filename='js/editor/qrShare.js') }}"></script>
+```
+
+### Example Request Flow
+
+```mermaid
+sequenceDiagram
+    participant UI as Editor UI
+    participant QRBlueprint as /qr Blueprint
+    participant MM as MixtapeManager
+    participant QRGen as qr_generator
+    participant FS as FileSystem (static folder)
+
+    Note over UI,FS: Simple QR Request Flow
+    UI->>QRBlueprint: GET /qr/awesome-mixtape.png?size=400&logo=true
+    QRBlueprint->>MM: get('awesome-mixtape')
+    MM-->>QRBlueprint: mixtape dict
+
+    Note over QRBlueprint,FS: Resolve logo (SVG preferred, fallback PNG, else None)
+    QRBlueprint->>FS: Check static/logo.svg or static/logo.png
+    alt logo found
+        FS-->>QRBlueprint: logo_path
+    else none
+        FS-->>QRBlueprint: logo_path = None
+    end
+
+    Note over QRBlueprint,QRGen: Build share URL & generate QR
+    QRBlueprint->>QRBlueprint: share_url = url_for('play.public_play', slug, _external=True)
+    QRBlueprint->>QRGen: generate_mixtape_qr(url, title, logo_path, size=400)
+    QRGen-->>QRBlueprint: PNG bytes
+
+    Note over QRBlueprint,UI: Return simple QR
+    QRBlueprint->>UI: 200 OK, image/png, inline filename
+    UI->>UI: Hide spinner, display img element
+
+    Note over UI,FS: Enhanced QR Request Flow (download)
+    UI->>QRBlueprint: GET /qr/awesome-mixtape/download?size=800&include_cover=true
+    QRBlueprint->>MM: get('awesome-mixtape')
+    MM-->>QRBlueprint: mixtape dict
+
+    Note over QRBlueprint,FS: Resolve logo & cover
+    QRBlueprint->>FS: Check static/logo.svg/logo.png and COVER_DIR
+    alt logo or cover exists
+        FS-->>QRBlueprint: logo_path, cover_path
+    else missing
+        FS-->>QRBlueprint: logo_path/cover_path = None
+    end
+
+    Note over QRBlueprint,QRGen: Generate enhanced QR
+    QRBlueprint->>QRBlueprint: share_url = url_for('play.public_play', slug, _external=True)
+    QRBlueprint->>QRGen: generate_mixtape_qr_with_cover(params)
+    QRGen-->>QRBlueprint: PNG bytes
+
+    Note over QRBlueprint,UI: Return downloadable QR
+    QRBlueprint->>UI: 200 OK, image/png, attachment filename
+    UI->>UI: Prompt file download dialog
+```
+
+Explanation of the diagram
+
+1. **Simple QR preview** – The editor UI requests `/qr/<slug>.png`.
+    * The QR blueprint validates the mixtape, resolves an optional logo, builds the public share URL, and calls `qr_generator.generate_mixtape_qr`.
+    * The generated PNG is returned with caching headers; the UI hides the spinner and shows the image inside the modal.
+
+2. **Enhanced QR (download)** – When the user clicks **Download**, the editor requests `/qr/<slug>/download` with extra query parameters.
+    * The blueprint additionally resolves the mixtape’s cover image (if it exists) and passes it to `generate_mixtape_qr_with_cover`.
+    * The response includes a **Content‑Disposition: attachment** header so the browser prompts a file‑save dialog with a friendly filename.
+
+3. **Error handling** (not shown in the happy‑path diagram) –
+    * If `MixtapeManager.get(slug)` returns `None`, the blueprint aborts with `404`.
+    * If the `qrcode` library is missing, an `ImportError` is caught and a `500` response with a helpful message is sent.
+    * Any unexpected exception is logged (`logger.exception`) and results in a `500` error.
+
+This sequence diagram captures the complete round‑trip for both the preview and download QR flows, illustrating how the front‑end, Flask blueprint, and QR‑generation library collaborate.
+
 ## 🔧 Core Helper Functions (Back‑End)
 
 | Function | File | Purpose |
-|----------|------|---------|
+| -------- | ---- | ------- |
 | `new_mixtape()` | `editor.py` | Returns a fresh empty mixtape JSON for the template. |
 | `edit_mixtape(slug)` | `editor.py` | Retrieves a mixtape via `MixtapeManager.get(slug)` and renders the editor with pre-loaded data. |
 | `search()` | `editor.py` | Calls `collection.search_highlighting(query, limit=50)` (the same high-level search used elsewhere). |
@@ -238,7 +359,7 @@ document.addEventListener("DOMContentLoaded", () => {
 | `generate_composite()` | `editor.py` | Calls `CoverCompositor.generate_grid_composite(covers)` and returns a data-URL. |
 | `progress_stream(slug)` | `editor.py` | Returns an SSE Response that streams events from the shared `ProgressTracker`. |
 
-**Important behaviours**
+### Important behaviours
 
 * **Cover handling** – If the client sends a `data:image/...` URL, the server decodes, resizes (max 1200 px width) and stores it as `covers/<slug>.jpg`.
 * **Timestamp handling** – `MixtapeManager` adds `created_at` and `updated_at` ISO‑8601 timestamps on creation; `updated_at` is refreshed on each edit.
@@ -269,7 +390,7 @@ document.addEventListener("DOMContentLoaded", () => {
 }
 ```
 
-**Response (success)**
+#### Response (success)
 
 ```json
 {

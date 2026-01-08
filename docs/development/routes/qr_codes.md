@@ -88,7 +88,7 @@ sequenceDiagram
 ## 🗨️ Response Details
 
 | Status | Content-Type | Body | Headers |
-|-------|--------------|------|---------|
+| ------ | ------------ | ---- | ------- |
 | **200 OK** | `image/png` | Raw PNG bytes (the QR code). | `Cache-Control: public, max-age=3600`<br>`Content-Disposition:`<br>• Simple QR – `inline; filename="<slug>-qr.png"`<br>• Download QR – `attachment; filename="<title>-qr-code.png"` |
 | **404 Not Found** | `application/json` | `{ "error": "Mixtape not found" }` | — |
 | **500 Internal Server Error** | `application/json` | `{ "error": "Failed to generate QR code" }` (or a more specific message if the `qrcode` library is missing). | — |
@@ -139,7 +139,7 @@ sequenceDiagram
 ## 🔧 Configuration & Dependencies
 
 | Setting | Where it lives | Default | Remarks |
-|--------|---------------|---------|---------|
+| ------- | -------------- | ------- | ------- |
 | **`qrcode`** (Python library) | `project.toml` / `uv.lock` | `>=7.4` | Required for both endpoints. |
 | **`Pillow`** (image handling) | `project.toml` | `>=10.0` | Needed for compositing the logo/cover. |
 | **Static logo files** | `static/logo.svg` or `static/logo.png` | — | The blueprint prefers SVG; falls back to PNG. |

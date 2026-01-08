@@ -7,7 +7,7 @@ The `browse_mixtapes` Flask blueprint (`routes/browse_mixtapes.py`) that powers 
 ## 🌍 High‑Level Overview
 
 | Component | Responsibility |
-|-----------|----------------|
+| --------- | -------------- |
 | `browse_mixtapes` Blueprint (`routes/browse_mixtapes.py`) | Registers all UI-facing routes under the `/mixtapes` prefix, enforces authentication, and delegates data access to `MixtapeManager`. |
 | `MixtapeManager` (`mixtape_manager.py`) | Reads/writes mixtape JSON files, manages cover images, and provides `list_all()` for the browse view. |
 | Templates (`templates/browse_mixtapes.html`) | Renders the list of mixtapes as cards, each with cover, meta info, and action buttons (edit, play, share, delete). |
@@ -16,13 +16,13 @@ The `browse_mixtapes` Flask blueprint (`routes/browse_mixtapes.py`) that powers 
 
 ## 🗺️ Flask Blueprint & Routes
 
-| HTTP Method | URL Pattern                    | View Function               | Description |
-|-------------|--------------------------------|-----------------------------|-------------|
-| GET         | `/mixtapes/`                   | `browse()`                  | Retrieves all mixtapes (`MixtapeManager.list_all()`) and renders `browse_mixtapes.html`. |
-| GET         | `/mixtapes/play/<slug>`        | `play(slug)`                | Redirect to the public player (`play.public_play`) for the given mixtape slug. |
-| GET         | `/mixtapes/files/<path:filename>` | `files(filename)`          | Serves static files (JSON, cover images, etc.) from the configured `MIXTAPE_DIR`. |
-| POST        | `/mixtapes/delete/<slug>`      | `delete_mixtape(slug)`      | Deletes the mixtape JSON and its cover image; returns JSON `{ success: true }` or an error. |
-| `before_request` | –                          | `blueprint_require_auth()`  | Runs before every request in this blueprint; redirects unauthenticated users to the landing page (`url_for("landing")`). |
+| HTTP Method | URL Pattern | View Function | Description |
+| ----------- | ----------- | ------------- | ----------- |
+| `GET` | `/mixtapes/` | `browse()` | Retrieves all mixtapes (`MixtapeManager.list_all()`) and renders `browse_mixtapes.html`. |
+| `GET` | `/mixtapes/play/<slug>` | `play(slug)` | Redirect to the public player (`play.public_play`) for the given mixtape slug. |
+| `GET` | `/mixtapes/files/<path:filename>` | `files(filename)` | Serves static files (JSON, cover images, etc.) from the configured `MIXTAPE_DIR`. |
+| `POST` | `/mixtapes/delete/<slug>` | `delete_mixtape(slug)` | Deletes the mixtape JSON and its cover image; returns JSON `{ success: true }` or an error. |
+| `before_request` | – | `blueprint_require_auth()` | Runs before every request in this blueprint; redirects unauthenticated users to the landing page (`url_for("landing")`). |
 
 All routes are wrapped with `@require_auth` (except the `before_request` hook, which performs the same check).
 
@@ -90,7 +90,7 @@ All routes are wrapped with `@require_auth` (except the `before_request` hook, w
 ## 🖥️ UI Layout (Jinja Template – `browse_mixtapes.html`)
 
 | Section | Details |
-|---------|---------|
+| ------- | ------- |
 | Header | Page title “My Mixtapes” and a New Mixtape button linking to `/editor`. |
 | Mixtape Cards | Loop over mixtapes. Each card (`.mixtape-item`) contains: • Cover (`.mixtape-cover`). • Title (`.mixtape-title`). • Meta info (`.mixtape-meta`). • Action buttons (`.action-btn`): edit (`/editor/<slug>`), play (redirect), share (copies public URL to clipboard), delete (opens modal). |
 | Empty State | If mixtapes is empty, shows a friendly “No mixtapes yet…” message with an icon. |
@@ -112,7 +112,7 @@ All UI elements use **Bootstrap 5** utilities and custom CSS variables (`--bs-bo
 ### JavaScript Modules
 
 | File | Exported function(s) | Purpose |
-|------|--------------------|---------|
+| ---- | -------------------- | ------- |
 | `copyToast.js` | `initCopyToast()` | Attaches click listeners to `.copy-btn` elements; on click copies `data-url` to the clipboard and shows the `#copyToast` toast. |
 | `deleteMixtape.js` | `initDeleteMixtape()` | Handles the delete workflow: opens the confirmation modal, sends a POST `/mixtapes/delete/<slug>` request, shows success toast, and reloads the page. |
 | `index.js` | – | Imports the two functions above and runs them on `DOMContentLoaded`. |
