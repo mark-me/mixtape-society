@@ -91,9 +91,15 @@
                         <h2 class="h5 mb-0">
                             My Mixtape <span id="playlist-count">(0)</span>
                         </h2>
-                        <button id="save-playlist" class="btn btn-outline-light btn-sm" title="Playlist opslaan">
-                            <span id="save-text">Save</span>
-                        </button>
+                        <div class="d-flex gap-2">
+                            <button id="share-playlist" class="btn btn-outline-light btn-sm" title="Share mixtape" style="display: none;">
+                                <i class="bi bi-qr-code me-1"></i>
+                                <span class="d-none d-sm-inline">Share</span>
+                            </button>
+                            <button id="save-playlist" class="btn btn-outline-light btn-sm" title="Playlist opslaan">
+                                <span id="save-text">Save</span>
+                            </button>
+                        </div>
 
                         <!-- Hidden input to know if we're editing -->
                         <input type="hidden" id="editing-slug" value="{{ editing_slug|default('') }}">
@@ -287,6 +293,65 @@
                     <i class="bi bi-trash-fill me-2"></i> Track removed from mixtape
                 </div>
                 <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Code Share Modal -->
+    <div class="modal fade" id="qrShareModal" tabindex="-1" aria-labelledby="qrShareModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="qrShareModalLabel">
+                        <i class="bi bi-qr-code me-2"></i>Share Mixtape
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                
+                <div class="modal-body text-center">
+                    <!-- Loading state -->
+                    <div id="qr-loading" class="py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Generating QR code...</span>
+                        </div>
+                        <p class="mt-3 text-muted">Generating QR code...</p>
+                    </div>
+                    
+                    <!-- QR Code image -->
+                    <img id="qr-code-img" 
+                         src="" 
+                         alt="QR Code" 
+                         class="img-fluid rounded shadow-lg mb-3"
+                         style="display: none; max-width: 100%; height: auto;">
+                    
+                    <!-- Error state -->
+                    <div id="qr-error" class="alert alert-danger" style="display: none;" role="alert">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <span id="qr-error-message">Failed to generate QR code</span>
+                    </div>
+                    
+                    <!-- Instructions -->
+                    <div class="mt-3 text-muted small">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Scan this code with a phone camera to open the mixtape
+                    </div>
+                </div>
+                
+                <div class="modal-footer justify-content-between">
+                    <button type="button" 
+                            id="qr-copy-link-btn"
+                            class="btn btn-outline-secondary">
+                        <i class="bi bi-link-45deg me-1"></i>
+                        Copy Link
+                    </button>
+                    
+                    <button type="button" 
+                            id="qr-download-btn"
+                            class="btn btn-primary">
+                        <i class="bi bi-download me-1"></i>
+                        Download QR
+                    </button>
+                </div>
             </div>
         </div>
     </div>

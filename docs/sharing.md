@@ -14,9 +14,9 @@ How Sharing Works
 
     In the editor, click **Save** (or **Ctrl** + **Enter**). The app instantly generates a unique, permanent public link.
 
-2. **Copy the Link**
+2. **Share it**
 
-    After saving, a shareable URL appears (e.g., https://yourdomain.com/share/my-favorite-songs_20251217_abcd1234). Copy it to your clipboard.
+    After saving, a shareable URL or QR code appears (e.g., https://yourdomain.com/share/my-favorite-songs_20251217_abcd1234). You can copy the link or QR code or download the QR code with cover image and title.
 
 3. **Send It Anywhere**
 
@@ -29,11 +29,11 @@ How Sharing Works
 
 ## ✨ Key Features
 
-- No login required — Recipients stream directly in their browser.
-- Permanent links — They never expire (unless you delete the mixtape).
-- Privacy control — Links are unguessable; only people you share with can access.
-- Mobile-friendly — Responsive design for easy listening on the go.
-- Future ideas → QR codes for quick scanning (coming soon!).
+- **No login required** — Recipients stream directly in their browser.
+- **Permanent links** — They never expire (unless you delete the mixtape).
+- **Privacy control** — Links are unguessable; only people you share with can access.
+- **Mobile-friendly** — Responsive design for easy listening on the go.
+- **QR codes** — for quick scanning .
 
 !!! tip "Pro Tip"
     Pair your link with a personal message: "Made this mixtape thinking of you—hope it brings back good memories! 🎧"

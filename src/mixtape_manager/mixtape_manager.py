@@ -189,8 +189,9 @@ class MixtapeManager:
         if cover_value := mixtape_data.pop("cover", None):
             if cover_value.startswith("data:image"):
                 try:
-                    path_cover = self._process_cover(cover_data=cover_value, slug=slug)
-                    if path_cover:
+                    if path_cover := self._process_cover(
+                        cover_data=cover_value, slug=slug
+                    ):
                         mixtape_data["cover"] = path_cover
                 except Exception as e:
                     self._logger.error(f"Failed to save new cover for {slug}: {e}")
@@ -222,7 +223,7 @@ class MixtapeManager:
         try:
             _, b64data = cover_data.split(",", 1)
             image = Image.open(BytesIO(b64decode(b64data)))
-            
+
             # Convert to RGB mode for JPEG compatibility
             # Handle transparency by adding white background
             if image.mode in ("RGBA", "LA", "P"):
@@ -238,7 +239,7 @@ class MixtapeManager:
                 image = background
             elif image.mode != "RGB":
                 image = image.convert("RGB")
-            
+
             image = self._cover_resize(image=image)
             file_cover = self.path_cover / f"{slug}.jpg"
             image.save(file_cover, "JPEG", quality=95, optimize=True)

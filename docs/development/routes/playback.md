@@ -6,16 +6,18 @@ All statements below are verified against the current source files (`routes/play
 
 ## 🌍 High‑Level Overview
 
-| Responsibility                                                                 | Implementation                                      |
-|---------------------------------------------------------------------------------|-----------------------------------------------------|
-| Validate & resolve the requested audio file path (prevent directory-traversal) | `_resolve_and_validate_path()`                       |
-| Determine MIME type (including custom audio extensions)                         | `_guess_mime_type()`                                 |
-| Select the file to serve – original or a cached/transcoded version according to the quality query param | `_get_serving_path()` (uses `AudioCache`) |
-| Serve full file or partial byte ranges (seeking)                                | `send_file()` for full files, `_handle_range_request()` for partial |
-| Return appropriate HTTP status (200, 206, 403, 404, 416, 500)                    | `abort()` + explicit `Response` objects              |
-| Render public mixtape page (`/share/<slug>`)                                    | `public_play()`                                     |
-| Serve cover images (`/covers/<filename>`)                                       | `serve_cover()`                                     |
-| Admin cache utilities (`/admin/cache/*`)                                        | `cache_stats()`, `clear_cache()`                     |
+| Responsibility | Implementation |
+| -------------- | -------------- |
+| Validate & resolve the requested audio file path (prevent directory-traversal) | `_resolve_and_validate_path()` |
+| Determine MIME type (including custom audio extensions) | `_guess_mime_type()` |
+| Select the file to serve – original or a cached/transcoded version   to the quality query param | `_get_serving_path()` (uses `AudioCache`) |
+| Serve full file or partial byte ranges (seeking) | `send_file()` for full files, `_handle_range_request()` for partial |
+| Return appropriate HTTP status (200, 206, 403, 404, 416, 500) | `abort()` + explicit `Response` objects |
+| Render public mixtape page (`/share/<slug>`) | `public_play()` |
+| Serve cover images (`/covers/<filename>`) | `serve_cover()` |
+| Admin cache utilities (`/admin/cache/*`) | `cache_stats()`, `clear_cache()` |
+| Generate QR code for sharing | `qr` blueprint (`/qr/<slug>.png`, `/qr/<slug>/download`) |
+
 All routes live under the Flask Blueprint named `play`.
 
 ## 🗺️ Flask Blueprint & Routes
@@ -24,13 +26,15 @@ All routes live under the Flask Blueprint named `play`.
 play = Blueprint("play", __name__)   # registered in the main Flask app
 ```
 
-| HTTP Method | URL Pattern               | Handler                 | Description                                                                 |
-|-------------|---------------------------|--------------------------|-----------------------------------------------------------------------------|
-| `GET`         | `/play/<path:file_path>`  | `stream_audio(file_path)` | Streams an audio file (original or cached) with optional quality & range support. |
-| `GET`         | `/share/<slug>`           | `public_play(slug)`      | Renders `play_mixtape.html` for a public mixtape; 404 if slug not found.     |
-| GET         | `/covers/<filename>`      | `serve_cover(filename)`  | Serves a cover image from the configured `COVER_DIR`.                        |
-| `GET`         | `/admin/cache/stats`      | `cache_stats()`          | Returns JSON with cache size (bytes) and number of cached files.             |
-| `POST`        | `/admin/cache/clear`      | `clear_cache()`          | Clears the audio cache; optional `older_than_days` query param.              |
+| HTTP Method | URL Pattern | Handler | Description |
+| ----------- | ----------- | ------- | ----------- |
+| `GET` | `/play/<path:file_path>` | `stream_audio(file_path)` | Streams an audio file (original or cached) with optional quality & range support. |
+| `GET` | `/share/<slug>` | `public_play(slug)` | Renders `play_mixtape.html` for a public mixtape; 404 if slug not found. |
+| `GET` | `/covers/<filename>` | `serve_cover(filename)` | Serves a cover image from the configured `COVER_DIR`. |
+| `GET` | `/qr/<slug>.png` | `qr.generate_qr(slug)` | Simple QR – returns a PNG QR code that encodes the public mixtape URL. Optional `size` and `logo` query params. |
+| `GET` | `/qr/<slug>/download` | `qr.download_qr(slug)` | Enhanced QR – returns a PNG that includes the mixtape’s cover art, title banner, and optional logo. Optional `size`, `include_cover`, `include_title` query params. |
+| `GET` | `/admin/cache/stats` | `cache_stats()` | Returns JSON with cache size (bytes) and number of cached files. |
+| `POST` | `/admin/cache/clear` | `clear_cache()` | Clears the audio cache; optional `older_than_days` query param. |
 
 ## 🔄 Request Flow (Detailed Sequence)
 
@@ -45,6 +49,8 @@ sequenceDiagram
     participant AudioCache
     participant _handle_range_request()
     participant send_file
+    participant QRBlueprint
+    participant QRGen
 
     Client->>FlaskApp: GET /play/<file_path>?quality=medium [& Range]
     FlaskApp->>stream_audio(): Call with file_path + query
@@ -65,14 +71,42 @@ sequenceDiagram
         stream_audio-->>FlaskApp: Return 200
     end
     FlaskApp-->>Client: Stream audio bytes
+
+    %% QR flow -------------------------------------------------
+    Client->>FlaskApp: GET /qr/<slug>.png?size=400&logo=true
+    FlaskApp->>QRBlueprint: qr.generate_qr(slug)
+    QRBlueprint->>QRGen: generate_mixtape_qr(...)
+    QRGen-->>QRBlueprint: PNG bytes
+    QRBlueprint-->>Client: 200 PNG (Cache‑Control: public, max‑age=3600)
+
+    Client->>FlaskApp: GET /qr/<slug>/download?size=800&include_cover=true&include_title=true
+    FlaskApp->>QRBlueprint: qr.download_qr(slug)
+    QRBlueprint->>QRGen: generate_mixtape_qr_with_cover(...)
+    QRGen-->>QRBlueprint: PNG bytes
+    QRBlueprint-->>Client: 200 PNG (attachment filename="…-qr-code.png")
 ```
 
 *The diagram now includes the **quality / cache decision** step (`_get_serving_path`).*
 
+## 📦 QR‑Code Generation (Backend)
+
+Implemented in `src/qr_generator/qr_generator.py` and exposed via the `qr` blueprint (`routes/qr_blueprint.py`).
+
+See the dedicated **API reference** [page for the QR routes](qr_codes.md) for a full description of the two endpoints, query parameters, and error handling.
+
+### Front‑End Integration (Editor & Player)
+
+| Location | Trigger | What happens |
+| -------- | ------- | ------------ |
+| Editor page (`editor.html`) | Click the Share button (`#share-playlist`) | `static/js/editor/qrShare.js` fires → opens the QR Share Modal (`#qrShareModal`) → loads `/qr/<slug>.png` → shows a loading spinner → displays the QR image. The Download button calls `/qr/<slug>/download`. |
+| Public player (`play_mixtape.html`) | Click the Share button (`#big-share-btn`) | `static/js/player/qrShare.js` performs the same flow as the editor, but uses the download endpoint by default (so the user gets a high-resolution QR with cover). |
+
+Both modules also expose a `triggerShare()` helper that can be called programmatically (e.g., from a keyboard shortcut).
+
 ## 🔧 Core Helper Functions
 
 | Function | Signature | What it does |
-|---------|-----------|--------------|
+| -------- | --------- | ------------ |
 | `_resolve_and_validate_path` | `Path _resolve_and_validate_path(file_path: str)` | Joins `MUSIC_ROOT + file_path`, resolves symlinks, ensures the result stays inside `MUSIC_ROOT`. Aborts with 403 (outside) or 404 (non-existent). |
 | `_guess_mime_type` | `str _guess_mime_type(full_path: Path)` | Uses `mimetypes.guess_type`. If `None`, falls back to a hard-coded map for `.flac`, `.m4a`, `.aac`, `.ogg`, `.mp3`. |
 | `_get_serving_path` | `Path _get_serving_path(original_path, quality, cache, logger)` | Quality handling: • If `quality == "original"` or the file does not need transcoding → return `original_path`. • If a cached version exists (`cache.is_cached`) → return that path (log a debug message). • Otherwise log a cache miss warning and fall back to the original file. (On-demand transcoding is commented out but ready for future use.) |
@@ -86,7 +120,6 @@ sequenceDiagram
 ## 💾 Quality & Caching Logic
 
 *Implemented in `routes/play.py` and the auxiliary `audio_cache.py` module.*
-
 
 **Why this matters** – The client can request a lower bitrate to save bandwidth on mobile connections, while the server can pre‑populate the cache (via a background job) for faster subsequent deliveries.
 
@@ -106,14 +139,14 @@ Only activated when the request contains a `Range` header.
 
 ## 📜 Response Headers & Logging
 
-| Header                         | Value (example)                          | Reason |
-|--------------------------------|------------------------------------------|--------|
-| `Accept-Ranges`                | `bytes`                                  | Advertise range support. |
-| `Access-Control-Allow-Origin`  | `*`                                      | Allow any origin to embed the audio element (needed for cross-origin playback). |
-| `Cache-Control`                | `public, max-age=3600`                   | Enable browsers/CDNs to cache the file for 1 hour. |
-| `Content-Type`                 | MIME from `_guess_mime_type` (e.g., `audio/flac`) | Correct media type for the player. |
-| `Content-Range` (partial)      | `bytes 0-1023/1234567`                   | Required for HTTP 206. |
-| `Content-Length` (partial)     | `1024`                                   | Size of the delivered chunk. |
+| Header | Value (example) | Reason |
+| ------ | --------------- | ------ |
+| `Accept-Ranges` | `bytes` | Advertise range support. |
+| `Access-Control-Allow-Origin` | `*` | Allow any origin to embed the audio element (needed for cross-origin playback). |
+| `Cache-Control` | `public, max-age=3600` | Enable browsers/CDNs to cache the file for 1 hour. |
+| `Content-Type` | MIME from `_guess_mime_type` (e.g., `audio/flac`) | Correct media type for the player. |
+| `Content-Range` (partial) | `bytes 0-1023/1234567` | Required for HTTP 206. |
+| `Content-Length` (partial) | `1024` | Size of the delivered chunk. |
 
 **Logging (via the injected `Logger`)**:
 
@@ -126,7 +159,7 @@ All logs include the request path and the selected serving path, making troubles
 ## ⚠️ Error Handling & Status Codes
 
 | Situation | Flask call | HTTP status | Log level |
-|----------|------------|-------------|-----------|
+| --------- | ---------- | ----------- | --------- |
 | Requested file outside `MUSIC_ROOT` | `abort(403)` | 403 Forbidden | warning |
 | File does not exist | `abort(404)` | 404 Not Found | warning |
 | Invalid Range header (out of bounds) | `Response(..., 416)` | 416 Range Not Satisfiable | warning |
@@ -136,7 +169,7 @@ All logs include the request path and the selected serving path, making troubles
 ## 🧱 Static Assets that Complement the Endpoint
 
 | Asset | Path | Role |
-|-------|------|------|
+| ----- | ---- | ---- |
 | `index.js` | `static/js/player/index.js` | Bootstraps the player UI, adaptive theming, quality selector, and cassette-mode UI. |
 | `playerControls.js` | `static/js/player/playerControls.js` | Implements the quality-selector dropdown, play/pause/skip logic, and UI-state synchronization with the Flask audio element. |
 | `linerNotes.js` | `static/js/player/linerNotes.js` | Renders markdown liner notes (via marked + DOMPurify). |

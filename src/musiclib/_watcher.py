@@ -1,15 +1,4 @@
-"""
-Enhanced file system watcher with debouncing for corruption prevention.
-
-This module provides an enhanced file system event handler that prevents
-database corruption during bulk file editing operations by:
-- Debouncing rapid repeated events on the same file
-- Coalescing multiple modifications into single index operations
-- Providing clean shutdown with event flushing
-"""
-
 import time
-from collections import defaultdict
 from pathlib import Path
 from threading import Lock, Timer
 from typing import Dict, Tuple
@@ -23,19 +12,19 @@ DEBOUNCE_DELAY = 2.0  # Seconds to wait after file change before indexing
 
 class EnhancedWatcher(FileSystemEventHandler):
     """Enhanced file system watcher with debouncing to prevent corruption.
-    
+
     This watcher prevents database corruption during bulk file editing by:
     1. Waiting DEBOUNCE_DELAY seconds after the last file change before indexing
     2. Coalescing multiple modifications to the same file into a single operation
     3. Properly flushing all pending events on shutdown
-    
+
     Example:
         Without debouncing:
             Edit file.mp3 5 times rapidly → 5 index operations → corruption risk
-        
+
         With debouncing:
             Edit file.mp3 5 times rapidly → wait 2 seconds → 1 index operation → safe
-    
+
     Attributes:
         extractor: The CollectionExtractor instance that processes index/delete events.
         debounce_delay: Number of seconds to wait after last file change (default: 2.0).
@@ -52,11 +41,11 @@ class EnhancedWatcher(FileSystemEventHandler):
         """
         self.extractor = extractor
         self.debounce_delay = DEBOUNCE_DELAY
-        
+
         # Track pending events: path -> (event_type, timestamp)
         self.pending_events: Dict[str, Tuple[str, float]] = {}
         self.pending_lock = Lock()
-        
+
         # Track active timers: path -> Timer
         self.timers: Dict[str, Timer] = {}
 
@@ -76,7 +65,7 @@ class EnhancedWatcher(FileSystemEventHandler):
             return
 
         path = Path(event.src_path)
-        
+
         # Only process supported audio file extensions
         if path.suffix.lower() not in self.extractor.SUPPORTED_EXTS:
             return
@@ -119,19 +108,19 @@ class EnhancedWatcher(FileSystemEventHandler):
             # Get and remove the pending event
             if path_str not in self.pending_events:
                 return
-            
+
             event_type, _ = self.pending_events.pop(path_str)
-            
+
             # Clean up timer reference
             if path_str in self.timers:
                 del self.timers[path_str]
 
         # Import IndexEvent here to avoid circular imports
         from ._extractor import IndexEvent
-        
+
         # Send to processing queue
         path = Path(path_str)
-        
+
         if event_type == "modified":
             self.extractor._write_queue.put(IndexEvent("INDEX_FILE", path))
         elif event_type == "deleted":
@@ -139,20 +128,20 @@ class EnhancedWatcher(FileSystemEventHandler):
 
     def shutdown(self) -> None:
         """Cancels all pending timers and processes remaining events immediately.
-        
+
         This ensures no events are lost when stopping the watcher. All pending
         events are flushed to the processing queue before shutdown completes.
-        
+
         This method should be called before stopping the file system observer.
         """
         # Import IndexEvent here to avoid circular imports
         from ._extractor import IndexEvent
-        
+
         with self.pending_lock:
             # Cancel all pending timers
             for timer in self.timers.values():
                 timer.cancel()
-            
+
             # Process all remaining pending events immediately
             for path_str, (event_type, _) in self.pending_events.items():
                 path = Path(path_str)
@@ -160,7 +149,7 @@ class EnhancedWatcher(FileSystemEventHandler):
                     self.extractor._write_queue.put(IndexEvent("INDEX_FILE", path))
                 elif event_type == "deleted":
                     self.extractor._write_queue.put(IndexEvent("DELETE_FILE", path))
-            
+
             # Clear all state
             self.pending_events.clear()
             self.timers.clear()

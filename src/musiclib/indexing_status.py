@@ -1,3 +1,4 @@
+import contextlib
 import json
 import os
 import tempfile
@@ -54,15 +55,11 @@ def _atomic_write_json(status_file: Path, data: dict) -> None:
     tmp_dir = status_file.parent
 
     if status_file.exists():
-        try:
+        with contextlib.suppress(OSError):
             if os.stat(tmp_dir).st_dev != os.stat(status_file).st_dev:
                 raise OSError(
                     "Atomic replacement requires temp file and status file to be on the same filesystem."
                 )
-        except OSError:
-            # If we can't check, proceed anyway but log it
-            pass
-
     temp_path = None
     try:
         with tempfile.NamedTemporaryFile(

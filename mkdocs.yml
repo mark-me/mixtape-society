@@ -56,6 +56,7 @@ nav:
         - Loader: development/musiclib/loading.md
       - Mixtape Manager: development/mixtape_manager.md
       - Audio Caching: development/audio_caching.md
+      - QR Code creation: development/qr_generation.md
       - Configuration: development/configuration.md
       - Utilities: development/utilities.md
     - Flask app:
@@ -67,6 +68,7 @@ nav:
         - Playback: development/routes/playback.md
         - Authentication: development/routes/authentication.md
         - OpenGraph: development/routes/opengraph_images.md
+        - QR Codes: development/routes/qr_codes.md
     - Roadmap: development/roadmap.md
   - Changelog: changelog.md
   - About: about.md
