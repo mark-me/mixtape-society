@@ -101,3 +101,15 @@
 | Testing | No unit tests for `base.html` or the global JS. | Add Selenium / Playwright integration tests that verify the theme switcher, indexing modal, and database-corruption flow. |
 | Security | CSRF protection is handled globally by Flask-WTF (not shown). | Ensure all POST endpoints (`/reset-database`, `/delete/<slug>`, `/resync`) validate a CSRF token. |
 | Performance | All static assets are CDN-served individually. | Bundle CSS/JS with a tool like Webpack or Rollup, enable HTTP/2 server push, and add integrity attributes for Subresource Integrity (SRI). |
+
+## 📱 QR code sharing
+
+| Idea | Description | Impact |
+|------|-------------|--------|
+| Dynamic QR size selector | Add a UI dropdown (e.g., Small / Medium / Large) that updates the `size` query param on the fly. | Improves UX for users who need larger codes for printing. |
+| QR colour theming | Pass a color query param (hex) to `generate_mixtape_qr` and recolour the QR modules. | Allows branding or better contrast on printed materials. |
+| Cache-Control header customization | Make the `max-age` configurable via an environment variable (`QR_CACHE_MAX_AGE`). | Gives operators control over CDN caching strategies. |
+| Rate limiting | Apply Flask-Limiter to `/qr/*` endpoints (e.g., 1000/day). | Prevents abuse (mass QR generation). |
+| SVG output | Add an optional `format=svg` query param that returns a vector QR. | Useful for high-resolution prints. |
+| QR analytics | Record a lightweight hit counter (Redis or SQLite) each time a QR is generated. | Lets you see how often mixtapes are shared. |
+| Fallback to Gravatar | If the logo files are missing, generate a simple coloured circle with the site initials. | Guarantees a logo is always present. |

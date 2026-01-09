@@ -520,20 +520,44 @@ function setupAudioPlayerSync() {
  * Initializes the search functionality
  */
 export function initSearch() {
+    const clearBtn = document.getElementById('clearSearch');
+    
     // Restore persisted query
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
         searchInput.value = saved.trim();
+        if (clearBtn && saved.trim()) {
+            clearBtn.style.display = 'block';
+        }
         performSearch();
     }
 
+    // Handle input changes
     searchInput.addEventListener("input", () => {
         clearTimeout(timeoutId);
         timeoutId = setTimeout(performSearch, 300);
+        
+        // Show/hide clear button
+        if (clearBtn) {
+            clearBtn.style.display = searchInput.value.trim() ? 'block' : 'none';
+        }
     });
 
-    // Initialize search hint popover
-    new bootstrap.Popover(document.getElementById("searchHint"));
+    // Handle clear button click
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            clearBtn.style.display = 'none';
+            localStorage.removeItem(STORAGE_KEY);
+            resultsDiv.innerHTML = '<p class="text-muted text-center my-5">Type at least 3 characters to start searching…</p>';
+        });
+    }
+
+    // Initialize search hint tooltip (not popover)
+    const searchHintBtn = document.getElementById("searchHint");
+    if (searchHintBtn) {
+        new bootstrap.Tooltip(searchHintBtn);
+    }
 
     // Set up audio player event listeners to keep preview button in sync
     setupAudioPlayerSync();

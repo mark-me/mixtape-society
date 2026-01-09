@@ -8,7 +8,7 @@ No accounts, no telemetry, no Spotify – just your music, your server, your rul
 
 ## ✨ Features
 
-- Public shareable links (no login needed to play)
+- Public shareable links and QR codes (no login needed to play)
 - Mixtape editor with:
   - Live search with highlighting
   - Coverart automatically added or adding your own creation
@@ -54,14 +54,3 @@ Public links should only be shared with people you trust or protected with a pas
 See [DISCLAIMER](./DISCLAIMER) for full text.
 
 Made with love for real mixtapes in a digital world.
-
-
-
-
-
-
-
-
-
-
-

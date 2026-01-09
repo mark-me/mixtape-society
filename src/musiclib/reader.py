@@ -1,4 +1,3 @@
-import contextlib
 from contextlib import contextmanager
 import hashlib
 import io
@@ -160,7 +159,7 @@ class MusicCollection:
         """Returns a read-only SQLite connection with corruption detection.
 
         Yields:
-            Connection: A read-only SQLite database connection.
+            sqlite3.Connection: A read-only SQLite database connection.
 
         Raises:
             DatabaseCorruptionError: If database corruption is detected.

@@ -31,6 +31,7 @@ from routes import (
     create_editor_blueprint,
     create_og_cover_blueprint,
     create_play_blueprint,
+    create_qr_blueprint,
 )
 from utils import get_version
 
@@ -90,19 +91,21 @@ def create_app() -> Flask:
 
         # Detect if AJAX request
         is_ajax = (
-            request.headers.get('X-Requested-With') == 'XMLHttpRequest' or
-            request.headers.get('Accept', '').startswith('application/json') or
-            request.is_json
+            request.headers.get("X-Requested-With") == "XMLHttpRequest"
+            or request.headers.get("Accept", "").startswith("application/json")
+            or request.is_json
         )
 
         if is_ajax:
-            return jsonify({
-                "error": "database_corrupted",
-                "message": "The music library database needs to be rebuilt.",
-                "requires_reset": True
-            }), 500
+            return jsonify(
+                {
+                    "error": "database_corrupted",
+                    "message": "The music library database needs to be rebuilt.",
+                    "requires_reset": True,
+                }
+            ), 500
         else:
-            return render_template('database_error.html'), 500
+            return render_template("database_error.html"), 500
 
     @app.before_request
     def check_indexing_before_request():
@@ -114,7 +117,12 @@ def create_app() -> Flask:
         #      '/indexing-status', '/',
         #     '/reset-database', '/check-database-health'
         # ]
-        bypass_paths = ['/static', '/play', '/indexing-status', '/check-database-health']
+        bypass_paths = [
+            "/static",
+            "/play",
+            "/indexing-status",
+            "/check-database-health",
+        ]
 
         for path in bypass_paths:
             if request.path.startswith(path):
@@ -130,7 +138,6 @@ def create_app() -> Flask:
         logger.debug(f"  Status: {status}")
 
         if status and status["status"] in ("rebuilding", "resyncing"):
-            logger.debug(f"  ✅ REDIRECTING!")
             return render_template("indexing.html", status=status)
 
         return None
@@ -184,10 +191,7 @@ def create_app() -> Flask:
             return jsonify(stats)
         except Exception as e:
             logger.exception(f"Error fetching collection stats: {e}")
-            return jsonify({
-                "success": False,
-                "error": str(e)
-            }), 500
+            return jsonify({"success": False, "error": str(e)}), 500
 
     @app.route("/resync", methods=["POST"])
     @require_auth
@@ -201,13 +205,13 @@ def create_app() -> Flask:
             # Check if indexing is already in progress
             status = get_indexing_status(config_cls.DATA_ROOT, logger=app.logger)
             if status and status["status"] in ("rebuilding", "resyncing"):
-                return jsonify({
-                    "success": False,
-                    "error": "Indexing already in progress"
-                }), 409
+                return jsonify(
+                    {"success": False, "error": "Indexing already in progress"}
+                ), 409
 
             # Trigger resync in background
             import threading
+
             def run_resync():
                 try:
                     collection.resync()
@@ -223,10 +227,7 @@ def create_app() -> Flask:
 
         except Exception as e:
             logger.exception(f"Error initiating resync: {e}")
-            return jsonify({
-                "success": False,
-                "error": str(e)
-            }), 500
+            return jsonify({"success": False, "error": str(e)}), 500
 
     @app.route("/robots.txt")
     def robots_txt():
@@ -257,10 +258,9 @@ def create_app() -> Flask:
             # Check if indexing already in progress
             status = get_indexing_status(config_cls.DATA_ROOT, logger=app.logger)
             if status and status["status"] in ("rebuilding", "resyncing"):
-                return jsonify({
-                    "success": False,
-                    "error": "Indexing already in progress"
-                }), 409
+                return jsonify(
+                    {"success": False, "error": "Indexing already in progress"}
+                ), 409
 
             logger.warning("Database reset requested by authenticated user")
 
@@ -275,7 +275,7 @@ def create_app() -> Flask:
             db_path = Path(config_cls.DB_PATH)
             deleted_files = []
 
-            for suffix in ['', '-wal', '-shm', '-journal']:
+            for suffix in ["", "-wal", "-shm", "-journal"]:
                 file_path = Path(str(db_path) + suffix)
                 if file_path.exists():
                     try:
@@ -284,10 +284,12 @@ def create_app() -> Flask:
                         logger.debug(f"Deleted: {file_path}")
                     except Exception as e:
                         logger.exception(f"Failed to delete {file_path}: {e}")
-                        return jsonify({
-                            "success": False,
-                            "error": f"Failed to delete database: {e}"
-                        }), 500
+                        return jsonify(
+                            {
+                                "success": False,
+                                "error": f"Failed to delete database: {e}",
+                            }
+                        ), 500
 
             # Reinitialize collection (triggers rebuild)
             def reinitialize():
@@ -297,7 +299,7 @@ def create_app() -> Flask:
                     collection = MusicCollectionUI(
                         music_root=config_cls.MUSIC_ROOT,
                         db_path=config_cls.DB_PATH,
-                        logger=logger
+                        logger=logger,
                     )
                     logger.info("Collection reinitialized")
                 except Exception as e:
@@ -306,19 +308,17 @@ def create_app() -> Flask:
             thread = threading.Thread(target=reinitialize, daemon=True)
             thread.start()
 
-            return jsonify({
-                "success": True,
-                "message": "Database reset. Rebuild started.",
-                "deleted_files": deleted_files
-            })
+            return jsonify(
+                {
+                    "success": True,
+                    "message": "Database reset. Rebuild started.",
+                    "deleted_files": deleted_files,
+                }
+            )
 
         except Exception as e:
             logger.error(f"Error during reset: {e}", exc_info=True)
-            return jsonify({
-                "success": False,
-                "error": str(e)
-            }), 500
-
+            return jsonify({"success": False, "error": str(e)}), 500
 
     @app.route("/check-database-health")
     @require_auth
@@ -329,26 +329,23 @@ def create_app() -> Flask:
 
             with collection._extractor.get_conn(readonly=True) as conn:
                 result = conn.execute("PRAGMA quick_check").fetchone()[0]
-                is_healthy = result == 'ok'
+                is_healthy = result == "ok"
 
-            return jsonify({
-                "healthy": is_healthy,
-                "track_count": count,
-                "check_result": result
-            })
+            return jsonify(
+                {"healthy": is_healthy, "track_count": count, "check_result": result}
+            )
 
         except DatabaseCorruptionError:
-            return jsonify({
-                "healthy": False,
-                "error": "Database corruption detected",
-                "requires_reset": True
-            })
+            return jsonify(
+                {
+                    "healthy": False,
+                    "error": "Database corruption detected",
+                    "requires_reset": True,
+                }
+            )
         except Exception as e:
             logger.error(f"Error checking health: {e}")
-            return jsonify({
-                "healthy": False,
-                "error": str(e)
-            }), 500
+            return jsonify({"healthy": False, "error": str(e)}), 500
 
     # === Context Processors ===
 
@@ -456,6 +453,9 @@ def create_app() -> Flask:
             path_logo=Path(__file__).parent / "static" / "logo.svg", logger=logger
         ),
         url_prefix="/og",
+    )
+    app.register_blueprint(
+        create_qr_blueprint(mixtape_manager=mixtape_manager, logger=logger)
     )
 
     return app

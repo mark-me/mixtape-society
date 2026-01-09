@@ -143,7 +143,7 @@ class ProgressTracker:
             timeout: Maximum time to wait for events (seconds)
 
         Yields:
-            SSE-formatted event strings (str)
+            str: SSE-formatted event strings
         """
         self.create_task(task_id)
 

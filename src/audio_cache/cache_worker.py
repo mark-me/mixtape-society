@@ -148,23 +148,20 @@ class CacheWorker:
         ]
 
         total_files = len(files_to_cache)
-        results = {}
-
         # Report skipped files via progress callback
         if progress_callback and hasattr(progress_callback, 'track_skipped'):
             for path in skipped_files:
                 progress_callback.track_skipped(path.name, reason="No transcoding needed (MP3/M4A/etc)")
 
-        # Add skipped files to results
-        for path in skipped_files:
-            results[str(path)] = {"skipped": True, "reason": "No transcoding needed"}
-
+        results = {
+            str(path): {"skipped": True, "reason": "No transcoding needed"}
+            for path in skipped_files
+        }
         if total_files == 0:
             self.logger.debug(f"No files need transcoding ({len(skipped_files)} files skipped)")
             # Emit final progress if all files were skipped
-            if progress_callback:
-                if hasattr(progress_callback, '__call__'):
-                    progress_callback(len(track_paths), len(track_paths))
+            if progress_callback and hasattr(progress_callback, '__call__'):
+                progress_callback(len(track_paths), len(track_paths))
             return results
 
         completed = 0
@@ -215,14 +212,12 @@ class CacheWorker:
         Returns:
             Dictionary mapping file paths to cache availability status.
         """
-        results = {}
-
-        for path in track_paths:
-            if not self.audio_cache.should_transcode(path):
-                results[str(path)] = True  # Original file, no cache needed
-            else:
-                results[str(path)] = self.audio_cache.is_cached(path, quality)
-
+        results = {
+            str(path): (
+                self.audio_cache.is_cached(path, quality) if self.audio_cache.should_transcode(path) else True
+            )
+            for path in track_paths
+        }
         return results
 
     def regenerate_outdated_cache(
