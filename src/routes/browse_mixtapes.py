@@ -36,6 +36,56 @@ def create_browser_blueprint(
 
     logger: Logger = logger or NullLogger()
 
+    def _deep_search_mixtapes(mixtapes: list[dict], query: str) -> list[dict]:
+        """
+        Performs a deep search across mixtape tracks, artists, albums, and liner notes.
+        
+        Args:
+            mixtapes: List of mixtape dictionaries to search
+            query: Search query string (case-insensitive)
+            
+        Returns:
+            Filtered list of mixtapes matching the search query
+        """
+        if not query:
+            return mixtapes
+            
+        query_lower = query.lower()
+        results = []
+        
+        for mixtape in mixtapes:
+            # Search in mixtape title
+            if query_lower in mixtape.get('title', '').lower():
+                results.append(mixtape)
+                continue
+            
+            # Search in liner notes
+            if query_lower in mixtape.get('liner_notes', '').lower():
+                results.append(mixtape)
+                continue
+                
+            # Search within tracks
+            tracks = mixtape.get('tracks', [])
+            found = False
+            for track in tracks:
+                # Search track name
+                if query_lower in track.get('track', '').lower():
+                    found = True
+                    break
+                # Search artist
+                if query_lower in track.get('artist', '').lower():
+                    found = True
+                    break
+                # Search album
+                if query_lower in track.get('album', '').lower():
+                    found = True
+                    break
+                    
+            if found:
+                results.append(mixtape)
+                
+        return results
+
     @browser.route("/")
     @require_auth
     def browse() -> Response:
@@ -44,6 +94,7 @@ def create_browser_blueprint(
 
         Checks for ongoing indexing and shows progress if active. Otherwise, lists all mixtapes.
         Supports sorting by title, date (created/updated), and track count with ascending/descending order.
+        Supports search by title (client-side) and deep search by tracks/artists/albums (server-side).
 
         Returns:
             Response: The rendered template for mixtapes or indexing progress.
@@ -53,8 +104,14 @@ def create_browser_blueprint(
         # Get sorting parameters from query string
         sort_by = request.args.get('sort_by', 'updated_at')  # default: most recent
         sort_order = request.args.get('sort_order', 'desc')  # default: descending
+        search_query = request.args.get('search', '').strip()
+        search_deep = request.args.get('deep', '').lower() == 'true'
         
         mixtapes = mixtape_manager.list_all()
+        
+        # Apply deep search if requested (searches within tracks, artists, albums)
+        if search_query and search_deep:
+            mixtapes = _deep_search_mixtapes(mixtapes, search_query)
         
         # Apply sorting
         if sort_by == 'title':
@@ -73,7 +130,9 @@ def create_browser_blueprint(
         return render_template("browse_mixtapes.html", 
                              mixtapes=mixtapes,
                              sort_by=sort_by,
-                             sort_order=sort_order)
+                             sort_order=sort_order,
+                             search_query=search_query,
+                             search_deep=search_deep)
 
     @browser.route("/play/<slug>")
     @require_auth

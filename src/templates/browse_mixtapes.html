@@ -14,16 +14,56 @@
         </button>
     </div>
 
-    <!-- Sorting Controls -->
+    <!-- Combined Search & Sort Bar -->
     <div class="card mb-4 shadow-sm">
         <div class="card-body py-3">
+            <!-- Main Controls Row -->
             <div class="row g-3 align-items-center">
-                <div class="col-auto">
-                    <label class="col-form-label fw-semibold">
-                        <i class="bi bi-funnel"></i> Sort by:
+                <!-- Search Input -->
+                <div class="col-lg-4 col-md-6 col-12">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" 
+                               id="searchInput" 
+                               class="form-control" 
+                               placeholder="Search..."
+                               value="{{ search_query }}"
+                               autocomplete="off">
+                        <button class="btn btn-outline-secondary" 
+                                type="button" 
+                                id="clearSearch"
+                                style="display: {{ 'block' if search_query else 'none' }};">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Deep Search Button -->
+                <div class="col-lg-2 col-md-3 col-6">
+                    <button id="deepSearchBtn" 
+                            class="btn btn-primary w-100"
+                            {% if not search_query %}disabled{% endif %}>
+                        <i class="bi bi-music-note-list"></i>
+                        <span class="d-none d-sm-inline"> Tracks</span>
+                    </button>
+                </div>
+
+                <!-- Sort Divider (desktop only) -->
+                <div class="col-auto d-none d-lg-block">
+                    <div class="vr" style="height: 38px;"></div>
+                </div>
+
+                <!-- Sort Label (desktop only) -->
+                <div class="col-auto d-none d-lg-block">
+                    <label class="col-form-label fw-semibold mb-0">
+                        <i class="bi bi-funnel"></i> Sort:
                     </label>
                 </div>
-                <div class="col-md-3 col-sm-4">
+
+                <!-- Sort By Dropdown -->
+                <div class="col-lg-2 col-md-5 col-12 col-sm-6">
                     <select id="sortBy" class="form-select">
                         <option value="updated_at" {% if sort_by == 'updated_at' %}selected{% endif %}>Last Modified</option>
                         <option value="created_at" {% if sort_by == 'created_at' %}selected{% endif %}>Date Created</option>
@@ -31,18 +71,48 @@
                         <option value="track_count" {% if sort_by == 'track_count' %}selected{% endif %}>Track Count</option>
                     </select>
                 </div>
-                <div class="col-auto">
-                    <button id="sortOrderBtn" class="btn btn-outline-secondary" data-order="{{ sort_order }}">
+
+                <!-- Sort Order Button -->
+                <div class="col-lg-auto col-md-4 col-12 col-sm-6">
+                    <button id="sortOrderBtn" class="btn btn-outline-secondary w-100 w-lg-auto" data-order="{{ sort_order }}">
                         {% if sort_order == 'desc' %}
-                            <i class="bi bi-sort-down"></i> Descending
+                            <i class="bi bi-sort-down"></i> <span class="d-none d-sm-inline">Desc</span>
                         {% else %}
-                            <i class="bi bi-sort-up"></i> Ascending
+                            <i class="bi bi-sort-up"></i> <span class="d-none d-sm-inline">Asc</span>
                         {% endif %}
                     </button>
                 </div>
             </div>
+
+            <!-- Info Text -->
+            <div class="row mt-2">
+                <div class="col-12">
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle"></i> 
+                        <span class="d-none d-md-inline">Type to search titles instantly, or click "Tracks" to search within songs, artists, and albums</span>
+                        <span class="d-inline d-md-none">Type to search titles, or tap "Tracks" for deep search</span>
+                    </small>
+                </div>
+            </div>
         </div>
     </div>
+
+    {% if search_query %}
+    <div class="alert alert-info d-flex justify-content-between align-items-center mb-4">
+        <span>
+            {% if search_deep %}
+                <i class="bi bi-music-note-list"></i> Deep search results for: <strong>"{{ search_query }}"</strong> 
+                ({{ mixtapes|length }} mixtape{{ 's' if mixtapes|length != 1 else '' }} found in tracks/artists/albums)
+            {% else %}
+                <i class="bi bi-funnel"></i> Showing mixtapes with titles matching: <strong>"{{ search_query }}"</strong>
+                ({{ mixtapes|length }} result{{ 's' if mixtapes|length != 1 else '' }})
+            {% endif %}
+        </span>
+        <button class="btn btn-sm btn-outline-secondary" onclick="window.location.href='/mixtapes'">
+            Clear Search
+        </button>
+    </div>
+    {% endif %}
 
     {% if mixtapes %}
         {% for m in mixtapes %}
@@ -92,8 +162,16 @@
     {% else %}
         <div class="no-mixtapes">
             <i class="bi bi-cassette display-1 mb-4 text-muted"></i>
-            <h3>No mixtapes yet...</h3>
-            <p class="text-muted">But that’s coming soon! Create one right now.</p>
+            {% if search_query %}
+                <h3>No mixtapes found</h3>
+                <p class="text-muted">No mixtapes match your search for "{{ search_query }}"</p>
+                <button class="btn btn-primary mt-3" onclick="window.location.href='/mixtapes'">
+                    <i class="bi bi-arrow-left"></i> Show All Mixtapes
+                </button>
+            {% else %}
+                <h3>No mixtapes yet...</h3>
+                <p class="text-muted">But that's coming soon! Create one right now.</p>
+            {% endif %}
         </div>
     {% endif %}
 </div>
