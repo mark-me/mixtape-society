@@ -14,7 +14,8 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 ### ✨ Added
 
-- Sharing through QR codes
+- Sharing through QR codes on browse, editor and playback pages
+- Sorting on the mixtape browsing page
 
 [Changes since last version](https://github.com/mark-me/mixtape-society/compare/v0.5.4...v0.5.5)
 
