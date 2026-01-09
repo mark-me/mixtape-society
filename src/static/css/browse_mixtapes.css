@@ -1,3 +1,24 @@
+/* --- 0. Sorting Controls --- */
+.card {
+    transition: all 0.2s ease;
+}
+
+.card:hover {
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15) !important;
+}
+
+#sortOrderBtn {
+    min-width: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+#sortOrderBtn i {
+    font-size: 1.1rem;
+}
+
 /* --- 1. Mixtape Item Card Layout --- */
 .mixtape-item {
     background: var(--bs-body-bg);

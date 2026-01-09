@@ -1,9 +1,11 @@
 // static/js/browser/index.js
 import { initDeleteMixtape } from './deleteMixtape.js';
 import { initQRShare } from '../common/qrShare.js';
+import { initSorting } from './sorting.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     initDeleteMixtape();
+    initSorting();
 
     // Initialize QR sharing for browser page
     initQRShare({

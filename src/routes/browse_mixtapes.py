@@ -43,12 +43,37 @@ def create_browser_blueprint(
         Renders the browse mixtapes page or indexing progress if active.
 
         Checks for ongoing indexing and shows progress if active. Otherwise, lists all mixtapes.
+        Supports sorting by title, date (created/updated), and track count with ascending/descending order.
 
         Returns:
             Response: The rendered template for mixtapes or indexing progress.
         """
+        from flask import request
+        
+        # Get sorting parameters from query string
+        sort_by = request.args.get('sort_by', 'updated_at')  # default: most recent
+        sort_order = request.args.get('sort_order', 'desc')  # default: descending
+        
         mixtapes = mixtape_manager.list_all()
-        return render_template("browse_mixtapes.html", mixtapes=mixtapes)
+        
+        # Apply sorting
+        if sort_by == 'title':
+            mixtapes.sort(key=lambda x: x.get('title', '').lower(), 
+                         reverse=(sort_order == 'desc'))
+        elif sort_by == 'created_at':
+            mixtapes.sort(key=lambda x: x.get('created_at') or '', 
+                         reverse=(sort_order == 'desc'))
+        elif sort_by == 'updated_at':
+            mixtapes.sort(key=lambda x: x.get('updated_at') or x.get('created_at') or '', 
+                         reverse=(sort_order == 'desc'))
+        elif sort_by == 'track_count':
+            mixtapes.sort(key=lambda x: len(x.get('tracks', [])), 
+                         reverse=(sort_order == 'desc'))
+        
+        return render_template("browse_mixtapes.html", 
+                             mixtapes=mixtapes,
+                             sort_by=sort_by,
+                             sort_order=sort_order)
 
     @browser.route("/play/<slug>")
     @require_auth
