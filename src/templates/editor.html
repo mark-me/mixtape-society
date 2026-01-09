@@ -29,41 +29,41 @@
     </h1>
 
     <!-- Search bar -->
-    <div class="container-fluid" id="search-bar">
-        <div class="row mb-4">
-            <div class="col">
-                <div class="position-relative" style="padding: 4px;">
-                    <input
-                        id="searchInput"
-                        type="text"
-                        class="form-control form-control-lg rounded-pill ps-5"
-                        placeholder="Search…"
-                        autocomplete="off"
-                        style="min-height: 58px;"
-                    />
-
-                    <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-4 text-muted pointer-events-none"></i>
-
-                    <i class="bi bi-info-circle position-absolute top-50 end-0 translate-middle-y me-4 text-muted"
-                    id="searchHint"
-                    tabindex="0"
-                    role="button"
-                    data-bs-toggle="popover"
-                    data-bs-placement="bottom"
-                    data-bs-trigger="focus"
-                    data-bs-html="true"
-                    data-bs-title="Search Tips"
-                    data-bs-content='
-                        <strong>Advanced search:</strong><br>
-                        • <code>artist:beatles</code> – only artists<br>
-                        • <code>album:abbey</code> – only albums<br>
-                        • <code>track:hey</code> or <code>song:jude</code> – only titles<br><br>
-                        Quotes for phrases: <code>artist:"The Beatles"</code><br>
-                        Combine: <code>artist:Radiohead album:"OK Computer"</code>
-                    '></i>
-
-                    <div id="loading" class="position-absolute top-50 end-0 translate-middle-y me-4 visually-hidden">
-                        <span class="spinner-border spinner-border-sm text-muted"></span>
+    <div class="card mb-3 shadow-sm">
+        <div class="card-body p-2 p-md-3">
+            <div class="row g-2 align-items-center">
+                <div class="col">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input id="searchInput"
+                               type="text"
+                               class="form-control form-control-sm"
+                               placeholder="Search library..."
+                               autocomplete="off" />
+                        <button class="btn btn-outline-secondary btn-sm"
+                                type="button"
+                                id="clearSearch"
+                                style="display: none;">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm"
+                                type="button"
+                                id="searchHint"
+                                data-bs-toggle="tooltip"
+                                data-bs-placement="bottom"
+                                data-bs-html="true"
+                                data-bs-title="<strong>Tagged search:</strong><br>
+                                    <code>artist:beatles</code> – artists only<br>
+                                    <code>album:abbey</code> – albums only<br>
+                                    <code>track:hey</code> – tracks only<br>
+                                    Combine: <code>artist:Radiohead album:OK</code>">
+                            <i class="bi bi-info-circle"></i>
+                        </button>
+                        <div id="loading" class="visually-hidden">
+                            <span class="spinner-border spinner-border-sm ms-2"></span>
+                        </div>
                     </div>
                 </div>
             </div>
