@@ -47,7 +47,7 @@ nav:
       - Editor Guide: editor.md
       - Collection Management: collection-management.md
       - Sharing & Public Links: sharing.md
-  - Architecture:
+  - Architecture & Development:
     - Project Overview: development/intro.md
     - Core Components:
       - Music Library (musiclib):
@@ -75,7 +75,7 @@ nav:
     - Ideas:
       - General: project/ideas/ideas.md
       - User Journey: project/ideas/user-journey.md
-  - About: about.md
+    - About: about.md
 
 plugins:
   - search
