@@ -6,32 +6,32 @@
 {% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="display-5 fw-bold mb-0">My Mixtapes</h1>
-        <button type="button" class="btn btn-success btn-lg shadow" onclick="window.location.href='/editor'">
-            <i class="bi bi-plus-circle-fill"></i> New Mixtape
+<div class="container py-3 py-md-5">
+    <div class="d-flex justify-content-between align-items-center mb-3 mb-md-4">
+        <h1 class="display-6 fw-bold mb-0">My Mixtapes</h1>
+        <button type="button" class="btn btn-success btn-sm btn-md-lg shadow" onclick="window.location.href='/editor'">
+            <i class="bi bi-plus-circle-fill"></i> <span class="d-none d-sm-inline">New</span>
         </button>
     </div>
 
-    <!-- Combined Search & Sort Bar -->
-    <div class="card mb-4 shadow-sm">
-        <div class="card-body py-3">
+    <!-- Compact Search & Sort Bar -->
+    <div class="card mb-3 shadow-sm">
+        <div class="card-body p-2 p-md-3">
             <!-- Main Controls Row -->
-            <div class="row g-3 align-items-center">
-                <!-- Search Input -->
-                <div class="col-lg-4 col-md-6 col-12">
-                    <div class="input-group">
-                        <span class="input-group-text bg-white">
+            <div class="row g-2 align-items-center">
+                <!-- Search Input Group -->
+                <div class="col-lg col-md-7 col-12">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text">
                             <i class="bi bi-search"></i>
                         </span>
                         <input type="text" 
                                id="searchInput" 
-                               class="form-control" 
+                               class="form-control form-control-sm" 
                                placeholder="Search..."
                                value="{{ search_query }}"
                                autocomplete="off">
-                        <button class="btn btn-outline-secondary" 
+                        <button class="btn btn-outline-secondary btn-sm" 
                                 type="button" 
                                 id="clearSearch"
                                 style="display: {{ 'block' if search_query else 'none' }};">
@@ -40,58 +40,38 @@
                     </div>
                 </div>
 
-                <!-- Deep Search Button -->
-                <div class="col-lg-2 col-md-3 col-6">
-                    <button id="deepSearchBtn" 
-                            class="btn btn-primary w-100"
-                            {% if not search_query %}disabled{% endif %}>
-                        <i class="bi bi-music-note-list"></i>
-                        <span class="d-none d-sm-inline"> Tracks</span>
-                    </button>
+                <!-- Deep Search Button with Tooltip -->
+                <div class="col-lg-auto col-md-auto col-6">
+                    <span class="d-inline-block w-100" 
+                          data-bs-toggle="tooltip" 
+                          data-bs-placement="top" 
+                          data-bs-title="Search within song names, artists, and albums"
+                          tabindex="0">
+                        <button id="deepSearchBtn" 
+                                class="btn btn-primary btn-sm w-100"
+                                {% if not search_query %}disabled{% endif %}>
+                            <i class="bi bi-music-note-list"></i>
+                            <span class="d-none d-lg-inline"> Tracks</span>
+                        </button>
+                    </span>
                 </div>
 
-                <!-- Sort Divider (desktop only) -->
-                <div class="col-auto d-none d-lg-block">
-                    <div class="vr" style="height: 38px;"></div>
-                </div>
-
-                <!-- Sort Label (desktop only) -->
-                <div class="col-auto d-none d-lg-block">
-                    <label class="col-form-label fw-semibold mb-0">
-                        <i class="bi bi-funnel"></i> Sort:
-                    </label>
-                </div>
-
-                <!-- Sort By Dropdown -->
-                <div class="col-lg-2 col-md-5 col-12 col-sm-6">
-                    <select id="sortBy" class="form-select">
-                        <option value="updated_at" {% if sort_by == 'updated_at' %}selected{% endif %}>Last Modified</option>
-                        <option value="created_at" {% if sort_by == 'created_at' %}selected{% endif %}>Date Created</option>
-                        <option value="title" {% if sort_by == 'title' %}selected{% endif %}>Title</option>
-                        <option value="track_count" {% if sort_by == 'track_count' %}selected{% endif %}>Track Count</option>
+                <!-- Sort Dropdown (combined field + order) -->
+                <div class="col-lg-auto col-md-auto col-6">
+                    <select id="sortByWithOrder" class="form-select form-select-sm">
+                        <optgroup label="Date">
+                            <option value="updated_at:desc" {% if sort_by == 'updated_at' and sort_order == 'desc' %}selected{% endif %}>📅 Recent First</option>
+                            <option value="updated_at:asc" {% if sort_by == 'updated_at' and sort_order == 'asc' %}selected{% endif %}>📅 Oldest First</option>
+                            <option value="created_at:desc" {% if sort_by == 'created_at' and sort_order == 'desc' %}selected{% endif %}>📅 Newest Created</option>
+                            <option value="created_at:asc" {% if sort_by == 'created_at' and sort_order == 'asc' %}selected{% endif %}>📅 Oldest Created</option>
+                        </optgroup>
+                        <optgroup label="Name & Size">
+                            <option value="title:asc" {% if sort_by == 'title' and sort_order == 'asc' %}selected{% endif %}>🔤 A → Z</option>
+                            <option value="title:desc" {% if sort_by == 'title' and sort_order == 'desc' %}selected{% endif %}>🔤 Z → A</option>
+                            <option value="track_count:desc" {% if sort_by == 'track_count' and sort_order == 'desc' %}selected{% endif %}>🎵 Most Tracks</option>
+                            <option value="track_count:asc" {% if sort_by == 'track_count' and sort_order == 'asc' %}selected{% endif %}>🎵 Fewest Tracks</option>
+                        </optgroup>
                     </select>
-                </div>
-
-                <!-- Sort Order Button -->
-                <div class="col-lg-auto col-md-4 col-12 col-sm-6">
-                    <button id="sortOrderBtn" class="btn btn-outline-secondary w-100 w-lg-auto" data-order="{{ sort_order }}">
-                        {% if sort_order == 'desc' %}
-                            <i class="bi bi-sort-down"></i> <span class="d-none d-sm-inline">Desc</span>
-                        {% else %}
-                            <i class="bi bi-sort-up"></i> <span class="d-none d-sm-inline">Asc</span>
-                        {% endif %}
-                    </button>
-                </div>
-            </div>
-
-            <!-- Info Text -->
-            <div class="row mt-2">
-                <div class="col-12">
-                    <small class="text-muted">
-                        <i class="bi bi-info-circle"></i> 
-                        <span class="d-none d-md-inline">Type to search titles instantly, or click "Tracks" to search within songs, artists, and albums</span>
-                        <span class="d-inline d-md-none">Type to search titles, or tap "Tracks" for deep search</span>
-                    </small>
                 </div>
             </div>
         </div>

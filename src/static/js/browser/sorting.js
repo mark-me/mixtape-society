@@ -2,25 +2,19 @@
 
 /**
  * Initializes the sorting functionality for the mixtape browser
+ * Now uses a combined dropdown for sort field and order
  */
 export function initSorting() {
-    const sortBySelect = document.getElementById('sortBy');
-    const sortOrderBtn = document.getElementById('sortOrderBtn');
+    const sortByWithOrder = document.getElementById('sortByWithOrder');
 
-    if (!sortBySelect || !sortOrderBtn) {
-        return; // Elements not present on this page
+    if (!sortByWithOrder) {
+        return; // Element not present on this page
     }
 
-    // Handle sort field changes
-    sortBySelect.addEventListener('change', () => {
-        updateURL(sortBySelect.value, sortOrderBtn.dataset.order);
-    });
-
-    // Handle sort order toggle
-    sortOrderBtn.addEventListener('click', () => {
-        const currentOrder = sortOrderBtn.dataset.order;
-        const newOrder = currentOrder === 'desc' ? 'asc' : 'desc';
-        updateURL(sortBySelect.value, newOrder);
+    // Handle combined sort dropdown changes
+    sortByWithOrder.addEventListener('change', () => {
+        const [sortBy, sortOrder] = sortByWithOrder.value.split(':');
+        updateURL(sortBy, sortOrder);
     });
 }
 

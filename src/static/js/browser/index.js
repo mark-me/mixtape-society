@@ -8,7 +8,11 @@ document.addEventListener('DOMContentLoaded', () => {
     initDeleteMixtape();
     initSorting();
     initSearch();
-
+    
+    // Initialize Bootstrap tooltips
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+    
     // Initialize QR sharing for browser page
     initQRShare({
         shareButtonSelector: '.qr-share-btn',
