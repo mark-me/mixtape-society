@@ -90,12 +90,16 @@ function initShareButton(button, modal, getSlugFn, autoShow) {
 function getSlugFromButton(button, getSlugFn) {
     // Try custom function first
     if (getSlugFn) {
-        const slug = getSlugFn(button);
-        if (slug) return slug;
+        try {
+            const slug = getSlugFn(button);
+            if (slug) return slug;
+        } catch (e) {
+            console.warn('getSlugFn error:', e);
+        }
     }
     
-    // Try data attribute
-    if (button.dataset.slug) {
+    // Try data attribute (browser page buttons)
+    if (button && button.dataset && button.dataset.slug) {
         return button.dataset.slug;
     }
     
@@ -106,9 +110,9 @@ function getSlugFromButton(button, getSlugFn) {
     }
     
     // Try getting from URL (player page)
-    const match = window.location.pathname.match(/\/share\/([^\/]+)/);
+    const match = window.location.pathname.match(/\/play\/share\/([^\/]+)/);
     if (match) {
-        return match[1];
+        return decodeURIComponent(match[1]);
     }
     
     // Try from preloaded data (editor page)
@@ -233,9 +237,9 @@ function getCurrentSlug(getSlugFn) {
         return editingInput.value;
     }
     
-    const match = window.location.pathname.match(/\/share\/([^\/]+)/);
+    const match = window.location.pathname.match(/\/play\/share\/([^\/]+)/);
     if (match) {
-        return match[1];
+        return decodeURIComponent(match[1]);
     }
     
     if (window.PRELOADED_MIXTAPE && window.PRELOADED_MIXTAPE.slug) {
@@ -302,7 +306,7 @@ async function downloadQRCode(slug) {
  * Copy share link to clipboard
  */
 async function copyShareLink(slug) {
-    const shareUrl = `${window.location.origin}/share/${slug}`;
+    const shareUrl = `${window.location.origin}/play/share/${slug}`;
     
     try {
         await navigator.clipboard.writeText(shareUrl);

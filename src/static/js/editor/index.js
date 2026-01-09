@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ---------------------------------------------------------------
-    // 2️⃣  Initialise EasyMDE (the editor) – the tabs are already rendered,
+    // 2️⃣  Initialise EasyMDE (the editor) — the tabs are already rendered,
     //     so the editor will be visible and will receive the correct
     //     initial value.
     // ---------------------------------------------------------------
@@ -50,19 +50,37 @@ document.addEventListener("DOMContentLoaded", () => {
     initPlaylist();
     initUI();
 
-    // Initialize QR share for editor page
+    // ---------------------------------------------------------------
+    // 4️⃣  Initialize QR share functionality
+    // ---------------------------------------------------------------
+    // Check if this is an existing mixtape (has slug)
+    const isExistingMixtape = Boolean(
+        (preloadMixtape && preloadMixtape.slug) ||
+        document.getElementById('editing-slug')?.value
+    );
+    
     initQRShare({
-        shareButtonSelector: '#big-share-btn',
+        shareButtonSelector: '#share-playlist',
         modalId: 'qrShareModal',
         getSlug: () => {
-            const match = window.location.pathname.match(/\/share\/([^\/]+)/);
-            return match ? match[1] : null;
+            // Try editing-slug input first (set after save)
+            const editingInput = document.getElementById('editing-slug');
+            if (editingInput && editingInput.value) {
+                return editingInput.value;
+            }
+
+            // Try preloaded data (when editing existing mixtape)
+            if (window.PRELOADED_MIXTAPE && window.PRELOADED_MIXTAPE.slug) {
+                return window.PRELOADED_MIXTAPE.slug;
+            }
+
+            return null;
         },
-        autoShow: true
+        autoShow: isExistingMixtape  // Show immediately for existing, hide for new
     });
 
     // ---------------------------------------------------------------
-    // 4️⃣  Activate the appropriate sub‑tab (Write vs Preview)
+    // 5️⃣  Activate the appropriate sub‑tab (Write vs Preview)
     // ---------------------------------------------------------------
     // If there are liner notes, we want the *Preview* tab to be visible
     // right away. Otherwise we fall back to the *Write* tab.
@@ -71,5 +89,3 @@ document.addEventListener("DOMContentLoaded", () => {
     );
     activateInitialNotesTab(hasNotes);
 });
-
-
