@@ -181,26 +181,6 @@ Those three together already differentiate you strongly.
 
 ---
 
-If you want, next we can:
-
-* Design the **mixtape landing page UX**
-* Define **mixtape metadata** (mood, story, dedication)
-* Explore **legal-safe music sources**
-* Or help you phrase this as a killer product pitch
-
-Perfect — let’s lock this down into something you can **actually ship in weeks, not months**.
-
-I’ll give you:
-
-1. **The MVP user flow (step-by-step)**
-2. **What exists physically vs digitally**
-3. **A minimal technical architecture**
-4. **What you deliberately do *not* build yet**
-
-No fluff, no overengineering.
-
----
-
 # 1. MVP definition (one sentence)
 
 > A creator makes a mixtape, prints a QR card, gives it to a friend.
