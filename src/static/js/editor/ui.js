@@ -198,6 +198,11 @@ export function initUI() {
                 localStorage.removeItem("current_mixtape_client_id");
             }
 
+            document.getElementById('editing-slug').value = data.slug;
+            document.dispatchEvent(new CustomEvent('mixtape-saved', {
+                detail: { slug: data.slug }
+            }));
+
             showProgressModal(data.slug);
         } catch (err) {
             console.error("Save error:", err);
@@ -311,10 +316,10 @@ export function initUI() {
     if (coverUploadBtn) {
         coverUploadBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            
+
             // Clean up any orphaned modal backdrops before opening
             cleanupModalBackdrops();
-            
+
             const coverModal = new bootstrap.Modal(document.getElementById('coverOptionsModal'));
             coverModal.show();
         });
@@ -339,7 +344,7 @@ export function initUI() {
         uploadOption.addEventListener('click', () => {
             const modal = bootstrap.Modal.getInstance(document.getElementById('coverOptionsModal'));
             modal.hide();
-            
+
             // Wait for modal to finish hiding before triggering file input
             // This prevents the file dialog from being blocked
             setTimeout(() => {
@@ -352,7 +357,7 @@ export function initUI() {
         generateOption.addEventListener('click', () => {
             const modal = bootstrap.Modal.getInstance(document.getElementById('coverOptionsModal'));
             modal.hide();
-            
+
             // Wait for modal to fully close before generating composite
             // This prevents modal stacking issues if alerts need to be shown
             setTimeout(() => {

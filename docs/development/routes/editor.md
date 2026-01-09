@@ -73,8 +73,9 @@ They are **module‑scoped** (ES6 `import`/`export`) and loaded by `index.js` af
 | `ui.js` | `initUI, activateInitialNotesTab` | Handles cover upload/composite modal, Save button (including client-id handling), floating-button behaviour, unsaved-changes detection, navigation guard, and the bottom audio player. |
 | `progressModal.js` | `showProgressModal` | Constructs a Bootstrap modal that displays a progress bar, log of caching events, and a “Close” button that appears only after completion. Connects to the SSE endpoint. |
 | `utils.js` | `escapeHtml, escapeRegExp, highlightText, showAlert, showConfirm, renderTrackReferences, htmlSafeJson` | Miscellaneous helpers used across the UI (HTML escaping, markdown rendering, modal dialogs). |
-| `qrShare.js` | `initEditorQRShare`, `triggerShare` | **Front‑end QR integration** – shows the **QR Share Modal**, loads the QR image, handles the **Download** and **Copy‑link** actions, and toggles the Share button visibility based on save state. |
+| `index.js` | – | Bootstraps the whole page: preload mixtape data, initialise EasyMDE, search, playlist, UI, QR sharing (via common module), and set the initial "Liner-Notes" sub-tab. |
 | `coverCompositor.js` (via `utils.CoverCompositor`) | – | Generates a composite cover image from a set of track covers (used by `/editor/generate_composite`). |
+| `qrShare.js` | `static/js/common/qrShare.js` | **Shared QR functionality** – Used by browser, editor, and player pages. Handles QR modal display, QR code loading, link copying, and QR download. Eliminates code duplication across pages. |
 
 All modules share a single source of truth (`playlist` array) and communicate via **callback registration** (unsaved‑changes, toast notifications). No circular imports occur.
 
@@ -103,7 +104,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // 1️⃣ Pre‑populate playlist, cover, title (if editing)
     // 2️⃣ Initialise EasyMDE (with pre‑loaded liner notes)
     // 3️⃣ Initialise search, playlist UI, and UI glue code
-    // 4️⃣ Activate the correct Liner‑Notes sub‑tab (Write vs Preview)
+    // 4️⃣ Initialise QR share (from common module)
+    //    - autoShow: true for existing mixtapes (has slug)
+    //    - autoShow: false for new mixtapes (hidden until save)
+    // 5️⃣ Activate the correct Liner‑Notes sub‑tab (Write vs Preview)
 });
 ```
 
@@ -124,6 +128,52 @@ document.addEventListener("DOMContentLoaded", () => {
 * **Tracks** → list items with a **preview** button (plays a short preview via the global audio player) and an **add** button (pushes the track into the playlist).
 * **Add‑Album** – Inside an album accordion a “Add whole album” button adds *all* tracks at once.
 * **Highlighting** – Search terms are wrapped in `<mark>` by the back‑end (`MusicCollection.search_highlighting`). The UI adds extra colour classes for visual distinction.
+
+### QR Share Integration (`common/qrShare.js`)
+
+* **Module location** – `static/js/common/qrShare.js` (shared across browser, editor, and player)
+* **Modal definition** – `#qrShareModal` in `base.html` (global, no duplication)
+* **Button visibility logic** –
+  - **New mixtape**: Share button starts hidden (`autoShow: false`)
+  - **Existing mixtape**: Share button shown immediately (`autoShow: true`)
+  - **After save**: `mixtape-saved` event triggers button visibility update
+* **Slug detection** – Checks `#editing-slug` input value, falls back to `window.PRELOADED_MIXTAPE.slug`
+* **QR display** – Loads `/qr/<slug>.png` (simple QR for preview)
+* **Download** – Calls `/qr/<slug>/download` (enhanced QR with cover art and title)
+* **Copy link** – Copies `/play/share/<slug>` to clipboard with toast notification
+
+**Integration in `index.js`:**
+
+```javascript
+// Determine if existing mixtape (has slug)
+const isExistingMixtape = Boolean(
+    (preloadMixtape && preloadMixtape.slug) ||
+    document.getElementById('editing-slug')?.value
+);
+
+initQRShare({
+    shareButtonSelector: '#share-playlist',
+    modalId: 'qrShareModal',
+    getSlug: () => {
+        const editingInput = document.getElementById('editing-slug');
+        if (editingInput && editingInput.value) return editingInput.value;
+        if (window.PRELOADED_MIXTAPE?.slug) return window.PRELOADED_MIXTAPE.slug;
+        return null;
+    },
+    autoShow: isExistingMixtape  // Show immediately for existing, hide for new
+});
+```
+
+**Save integration in `ui.js`:**
+After successful save, trigger the share button visibility:
+
+```javascript
+// In the save function after success
+document.getElementById('editing-slug').value = data.slug;
+document.dispatchEvent(new CustomEvent('mixtape-saved', {
+    detail: { slug: data.slug }
+}));
+```
 
 ### Playlist (`playlist.js`)
 
@@ -343,7 +393,14 @@ Explanation of the diagram
     * If the `qrcode` library is missing, an `ImportError` is caught and a `500` response with a helpful message is sent.
     * Any unexpected exception is logged (`logger.exception`) and results in a `500` error.
 
-This sequence diagram captures the complete round‑trip for both the preview and download QR flows, illustrating how the front‑end, Flask blueprint, and QR‑generation library collaborate.
+4. **QR Share Architecture** –
+    * The QR modal (`#qrShareModal`) is defined once in `base.html` (available globally on all pages)
+    * The common module (`static/js/common/qrShare.js`) handles all QR functionality
+    * Each page (browser, editor, player) calls `initQRShare()` with page-specific config
+    * For the editor: Share button is hidden initially (`autoShow: false`), shown after save
+    * After saving, the UI dispatches `mixtape-saved` event, which triggers share button visibility
+
+This sequence diagram captures the complete round‑trip for both the preview and download QR flows, illustrating how the front‑end (now using a common module), Flask blueprint, and QR‑generation library collaborate.
 
 ## 🔧 Core Helper Functions (Back‑End)
 

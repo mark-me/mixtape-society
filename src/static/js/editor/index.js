@@ -3,7 +3,7 @@ import { initSearch } from "./search.js";
 import { initEditorNotes } from "./editorNotes.js";
 import { initUI, activateInitialNotesTab } from "./ui.js";
 import { initPlaylist, setPlaylist } from "./playlist.js";
-import { initEditorQRShare } from './editorQrShare.js';
+import { initQRShare } from '../common/qrShare.js';
 
 const preloadMixtape = window.PRELOADED_MIXTAPE;
 
@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ---------------------------------------------------------------
-    // 2️⃣  Initialise EasyMDE (the editor) – the tabs are already rendered,
+    // 2️⃣  Initialise EasyMDE (the editor) — the tabs are already rendered,
     //     so the editor will be visible and will receive the correct
     //     initial value.
     // ---------------------------------------------------------------
@@ -46,13 +46,41 @@ document.addEventListener("DOMContentLoaded", () => {
     // ---------------------------------------------------------------
     // 3️⃣  Initialise the rest of the UI (search, playlist UI, etc.)
     // ---------------------------------------------------------------
-   initSearch();
-   initPlaylist();
-   initUI();
-   initEditorQRShare();
+    initSearch();
+    initPlaylist();
+    initUI();
 
     // ---------------------------------------------------------------
-    // 4️⃣  Activate the appropriate sub‑tab (Write vs Preview)
+    // 4️⃣  Initialize QR share functionality
+    // ---------------------------------------------------------------
+    // Check if this is an existing mixtape (has slug)
+    const isExistingMixtape = Boolean(
+        (preloadMixtape && preloadMixtape.slug) ||
+        document.getElementById('editing-slug')?.value
+    );
+    
+    initQRShare({
+        shareButtonSelector: '#share-playlist',
+        modalId: 'qrShareModal',
+        getSlug: () => {
+            // Try editing-slug input first (set after save)
+            const editingInput = document.getElementById('editing-slug');
+            if (editingInput && editingInput.value) {
+                return editingInput.value;
+            }
+
+            // Try preloaded data (when editing existing mixtape)
+            if (window.PRELOADED_MIXTAPE && window.PRELOADED_MIXTAPE.slug) {
+                return window.PRELOADED_MIXTAPE.slug;
+            }
+
+            return null;
+        },
+        autoShow: isExistingMixtape  // Show immediately for existing, hide for new
+    });
+
+    // ---------------------------------------------------------------
+    // 5️⃣  Activate the appropriate sub‑tab (Write vs Preview)
     // ---------------------------------------------------------------
     // If there are liner notes, we want the *Preview* tab to be visible
     // right away. Otherwise we fall back to the *Write* tab.
@@ -61,5 +89,3 @@ document.addEventListener("DOMContentLoaded", () => {
     );
     activateInitialNotesTab(hasNotes);
 });
-
-

@@ -195,16 +195,63 @@ Both modules share the same modal markup (see the bottom of `editor.html` and `p
 
 ## 🖥️ Front‑End Integration
 
-| File | Role |
-|------|------|
-| `editor.html` | Contains the Share button (`#share-playlist`) and the QR Share Modal markup (bottom of the file). |
-| `static/js/editor/qrShare.js` | Handles the editor-side flow: shows the modal, builds the QR URL, loads the image, and implements the Download and Copy-link actions. |
-| `play_mixtape.html` | Re-uses the same modal (`#qrShareModal`) and adds a Share button (`#big-share-btn`) in the player UI. |
-| `static/js/player/qrShare.js` | Mirrors the editor logic for the public player (opens modal, loads QR, handles download/copy). |
-| `qr_generator.py` (imported by the blueprint) | Provides `generate_mixtape_qr` and `generate_mixtape_qr_with_cover`. It uses the `qrcode` library + Pillow to compose the final PNG. |
+### Architecture
 
-!!! Important
-    Both JS modules listen for a custom mixtape-saved event (dispatched by the editor after a successful save) to enable the **Share** button. If you add a new UI element that can trigger sharing, make sure to dispatch the same event or call `triggerShare()` exported from `editorQrShare.js`.
+| Component | Location | Role |
+|-----------|----------|------|
+| **QR Modal** | `base.html` | Global modal (`#qrShareModal`) available on all pages |
+| **Common Module** | `static/js/common/qrShare.js` | Shared logic for QR display, copying, and downloading |
+| **Browser Integration** | `static/js/browser/index.js` | Initializes QR for multiple mixtapes with `autoShow: true` |
+| **Editor Integration** | `static/js/editor/index.js` | Initializes QR for single mixtape with `autoShow: false` (shows after save) |
+| **Player Integration** | `static/js/player/index.js` | Initializes QR for public player with `autoShow: true` |
+
+### How It Works
+
+1. **Modal defined once** - `base.html` contains the QR modal markup, making it available globally
+2. **Common module handles logic** - `qrShare.js` manages modal display, QR loading, copy, and download
+3. **Page-specific config** - Each page calls `initQRShare()` with appropriate settings:
+```javascript
+// Browser page - multiple share buttons
+initQRShare({
+    shareButtonSelector: '.qr-share-btn',
+    getSlug: (button) => button ? button.dataset.slug : null,
+    autoShow: true
+});
+
+// Editor page - single share button, hidden until saved
+initQRShare({
+    shareButtonSelector: '#share-playlist',
+    getSlug: () => document.getElementById('editing-slug')?.value,
+    autoShow: false  // Shows after save
+});
+
+// Player page - single share button
+initQRShare({
+    shareButtonSelector: '#big-share-btn',
+    getSlug: () => extractSlugFromURL(),
+    autoShow: true
+});
+```
+
+### Using the QR from the Editor UI
+
+The editor page (`editor.html`) contains a Share button (`#share-playlist`). When the user clicks it, the **common QR module** (`static/js/common/qrShare.js`):
+
+1. Retrieves the current mixtape slug (from the hidden `#editing-slug` input or `window.PRELOADED_MIXTAPE`)
+2. Opens the **QR Share Modal** (`#qrShareModal`) from `base.html`
+3. Sets the `<img id="qr-code-img">` source to `/qr/<slug>.png?...`
+4. Shows a loading spinner until the image loads, then displays the QR
+5. Provides copy link and download buttons within the modal
+
+### Using the QR from the Public Player UI
+
+The public player page (`play_mixtape.html`) includes a Share button (`#big-share-btn`). The same **common module** handles the logic:
+
+* The modal (`#qrShareModal`) is loaded from `base.html`
+* The download endpoint (`/qr/<slug>/download`) is called when the user clicks Download
+* All functionality is identical to the editor page, ensuring consistency
+
+Both pages share the same modal markup (from `base.html`) and logic (from `common/qrShare.js`).
 
 ## 🔌 API
 
