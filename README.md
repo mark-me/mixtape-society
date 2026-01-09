@@ -46,9 +46,9 @@ Open [http://localhost:5001](http://localhost:5001) – Done!
 
 Interested in where this is headed?
 
-- 💡 [Browse ideas being explored](project/ideas/ideas.md)
-- 🎯 [See what's planned next](project/roadmap.md)
-- 📝 [Read what's been shipped](project/changelog.md)
+- 💡 [Browse ideas being explored](https://mark-me.github.io/mixtape-society/project/ideas/ideas.html)
+- 🎯 [See what's planned next](https://mark-me.github.io/mixtape-society/project/roadmap.html)
+- 📝 [Read what's been shipped](https://mark-me.github.io/mixtape-society/project/changelog.html)
 - 💬 Share thoughts on [GitHub Discussions](https://github.com/mark-me/mixtape-society/discussions)
 - 🐛 Report issues or open an [issue](https://github.com/mark-me/mixtape-society/issues)
 
