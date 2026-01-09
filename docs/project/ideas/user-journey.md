@@ -1,3 +1,5 @@
+![User Journey](../../images/user-journey.png){ align=right width="90" }
+
 # User Journey
 
 ## What Mixtape Society really offering 🎁
