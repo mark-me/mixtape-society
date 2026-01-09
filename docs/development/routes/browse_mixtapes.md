@@ -101,6 +101,12 @@ All routes are wrapped with `@require_auth` (except the `before_request` hook, w
 
 All UI elements use **Bootstrap 5** utilities and custom CSS variables (`--bs-body-bg`, `--bs-border-color`) to stay theme‑aware (light/dark modes).
 
+**Share Functionality**:
+
+* Each mixtape card now has a QR button (🔲 icon) instead of a direct copy button
+* Clicking opens a global QR modal (from `base.html`)
+* Users can scan the QR code, copy the link, or download a branded QR with cover art
+
 ## 🧱 Static Assets (CSS & JS)
 
 ### `browse_mixtapes.css`
@@ -113,11 +119,15 @@ All UI elements use **Bootstrap 5** utilities and custom CSS variables (`--bs-bo
 
 | File | Exported function(s) | Purpose |
 | ---- | -------------------- | ------- |
-| `copyToast.js` | `initCopyToast()` | Attaches click listeners to `.copy-btn` elements; on click copies `data-url` to the clipboard and shows the `#copyToast` toast. |
 | `deleteMixtape.js` | `initDeleteMixtape()` | Handles the delete workflow: opens the confirmation modal, sends a POST `/mixtapes/delete/<slug>` request, shows success toast, and reloads the page. |
-| `index.js` | – | Imports the two functions above and runs them on `DOMContentLoaded`. |
+| `index.js` | — | Imports `initDeleteMixtape()` and `initQRShare()` from the common module; runs them on `DOMContentLoaded`. |
 
-All scripts are ES6 modules (`type="module"`), ensuring they are loaded after the DOM is ready and that they don’t pollute the global namespace.
+**Common Module (Shared)**:
+
+* `../common/qrShare.js` - Provides QR code generation, modal display, copy-to-clipboard, and download functionality. Used across browser, editor, and player pages.
+
+All scripts are ES6 modules (`type="module"`), ensuring they are loaded after the DOM is ready and that they don't pollute the global namespace.
+
 
 ## 📐 Class & Sequence Diagrams
 

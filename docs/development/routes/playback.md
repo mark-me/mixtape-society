@@ -170,14 +170,12 @@ All logs include the request path and the selected serving path, making troubles
 
 | Asset | Path | Role |
 | ----- | ---- | ---- |
-| `index.js` | `static/js/player/index.js` | Bootstraps the player UI, adaptive theming, quality selector, and cassette-mode UI. |
+| `index.js` | `static/js/player/index.js` | Bootstraps the player UI, adaptive theming, quality selector, cassette-mode UI, and QR sharing. |
 | `playerControls.js` | `static/js/player/playerControls.js` | Implements the quality-selector dropdown, play/pause/skip logic, and UI-state synchronization with the Flask audio element. |
 | `linerNotes.js` | `static/js/player/linerNotes.js` | Renders markdown liner notes (via marked + DOMPurify). |
-| `shareToast.js` | `static/js/player/shareToast.js` | Copies the public URL to the clipboard and shows a toast. |
+| `qrShare.js` (common) | `static/js/common/qrShare.js` | **Shared module** - Handles QR modal display, link copying, and QR download. Used across browser, editor, and player pages. |
 | `adaptiveTheming.js` | `static/js/player/adaptiveTheming.js` | Extracts dominant colors from the mixtape cover (Vibrant.js) and injects CSS custom properties for dynamic theming. |
-| `cassettePlayer.js` | `static/js/player/cassettePlayer.js` | Provides the optional “retro cassette” UI (view-mode toggle, spinning reels, VU meters). |
-| `play_mixtape.css` | `static/css/play_mixtape.css` | Adaptive background gradient, audio-control styling, mobile tweaks, quality-selector styling. |
-| `cassette.css` | `static/css/cassette.css` | Full stylesheet for the cassette-mode UI (layout, animations, dark/light mode). |
+| `cassettePlayer.js` | `static/js/player/cassettePlayer.js` | Provides the optional "retro cassette" UI (view-mode toggle, spinning reels, VU meters). |
 
 These assets are loaded by `play_mixtape.html` (the template rendered by `public_play`). They rely on the **JSON API** exposed by the Flask routes (e.g., `/play/<file_path>` for streaming, `/covers/<filename>` for cover art).
 
