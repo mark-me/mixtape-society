@@ -10,12 +10,16 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 <span class="md-tag">Development</span>
 
-**🗓️** 2026-01-xx
+**🗓️** 2026-01-09
 
 ### ✨ Added
 
 - Sharing through QR codes on browse, editor and playback pages
-- Sorting on the mixtape browsing page
+- Filtering and sorting on the mixtape browsing page
+
+### 🔧 Changed
+
+- Changed search bar for the mixtape editor
 
 [Changes since last version](https://github.com/mark-me/mixtape-society/compare/v0.5.4...v0.5.5)
 
