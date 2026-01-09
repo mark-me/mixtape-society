@@ -69,8 +69,12 @@ nav:
         - Authentication: development/routes/authentication.md
         - OpenGraph: development/routes/opengraph_images.md
         - QR Codes: development/routes/qr_codes.md
-    - Roadmap: development/roadmap.md
-  - Changelog: changelog.md
+  - Project:
+    - Changelog: project/changelog.md
+    - Roadmap: project/roadmap.md
+    - Ideas:
+      - General: project/ideas/ideas.md
+      - User Journey: project/ideas/user-journey.md
   - About: about.md
 
 plugins:

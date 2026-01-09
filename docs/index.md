@@ -41,3 +41,15 @@ Share mixtapes with friends and family. Recipients can listen to the mixtape dir
 - 📼 **Cassette‑style experience** – nostalgic UI with modern tech.
 
 Start with the [Getting Started](getting-started.md) guide.
+
+## Get Involved
+
+Interested in where this is headed?
+
+- 💡 [Browse ideas being explored](project/ideas/ideas.md)
+- 🎯 [See what's planned next](project/roadmap.md)
+- 📝 [Read what's been shipped](project/changelog.md)
+- 💬 Share thoughts on [GitHub Discussions](https://github.com/mark-me/mixtape-society/discussions)
+- 🐛 Report issues or open an [issue](https://github.com/mark-me/mixtape-society/issues)
+
+Pull requests welcome. Still early days, but contributions appreciated.

@@ -40,8 +40,19 @@ Open [http://localhost:5001](http://localhost:5001) – Done!
 - 🚀 [Getting Started](https://mark-me.github.io/mixtape-society/getting-started.html)
 - 🐳 [Docker Deployment](https://mark-me.github.io/mixtape-society/docker.html)
 - 🙌 [Acknowledgements](https://mark-me.github.io/mixtape-society/about.html#acknowledgements)
-- 📝 [Changelog](https://mark-me.github.io/mixtape-society/changelog.html)
 - 📖 [Full Documentation](https://mark-me.github.io/mixtape-society/index.html)
+
+## Get Involved
+
+Interested in where this is headed?
+
+- 💡 [Browse ideas being explored](project/ideas/ideas.md)
+- 🎯 [See what's planned next](project/roadmap.md)
+- 📝 [Read what's been shipped](project/changelog.md)
+- 💬 Share thoughts on [GitHub Discussions](https://github.com/mark-me/mixtape-society/discussions)
+- 🐛 Report issues or open an [issue](https://github.com/mark-me/mixtape-society/issues)
+
+Pull requests welcome. Still early days, but contributions appreciated.
 
 ## ⚖️ Legal & Copyright Notice
 
