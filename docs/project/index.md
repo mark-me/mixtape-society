@@ -10,7 +10,7 @@ Mixtape Society is still early days—a solo project that's finding its footing.
 - 💡 [Ideas](ideas/ideas.md) - Things being explored (lots here!)
 - 📝 [Changelog](changelog.md) - What's been shipped so far
 
-## Get Involved
+## 💙 Get Involved
 
 - 💬 [GitHub Discussions](https://github.com/mark-me/mixtape-society/discussions) - Share thoughts or ask questions
 - 🐛 [Open an issue](https://github.com/mark-me/mixtape-society/issues) - Report bugs or suggest features
