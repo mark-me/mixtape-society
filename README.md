@@ -4,7 +4,7 @@
 
 No accounts, no telemetry, no Spotify – just your music, your server, your rules.
 
-![Mixtape Society screenshot](docs/user/images/screenshot/browse.png)
+![Mixtape Society screenshot](docs/images/collage.png)
 
 ## ✨ Features
 
