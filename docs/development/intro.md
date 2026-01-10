@@ -9,12 +9,12 @@ Welcome to the **Mixtape Society** development guide. This section explains how 
 ## 📂 Project Structure
 
 - 📁 **mixtape‑society/**
+    - 👷‍♀️ **.github/**
+        - ⚙️ **workflows/**
+            * `docker-image.yml` – Build Docker images on GHCR
+            * `docs.yml` – Publish GitHub Pages
     - 🐳 **docker/** – Dockerfiles & Compose configs
     - 📚 **docs/** – MkDocs source (this folder)
-    - 👷‍♀️ **.github/**
-      - ⚙️ **workflows/**
-          * `docker-image.yml` – Build Docker images on GHCR
-          * `docs.yml` – Publish GitHub Pages
     - 📂 **src/**
         - `app.py` – Flask entry point
         - 📂 `audio_cache/` – Audio transcoding & caching
