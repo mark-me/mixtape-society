@@ -39,14 +39,14 @@ extra_css:
 nav:
   - Home: index.md
   - Getting Started:
-    - Overview: getting-started.md
+    - Overview: user/getting-started.md
     - Installation:
       - Local Development (Docker): development/docker.md
-      - Production Deployment: docker.md
+      - Production Deployment: user/docker.md
     - Using Mixtape Society:
-      - Editor Guide: editor.md
-      - Collection Management: collection-management.md
-      - Sharing & Public Links: sharing.md
+      - Editor Guide: user/editor.md
+      - Collection Management: user/collection-management.md
+      - Sharing & Public Links: user/sharing.md
   - Architecture & Development:
     - Project Overview: development/intro.md
     - Core Components:

@@ -4,7 +4,7 @@
 
 No accounts, no telemetry, no Spotify – just your music, your server, your rules.
 
-![Mixtape Society screenshot](docs/images/screenshot/browse.png)
+![Mixtape Society screenshot](docs/user/images/screenshot/browse.png)
 
 ## ✨ Features
 
@@ -37,8 +37,8 @@ Open [http://localhost:5001](http://localhost:5001) – Done!
 
 ## 📖 Project docs
 
-- 🚀 [Getting Started](https://mark-me.github.io/mixtape-society/getting-started.html)
-- 🐳 [Docker Deployment](https://mark-me.github.io/mixtape-society/docker.html)
+- 🚀 [Getting Started](https://mark-me.github.io/mixtape-society/user/getting-started.html)
+- 🐳 [Docker Deployment](https://mark-me.github.io/mixtape-society/user/docker.html)
 - 🙌 [Acknowledgements](https://mark-me.github.io/mixtape-society/project/about.html#acknowledgements)
 - 📖 [Full Documentation](https://mark-me.github.io/mixtape-society/index.html)
 
