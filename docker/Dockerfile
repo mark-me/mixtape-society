@@ -9,8 +9,17 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-# Declare ARG after FROM so it's available, and move ENV to AFTER we have the files
+# Build arguments for multi-platform support
 ARG APP_VERSION=dev
+ARG TARGETPLATFORM
+ARG BUILDPLATFORM
+
+# OCI labels for metadata
+LABEL org.opencontainers.image.title="Mixtape Society"
+LABEL org.opencontainers.image.description="Music collection manager supporting multiple architectures"
+LABEL org.opencontainers.image.version="${APP_VERSION}"
+LABEL org.opencontainers.image.source="https://github.com/mark-me/mixtape-society"
+LABEL org.opencontainers.image.documentation="https://github.com/mark-me/mixtape-society/blob/main/README.md"
 
 RUN mkdir /music
 
