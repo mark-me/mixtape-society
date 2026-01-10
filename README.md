@@ -43,7 +43,7 @@ Open [http://localhost:5001](http://localhost:5001) – Done!
 - 🙌 [Acknowledgements](https://mark-me.github.io/mixtape-society/project/about.html#acknowledgements)
 
 
-## Get Involved
+## 👥 Get Involved
 
 Interested in where this is headed?
 
