@@ -8,7 +8,9 @@ extra:
 
 ![Mixtape Society](images/favicon.svg){ align=right width="90" }
 
-A private, self‑hosted web app to create and share beautiful, add-free music mixtapes.
+# Introduction
+
+Mixtape Society is a private, self‑hosted web app to create and share beautiful, add-free music mixtapes.
 
 !!! TIP "Quick start"
     1️⃣ Install the Docker image (see **Getting Started → Installation**).
