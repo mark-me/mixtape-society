@@ -92,5 +92,12 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          annotations: |
+            index:org.opencontainers.image.description=Music collection manager with multi-architecture support (amd64, arm64)
+            index:org.opencontainers.image.title=Mixtape Society
+            index:org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            index:org.opencontainers.image.url=https://github.com/${{ github.repository }}
+            index:org.opencontainers.image.documentation=https://github.com/${{ github.repository }}/blob/main/README.md
+            index:org.opencontainers.image.version=${{ steps.version.outputs.version }}
           build-args: |
             APP_VERSION=${{ steps.version.outputs.version }}
