@@ -9,7 +9,7 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-# Declare ARG after FROM so it's available, and move ENV to AFTER we have the files
+# Build argument for version
 ARG APP_VERSION=dev
 
 RUN mkdir /music

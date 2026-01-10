@@ -8,9 +8,13 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 ## 📦 v0.5.6
 
-<span class="md-tag">Development</span>
+<span class="md-tag">Release</span>
 
-**🗓️** 2026-01-xx
+**🗓️** 2026-01-11
+
+### ✨ Added
+
+- Multi-Architecture Docker Build Setup
 
 ### 🐛 Fixed
 

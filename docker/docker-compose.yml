@@ -1,6 +1,6 @@
 services:
   mixtape:
-    image: mixtape-society:latest
+    image: ghcr.io/mark-me/mixtape-society:latest
     # build:
     #   context: .
     #   dockerfile: docker/Dockerfile
