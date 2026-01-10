@@ -78,7 +78,7 @@
 - “Sleep timer” in player
 - Random mixtape button on home page
 
-## Browser page
+## 🔍 Browser page
 
 | Area | Current implementation | Suggested enhancements |
 |------|----------------------|------------------------|
@@ -89,7 +89,7 @@
 | Permissions | All authenticated users can edit/delete any mixtape. | Tie mixtapes to a user ID (`owner_id`) and restrict edit/delete to the owner (or admins). |
 | Progressive enhancement | JavaScript is required for copy/delete. | Provide graceful degradation (e.g., plain links for copy, a server-side delete confirmation page) for users with JS disabled. |
 
-## Base page and app
+## 🧱 Base page and app
 
 | Area | Current State | Suggested Improvements |
 |------|---------------|------------------------|
