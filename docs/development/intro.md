@@ -9,34 +9,34 @@ Welcome to the **Mixtape Society** development guide. This section explains how 
 ## 📂 Project Structure
 
 - 📁 **mixtape‑society/**
-  - 🐳 **docker/** – Dockerfiles & Compose configs
-  - 📚 **docs/** – MkDocs source (this folder)
-  - 👷‍♀️ **.github/**
-    - ⚙️ **workflows/**
-      - `docker-image.yml` – Build Docker images on GHCR
-      - `docs.yml` – Publish GitHub Pages
-  - 📄 `.gitignore` – Ignored files for Git
-  - 📄 `LICENSE` – Project license
-  - 📄 `mkdocs.yml` – MkDocs site configuration
-  - 📄 `pyproject.toml` – Poetry‑style project metadata
-  - 📄 `.python-version` – Python version pinning (3.13+)
-  - 📄 `README.md` – Repository overview
-  - 📂 **src/**
-    - `app.py` – Flask entry point
-    - 📂 `audio_cache/` – Audio transcoding & caching
-    - `auth.py` – Authentication utilities
-    - 📂 `common/` – Infrastructure‑free abstractions
-    - 📂 `config/` – Environment‑variable handling
-    - 📂 `logtools/` – Structured logging helpers
-    - 📂 `mixtape_manager/` – Mixtape persistence layer
-    - 📂 `musiclib/` – Music indexing (TinyTag + SQLite)
-    - 📂 `routes/` – Flask blueprints (browser, editor, …)
-    - 📂 `static/`
-      - 📂 `css/` – Stylesheets for Jinja2 templates
-      - 📂 `js/` – Front‑end scripts
-    - 📂 `templates/` – Jinja2 views
-    - 📂 `utilities/` – Miscellaneous helper functions
-  - 📄 `uv.lock` – uv‑managed lockfile
+    - 🐳 **docker/** – Dockerfiles & Compose configs
+    - 📚 **docs/** – MkDocs source (this folder)
+    - 👷‍♀️ **.github/**
+      - ⚙️ **workflows/**
+          * `docker-image.yml` – Build Docker images on GHCR
+          * `docs.yml` – Publish GitHub Pages
+    - 📂 **src/**
+        - `app.py` – Flask entry point
+        - 📂 `audio_cache/` – Audio transcoding & caching
+        - `auth.py` – Authentication utilities
+        - 📂 `common/` – Infrastructure‑free abstractions
+        - 📂 `config/` – Environment‑variable handling
+        - 📂 `logtools/` – Structured logging helpers
+        - 📂 `mixtape_manager/` – Mixtape persistence layer
+        - 📂 `musiclib/` – Music indexing (TinyTag + SQLite)
+        - 📂 `routes/` – Flask blueprints (browser, editor, …)
+        - 📂 `static/`
+            * 📂 `css/` – Stylesheets for Jinja2 templates
+            * 📂 `js/` – Front‑end scripts
+        - 📂 `templates/` – Jinja2 views
+        - 📂 `utilities/` – Miscellaneous helper functions
+    - 📄 `.gitignore` – Ignored files for Git
+    - 📄 `LICENSE` – Project license
+    - 📄 `mkdocs.yml` – MkDocs site configuration
+    - 📄 `pyproject.toml` – Poetry‑style project metadata
+    - 📄 `.python-version` – Python version pinning (3.13+)
+    - 📄 `README.md` – Repository overview
+    - 📄 `uv.lock` – uv‑managed lockfile
 
 !!! TIP
     The `src/` package is deliberately **framework‑agnostic**; core modules (`musiclib`, `mixtape_manager`, `audio_cache`) contain no Flask imports, making them easy to unit‑test.
