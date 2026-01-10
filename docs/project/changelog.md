@@ -15,6 +15,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 ### 🐛 Fixed
 
 - Slug sanitation for mixtape titles with spaces and non-URL-safe characters
+- Centered QR code in modal
 
 [Changes since last version](https://github.com/mark-me/mixtape-society/compare/v0.5.5...v0.5.6)
 
