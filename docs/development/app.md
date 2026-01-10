@@ -31,7 +31,7 @@ All routes are mounted under the appropriate URL prefixes (`/auth`, `/mixtapes`,
 
 The selected class is instantiated, its `ensure_dirs()` method creates required directories (`MIXTAPE_DIR`, `CACHE_DIR`, `LOGS`, etc.), and the instance is returned from `get_configuration()`.
 
-## 🧪 Flask Application Creation (create_app) – Step‑by‑Step
+## ⚗️ Flask Application Creation (create_app) – Step‑by‑Step
 
 1. Instantiate Flask
 
