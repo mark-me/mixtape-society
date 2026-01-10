@@ -70,6 +70,7 @@ nav:
         - OpenGraph: development/routes/opengraph_images.md
         - QR Codes: development/routes/qr_codes.md
   - Project:
+    - Overview: project/index.md
     - Changelog: project/changelog.md
     - Roadmap: project/roadmap.md
     - Ideas:
