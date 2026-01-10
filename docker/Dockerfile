@@ -9,17 +9,8 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-# Build arguments for multi-platform support
+# Build argument for version
 ARG APP_VERSION=dev
-ARG TARGETPLATFORM
-ARG BUILDPLATFORM
-
-# OCI labels for metadata
-LABEL org.opencontainers.image.title="Mixtape Society"
-LABEL org.opencontainers.image.description="Music collection manager supporting multiple architectures"
-LABEL org.opencontainers.image.version="${APP_VERSION}"
-LABEL org.opencontainers.image.source="https://github.com/mark-me/mixtape-society"
-LABEL org.opencontainers.image.documentation="https://github.com/mark-me/mixtape-society/blob/main/README.md"
 
 RUN mkdir /music
 

@@ -42,6 +42,14 @@ jobs:
             type=semver,pattern={{version}}
             type=sha,format=short
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}  # :latest only for main
+          labels: |
+            org.opencontainers.image.title=Mixtape Society
+            org.opencontainers.image.description=Music collection manager with multi-architecture support (amd64, arm64)
+            org.opencontainers.image.vendor=mark-me
+          annotations: |
+            org.opencontainers.image.title=Mixtape Society
+            org.opencontainers.image.description=Music collection manager with multi-architecture support (amd64, arm64)
+            org.opencontainers.image.vendor=mark-me
 
       - name: Compute version for APP_VERSION
         id: version
@@ -92,12 +100,6 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          annotations: |
-            index:org.opencontainers.image.description=Music collection manager with multi-architecture support (amd64, arm64)
-            index:org.opencontainers.image.title=Mixtape Society
-            index:org.opencontainers.image.source=https://github.com/${{ github.repository }}
-            index:org.opencontainers.image.url=https://github.com/${{ github.repository }}
-            index:org.opencontainers.image.documentation=https://github.com/${{ github.repository }}/blob/main/README.md
-            index:org.opencontainers.image.version=${{ steps.version.outputs.version }}
+          annotations: ${{ steps.meta.outputs.annotations }}
           build-args: |
             APP_VERSION=${{ steps.version.outputs.version }}
