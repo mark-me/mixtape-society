@@ -75,6 +75,7 @@ nav:
     - Ideas:
       - General: project/ideas/ideas.md
       - User Journey: project/ideas/user-journey.md
+    - Contributing: project/contributing.md
     - About: project/about.md
 
 plugins:
