@@ -1,4 +1,5 @@
 import json
+import re
 from base64 import b64decode
 from datetime import datetime
 from io import BytesIO
@@ -41,8 +42,6 @@ class MixtapeManager:
 
     def _sanitize_title(self, title: str) -> str:
         """Convert title to a URL-safe slug."""
-        import re
-
         # Convert to lowercase
         slug = title.lower()
 
