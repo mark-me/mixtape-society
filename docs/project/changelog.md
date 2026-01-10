@@ -12,6 +12,10 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 **🗓️** 2026-01-xx
 
+### ✨ Added
+
+- Multi-Architecture Docker Build Setup
+
 ### 🐛 Fixed
 
 - Slug sanitation for mixtape titles with spaces and non-URL-safe characters
