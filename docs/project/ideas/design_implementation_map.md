@@ -1,3 +1,5 @@
+![Design & Implementation Map](../../images/design.png){ align=right width="90" }
+
 # Design & Implementation Map
 
 ## 🧭 Core principles

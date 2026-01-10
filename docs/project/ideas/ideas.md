@@ -91,4 +91,4 @@ Image validation improvements:
 
 ---
 
-**Got thoughts on any of these?** Open a [discussion](link) or comment on [issues](link)
+**Got thoughts on any of these?** Open a [discussion](https://github.com/mark-me/mixtape-society/discussions) or comment on [issues](https://github.com/mark-me/mixtape-society/issues).

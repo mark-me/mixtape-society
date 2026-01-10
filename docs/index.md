@@ -17,7 +17,7 @@ A private, self‑hosted web app to create and share beautiful, add-free music m
 
     3️⃣ Open `http://localhost:8000` and create your first mixtape.
 
-    👉 [Read the full Getting Started guide](getting-started.md)
+    👉 [Read the full Getting Started guide](user/getting-started.md)
 
 ## 🎯 Why Mixtape Society?
 
@@ -26,7 +26,7 @@ A private, self‑hosted web app to create and share beautiful, add-free music m
 - 🔗 **Public share links and QR codes** – anyone can listen without an account.
 - 📼 **Cassette‑style experience** – nostalgic UI with modern tech.
 
-Start with the [Getting Started](getting-started.md) guide.
+Start with the [Getting Started](user/getting-started.md) guide.
 
 ## 😎 The looks
 

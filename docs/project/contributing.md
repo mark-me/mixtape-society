@@ -26,24 +26,16 @@ If you're thinking of tackling something substantial (new feature, big refactor)
 
 ### Using Docker (Recommended)
 
-```bash
-git clone https://github.com/mark-me/mixtape-society.git
-cd mixtape-society
-cp .env.example .env
-# Edit .env with your music path and password
-docker compose up
-```
-
-Opens at [http://localhost:5000](http://localhost:5000)
+See [Docker Development guide](../development/docker.md) for full instructions.
 
 ### Local Development
 
 ```bash
 git clone https://github.com/mark-me/mixtape-society.git
 cd mixtape-society
-uv sync  # Install dependencies
-cp .env.example .env
-# Edit MUSIC_ROOT and APP_PASSWORD
+uv sync  --group dev
+
+# Edit MUSIC_ROOT and APP_PASSWORD in .env
 uv run python app.py
 ```
 
