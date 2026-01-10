@@ -8,8 +8,6 @@ extra:
 
 ![Mixtape Society](images/favicon.svg){ align=right width="90" }
 
-# Mixtape Society
-
 A private, self‑hosted web app to create and share beautiful, add-free music mixtapes.
 
 !!! TIP "Quick start"
@@ -79,7 +77,6 @@ Start with the [Getting Started](getting-started.md) guide.
     Enjoy your mobile **nostalgic walkman** immersive experience.
 
 </div>
-
 
 ## 👥 Get Involved
 

@@ -7,6 +7,7 @@ Things I'm considering or that have been suggested. Some will happen, some won't
 ## 🚫 What NOT to Add
 
 To keep the soul of the project:
+
 - No accounts on a central server
 - No Spotify/Apple Music integration
 - No social features (likes, comments, following)
@@ -16,11 +17,13 @@ To keep the soul of the project:
 
 **Liner notes** - Background info for artist, album, or track
 
-**Smart features** (without bloat)
+### Smart features (without bloat)
+
 - "Recently added" automatic mixtape
 - Simple last.fm/scrobble support (optional)
 
-**Transcoding optimizations**
+### Transcoding optimizations
+
 - Cache eviction policy (manual clear, LRU strategy)
 - Range-request optimizations for large files
 
@@ -35,17 +38,13 @@ To keep the soul of the project:
 ## 💬 Sharing & Discovery
 
 - Beautiful public mixtape embed (iframe)
-- ~~QR codes~~ ✅ *Shipped in v0.5.5*
 - Optional short-url service integration
 - Web Share API target
 
 ## 🖼️ Cover Art & Visuals
 
-**Cover format options**
-- Currently: JPEG, quality 100, max 1200px
-- Consider: Configurable quality/format (WebP?)
+Image validation improvements:
 
-**Image validation improvements**
 - Better MIME checking
 - Reject oversized payloads early
 - Async I/O with aiofiles
@@ -77,26 +76,18 @@ To keep the soul of the project:
 ## 🔧 Technical Improvements
 
 ### Browse Page
+
 - Pagination for large libraries (currently loads all)
 - Search endpoint (`/mixtapes/search?q=`)
 - Bulk actions (select → delete/export)
 - Thumbnail generation to reduce bandwidth
-- Permissions (tie mixtapes to user ID)
 
 ### Base & UI
-- Theme persistence across devices (server-side)
+
 - Modular CSS (split by component)
 - Accessibility improvements (ARIA, focus trapping)
 - Internationalization (Flask-Babel)
 - Progressive enhancement (JS fallbacks)
-
-### QR Sharing
-- Dynamic size selector
-- Color theming
-- Configurable cache headers
-- Rate limiting
-- SVG output option
-- Hit counter analytics
 
 ---
 

@@ -37,7 +37,7 @@ extra_css:
   - stylesheets/extra.css
 
 nav:
-  - Home: index.md
+  - Introduction: index.md
   - Getting Started:
     - Overview: user/getting-started.md
     - Installation:
@@ -75,7 +75,7 @@ nav:
     - Roadmap: project/roadmap.md
     - Ideas:
       - General: project/ideas/ideas.md
-      - User Journey: project/ideas/user-journey.md
+      - Design & Implementation Map: project/ideas/design_implementation_map.md
     - Contributing: project/contributing.md
     - About: project/about.md
 
