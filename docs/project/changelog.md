@@ -6,6 +6,20 @@ All notable changes to Mixtape Society are documented here. We follow [Semantic 
 
 Each release rewinds and fast-forwards your mixtape experience—just like a real cassette! 🎧
 
+## 📦 v0.5.6
+
+<span class="md-tag">Development</span>
+
+**🗓️** 2026-01-xx
+
+### 🐛 Fixed
+
+- Slug sanitation for mixtape titles with spaces and non-URL-safe characters
+
+[Changes since last version](https://github.com/mark-me/mixtape-society/compare/v0.5.5...v0.5.6)
+
+---
+
 ## 📦 v0.5.5
 
 <span class="md-tag">Release</span>
