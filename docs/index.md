@@ -10,25 +10,16 @@ extra:
 
 # Introduction
 
-Mixtape Society is a private, self‑hosted web app to create and share beautiful, add-free music mixtapes.
-
-!!! TIP "Quick start"
-    1️⃣ Install the Docker image (see **Getting Started → Installation**).
-
-    2️⃣ Run `docker compose up`.
-
-    3️⃣ Open `http://localhost:8000` and create your first mixtape.
-
-    👉 [Read the full Getting Started guide](user/getting-started.md)
+Mixtape Society is a private, self‑hosted web app to create and share beautiful, add-free music — the way mixtapes were exchanged on paper, but with today’s digital convenience.
 
 ## 🎯 Why Mixtape Society?
 
 - ✅ **No ads, no tracking, no accounts** – pure privacy.
-- 💾 **Works offline** after the first indexing.
 - 🔗 **Public share links and QR codes** – anyone can listen without an account.
 - 📼 **Cassette‑style experience** – nostalgic UI with modern tech.
 
-Start with the [Getting Started](user/getting-started.md) guide.
+!!! TIP "Quick start"
+    👉 [Read the full Getting Started guide](user/getting-started.md)
 
 ## 😎 The looks
 
@@ -91,3 +82,7 @@ Interested in where this is headed?
 - 🐛 Report issues or open an [issue](https://github.com/mark-me/mixtape-society/issues)
 
 Pull requests welcome. Still early days, but contributions appreciated.
+
+
+!!! INFO "Personal use only"
+    This software is a tool for personal, non-commercial use with legally owned music files. No copyrighted music or artwork is included. You are solely responsible for the media you host and share.
