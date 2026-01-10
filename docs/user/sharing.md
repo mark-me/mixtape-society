@@ -1,4 +1,4 @@
-![Sharing](images/share.png){ align=right width="90" }
+![Sharing](../images/share.png){ align=right width="90" }
 
 # Sharing Mixtapes
 

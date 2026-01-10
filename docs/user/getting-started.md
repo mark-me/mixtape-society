@@ -1,4 +1,4 @@
-![Started](images/rocket.png){ align=right width="90" }
+![Started](../images/rocket.png){ align=right width="90" }
 
 # Getting Started
 

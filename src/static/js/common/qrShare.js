@@ -306,7 +306,9 @@ async function downloadQRCode(slug) {
  * Copy share link to clipboard
  */
 async function copyShareLink(slug) {
-    const shareUrl = `${window.location.origin}/play/share/${slug}`;
+    // URL-encode the slug to handle spaces and special characters
+    const encodedSlug = encodeURIComponent(slug);
+    const shareUrl = `${window.location.origin}/play/share/${encodedSlug}`;
     
     try {
         await navigator.clipboard.writeText(shareUrl);

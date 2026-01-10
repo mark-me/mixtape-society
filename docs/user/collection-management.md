@@ -1,4 +1,4 @@
-![Manage collection](images/manage-collection.png){ align=right width="90" }
+![Manage collection](../images/manage-collection.png){ align=right width="90" }
 
 # Collection Management
 

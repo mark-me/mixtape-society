@@ -32,15 +32,54 @@ Start with the [Getting Started](getting-started.md) guide.
 
 ## 😎 The looks
 
-![Editing a Mixtape](images/screenshot/create.png)
+### Mixtape editor user journey
 
-Manage your mixtape library that's stored locally on your device. Browse, search, share and organize your mixtape collection with ease.
+<div class="grid cards" markdown>
 
-![Mixtape Browsing](images/screenshot/browse.png)
+  - ![Login screen](user/images/screenshot/login.png){ loading=lazy width="100%" }
+    **Login page**
 
-Share mixtapes with friends and family. Recipients can listen to the mixtape directly in their web browser, no account or app required.
+  - ![Manage your mixtape library that's stored locally on your device. Browse, search, share and organize your mixtape collection with ease.](user/images/screenshot/browse.png){ loading=lazy width="100%" }
+    **Manage your mixtape library** that's stored locally on your device. Browse, search, share and organize your mixtape collection with ease.
 
-![Listening to a Mixtape](images/screenshot/play.png)
+  - ![Manage your music collection by reviewing statistics and monitoring filesystem changes.](user/images/screenshot/collection-manager.png){ loading=lazy width="100%" }
+    **Manage your music collection** by reviewing statistics and monitoring filesystem changes.
+
+  - ![Create or edit mixtapes with a live search feature that highlights your tracks as you type](user/images/screenshot/create.png){ loading=lazy width="100%" }
+    **Create or edit mixtapes** with a live search feature that highlights your tracks as you type
+
+  - ![Add custom cover art to your mixtapes for a unique look.](user/images/screenshot/editing.png){ loading=lazy width="100%" }
+    **Add custom cover art** to your mixtapes for a unique look.
+
+  - ![Add liner notes to your mixtapes for a personal touch.](user/images/screenshot/liner-notes.png){ loading=lazy width="100%" }
+    **Add liner notes** to your mixtapes for a personal touch.
+
+  - ![Generate a shareable link or use a QR code for your mixtapes with ease.](user/images/screenshot/qr-modal.png){ loading=lazy width="100%" }
+    **Generate a shareable link or use a QR code** for your mixtapes with ease.
+
+  - ![Use a QR image to include in physical gift.](user/images/screenshot/qr-card.png){ loading=lazy width="100%" }
+    Use a **QR image** to include in physical gift.
+
+</div>
+
+### Mixtape receiver user journey
+
+<div class="grid cards" markdown>
+
+  - ![Mixtape share link](user/images/screenshot/share.png){ loading=lazy width="100%" }
+    **Receive your mixtape** with a public link
+
+  - ![Listen to your mixtape with a sleek, modern player that supports full seeking for FLAC, MP3, M4A, and more.](user/images/screenshot/play.png){ loading=lazy width="100%" }
+    **Listen to your mixtape** with a sleek, cassette-inspired player that supports full seeking for FLAC, MP3, M4A, and more.
+
+  - ![Audio Cassette mode for a nostalgic cassette-inspired player.](user/images/screenshot/play-cassette.png){ loading=lazy width="100%" }
+    **Audio Cassette mode** for a nostalgic cassette-inspired player.
+
+  - ![Enjoy your mobile nostalgic walkman immersive experience.](user/images/screenshot/walkman.png){ loading=lazy width="100%" }
+    Enjoy your mobile **nostalgic walkman** immersive experience.
+
+</div>
+
 
 ## 👥 Get Involved
 

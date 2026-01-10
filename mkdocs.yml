@@ -83,6 +83,8 @@ plugins:
   - search
   - offline
   - autorefs
+  - glightbox:
+      auto_caption: true
   - mkdocstrings:
       handlers:
         python:

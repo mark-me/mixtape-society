@@ -40,8 +40,25 @@ class MixtapeManager:
         self.collection = collection
 
     def _sanitize_title(self, title: str) -> str:
-        """Convert title to a filesystem-safe slug."""
-        return "".join(c if c.isalnum() or c in "-_ " else "_" for c in title).strip()
+        """Convert title to a URL-safe slug."""
+        import re
+
+        # Convert to lowercase
+        slug = title.lower()
+
+        # Replace spaces and underscores with hyphens
+        slug = re.sub(r'[\s_]+', '-', slug)
+
+        # Remove non-alphanumeric characters (except hyphens)
+        slug = re.sub(r'[^a-z0-9-]', '', slug)
+
+        # Remove duplicate hyphens
+        slug = re.sub(r'-+', '-', slug)
+
+        # Strip leading/trailing hyphens
+        slug = slug.strip('-')
+
+        return slug or "untitled"
 
     def _generate_unique_slug(
         self, base_slug: str, current_slug: Optional[str] = None
