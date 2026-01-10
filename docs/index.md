@@ -21,7 +21,7 @@ A private, self‑hosted web app to create and share beautiful, add-free music m
 
     👉 [Read the full Getting Started guide](getting-started.md)
 
-## The looks
+## 😎 The looks
 
 ![Editing a Mixtape](images/screenshot/create.png)
 
@@ -33,7 +33,7 @@ Share mixtapes with friends and family. Recipients can listen to the mixtape dir
 
 ![Listening to a Mixtape](images/screenshot/play.png)
 
-## Why Mixtape Society?
+## 🎯 Why Mixtape Society?
 
 - ✅ **No ads, no tracking, no accounts** – pure privacy.
 - 💾 **Works offline** after the first indexing.
@@ -42,7 +42,7 @@ Share mixtapes with friends and family. Recipients can listen to the mixtape dir
 
 Start with the [Getting Started](getting-started.md) guide.
 
-## Get Involved
+## 👥 Get Involved
 
 Interested in where this is headed?
 
