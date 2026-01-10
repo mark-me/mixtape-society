@@ -21,6 +21,15 @@ A private, self‑hosted web app to create and share beautiful, add-free music m
 
     👉 [Read the full Getting Started guide](getting-started.md)
 
+## 🎯 Why Mixtape Society?
+
+- ✅ **No ads, no tracking, no accounts** – pure privacy.
+- 💾 **Works offline** after the first indexing.
+- 🔗 **Public share links and QR codes** – anyone can listen without an account.
+- 📼 **Cassette‑style experience** – nostalgic UI with modern tech.
+
+Start with the [Getting Started](getting-started.md) guide.
+
 ## 😎 The looks
 
 ![Editing a Mixtape](images/screenshot/create.png)
@@ -32,15 +41,6 @@ Manage your mixtape library that's stored locally on your device. Browse, search
 Share mixtapes with friends and family. Recipients can listen to the mixtape directly in their web browser, no account or app required.
 
 ![Listening to a Mixtape](images/screenshot/play.png)
-
-## 🎯 Why Mixtape Society?
-
-- ✅ **No ads, no tracking, no accounts** – pure privacy.
-- 💾 **Works offline** after the first indexing.
-- 🔗 **Public share links and QR codes** – anyone can listen without an account.
-- 📼 **Cassette‑style experience** – nostalgic UI with modern tech.
-
-Start with the [Getting Started](getting-started.md) guide.
 
 ## 👥 Get Involved
 
