@@ -4,7 +4,7 @@
 
 Interested in helping out? Here's how things work.
 
-## Ways to Contribute
+## 🤝 Ways to Contribute
 
 **Share ideas** - Open a [discussion](https://github.com/mark-me/mixtape-society/discussions) or comment on existing ones. All suggestions welcome, even half-baked ones.
 
@@ -18,11 +18,11 @@ Interested in helping out? Here's how things work.
 
 **Code contributions** - Check [good first issue](https://github.com/mark-me/mixtape-society/labels/good%20first%20issue) tags or the [roadmap](roadmap.md) for things I'm planning to work on.
 
-## Before You Start
+## 🧭 Before You Start
 
 If you're thinking of tackling something substantial (new feature, big refactor), open an issue or discussion first. Saves everyone time if the direction doesn't fit the project.
 
-## Development Setup
+## 🛠️ Development Setup
 
 ### Using Docker (Recommended)
 
@@ -51,7 +51,7 @@ First run will index your music library.
 
 See [Local Development guide](../development/docker.md) for more details.
 
-## Code Style
+## 🎨 Code Style
 
 Nothing strict, but:
 - Keep it readable
@@ -61,7 +61,7 @@ Nothing strict, but:
 
 If something's unclear, just ask.
 
-## Pull Request Process
+## 🔀 Pull Request Process
 
 1. Fork the repo
 2. Create a branch (`git checkout -b feature/thing`)
@@ -71,7 +71,7 @@ If something's unclear, just ask.
 
 I'll review when I can. Might ask for changes, might take a while—this is a side project.
 
-## Project Organization
+## 🗂️ Project Organization
 
 The [GitHub Project board](https://github.com/mark-me/mixtape-society/projects) tracks work in progress:
 
@@ -82,7 +82,7 @@ The [GitHub Project board](https://github.com/mark-me/mixtape-society/projects) 
 
 It's pretty informal, just helps keep things organized.
 
-## What Gets Prioritized
+## 🎯 What Gets Prioritized
 
 Roughly in this order:
 
@@ -91,7 +91,7 @@ Roughly in this order:
 3. Community interest (reactions, comments on issues)
 4. Maintainer availability (aka: when I have time)
 
-## Testing
+## 🧪 Testing
 
 Basic manual testing is fine for most changes. If you're modifying core components (musiclib, audio caching, database), please test thoroughly:
 
@@ -101,17 +101,17 @@ Basic manual testing is fine for most changes. If you're modifying core componen
 
 No formal test suite yet, but that might change.
 
-## Documentation
+## 📚 Documentation
 
 If your PR adds a feature or changes behavior:
 - Update relevant docs in `/docs`
 - Add a brief note in `CHANGELOG.md` (I'll handle version numbering)
 
-## Questions?
+## ❓ Questions?
 
 Not sure about something? Open a [discussion](https://github.com/mark-me/mixtape-society/discussions) or comment on a relevant issue. I'll respond when I can.
 
-## License
+## ⚖️ License
 
 By contributing, you agree your contributions will be licensed under the [MIT License](https://opensource.org/licenses/MIT).
 
