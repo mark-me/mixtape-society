@@ -67,6 +67,17 @@
     {% else %}
         <meta name="twitter:image" content="{{ url_for('static', filename='image.jpg') }}"/>
     {% endif %}
+
+    <!-- PWA Manifest - Only for shared pages -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#198754">
+
+    <!-- Apple PWA Support -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Mixtape Society">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
 {% endblock %}
 
 {% block extra_css %}
@@ -78,6 +89,14 @@
 
 {% block content %}
     <div class="container py-5">
+
+        <!-- Offline indicator for PWA -->
+        <div id="offline-indicator"
+             class="alert alert-warning mb-0 text-center rounded-0"
+             style="display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 1050;">
+            <i class="bi bi-wifi-off me-2"></i>
+            <strong>Offline Mode</strong> - Playing cached tracks only
+        </div>
 
         {% if not public %}
         <a href="/mixtapes" class="btn btn-outline-secondary btn-sm mb-4">
@@ -200,6 +219,13 @@
                             <i class="bi bi-share-fill me-2" style="font-size: 1.4rem;"></i>
                             <span class="btn-text">Share</span>
                         </button>
+                        <button id="download-mixtape-btn"
+                                class="btn btn-outline-success btn-lg rounded-pill px-4 py-3 shadow ms-3"
+                                title="Download all tracks for offline playback"
+                                style="display: none;">
+                            <i class="bi bi-download me-2"></i>
+                            <span class="btn-text">Download for Offline</span>
+                        </button>
                     </div>
                 </div>
 
@@ -289,4 +315,5 @@
     </div>
 
     <script type="module" src="{{ url_for('static', filename='js/player/index.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/pwa/pwa-manager.js') }}"></script>
 {% endblock %}

@@ -870,7 +870,6 @@ export function initCassettePlayer() {
         document.addEventListener('visibilitychange', handleVisibilityChange);
 
         listenersInitialized = true;
-        console.log('✓ Global listeners initialized');
     }
 
     /**
@@ -905,8 +904,6 @@ export function initCassettePlayer() {
                 console.log('💡 Tip: Click any button to enable fullscreen and landscape lock');
             }
         }
-
-        console.log('🎵 Cassette player initialized');
     }
 
     // Initialize when DOM is ready

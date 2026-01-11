@@ -86,17 +86,17 @@ function adjustColorForMode(rgb, isDark, targetContrast = 4.5) {
     const bgColor = isDark ? { r: 33, g: 37, b: 41 } : { r: 255, g: 255, b: 255 };
     let adjusted = { ...rgb };
     let contrast = getContrastRatio(adjusted, bgColor);
-    
+
     // If contrast is already good, return as-is
     if (contrast >= targetContrast) {
         return adjusted;
     }
-    
+
     // Adjust brightness
     const step = isDark ? 1.15 : 0.85;
     const maxIterations = 20;
     let iterations = 0;
-    
+
     while (contrast < targetContrast && iterations < maxIterations) {
         if (isDark) {
             // Make lighter for dark mode
@@ -112,7 +112,7 @@ function adjustColorForMode(rgb, isDark, targetContrast = 4.5) {
         contrast = getContrastRatio(adjusted, bgColor);
         iterations++;
     }
-    
+
     return adjusted;
 }
 
@@ -122,12 +122,12 @@ function adjustColorForMode(rgb, isDark, targetContrast = 4.5) {
 function createHoverVariant(hex, isDark) {
     const rgb = hexToRgb(hex);
     if (!rgb) return hex;
-    
+
     const factor = isDark ? 1.2 : 1.15;
     const r = Math.min(255, Math.round(rgb.r * factor));
     const g = Math.min(255, Math.round(rgb.g * factor));
     const b = Math.min(255, Math.round(rgb.b * factor));
-    
+
     return rgbToHex(r, g, b);
 }
 
@@ -137,12 +137,12 @@ function createHoverVariant(hex, isDark) {
 function createActiveVariant(hex) {
     const rgb = hexToRgb(hex);
     if (!rgb) return hex;
-    
+
     const factor = 0.85;
     const r = Math.max(0, Math.round(rgb.r * factor));
     const g = Math.max(0, Math.round(rgb.g * factor));
     const b = Math.max(0, Math.round(rgb.b * factor));
-    
+
     return rgbToHex(r, g, b);
 }
 
@@ -170,12 +170,12 @@ function createBorderVariant(hex) {
 function createTextEmphasisVariant(hex, isDark) {
     const rgb = hexToRgb(hex);
     if (!rgb) return hex;
-    
+
     const factor = isDark ? 1.12 : 0.75;
     const r = isDark ? Math.min(255, Math.round(rgb.r * factor)) : Math.max(0, Math.round(rgb.r * factor));
     const g = isDark ? Math.min(255, Math.round(rgb.g * factor)) : Math.max(0, Math.round(rgb.g * factor));
     const b = isDark ? Math.min(255, Math.round(rgb.b * factor)) : Math.max(0, Math.round(rgb.b * factor));
-    
+
     return rgbToHex(r, g, b);
 }
 
@@ -186,12 +186,12 @@ function createBackgroundGradient(colors, isDark) {
     const rgb1 = hexToRgb(colors.artist);
     const rgb2 = hexToRgb(colors.album);
     const rgb3 = hexToRgb(colors.track);
-    
+
     if (!rgb1 || !rgb2 || !rgb3) return null;
-    
+
     // Get opacity values from config
     const opacities = isDark ? GRADIENT_CONFIG.dark : GRADIENT_CONFIG.light;
-    
+
     // Create subtle radial gradients from corners
     return `
         radial-gradient(circle at 0% 0%, rgba(${rgb1.r}, ${rgb1.g}, ${rgb1.b}, ${opacities.artist}) 0%, transparent 50%),
@@ -205,12 +205,12 @@ function createBackgroundGradient(colors, isDark) {
  */
 function applyColorScheme(colors, isDark) {
     const root = document.documentElement;
-    
+
     // Apply each semantic color type
     Object.keys(colors).forEach(type => {
         const baseColor = colors[type];
         const rgb = hexToRgb(baseColor);
-        
+
         // Set all variants
         root.style.setProperty(`--color-${type}`, baseColor);
         root.style.setProperty(`--color-${type}-rgb`, `${rgb.r}, ${rgb.g}, ${rgb.b}`);
@@ -220,15 +220,12 @@ function applyColorScheme(colors, isDark) {
         root.style.setProperty(`--color-${type}-border-subtle`, createBorderVariant(baseColor));
         root.style.setProperty(`--color-${type}-text-emphasis`, createTextEmphasisVariant(baseColor, isDark));
     });
-    
+
     // Apply background gradient
     const gradient = createBackgroundGradient(colors, isDark);
     if (gradient) {
         root.style.setProperty('--adaptive-bg-gradient', gradient);
         document.body.style.backgroundImage = gradient;
-        if (window.__ADAPTIVE_THEME_DEBUG__) {
-            console.log('🌈 Background gradient applied:', gradient.substring(0, 100) + '...');
-        }
     } else {
         if (window.__ADAPTIVE_THEME_DEBUG__) {
             console.warn('⚠️ Failed to create background gradient');
@@ -239,9 +236,6 @@ function applyColorScheme(colors, isDark) {
     const audioPlayer = document.getElementById('main-player');
     if (audioPlayer) {
         audioPlayer.style.accentColor = colors.track;
-        if (window.__ADAPTIVE_THEME_DEBUG__) {
-            console.log('🎵 Audio player accent color set to:', colors.track);
-        }
     }
 }
 
@@ -256,50 +250,50 @@ async function extractAndApplyColors(imgElement) {
             applyFallbackColors();
             return;
         }
-        
+
         // Get current theme
         const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
-        
+
         // Extract palette
         const palette = await Vibrant.from(imgElement).getPalette();
-        
+
         // Select best colors for each semantic type
         let colors = {};
-        
+
         if (isDark) {
             // Dark mode: prefer vibrant, light-muted colors
-            colors.artist = palette.LightVibrant?.hex || 
-                           palette.Vibrant?.hex || 
+            colors.artist = palette.LightVibrant?.hex ||
+                           palette.Vibrant?.hex ||
                            palette.LightMuted?.hex ||
                            FALLBACK_COLORS.dark.artist;
-            
-            colors.album = palette.Vibrant?.hex || 
+
+            colors.album = palette.Vibrant?.hex ||
                           palette.DarkVibrant?.hex ||
                           palette.Muted?.hex ||
                           FALLBACK_COLORS.dark.album;
-            
-            colors.track = palette.LightMuted?.hex || 
+
+            colors.track = palette.LightMuted?.hex ||
                           palette.Muted?.hex ||
                           palette.DarkMuted?.hex ||
                           FALLBACK_COLORS.dark.track;
         } else {
             // Light mode: prefer darker, muted colors
-            colors.artist = palette.DarkVibrant?.hex || 
+            colors.artist = palette.DarkVibrant?.hex ||
                            palette.Vibrant?.hex ||
                            palette.DarkMuted?.hex ||
                            FALLBACK_COLORS.light.artist;
-            
-            colors.album = palette.DarkMuted?.hex || 
+
+            colors.album = palette.DarkMuted?.hex ||
                           palette.Muted?.hex ||
                           palette.DarkVibrant?.hex ||
                           FALLBACK_COLORS.light.album;
-            
-            colors.track = palette.Muted?.hex || 
+
+            colors.track = palette.Muted?.hex ||
                           palette.DarkMuted?.hex ||
                           palette.DarkVibrant?.hex ||
                           FALLBACK_COLORS.light.track;
         }
-        
+
         // Adjust colors for proper contrast
         Object.keys(colors).forEach(type => {
             const rgb = hexToRgb(colors[type]);
@@ -308,12 +302,10 @@ async function extractAndApplyColors(imgElement) {
                 colors[type] = rgbToHex(adjusted.r, adjusted.g, adjusted.b);
             }
         });
-        
+
         // Apply the color scheme
         applyColorScheme(colors, isDark);
-        
-        console.log('✨ Adaptive theme applied:', colors);
-        
+
     } catch (error) {
         console.error('Failed to extract colors from cover art:', error);
         applyFallbackColors();
@@ -336,20 +328,20 @@ function applyFallbackColors() {
 export function initAdaptiveTheming() {
     // Find mixtape cover image
     const coverImg = document.querySelector('.img-fluid.rounded.shadow');
-    
+
     if (!coverImg) {
         console.log('No mixtape cover found, using fallback colors');
         applyFallbackColors();
         return;
     }
-    
+
     // Apply colors when image is loaded
     if (coverImg.complete) {
         extractAndApplyColors(coverImg);
     } else {
         coverImg.addEventListener('load', () => extractAndApplyColors(coverImg));
     }
-    
+
     // Re-apply colors when theme changes
     const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
@@ -360,11 +352,10 @@ export function initAdaptiveTheming() {
             }
         });
     });
-    
+
     observer.observe(document.documentElement, {
         attributes: true,
         attributeFilter: ['data-bs-theme']
     });
-    
-    console.log('🎨 Adaptive theming initialized');
+
 }
