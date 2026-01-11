@@ -191,13 +191,27 @@ class PWAManager {
     showUpdateNotification() {
         const updateBtn = document.createElement('div');
         updateBtn.className = 'update-notification';
-        updateBtn.innerHTML = `
-            <div class="update-content">
-                <i class="bi bi-arrow-clockwise me-2"></i>
-                <span>Update available</span>
-            </div>
-            <button class="btn btn-sm btn-light" id="update-now-btn">Update</button>
-        `;
+        
+        // Create structure using DOM methods (XSS-safe)
+        const updateContent = document.createElement('div');
+        updateContent.className = 'update-content';
+        
+        const icon = document.createElement('i');
+        icon.className = 'bi bi-arrow-clockwise me-2';
+        
+        const span = document.createElement('span');
+        span.textContent = 'Update available';
+        
+        updateContent.appendChild(icon);
+        updateContent.appendChild(span);
+        
+        const button = document.createElement('button');
+        button.className = 'btn btn-sm btn-light';
+        button.id = 'update-now-btn';
+        button.textContent = 'Update';
+        
+        updateBtn.appendChild(updateContent);
+        updateBtn.appendChild(button);
         
         document.body.appendChild(updateBtn);
 
@@ -227,20 +241,6 @@ class PWAManager {
      */
     initializeOfflineControls() {
         // Download mixtape button
-        const downloadMixtapeBtn = document.getElementById('download-mixtape-btn');
-        if (!downloadMixtapeBtn) {
-            return;
-        }
-
-        // Only expose the offline download control when PWA support is available
-        if ('serviceWorker' in navigator && this.swRegistration) {
-            // Explicitly show the button; it is initially rendered with display: none
-            downloadMixtapeBtn.style.display = 'inline-flex';
-            downloadMixtapeBtn.addEventListener('click', () => this.downloadMixtapeForOffline());
-        } else {
-            // Ensure the control stays hidden if offline caching is not supported / not ready
-            downloadMixtapeBtn.style.display = 'none';
-        }
         const downloadMixtapeBtn = document.getElementById('download-mixtape-btn');
         if (downloadMixtapeBtn) {
             downloadMixtapeBtn.addEventListener('click', () => this.downloadMixtapeForOffline());
@@ -277,7 +277,13 @@ class PWAManager {
         const downloadBtn = document.getElementById('download-mixtape-btn');
         if (downloadBtn) {
             downloadBtn.disabled = true;
-            downloadBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Downloading...';
+            // Use textContent (XSS-safe) and set icon separately
+            downloadBtn.innerHTML = ''; // Clear existing content
+            const icon = document.createElement('i');
+            icon.className = 'bi bi-hourglass-split me-2';
+            const text = document.createTextNode('Downloading...');
+            downloadBtn.appendChild(icon);
+            downloadBtn.appendChild(text);
         }
 
         let successCount = 0;
@@ -301,21 +307,36 @@ class PWAManager {
                 }
             });
 
-            // Update progress
+            // Update progress (XSS-safe)
             const progress = Math.round(((i + batch.length) / tracks.length) * 100);
             if (downloadBtn) {
-                downloadBtn.innerHTML = `<i class="bi bi-hourglass-split me-2"></i>${progress}%`;
+                downloadBtn.innerHTML = ''; // Clear
+                const icon = document.createElement('i');
+                icon.className = 'bi bi-hourglass-split me-2';
+                const text = document.createTextNode(`${progress}%`);
+                downloadBtn.appendChild(icon);
+                downloadBtn.appendChild(text);
             }
         }
 
-        // Restore button
+        // Restore button (XSS-safe)
         if (downloadBtn) {
             downloadBtn.disabled = false;
-            downloadBtn.innerHTML = '<i class="bi bi-download me-2"></i>Downloaded';
+            downloadBtn.innerHTML = ''; // Clear
+            const icon = document.createElement('i');
+            icon.className = 'bi bi-download me-2';
+            const text = document.createTextNode('Downloaded');
+            downloadBtn.appendChild(icon);
+            downloadBtn.appendChild(text);
             
             // Reset after 3 seconds
             setTimeout(() => {
-                downloadBtn.innerHTML = '<i class="bi bi-download me-2"></i>Download for Offline';
+                downloadBtn.innerHTML = ''; // Clear
+                const resetIcon = document.createElement('i');
+                resetIcon.className = 'bi bi-download me-2';
+                const resetText = document.createTextNode('Download for Offline');
+                downloadBtn.appendChild(resetIcon);
+                downloadBtn.appendChild(resetText);
             }, 3000);
         }
 
@@ -448,16 +469,26 @@ class PWAManager {
      * Show toast notification
      */
     showToast(message, type = 'info') {
-        // Create toast element
+        // Create toast element using DOM methods (XSS-safe)
         const toastEl = document.createElement('div');
         toastEl.className = `toast align-items-center text-bg-${type} border-0`;
         toastEl.setAttribute('role', 'alert');
-        toastEl.innerHTML = `
-            <div class="d-flex">
-                <div class="toast-body">${message}</div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-            </div>
-        `;
+        
+        const toastFlex = document.createElement('div');
+        toastFlex.className = 'd-flex';
+        
+        const toastBody = document.createElement('div');
+        toastBody.className = 'toast-body';
+        toastBody.textContent = message; // Use textContent (XSS-safe)
+        
+        const closeButton = document.createElement('button');
+        closeButton.type = 'button';
+        closeButton.className = 'btn-close btn-close-white me-2 m-auto';
+        closeButton.setAttribute('data-bs-dismiss', 'toast');
+        
+        toastFlex.appendChild(toastBody);
+        toastFlex.appendChild(closeButton);
+        toastEl.appendChild(toastFlex);
 
         // Add to toast container
         let container = document.getElementById('pwa-toast-container');
