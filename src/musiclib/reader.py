@@ -203,16 +203,29 @@ class MusicCollection:
         )
 
     def _fts_escape(self, txt: str) -> str:
-        """Escapes double quotes in a string for use in full-text search queries.
-        Ensures that input text is safely formatted for FTS operations.
-
+        """Escapes special characters in a string for use in full-text search queries.
+        
+        SQLite FTS5 treats certain characters as token separators (including periods).
+        For search terms like "R.E.M.", we need to quote them to search as a phrase.
+        
         Args:
             txt: The input string to escape.
 
         Returns:
-            str: The escaped string with double quotes replaced.
+            str: The escaped string safe for FTS queries.
         """
-        return txt.replace('"', '""')
+        # If the text contains FTS special characters (like periods), quote it
+        # to search it as a phrase
+        has_special = any(c in txt for c in '.,-()[]{}!@#$%^&*+=|\\/<>?;:')
+        
+        # Escape any double quotes in the text
+        escaped = txt.replace('"', '""')
+        
+        # If it has special characters, wrap in quotes to search as phrase
+        if has_special:
+            return f'"{escaped}"'
+        
+        return escaped
 
     def _search_album_tracks(
         self, conn: sqlite3.Connection, artist: str, album: str
@@ -612,11 +625,17 @@ class MusicCollection:
                 all_terms = (
                     terms["artist"] + terms["album"] + terms["track"] + terms["general"]
                 )
-                fts_query = (
-                    " OR ".join(f"{self._fts_escape(t)}*" for t in all_terms)
-                    if all_terms
-                    else "1=0"
-                )
+                # Build FTS query parts
+                fts_parts = []
+                for t in all_terms:
+                    escaped = self._fts_escape(t)
+                    # Only add wildcard if not a quoted phrase
+                    if escaped.startswith('"') and escaped.endswith('"'):
+                        fts_parts.append(escaped)
+                    else:
+                        fts_parts.append(f"{escaped}*")
+                
+                fts_query = " OR ".join(fts_parts) if fts_parts else "1=0"
 
                 sql = """
                     SELECT artist, album, title, path, filename, duration,

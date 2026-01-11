@@ -97,15 +97,32 @@ def create_editor_blueprint(
         Searches the music collection and returns the results.
 
         Receives a search query, searches the collection, and returns the results as JSON.
+        Includes comprehensive error handling to ensure JSON is always returned.
 
         Returns:
-            Response: A JSON response containing the search results.
+            Response: A JSON response containing the search results or error information.
         """
-        query = request.args.get("q", "").strip()
-        if len(query) < 3:
-            return jsonify([])
-        results = collection.search_highlighting(query, limit=50)
-        return jsonify(results)
+        try:
+            query = request.args.get("q", "").strip()
+            if len(query) < 3:
+                return jsonify([])
+            
+            # Log the search query for debugging
+            logger.debug(f"Search query: {query}")
+            
+            results = collection.search_highlighting(query, limit=50)
+            return jsonify(results)
+            
+        except Exception as e:
+            # Log the full error with traceback
+            logger.error(f"Search error for query '{query}': {e}", exc_info=True)
+            
+            # Return a proper JSON error response
+            return jsonify({
+                "error": "Search failed",
+                "message": str(e),
+                "query": query
+            }), 500
 
     @editor.route("/artist_details")
     @require_auth
@@ -226,12 +243,12 @@ def create_editor_blueprint(
                 }
             )
         except Exception as e:
-            logger.exception(f"Error saving mixtape: {e}")
-            return jsonify({"error": "Server error"}), 500
+            logger.error(f"Mixtape save error: {e}")
+            return jsonify({"error": str(e)}), 500
 
     @editor.route("/progress/<slug>")
     @require_auth
-    def progress_stream(slug: str) -> Response:
+    def progress(slug: str) -> Response:
         """
         Server-Sent Events endpoint for real-time progress updates.
 

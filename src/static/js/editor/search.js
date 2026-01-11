@@ -26,8 +26,30 @@ function performSearch() {
 
     document.getElementById("loading").classList.remove("visually-hidden");
     fetch(`/editor/search?q=${encodeURIComponent(query)}`)
-        .then(r => r.json())
+        .then(async response => {
+            // Check if the response is actually JSON
+            const contentType = response.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                throw new Error(`Server returned ${response.status}: ${await response.text()}`);
+            }
+
+            if (!response.ok) {
+                throw new Error(`Search failed: ${response.status} ${response.statusText}`);
+            }
+
+            return response.json();
+        })
         .then(renderResults)
+        .catch(error => {
+            console.error("Search error:", error);
+            resultsDiv.innerHTML = `
+                <div class="alert alert-danger m-3" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <strong>Search failed:</strong> ${escapeHtml(error.message)}
+                    <br><small>Try a different search term or report an issue if this persists.</small>
+                </div>
+            `;
+        })
         .finally(() => document.getElementById("loading").classList.add("visually-hidden"));
 }
 
@@ -199,182 +221,128 @@ function renderResults(data) {
 }
 
 /**
- * Lazy loading for artist and album accordion panels
+ * Attach listeners to accordion buttons to lazy-load artist/album details on expand
  */
 function attachAccordionListeners() {
-    document.querySelectorAll('.accordion-collapse').forEach(collapse => {
-        collapse.addEventListener('shown.bs.collapse', function () {
-            const body = this.querySelector('.accordion-body');
-            if (body.dataset.loading !== 'true') return;
+    // Artist accordion
+    document.querySelectorAll('[data-bs-toggle="collapse"][data-raw-artist]').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const collapse = document.querySelector(this.dataset.bsTarget);
+            if (!collapse) return;
 
-            const artist = this.dataset.artist;
-            const releaseDir = this.dataset.release_dir;
-            const cover = this.dataset.cover;
+            const body = collapse.querySelector('.accordion-body');
+            if (!body || body.dataset.loading !== 'true') return;
 
-            if (artist) {
-                loadArtistDetails(artist, body);
-            } else if (releaseDir) {
-                loadAlbumDetails(releaseDir, cover, body);
-            }
+            const artist = collapse.dataset.artist;
+            fetch(`/editor/artist_details?artist=${encodeURIComponent(artist)}`)
+                .then(r => r.json())
+                .then(details => {
+                    const cover = details.cover ? `
+                        <div class="mb-3 text-center">
+                            <img src="/${details.cover}" alt="${details.artist}" class="img-thumbnail" style="max-width: 200px;">
+                        </div>` : '';
+
+                    const html = `
+                        ${cover}
+                        <h6 class="mb-3">Albums by ${details.artist}</h6>
+                        <ul class="list-group">
+                            ${details.albums.map(album => `
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center flex-grow-1 min-w-0 gap-2">
+                                        ${album.cover ? `
+                                            <img src="/${album.cover}" alt="Album cover" class="rounded" style="width: 40px; height: 40px; object-fit: cover; flex-shrink: 0;">
+                                        ` : ''}
+                                        <div class="min-w-0 flex-grow-1">
+                                            <div class="text-truncate">${album.album}</div>
+                                            <small class="text-muted text-truncate d-block">${album.num_tracks} tracks</small>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-success btn-sm flex-shrink-0 ms-2 add-album-btn"
+                                            data-tracks="${escapeHtml(JSON.stringify(album.tracks))}">
+                                        <i class="bi bi-plus-circle"></i> Add All
+                                    </button>
+                                </li>
+                            `).join('')}
+                        </ul>`;
+                    body.innerHTML = html;
+                    body.dataset.loading = 'false';
+
+                    attachAddButtons();
+                })
+                .catch(err => {
+                    body.innerHTML = '<p class="text-danger">Loading failed.</p>';
+                    console.error(err);
+                });
         });
     });
-}
 
-/**
- * Loads artist details (albums) via AJAX
- */
-function loadArtistDetails(artist, body) {
-    fetch(`/editor/artist_details?artist=${encodeURIComponent(artist)}`)
-        .then(r => r.json())
-        .then(details => {
-            if (!details.albums || details.albums.length === 0) {
-                body.innerHTML = '<p class="text-muted">No albums found.</p>';
-                body.dataset.loading = 'false';
-                return;
-            }
+    // Album accordion
+    document.querySelectorAll('[data-bs-toggle="collapse"][data-raw-album]').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const collapse = document.querySelector(this.dataset.bsTarget);
+            if (!collapse) return;
 
-            let html = '<div class="accordion accordion-flush" id="artist-albums-accordion">';
-            details.albums.forEach((album, index) => {
-                const albumId = safeId(album.album + '-' + index);
-                const coverThumb = album.cover ? `
-                    <div class="album-thumb me-2">
-                        <img src="/${album.cover}" alt="Album Cover" class="rounded">
-                    </div>` : '';
-                
-                // Show "Various Artists" subtitle for compilation albums
-                const subtitle = album.is_compilation ? 
-                    '<div class="album-artist text-truncate small text-muted">Various Artists</div>' : '';
+            const body = collapse.querySelector('.accordion-body');
+            if (!body || body.dataset.loading !== 'true') return;
 
-                html += `
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button collapsed bg-album" type="button"
-                                    data-bs-toggle="collapse"
-                                    data-bs-target="#collapse-album-${albumId}">
-                                ${coverThumb}
-                                <div class="flex-grow-1 min-w-0">
-                                    <strong class="text-truncate d-block">${escapeHtml(album.album)}</strong>
-                                    ${subtitle}
-                                </div>
-                                <span class="ms-auto small">
-                                    <i class="bi bi-music-note-beamed me-1"></i>${album.tracks.length}
-                                </span>
+            const releaseDir = collapse.dataset.release_dir;
+            const coverPath = collapse.dataset.cover;
+
+            fetch(`/editor/album_details?release_dir=${encodeURIComponent(releaseDir)}`)
+                .then(r => r.json())
+                .then(details => {
+                    const cover = coverPath ? `
+                        <div class="mb-3 text-center">
+                            <img src="/${coverPath}" alt="${details.album}" class="img-thumbnail" style="max-width: 200px;">
+                        </div>` : '';
+
+                    const html = `
+                        ${cover}
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">${details.num_tracks} tracks</h6>
+                            <button class="btn btn-success btn-sm add-album-btn"
+                                    data-tracks="${escapeHtml(JSON.stringify(details.tracks))}">
+                                <i class="bi bi-plus-circle"></i> Add All
                             </button>
-                        </h2>
-                        <div id="collapse-album-${albumId}"
-                            class="accordion-collapse collapse">
-                            <div class="accordion-body">
-                                ${album.cover ? `
-                                    <div class="album-detail-cover mb-3">
-                                        <img src="/${album.cover}" alt="Album Cover" class="rounded shadow-sm">
-                                    </div>` : ''}
-                                <button class="btn btn-success btn-sm mb-3 add-album-btn"
-                                        data-tracks="${escapeHtml(JSON.stringify(album.tracks))}">
-                                    <i class="bi bi-plus-circle me-2"></i>Add whole album
-                                </button>
-                                <ul class="list-group">
-                                    ${album.tracks.map(track => `
-                                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                                            <div class="flex-grow-1 min-w-0">
-                                                <span class="text-truncate d-block">${escapeHtml(track.track)}</span>
-                                                <small class="text-muted">${formatDuration(track.duration || "?:??")}</small>
-                                            </div>
-                                            <div class="track-actions d-flex align-items-center gap-2 flex-shrink-0 ms-2">
-                                                <button class="btn btn-track btn-sm preview-btn"
-                                                        data-path="${escapeHtml(track.path)}"
-                                                        data-title="${escapeHtml(track.track)}"
-                                                        data-artist="${escapeHtml(track.artist)}"
-                                                        data-album="${escapeHtml(track.album)}"
-                                                        data-cover="${escapeHtml(album.cover || '')}">
-                                                    <i class="bi bi-play-fill"></i>
-                                                </button>
-                                                <button class="btn btn-success btn-sm add-btn"
-                                                        data-item="${escapeHtml(JSON.stringify(track))}">
-                                                    <i class="bi bi-plus-circle"></i>
-                                                </button>
-                                            </div>
-                                        </li>
-                                    `).join('')}
-                                </ul>
-                            </div>
                         </div>
-                    </div>
-                `;
-            });
-            html += '</div>';
+                        <ul class="list-group">
+                            ${details.tracks.map((track, idx) => `
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div class="flex-grow-1 min-w-0 me-2">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="text-muted" style="min-width: 25px;">${idx + 1}.</span>
+                                            <strong class="text-truncate">${track.track}</strong>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                                        <span class="text-muted" style="min-width: 45px; text-align: right;">${formatDuration(track.duration || "?:??")}</span>
+                                        <button class="btn btn-track btn-sm preview-btn"
+                                                data-path="${escapeHtml(track.path)}"
+                                                data-title="${escapeHtml(track.track)}"
+                                                data-artist="${escapeHtml(details.artist)}"
+                                                data-album="${escapeHtml(details.album)}"
+                                                data-cover="${escapeHtml(coverPath || '')}">
+                                            <i class="bi bi-play-fill"></i>
+                                        </button>
+                                        <button class="btn btn-success btn-sm add-btn" data-item="${escapeHtml(JSON.stringify(track))}">
+                                            <i class="bi bi-plus-circle"></i>
+                                        </button>
+                                    </div>
+                                </li>
+                            `).join('')}
+                        </ul>`;
+                    body.innerHTML = html;
+                    body.dataset.loading = 'false';
 
-            body.innerHTML = html;
-            body.dataset.loading = 'false';
-
-            attachAddButtons();
-            attachPreviewButtons();
-        })
-        .catch(err => {
-            body.innerHTML = '<p class="text-danger">Failed to load albums.</p>';
-            console.error(err);
+                    attachAddButtons();
+                    attachPreviewButtons();
+                })
+                .catch(err => {
+                    body.innerHTML = '<p class="text-danger">Loading failed.</p>';
+                    console.error(err);
+                });
         });
-}
-
-/**
- * Loads album details (tracks) via AJAX
- */
-function loadAlbumDetails(releaseDir, cover, body) {
-    fetch(`/editor/album_details?release_dir=${encodeURIComponent(releaseDir)}`)
-        .then(r => r.json())
-        .then(details => {
-            // Use cover from accordion data if details.cover is not available
-            const albumCover = details.cover || cover || '';
-
-            const coverDisplay = albumCover ? `
-                <div class="album-detail-cover mb-3">
-                    <img src="/${albumCover}" alt="Album Cover" class="rounded shadow-sm">
-                </div>` : '';
-
-            const html = `
-                ${coverDisplay}
-                <h5 class="mb-1">${escapeHtml(details.album)}</h5>
-                <p class="text-muted mb-3">${escapeHtml(details.artist)}</p>
-                <button class="btn btn-success mb-3 add-album-btn"
-                        data-tracks="${escapeHtml(JSON.stringify(details.tracks))}">
-                    <i class="bi bi-plus-circle me-2"></i>Add whole album
-                </button>
-                <ul class="list-group">
-                    ${details.tracks.map(track => `
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <div class="flex-grow-1 min-w-0">
-                                <span class="text-truncate d-block">${escapeHtml(track.track)}</span>
-                                ${details.is_compilation ? 
-                                    `<small class="text-muted">${escapeHtml(track.artist)} • ${formatDuration(track.duration || "?:??")}</small>` :
-                                    `<small class="text-muted">${formatDuration(track.duration || "?:??")}</small>`
-                                }
-                            </div>
-                            <div class="track-actions d-flex align-items-center gap-2 flex-shrink-0 ms-2">
-                                <button class="btn btn-track btn-sm preview-btn"
-                                        data-path="${escapeHtml(track.path)}"
-                                        data-title="${escapeHtml(track.track)}"
-                                        data-artist="${escapeHtml(details.artist)}"
-                                        data-album="${escapeHtml(details.album)}"
-                                        data-cover="${escapeHtml(albumCover)}">
-                                    <i class="bi bi-play-fill"></i>
-                                </button>
-                                <button class="btn btn-success btn-sm add-btn"
-                                        data-item="${escapeHtml(JSON.stringify(track))}">
-                                    <i class="bi bi-plus-circle"></i>
-                                </button>
-                            </div>
-                        </li>
-                    `).join('')}
-                </ul>`;
-            body.innerHTML = html;
-            body.dataset.loading = 'false';
-
-            attachAddButtons();
-            attachPreviewButtons();
-        })
-        .catch(err => {
-            body.innerHTML = '<p class="text-danger">Loading failed.</p>';
-            console.error(err);
-        });
+    });
 }
 
 /**
@@ -521,7 +489,7 @@ function setupAudioPlayerSync() {
  */
 export function initSearch() {
     const clearBtn = document.getElementById('clearSearch');
-    
+
     // Restore persisted query
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
@@ -536,7 +504,7 @@ export function initSearch() {
     searchInput.addEventListener("input", () => {
         clearTimeout(timeoutId);
         timeoutId = setTimeout(performSearch, 300);
-        
+
         // Show/hide clear button
         if (clearBtn) {
             clearBtn.style.display = searchInput.value.trim() ? 'block' : 'none';
