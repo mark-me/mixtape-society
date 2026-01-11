@@ -10,6 +10,9 @@ let castControlCallbacks = {
     onTimeUpdate: null
 };
 
+// Track current cast play state
+let castPlayState = 'IDLE'; // IDLE, PLAYING, PAUSED, BUFFERING
+
 // Debug overlay for mobile
 let debugOverlay = null;
 let debugMessages = [];
@@ -162,6 +165,7 @@ function sessionListener(session) {
             debugLog('Session ended');
             currentCastSession = null;
             currentMedia = null;
+            castPlayState = 'IDLE';
             onCastSessionEnd();
             console.log('Cast session ended');
         }
@@ -178,6 +182,9 @@ function attachMediaListener(media) {
             const status = media.playerState;
             const currentTime = media.getEstimatedTime();
             const currentItemId = media.currentItemId;
+
+            // Update cast play state
+            castPlayState = status;
 
             debugLog(`State: ${status}, Time: ${currentTime}s`);
             console.log(`Media update - State: ${status}, Time: ${currentTime}, ItemId: ${currentItemId}`);
@@ -245,6 +252,23 @@ export function isCasting() {
     return currentCastSession !== null && currentMedia !== null;
 }
 
+/**
+ * Get current cast play state
+ */
+export function getCastPlayState() {
+    return castPlayState;
+}
+
+/**
+ * Check if cast is currently playing (not paused)
+ */
+export function isCastPlaying() {
+    return castPlayState === 'PLAYING';
+}
+
+/**
+ * Control functions that can be called from player UI
+ */
 export function castPlay() {
     if (!currentMedia) return;
     
@@ -263,6 +287,19 @@ export function castPause() {
         () => debugLog('Pause command sent ✓'),
         error => debugLog('Pause failed', error)
     );
+}
+
+/**
+ * Toggle play/pause state for Chromecast
+ */
+export function castTogglePlayPause() {
+    if (!currentMedia) return;
+    
+    if (isCastPlaying()) {
+        castPause();
+    } else {
+        castPlay();
+    }
 }
 
 export function castSeek(currentTime) {
@@ -443,6 +480,7 @@ export function stopCasting() {
         currentCastSession.stop(() => {
             currentCastSession = null;
             currentMedia = null;
+            castPlayState = 'IDLE';
             onCastSessionEnd();
         }, onError);
     }

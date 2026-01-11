@@ -3,9 +3,11 @@ import {
     isCasting, 
     castPlay, 
     castPause, 
+    castTogglePlayPause,
     castNext, 
     castPrevious, 
     castJumpToTrack,
+    isCastPlaying,
     setCastControlCallbacks
 } from './chromecast.js';
 
@@ -339,7 +341,11 @@ export function initPlayerControls() {
             if (!icon) return;
 
             const isCurrentTrack = idx === currentIndex;
-            const isPlaying = isCurrentTrack && (isCurrentlyCasting || !player.paused);
+            // Check if playing: either casting and playing, or local player playing
+            const isPlaying = isCurrentTrack && (
+                (isCurrentlyCasting && isCastPlaying()) || 
+                (!isCurrentlyCasting && !player.paused)
+            );
 
             // Update icon
             if (isPlaying) {
@@ -364,10 +370,10 @@ export function initPlayerControls() {
      */
     function togglePlayPause() {
         if (isCurrentlyCasting) {
-            // For casting, we don't have direct play/pause state
-            // Just trigger the appropriate cast command
-            castPlay(); // The Chromecast SDK will handle toggling
+            // Use proper toggle for Chromecast that checks play state
+            castTogglePlayPause();
         } else {
+            // Local player toggle
             if (player.paused) {
                 player.play().catch(err => console.error("Resume failed:", err));
             } else {
@@ -422,6 +428,7 @@ export function initPlayerControls() {
             },
             onPlayStateChange: (state) => {
                 console.log(`Cast play state: ${state}`);
+                // Sync icons when cast play state changes
                 syncPlayIcons();
             },
             onTimeUpdate: (time) => {
