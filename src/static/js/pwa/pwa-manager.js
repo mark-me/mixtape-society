@@ -228,6 +228,20 @@ class PWAManager {
     initializeOfflineControls() {
         // Download mixtape button
         const downloadMixtapeBtn = document.getElementById('download-mixtape-btn');
+        if (!downloadMixtapeBtn) {
+            return;
+        }
+
+        // Only expose the offline download control when PWA support is available
+        if ('serviceWorker' in navigator && this.swRegistration) {
+            // Explicitly show the button; it is initially rendered with display: none
+            downloadMixtapeBtn.style.display = 'inline-flex';
+            downloadMixtapeBtn.addEventListener('click', () => this.downloadMixtapeForOffline());
+        } else {
+            // Ensure the control stays hidden if offline caching is not supported / not ready
+            downloadMixtapeBtn.style.display = 'none';
+        }
+        const downloadMixtapeBtn = document.getElementById('download-mixtape-btn');
         if (downloadMixtapeBtn) {
             downloadMixtapeBtn.addEventListener('click', () => this.downloadMixtapeForOffline());
         }
