@@ -65,6 +65,15 @@ function sessionListener(session) {
     // This is the moment we consider casting "started/connected"
     onCastSessionStart();
 
+    // Add message listener immediately when session is established
+    session.addMessageListener('urn:x-cast:com.google.cast.media', (namespace, message) => {
+        const msg = JSON.parse(message);
+        console.log('Cast receiver message:', msg);
+        if (msg.type === 'MEDIA_STATUS' && msg.status && msg.status.playerState === 'IDLE' && msg.status.idleReason === 'ERROR') {
+            console.error('Media load error on Chromecast:', msg.status.errorCode);
+        }
+    });
+
     session.addUpdateListener(isAlive => {
         if (!isAlive) {
             currentCastSession = null;
@@ -133,11 +142,16 @@ function loadQueue(session) {
 
     // Build the queue items
     const queueItems = tracks.map((track, index) => {
-        const mediaInfo = new chrome.cast.media.MediaInfo(
-            `${baseUrl}${encodeURIComponent(track.path)}?quality=${quality}`
-        );
-        mediaInfo.contentType = getAudioMimeFromPath(track.path, quality);
-
+        const trackUrl = `${baseUrl}${encodeURIComponent(track.path)}?quality=${quality}`;
+        const contentType = getAudioMimeFromPath(track.path, quality);
+        
+        // Create MediaInfo with proper constructor
+        const mediaInfo = new chrome.cast.media.MediaInfo(trackUrl, contentType);
+        
+        // Set stream type explicitly
+        mediaInfo.streamType = chrome.cast.media.StreamType.BUFFERED;
+        
+        // Create metadata
         const metadata = new chrome.cast.media.MusicTrackMediaMetadata();
         metadata.title = track.track || 'Unknown Title';
         metadata.artist = track.artist || 'Unknown Artist';
@@ -145,42 +159,48 @@ function loadQueue(session) {
 
         if (track.cover) {
             const coverUrl = new URL(track.cover, window.location.origin).href;
-            metadata.images = [{ url: coverUrl }];
+            metadata.images = [new chrome.cast.Image(coverUrl)];
         }
 
         mediaInfo.metadata = metadata;
 
+        // Create queue item
         const queueItem = new chrome.cast.media.QueueItem(mediaInfo);
-        queueItem.startTime = 0;
+        queueItem.autoplay = true;
+        queueItem.preloadTime = 5; // Preload 5 seconds before track ends
+        
         return queueItem;
     });
 
-    //Create the queue request
+    // Create the queue request
     const queueRequest = new chrome.cast.media.QueueLoadRequest(queueItems);
     queueRequest.repeatMode = chrome.cast.media.RepeatMode.OFF;
 
-    let startIndex = Number.isInteger(window.currentTrackIndex) ? window.currentTrackIndex: 0;
-    if (startIndex < 0 || startIndex >= queueItems.length) {
-        startIndex = 0;
+    // Determine start index
+    let startIndex = 0;
+    if (Number.isInteger(window.currentTrackIndex) && 
+        window.currentTrackIndex >= 0 && 
+        window.currentTrackIndex < queueItems.length) {
+        startIndex = window.currentTrackIndex;
     }
     queueRequest.startIndex = startIndex;
 
+    console.log(`Loading queue with ${queueItems.length} tracks, starting at index ${startIndex}`);
+
     // Load the queue
-    session.queueLoad(queueRequest, () => {
-        console.log('Playlist successfully queued on Chromecast');
-        // pause the local HTML5 player when casting starts
-        const localPlayer = document.getElementById('main-player');
-        if (localPlayer) localPlayer.pause();
-        session.addMessageListener('urn:x-cast:com.google.cast.media', (namespace, message) => {
-        const msg = JSON.parse(message);
-        console.log('Cast receiver message:', msg);
-        if (msg.type === 'MEDIA_STATUS' && msg.status.playerState === 'IDLE' && msg.status.idleReason === 'ERROR') {
-            console.error('Media load error on Chromecast:', msg.status.errorCode);
+    session.queueLoad(
+        queueRequest,
+        () => {
+            console.log('Playlist successfully queued on Chromecast');
+            // Pause the local HTML5 player when casting starts
+            const localPlayer = document.getElementById('main-player');
+            if (localPlayer) localPlayer.pause();
+        },
+        (error) => {
+            console.error('Failed to load queue on Chromecast:', error);
+            console.error('Error details:', JSON.stringify(error));
         }
-    });
-    }, (error) => {
-        console.error('Failed to load queue on Chromecast:', error);
-    });
+    );
 }
 
 // Stop casting
