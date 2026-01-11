@@ -1,4 +1,13 @@
 // static/js/player/playerControls.js
+import { 
+    isCasting, 
+    castPlay, 
+    castPause, 
+    castNext, 
+    castPrevious, 
+    castJumpToTrack,
+    setCastControlCallbacks
+} from './chromecast.js';
 
 /**
  * Quality settings for audio playback
@@ -26,9 +35,8 @@ function getMimeTypeFromUrl(url) {
         'webp': 'image/webp',
         'gif': 'image/gif',
         'bmp': 'image/bmp',
-        // Voeg gerust meer toe als je andere formaten ondersteunt
     };
-    return mimeMap[extension] || 'image/jpeg'; // veilige fallback
+    return mimeMap[extension] || 'image/jpeg';
 }
 
 export function initPlayerControls() {
@@ -44,6 +52,7 @@ export function initPlayerControls() {
     let currentIndex = -1;
     window.currentTrackIndex = currentIndex;
     let currentQuality = localStorage.getItem('audioQuality') || DEFAULT_QUALITY;
+    let isCurrentlyCasting = false;
 
     /**
      * Initialize quality selector dropdown and event handlers
@@ -121,8 +130,8 @@ export function initPlayerControls() {
         updateQualityButtonText();
         updateQualityMenuState(newQuality);
 
-        // If something is playing, reload with new quality
-        if (currentIndex >= 0 && player.src) {
+        // If something is playing locally, reload with new quality
+        if (currentIndex >= 0 && player.src && !isCurrentlyCasting) {
             const wasPlaying = !player.paused;
             const currentTime = player.currentTime;
 
@@ -166,7 +175,6 @@ export function initPlayerControls() {
         if (coverImg && coverImg.src) {
             const mimeType = getMimeTypeFromUrl(coverImg.src);
 
-            // Provide multiple sizes – Chrome on Android prefers 512x512 (256x256 on low-end devices)
             artwork = [
                 { src: coverImg.src, sizes: '96x96',   type: mimeType },
                 { src: coverImg.src, sizes: '128x128', type: mimeType },
@@ -184,30 +192,37 @@ export function initPlayerControls() {
             artwork: artwork
         });
 
-        // Fallback to mixtape-cover or favicon if there's no track cover
-
-        navigator.mediaSession.metadata = new MediaMetadata({
-            title: track.dataset.title,
-            artist: track.dataset.artist,
-            album: track.dataset.album || '',
-            artwork: artwork
-        });
-
         // Set action handlers for media controls
         navigator.mediaSession.setActionHandler('play', () => {
-            player.play().catch(e => console.log('Media Session play failed:', e));
+            if (isCurrentlyCasting) {
+                castPlay();
+            } else {
+                player.play().catch(e => console.log('Media Session play failed:', e));
+            }
         });
 
         navigator.mediaSession.setActionHandler('pause', () => {
-            player.pause();
+            if (isCurrentlyCasting) {
+                castPause();
+            } else {
+                player.pause();
+            }
         });
 
         navigator.mediaSession.setActionHandler('previoustrack', () => {
-            playTrack(currentIndex - 1);
+            if (isCurrentlyCasting) {
+                castPrevious();
+            } else {
+                playTrack(currentIndex - 1);
+            }
         });
 
         navigator.mediaSession.setActionHandler('nexttrack', () => {
-            playTrack(currentIndex + 1);
+            if (isCurrentlyCasting) {
+                castNext();
+            } else {
+                playTrack(currentIndex + 1);
+            }
         });
 
         // Update position state when metadata changes
@@ -226,10 +241,9 @@ export function initPlayerControls() {
                 navigator.mediaSession.setPositionState({
                     duration: player.duration,
                     playbackRate: player.playbackRate || 1.0,
-                    position: Math.min(player.currentTime, player.duration) // Ensure position doesn't exceed duration
+                    position: Math.min(player.currentTime, player.duration)
                 });
             } catch (error) {
-                // Silently fail if position state can't be set (some browsers don't support it)
                 console.debug('Could not set position state:', error);
             }
         }
@@ -248,6 +262,13 @@ export function initPlayerControls() {
      * Plays track at given index with current quality setting
      */
     function playTrack(index) {
+        // If casting, use cast controls instead
+        if (isCurrentlyCasting) {
+            castJumpToTrack(index);
+            updateUIForTrack(index);
+            return;
+        }
+
         // If index is same as current, don't reload the source
         if (index === currentIndex && player.src !== '') {
             player.play().catch(e => console.log('Autoplay prevented:', e));
@@ -264,12 +285,29 @@ export function initPlayerControls() {
 
         player.src = buildAudioUrl(track.dataset.path, currentQuality);
         if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {
-        try {
-            navigator.mediaSession.setPositionState(); // Clear state
-        } catch (e) {
-            // Catch browser error if there is no state yet
+            try {
+                navigator.mediaSession.setPositionState(); // Clear state
+            } catch (e) {
+                // Catch browser error if there is no state yet
+            }
         }
+
+        updateUIForTrack(index);
+
+        // Update Media Session metadata for mobile notifications
+        updateMediaSession(track);
+
+        player.play().catch(e => console.log('Autoplay prevented:', e));
     }
+
+    /**
+     * Updates UI elements for a given track index
+     */
+    function updateUIForTrack(index) {
+        if (index < 0 || index >= trackItems.length) return;
+
+        const track = trackItems[index];
+        
         bottomTitle.textContent = track.dataset.title;
         bottomArtistAlbum.textContent = `${track.dataset.artist} • ${track.dataset.album}`;
         container.style.display = 'block';
@@ -279,11 +317,6 @@ export function initPlayerControls() {
 
         currentIndex = index;
         window.currentTrackIndex = index;
-
-        // Update Media Session metadata for mobile notifications
-        updateMediaSession(track);
-
-        player.play().catch(e => console.log('Autoplay prevented:', e));
     }
 
     /**
@@ -306,7 +339,7 @@ export function initPlayerControls() {
             if (!icon) return;
 
             const isCurrentTrack = idx === currentIndex;
-            const isPlaying = isCurrentTrack && !player.paused;
+            const isPlaying = isCurrentTrack && (isCurrentlyCasting || !player.paused);
 
             // Update icon
             if (isPlaying) {
@@ -330,10 +363,16 @@ export function initPlayerControls() {
      * Toggles play/pause for the current track
      */
     function togglePlayPause() {
-        if (player.paused) {
-            player.play().catch(err => console.error("Resume failed:", err));
+        if (isCurrentlyCasting) {
+            // For casting, we don't have direct play/pause state
+            // Just trigger the appropriate cast command
+            castPlay(); // The Chromecast SDK will handle toggling
         } else {
-            player.pause();
+            if (player.paused) {
+                player.play().catch(err => console.error("Resume failed:", err));
+            } else {
+                player.pause();
+            }
         }
     }
 
@@ -348,6 +387,51 @@ export function initPlayerControls() {
     }
 
     /**
+     * Setup Chromecast event listeners
+     */
+    function initCastListeners() {
+        // Listen for casting state changes
+        document.addEventListener('cast:started', () => {
+            isCurrentlyCasting = true;
+            console.log('Casting started - controls now route to Chromecast');
+            
+            // Pause local player
+            if (!player.paused) {
+                player.pause();
+            }
+            
+            syncPlayIcons();
+        });
+
+        document.addEventListener('cast:ended', () => {
+            isCurrentlyCasting = false;
+            console.log('Casting ended - controls back to local player');
+            syncPlayIcons();
+        });
+
+        // Register callbacks for Chromecast events
+        setCastControlCallbacks({
+            onTrackChange: (index) => {
+                console.log(`Cast track changed to index: ${index}`);
+                updateUIForTrack(index);
+                
+                // Update media session if available
+                if (index >= 0 && index < trackItems.length) {
+                    updateMediaSession(trackItems[index]);
+                }
+            },
+            onPlayStateChange: (state) => {
+                console.log(`Cast play state: ${state}`);
+                syncPlayIcons();
+            },
+            onTimeUpdate: (time) => {
+                // Optional: Update a progress indicator if you have one
+                // console.log(`Cast time: ${time}`);
+            }
+        });
+    }
+
+    /**
      * Initializes all event listeners
      */
     function initEventListeners() {
@@ -356,6 +440,8 @@ export function initPlayerControls() {
             if (trackItems.length === 0) return;
             if (currentIndex === -1) {
                 playTrack(0);
+            } else if (isCurrentlyCasting) {
+                castPlay();
             } else {
                 player.play();
             }
@@ -366,7 +452,9 @@ export function initPlayerControls() {
         player?.addEventListener('pause', syncPlayIcons);
         player?.addEventListener('ended', () => {
             syncPlayIcons();
-            playTrack(currentIndex + 1);
+            if (!isCurrentlyCasting) {
+                playTrack(currentIndex + 1);
+            }
         });
 
         // Audio progress for adaptive theming
@@ -379,9 +467,9 @@ export function initPlayerControls() {
         player?.addEventListener('play', updatePositionState);
         player?.addEventListener('pause', updatePositionState);
         player?.addEventListener('ratechange', updatePositionState);
-        player?.addEventListener('seeked', updatePositionState); // Update immediately after seeking
+        player?.addEventListener('seeked', updatePositionState);
 
-        // Throttle timeupdate to once per second to avoid excessive updates
+        // Throttle timeupdate to once per second
         let lastPositionUpdate = 0;
         player?.addEventListener('timeupdate', () => {
             const now = Date.now();
@@ -391,9 +479,23 @@ export function initPlayerControls() {
             }
         });
 
-        // Navigation buttons
-        prevBtn?.addEventListener('click', () => playTrack(currentIndex - 1));
-        nextBtn?.addEventListener('click', () => playTrack(currentIndex + 1));
+        // Navigation buttons - now work for both local and cast
+        prevBtn?.addEventListener('click', () => {
+            if (isCurrentlyCasting) {
+                castPrevious();
+            } else {
+                playTrack(currentIndex - 1);
+            }
+        });
+
+        nextBtn?.addEventListener('click', () => {
+            if (isCurrentlyCasting) {
+                castNext();
+            } else {
+                playTrack(currentIndex + 1);
+            }
+        });
+
         closeBtn?.addEventListener('click', stopPlayback);
 
         // Track item play buttons
@@ -428,6 +530,7 @@ export function initPlayerControls() {
 
     // Initialize everything
     initQualitySelector();
+    initCastListeners();
     initEventListeners();
     handleAutoStart();
 

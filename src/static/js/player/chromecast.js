@@ -3,6 +3,12 @@
 const CAST_APP_ID = 'CC1AD845';
 
 let currentCastSession = null;
+let currentMedia = null;
+let castControlCallbacks = {
+    onTrackChange: null,
+    onPlayStateChange: null,
+    onTimeUpdate: null
+};
 
 export function initChromecast() {
     window['__onGCastApiAvailable'] = function(isAvailable) {
@@ -65,22 +71,61 @@ function sessionListener(session) {
     // This is the moment we consider casting "started/connected"
     onCastSessionStart();
 
-    // Add message listener immediately when session is established
-    session.addMessageListener('urn:x-cast:com.google.cast.media', (namespace, message) => {
-        const msg = JSON.parse(message);
-        console.log('Cast receiver message:', msg);
-        if (msg.type === 'MEDIA_STATUS' && msg.status && msg.status.playerState === 'IDLE' && msg.status.idleReason === 'ERROR') {
-            console.error('Media load error on Chromecast:', msg.status.errorCode);
-        }
+    // Set up media listener for the session
+    if (session.media && session.media.length > 0) {
+        attachMediaListener(session.media[0]);
+    }
+
+    // Listen for new media being loaded
+    session.addMediaListener(media => {
+        console.log('New media loaded in session');
+        attachMediaListener(media);
     });
 
     session.addUpdateListener(isAlive => {
         if (!isAlive) {
             currentCastSession = null;
+            currentMedia = null;
             onCastSessionEnd();
             console.log('Cast session ended');
         }
     });
+}
+
+function attachMediaListener(media) {
+    currentMedia = media;
+    console.log('Attached media listener');
+
+    media.addUpdateListener(isAlive => {
+        if (isAlive) {
+            // Update UI based on media status
+            const status = media.playerState;
+            const currentTime = media.getEstimatedTime();
+            const currentItemId = media.currentItemId;
+
+            // Notify callbacks about state changes
+            if (castControlCallbacks.onPlayStateChange) {
+                castControlCallbacks.onPlayStateChange(status);
+            }
+
+            if (castControlCallbacks.onTimeUpdate) {
+                castControlCallbacks.onTimeUpdate(currentTime);
+            }
+
+            // Check if track changed
+            if (media.media && media.media.queueData) {
+                const currentIndex = findCurrentQueueIndex(currentItemId, media.media.queueData.items);
+                if (currentIndex !== -1 && castControlCallbacks.onTrackChange) {
+                    castControlCallbacks.onTrackChange(currentIndex);
+                }
+            }
+        }
+    });
+}
+
+function findCurrentQueueIndex(itemId, queueItems) {
+    if (!queueItems) return -1;
+    return queueItems.findIndex(item => item.itemId === itemId);
 }
 
 function receiverListener(availability) {
@@ -98,9 +143,11 @@ function onCastSessionStart() {
     const btn = document.querySelector('#cast-button');
     if (btn) {
         btn.classList.add('connected');
-        // Change tooltip/text
         btn.title = 'Casting to device • Click to stop';
     }
+    
+    // Dispatch event so other modules know casting started
+    document.dispatchEvent(new CustomEvent('cast:started'));
 }
 
 function onCastSessionEnd() {
@@ -109,6 +156,104 @@ function onCastSessionEnd() {
         btn.classList.remove('connected');
         btn.title = 'Cast to device';
     }
+    
+    // Dispatch event so other modules know casting ended
+    document.dispatchEvent(new CustomEvent('cast:ended'));
+}
+
+/**
+ * Register callbacks for cast control events
+ */
+export function setCastControlCallbacks(callbacks) {
+    castControlCallbacks = { ...castControlCallbacks, ...callbacks };
+}
+
+/**
+ * Check if currently casting
+ */
+export function isCasting() {
+    return currentCastSession !== null && currentMedia !== null;
+}
+
+/**
+ * Get current cast media controller
+ */
+function getMediaController() {
+    if (!currentMedia) {
+        console.warn('No active cast media');
+        return null;
+    }
+    return new chrome.cast.media.MediaController(currentMedia);
+}
+
+/**
+ * Control functions that can be called from player UI
+ */
+export function castPlay() {
+    if (!currentMedia) return;
+    
+    const playRequest = new chrome.cast.media.PlayRequest();
+    currentMedia.play(playRequest, 
+        () => console.log('Cast play success'),
+        error => console.error('Cast play error:', error)
+    );
+}
+
+export function castPause() {
+    if (!currentMedia) return;
+    
+    const pauseRequest = new chrome.cast.media.PauseRequest();
+    currentMedia.pause(pauseRequest,
+        () => console.log('Cast pause success'),
+        error => console.error('Cast pause error:', error)
+    );
+}
+
+export function castSeek(currentTime) {
+    if (!currentMedia) return;
+    
+    const seekRequest = new chrome.cast.media.SeekRequest();
+    seekRequest.currentTime = currentTime;
+    
+    currentMedia.seek(seekRequest,
+        () => console.log('Cast seek success'),
+        error => console.error('Cast seek error:', error)
+    );
+}
+
+export function castNext() {
+    if (!currentMedia) return;
+    
+    const queueNextRequest = new chrome.cast.media.QueueJumpRequest(1);
+    currentMedia.queueJumpToItem(queueNextRequest,
+        () => console.log('Cast next track success'),
+        error => console.error('Cast next track error:', error)
+    );
+}
+
+export function castPrevious() {
+    if (!currentMedia) return;
+    
+    const queuePrevRequest = new chrome.cast.media.QueueJumpRequest(-1);
+    currentMedia.queueJumpToItem(queuePrevRequest,
+        () => console.log('Cast previous track success'),
+        error => console.error('Cast previous track error:', error)
+    );
+}
+
+export function castJumpToTrack(index) {
+    if (!currentMedia || !currentMedia.media || !currentMedia.media.queueData) return;
+    
+    const items = currentMedia.media.queueData.items;
+    if (index < 0 || index >= items.length) return;
+    
+    const targetItemId = items[index].itemId;
+    const jumpRequest = new chrome.cast.media.QueueJumpRequest(targetItemId);
+    
+    currentMedia.queueJumpToItem(jumpRequest,
+        () => console.log(`Cast jumped to track ${index}`),
+        error => console.error('Cast jump to track error:', error)
+    );
 }
 
 /**
@@ -208,6 +353,7 @@ export function stopCasting() {
     if (currentCastSession) {
         currentCastSession.stop(() => {
             currentCastSession = null;
+            currentMedia = null;
             onCastSessionEnd();
         }, onError);
     }
