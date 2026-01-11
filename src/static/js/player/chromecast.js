@@ -138,11 +138,15 @@ function loadQueue(session) {
         return queueItem;
     });
 
-    // NOW create the queue request
+    //Create the queue request
     const queueRequest = new chrome.cast.media.QueueLoadRequest(queueItems);
-    queueRequest.startIndex = 0;           // Start from first track
     queueRequest.repeatMode = chrome.cast.media.RepeatMode.OFF;
-    queueRequest.startIndex = window.currentTrackIndex || 0;
+
+    let startIndex = Number.isInteger(window.currentTrackIndex) ? window.currentTrackIndex: 0;
+    if (startIndex < 0 || startIndex >= queueItems.length) {
+        startIndex = 0;
+    }
+    queueRequest.startIndex = startIndex;
 
     // Load the queue
     session.queueLoad(queueRequest, () => {

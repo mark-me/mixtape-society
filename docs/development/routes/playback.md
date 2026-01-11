@@ -283,6 +283,102 @@ http://localhost:5000/play/share/test-mixtape
 
 ---
 
+## 📡 Chromecast Support
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant BrowserPlayer as BrowserPlayer_UI
+    participant ChromecastModule as Chromecast_JS
+    participant CastAPI as Google_Cast_API
+    participant Receiver as Chromecast_Device
+    participant Server as Flask_Server
+
+    User->>BrowserPlayer: Click cast_button
+    BrowserPlayer->>ChromecastModule: castMixtapePlaylist()
+    alt Existing_cast_session
+        ChromecastModule->>CastAPI: loadQueue(currentCastSession)
+    else No_cast_session
+        ChromecastModule->>CastAPI: requestSession()
+        CastAPI-->>ChromecastModule: session
+        ChromecastModule->>CastAPI: loadQueue(session)
+    end
+
+    CastAPI->>Receiver: QueueLoadRequest with media items
+
+    loop For_each_track_in_queue
+        Receiver->>Server: GET /play/<path>?quality=q
+        Server-->>Receiver: 200_or_206 audio/stream with CORS_headers
+    end
+
+    ChromecastModule->>BrowserPlayer: Pause local main_player
+```
+
+```mermaid
+classDiagram
+    class ChromecastModule {
+        <<module>>
+        - CAST_APP_ID : string
+        - currentCastSession
+        + initChromecast()
+        + castMixtapePlaylist()
+        + stopCasting()
+        - initializeCastApi()
+        - onInitSuccess()
+        - onError(error)
+        - sessionListener(session)
+        - receiverListener(availability)
+        - onCastSessionStart()
+        - onCastSessionEnd()
+        - loadQueue(session)
+    }
+
+    class PlayerIndexJS {
+        <<module>>
+        + initPage()
+    }
+
+    class PlayerControlsJS {
+        <<module>>
+        - currentIndex : number
+        - currentQuality : string
+        + initPlayerControls()
+        - playTrack(index)
+        - updateAudioProgress()
+    }
+
+    class PlayMixtapeTemplate {
+        <<template>>
+        + cast_button
+        + main_player
+        + mixtapeData_div
+        + __mixtapeData_rawMarkdown (rawMarkdown)
+        + __mixtapeData_tracks (tracks)
+        + __mixtapeData_baseUrl (baseUrl)
+    }
+
+    class PlayRoute {
+        <<Flask_route>>
+        + Response stream_audio(file_path)
+        - Response _handle_range_request(path, range_header)
+    }
+
+    ChromecastModule ..> PlayMixtapeTemplate : reads __mixtapeData
+    ChromecastModule ..> PlayerControlsJS : reads window.currentTrackIndex
+    PlayerIndexJS ..> ChromecastModule : calls initChromecast()
+    PlayerIndexJS ..> ChromecastModule : calls castMixtapePlaylist()
+    PlayerIndexJS ..> ChromecastModule : calls stopCasting()
+    PlayerIndexJS ..> PlayMixtapeTemplate : binds cast_button events
+    PlayerControlsJS ..> PlayMixtapeTemplate : controls main_player
+    PlayerControlsJS --> PlayMixtapeTemplate : updates window.currentTrackIndex
+    PlayRoute --> PlayMixtapeTemplate : serves audio URLs for tracks
+
+    PlayRoute : sets header Access-Control-Allow-Origin
+    PlayRoute : sets header Access-Control-Expose-Headers
+```
+
+---
+
 ## 📐 Class & Sequence Diagrams
 
 ### Blueprint/Class Diagram
