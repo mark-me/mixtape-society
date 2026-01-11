@@ -42,6 +42,7 @@ export function initPlayerControls() {
     const bottomArtistAlbum = document.getElementById('bottom-now-artist-album');
 
     let currentIndex = -1;
+    window.currentTrackIndex = currentIndex;
     let currentQuality = localStorage.getItem('audioQuality') || DEFAULT_QUALITY;
 
     /**
@@ -277,6 +278,7 @@ export function initPlayerControls() {
         track.classList.add('active-track');
 
         currentIndex = index;
+        window.currentTrackIndex = index;
 
         // Update Media Session metadata for mobile notifications
         updateMediaSession(track);
@@ -340,7 +342,7 @@ export function initPlayerControls() {
      */
     function updateAudioProgress() {
         if (!player.duration || isNaN(player.duration)) return;
-        
+
         const progress = (player.currentTime / player.duration) * 100;
         player.style.setProperty('--audio-progress', `${progress}%`);
     }
