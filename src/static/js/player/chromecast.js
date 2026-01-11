@@ -37,6 +37,23 @@ function onError(error) {
     console.error('Cast initialization failed:', error);
 }
 
+function getAudioMimeFromPath(path, quality) {
+    let ext = path.split('.').pop().toLowerCase();
+    if (quality !== 'original') {
+        ext = 'mp3';  // Transcoded files are MP3 from AudioCache
+    }
+    const mimeMap = {
+        'mp3': 'audio/mpeg',
+        'm4a': 'audio/mp4',
+        'aac': 'audio/aac',
+        'flac': 'audio/flac',
+        'ogg': 'audio/ogg',
+        'wav': 'audio/wav',
+        // Add more if your collection has them
+    };
+    return mimeMap[ext] || 'audio/mpeg';  // Fallback
+}
+
 /**
  * Session & Receiver handling
 */
@@ -119,7 +136,7 @@ function loadQueue(session) {
         const mediaInfo = new chrome.cast.media.MediaInfo(
             `${baseUrl}${encodeURIComponent(track.path)}?quality=${quality}`
         );
-        mediaInfo.contentType = 'audio/mpeg';
+        mediaInfo.contentType = getAudioMimeFromPath(track.path, quality);
 
         const metadata = new chrome.cast.media.MusicTrackMediaMetadata();
         metadata.title = track.track || 'Unknown Title';
@@ -154,6 +171,13 @@ function loadQueue(session) {
         // pause the local HTML5 player when casting starts
         const localPlayer = document.getElementById('main-player');
         if (localPlayer) localPlayer.pause();
+        session.addMessageListener('urn:x-cast:com.google.cast.media', (namespace, message) => {
+        const msg = JSON.parse(message);
+        console.log('Cast receiver message:', msg);
+        if (msg.type === 'MEDIA_STATUS' && msg.status.playerState === 'IDLE' && msg.status.idleReason === 'ERROR') {
+            console.error('Media load error on Chromecast:', msg.status.errorCode);
+        }
+    });
     }, (error) => {
         console.error('Failed to load queue on Chromecast:', error);
     });
