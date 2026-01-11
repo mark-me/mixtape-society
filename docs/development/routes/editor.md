@@ -243,7 +243,7 @@ document.dispatchEvent(new CustomEvent('mixtape-saved', {
 
 1. **Open** the editor (`/editor/` or `/editor/<slug>`).
 2. **Page loads** → `index.js` pre‑populates playlist, cover, title, and liner notes (if editing).
-3. **Search** → type ≥ 3 characters → `search.js` fetches results → user clicks Add → track appears in the playlist (toast shown).
+3. **Search** → type ≥ 2 characters → `search.js` fetches results → user clicks Add → track appears in the playlist (toast shown).
 4. **Reorder** (optional) → click the expand button → drag handles appear → rearrange tracks.
 5. **Edit title / liner notes** → any change marks the mixtape as unsaved (badge appears, floating save button fades in).
 6. **Cover** → click camera button → choose Upload or Generate Composite → cover preview updates → unsaved flag set.

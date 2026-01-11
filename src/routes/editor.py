@@ -104,19 +104,19 @@ def create_editor_blueprint(
         """
         try:
             query = request.args.get("q", "").strip()
-            if len(query) < 3:
+            if len(query) < 2:
                 return jsonify([])
-            
+
             # Log the search query for debugging
             logger.debug(f"Search query: {query}")
-            
+
             results = collection.search_highlighting(query, limit=50)
             return jsonify(results)
-            
+
         except Exception as e:
             # Log the full error with traceback
             logger.error(f"Search error for query '{query}': {e}", exc_info=True)
-            
+
             # Return a proper JSON error response
             return jsonify({
                 "error": "Search failed",

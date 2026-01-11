@@ -20,7 +20,7 @@ function performSearch() {
     localStorage.setItem(STORAGE_KEY, query);
 
     if (query.length < 2) {
-        resultsDiv.innerHTML = '<p class="text-muted text-center my-5">Type at least 3 characters to start searching…</p>';
+        resultsDiv.innerHTML = '<p class="text-muted text-center my-5">Type at least 2 characters to start searching…</p>';
         return;
     }
 
@@ -517,7 +517,7 @@ export function initSearch() {
             searchInput.value = '';
             clearBtn.style.display = 'none';
             localStorage.removeItem(STORAGE_KEY);
-            resultsDiv.innerHTML = '<p class="text-muted text-center my-5">Type at least 3 characters to start searching…</p>';
+            resultsDiv.innerHTML = '<p class="text-muted text-center my-5">Type at least 2 characters to start searching…</p>';
         });
     }
 
