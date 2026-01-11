@@ -1,0 +1,4188 @@
+<!DOCTYPE html><html lang="en" class="no-js"><head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="browse_mixtapes.html">
+      
+      
+        <link rel="next" href="playback.html">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../images/favicon.svg">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+    
+    
+      
+        <title>Editor - Mixtape Society</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.618322db.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+        <script src="https://unpkg.com/iframe-worker/shim"></script>
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/panzoom.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  <link href="../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style><meta name="panzoom-theme" content="material">
+<meta name="panzoom-data" content='{"selectors": [".mermaid", ".d2"], "initial_zoom_level": 1.0}'> </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#mixtape-editor" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../index.html" title="Mixtape Society" class="md-header__button md-logo" aria-label="Mixtape Society" data-md-component="logo">
+      
+  <img src="../../images/logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Mixtape Society
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Editor
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/mark-me/mixtape-society" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../index.html" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Introduction
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../user/getting-started.html" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../intro.html" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Architecture &amp; Development
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../project/index.html" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Project
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../index.html" title="Mixtape Society" class="md-nav__button md-logo" aria-label="Mixtape Society" data-md-component="logo">
+      
+  <img src="../../images/logo.svg" alt="logo">
+
+    </a>
+    Mixtape Society
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/mark-me/mixtape-society" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2">
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user/getting-started.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2">
+        
+          
+          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Installation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Local Development (Docker)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user/docker.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Production Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_3">
+        
+          
+          <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Using Mixtape Society
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Using Mixtape Society
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user/editor.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Editor Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user/collection-management.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Collection Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user/sharing.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sharing &amp; Public Links
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture &amp; Development
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture &amp; Development
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../intro.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2">
+        
+          
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core Components
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Core Components
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2_1">
+        
+          
+          <label class="md-nav__link" for="__nav_3_2_1" id="__nav_3_2_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Music Library (musiclib)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_2_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Music Library (musiclib)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../musiclib/intro.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../musiclib/reading.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reader
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../musiclib/loading.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Loader
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mixtape_manager.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mixtape Manager
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../audio_caching.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Audio Caching
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qr_generation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    QR Code creation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../utilities.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Flask app
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Flask app
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../app.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Main App
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../common.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Common
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3_3_3" id="__nav_3_3_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Routes
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_3_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Routes
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="browse_mixtapes.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Browser
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Editor
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="editor.html" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Editor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#highlevel-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🌍 High‑Level Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#flask-blueprint-routes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🗺️ Flask Blueprint &amp; Routes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-flow-serverside-logic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔄 Data Flow &amp; Server‑Side Logic
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clientside-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🏛️ Client‑Side Architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ui-layout-jinja-template-editorhtml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🖥️ UI Layout (Jinja Template – editor.html)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#static-javascript-modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧱 Static JavaScript Modules
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#interaction-flow-typical-user-journey" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🛤️ Interaction Flow (Typical User Journey)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qrcode-sharing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📤 QR‑Code Sharing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#core-helper-functions-backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔧 Core Helper Functions (Back‑End)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#api-contract-json-schemas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📄 API Contract (JSON Schemas)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔌 API
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="playback.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Playback
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="authentication.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Authentication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="opengraph_images.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OpenGraph
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="qr_codes.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    QR Codes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../project/index.html" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Project
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../project/changelog.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../project/roadmap.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4">
+        
+          
+          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ideas
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Ideas
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../project/ideas/ideas.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    General
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../project/ideas/design_implementation_map.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design &amp; Implementation Map
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../project/contributing.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../project/about.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#highlevel-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🌍 High‑Level Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#flask-blueprint-routes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🗺️ Flask Blueprint &amp; Routes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-flow-serverside-logic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔄 Data Flow &amp; Server‑Side Logic
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clientside-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🏛️ Client‑Side Architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ui-layout-jinja-template-editorhtml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🖥️ UI Layout (Jinja Template – editor.html)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#static-javascript-modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧱 Static JavaScript Modules
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#interaction-flow-typical-user-journey" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🛤️ Interaction Flow (Typical User Journey)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qrcode-sharing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📤 QR‑Code Sharing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#core-helper-functions-backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔧 Core Helper Functions (Back‑End)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#api-contract-json-schemas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📄 API Contract (JSON Schemas)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔌 API
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/mark-me/mixtape-society/edit/master/docs/development/routes/editor.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"></path></svg>
+    </a>
+  
+  
+
+
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../images/mixtape.png" data-title="Mixtape editor" data-desc-position="bottom"><img align="right" alt="Mixtape editor" src="../../images/mixtape.png" width="90"></a></p>
+<h1 id="mixtape-editor">Mixtape editor<a class="headerlink" href="#mixtape-editor" title="Permanent link">¶</a></h1>
+<p>The file <code>routes/editor.py</code> acts as the backend interface for the mixtape editor UI, managing the lifecycle of mixtape creation and editing, integrating with the music library, and handling file storage for mixtape data and cover images. It ensures that only authenticated users can access editor functionality. Its primary responsibility is to provide endpoints for creating, editing, searching, and saving mixtapes, including handling cover images and metadata. The file uses authentication, interacts with a music collection, and manages mixtape data as JSON files on disk.</p>
+<h2 id="highlevel-overview">🌍 High‑Level Overview<a class="headerlink" href="#highlevel-overview" title="Permanent link">¶</a></h2>
+<p>The Mixtape Editor is a full‑featured UI that lets a logged‑in user:</p>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Search &amp; add tracks</strong></td>
+<td>Unchanged – powered by <code>MusicCollectionUI.search_highlighting</code>.</td>
+</tr>
+<tr>
+<td><strong>Playlist management</strong></td>
+<td>Unchanged – drag-and-drop, reorder, delete, preview.</td>
+</tr>
+<tr>
+<td><strong>Cover handling</strong></td>
+<td>Upload a custom image or generate a composite cover from track art.</td>
+</tr>
+<tr>
+<td><strong>Save / update</strong></td>
+<td>Creates or updates a mixtape JSON file on disk.</td>
+</tr>
+<tr>
+<td><strong>Background audio-caching</strong></td>
+<td>Triggered after a successful save (optional).</td>
+</tr>
+<tr>
+<td><strong>QR-code sharing</strong></td>
+<td>After a mixtape is saved, a Share button appears. Clicking it opens a modal that shows a simple QR (preview) and lets the user download an enhanced QR that includes the mixtape’s cover and title.</td>
+</tr>
+<tr>
+<td><strong>Progress modal</strong></td>
+<td>Shows background-caching progress via SSE.</td>
+</tr>
+</tbody>
+</table>
+<p>All of this lives under the Flask blueprint editor (<code>/editor/*</code>) and is protected by the <code>@require_auth</code> decorator.</p>
+<h2 id="flask-blueprint-routes">🗺️ Flask Blueprint &amp; Routes<a class="headerlink" href="#flask-blueprint-routes" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>HTTP</th>
+<th>URL Pattern</th>
+<th>Handler</th>
+<th>Key Behaviour</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GET</code></td>
+<td><code>/editor/</code></td>
+<td><code>new_mixtape()</code></td>
+<td>Renders a blank editor (<code>preload_mixtape</code> contains empty fields).</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/editor/&lt;slug&gt;</code></td>
+<td><code>edit_mixtape(slug)</code></td>
+<td>Loads mixtape JSON via <code>MixtapeManager.get(slug)</code> and renders the editor pre-filled.</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/editor/search?q=</code></td>
+<td><code>search()</code></td>
+<td>Returns up to 50 highlighted results (artist/album/track) as JSON. Minimum query length = 3.</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/editor/artist_details?artist=</code></td>
+<td><code>artist_details()</code></td>
+<td>Returns JSON <code>{artist, albums:[{album, cover, tracks,…}], …}</code>. 400 if missing.</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/editor/album_details?release_dir=</code></td>
+<td><code>album_details()</code></td>
+<td>Returns JSON <code>{artist, album, tracks:[…], cover, is_compilation}</code>. 400 if missing.</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/editor/save</code></td>
+<td><code>save_mixtape()</code></td>
+<td>Accepts a JSON payload (<code>title, cover, liner_notes, tracks, optional slug</code>). Handles create (new UUID) and update (existing slug). Returns <code>{success:true, slug, url,…}</code>.</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/editor/progress/&lt;slug&gt;</code></td>
+<td><code>progress_stream(slug)</code></td>
+<td>Server-Sent Events (SSE) that emit <code>{type:"connected"}</code> then <code>{step, status, message, current, total}</code> objects. Used by Progress Modal.</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/editor/generate_composite</code></td>
+<td><code>generate_composite()</code></td>
+<td>Takes <code>{covers: [url,…]}</code> → returns <code>{data_url: "data:image/png;base64,…"}</code> (composite cover). 400/500 on error.</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/qr/&lt;slug&gt;.png</code></td>
+<td><code>qr.generate_qr(slug)</code></td>
+<td>Simple QR code (PNG) that encodes the public mixtape URL. Optional query params: <code>size</code> (max 800) and <code>logo</code> (true/false).</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/qr/&lt;slug&gt;/download</code></td>
+<td><code>qr.download_qr(slug)</code></td>
+<td>Enhanced QR code (PNG) that can include the mixtape’s cover art, title banner, and optional logo. Optional query params: <code>size</code> (max 1200), <code>include_cover</code>, <code>include_title</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>All routes are protected by <code>@require_auth</code>, so unauthenticated users are redirected to the login flow.</p>
+<h2 id="data-flow-serverside-logic">🔄 Data Flow &amp; Server‑Side Logic<a class="headerlink" href="#data-flow-serverside-logic" title="Permanent link">¶</a></h2>
+<ol>
+<li>Creating a New Mixtape<ul>
+<li><code>new_mixtape()</code> builds an empty dict (<code>title</code>, <code>cover</code>, <code>liner_notes</code>, <code>tracks</code>, <code>slug</code>, <code>timestamps</code>) and renders <code>editor.html</code> with preload_mixtape set to that dict.</li>
+<li>The client receives a <code>client‑id</code> (generated lazily via <code>crypto.randomUUID()</code> and stored in <code>localStorage["current_mixtape_client_id"])</code> to guarantee idempotent creates.</li>
+</ul>
+</li>
+<li>Editing an Existing Mixtape<ul>
+<li><code>edit_mixtape(slug)</code> instantiates a <code>MixtapeManager</code> (pointing at <code>app.config["MIXTAPE_DIR"]</code>) and calls <code>get(slug)</code>.</li>
+<li>The resulting dict (including cover, liner_notes, tracks, timestamps) is passed to the template as preload_mixtape.</li>
+<li>The hidden <input id="editing-slug"> carries the slug so the client knows it is an <strong>update</strong>.</li>
+</ul>
+</li>
+<li>Saving (<code>save_mixtape</code>)<ul>
+<li>Payload is parsed from JSON.</li>
+<li><strong>Track enrichment</strong> – each track’s cover is refreshed via <code>collection.get_cover(release_dir)</code>.</li>
+<li>If a <code>slug</code> is present → <strong>update</strong> (<code>MixtapeManager.update</code>). Otherwise → <strong>create</strong> (<code>MixtapeManager.save</code>).</li>
+<li>After a successful write, a <strong>background audio‑caching job</strong> is launched (if <code>AUDIO_CACHE_PRECACHE_ON_UPLOAD</code> is true) via a daemon thread that calls <code>_trigger_audio_caching_async</code>.</li>
+<li>The response includes the final slug and a URL (<code>/editor/&lt;slug&gt;</code>).</li>
+</ul>
+</li>
+<li>Progress Streaming (<code>progress_stream</code>)<ul>
+<li>Uses <code>audio_cache.get_progress_tracker</code> to obtain a <code>ProgressTracker</code>.</li>
+<li>The generator yields SSE lines (<code>data: {...}\n\n</code>).</li>
+<li>The client consumes these events in <code>progressModal.js</code>.</li>
+</ul>
+</li>
+<li>Composite Cover Generation (<code>generate_composite</code>)<ul>
+<li>Receives an array of cover URLs, builds a grid composite (via <code>CoverCompositor.generate_grid_composite</code>) and returns a data‑URL (<code>image/png;base64,…</code>).</li>
+</ul>
+</li>
+</ol>
+<h2 id="clientside-architecture">🏛️ Client‑Side Architecture<a class="headerlink" href="#clientside-architecture" title="Permanent link">¶</a></h2>
+<p>All editor‑related scripts live under <code>static/js/editor/</code>.
+They are <strong>module‑scoped</strong> (ES6 <code>import</code>/<code>export</code>) and loaded by <code>index.js</code> after the DOM is ready.</p>
+<table>
+<thead>
+<tr>
+<th>Module</th>
+<th>Exported Symbol(s)</th>
+<th>Core Responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>index.js</code></td>
+<td>–</td>
+<td>Bootstraps the whole page: preload mixtape data, initialise EasyMDE, search, playlist, UI, and set the initial “Liner-Notes” sub-tab.</td>
+</tr>
+<tr>
+<td><code>search.js</code></td>
+<td><code>initSearch</code></td>
+<td>Debounced search input → <code>/editor/search</code> → render grouped results (artists, albums, tracks). Handles lazy loading of album/artist details, “Add” buttons, and preview play/pause.</td>
+</tr>
+<tr>
+<td><code>playlist.js</code></td>
+<td><code>playlist, initPlaylist, addToPlaylist, setPlaylist, register*Callback</code></td>
+<td>Manages the playlist array, renders the sortable list, handles track-play preview, removal, and “Add whole album” actions. Emits callbacks for unsaved-changes and toast notifications.</td>
+</tr>
+<tr>
+<td><code>editorNotes.js</code></td>
+<td><code>initEditorNotes</code></td>
+<td>Instantiates EasyMDE, wires up the preview pane, and registers a custom <code>previewRender</code> that expands #1, #2-4 references using the current playlist.</td>
+</tr>
+<tr>
+<td><code>ui.js</code></td>
+<td><code>initUI, activateInitialNotesTab</code></td>
+<td>Handles cover upload/composite modal, Save button (including client-id handling), floating-button behaviour, unsaved-changes detection, navigation guard, and the bottom audio player.</td>
+</tr>
+<tr>
+<td><code>progressModal.js</code></td>
+<td><code>showProgressModal</code></td>
+<td>Constructs a Bootstrap modal that displays a progress bar, log of caching events, and a “Close” button that appears only after completion. Connects to the SSE endpoint.</td>
+</tr>
+<tr>
+<td><code>utils.js</code></td>
+<td><code>escapeHtml, escapeRegExp, highlightText, showAlert, showConfirm, renderTrackReferences, htmlSafeJson</code></td>
+<td>Miscellaneous helpers used across the UI (HTML escaping, markdown rendering, modal dialogs).</td>
+</tr>
+<tr>
+<td><code>index.js</code></td>
+<td>–</td>
+<td>Bootstraps the whole page: preload mixtape data, initialise EasyMDE, search, playlist, UI, QR sharing (via common module), and set the initial "Liner-Notes" sub-tab.</td>
+</tr>
+<tr>
+<td><code>coverCompositor.js</code> (via <code>utils.CoverCompositor</code>)</td>
+<td>–</td>
+<td>Generates a composite cover image from a set of track covers (used by <code>/editor/generate_composite</code>).</td>
+</tr>
+<tr>
+<td><code>qrShare.js</code></td>
+<td><code>static/js/common/qrShare.js</code></td>
+<td><strong>Shared QR functionality</strong> – Used by browser, editor, and player pages. Handles QR modal display, QR code loading, link copying, and QR download. Eliminates code duplication across pages.</td>
+</tr>
+</tbody>
+</table>
+<p>All modules share a single source of truth (<code>playlist</code> array) and communicate via <strong>callback registration</strong> (unsaved‑changes, toast notifications). No circular imports occur.</p>
+<h2 id="ui-layout-jinja-template-editorhtml">🖥️ UI Layout (Jinja Template – <code>editor.html</code>)<a class="headerlink" href="#ui-layout-jinja-template-editorhtml" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Section</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Header (<code>&lt;h1&gt;</code>)</td>
+<td>Dynamically shows “Create Mixtape”, “Edit Mixtape”, or “Edit: <code>title</code>”.</td>
+</tr>
+<tr>
+<td>Search Bar</td>
+<td>Large pill-shaped input with a search icon, info-popover (advanced search tips), and a loading spinner.</td>
+</tr>
+<tr>
+<td>Results Column (<code>col-lg-7</code>)</td>
+<td>Card titled Library – initially shows a placeholder; populated by <code>search.js</code> with artists, albums, and tracks.</td>
+</tr>
+<tr>
+<td>Mixtape Column (<code>col-lg-5</code>)</td>
+<td>Card titled My Mixtape – contains cover image + upload button, title textarea, tabs (Tracks / Liner Notes), playlist <code>&lt;ol&gt;</code> (rendered by <code>playlist.js</code>), and a Clear button.</td>
+</tr>
+<tr>
+<td>Floating Buttons (mobile only)</td>
+<td>“Save” (hidden until unsaved) and “Tracks” (always visible) – positioned bottom-right.</td>
+</tr>
+<tr>
+<td>Bottom Audio Player (<code>#audio-player-container</code>)</td>
+<td>Fixed-bottom panel that shows the currently playing preview track (cover, title, artist) and a native <code>&lt;audio&gt;</code> element.</td>
+</tr>
+<tr>
+<td>Modals</td>
+<td>Generic <code>appModal</code> (alerts/confirmations), Cover Options modal (Upload vs Composite).</td>
+</tr>
+<tr>
+<td>Toasts</td>
+<td>“Track added”, “Track removed”, and “Public link copied” toasts (Bootstrap).</td>
+</tr>
+<tr>
+<td>Progress Modal (injected by <code>progressModal.js</code>)</td>
+<td>Not in the template; created dynamically when saving.</td>
+</tr>
+</tbody>
+</table>
+<p>All elements use <strong>Bootstrap 5</strong> utilities and custom CSS variables (<code>--color‑track</code>, <code>--bs-body-bg</code>, etc.) for light/dark and semantic Theming.</p>
+<h2 id="static-javascript-modules">🧱 Static JavaScript Modules<a class="headerlink" href="#static-javascript-modules" title="Permanent link">¶</a></h2>
+<h3 id="page-load-indexjs">Page Load (<code>index.js</code>)<a class="headerlink" href="#page-load-indexjs" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="nb">document</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s2">"DOMContentLoaded"</span><span class="p">,</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// 1️⃣ Pre‑populate playlist, cover, title (if editing)</span>
+<span class="w">    </span><span class="c1">// 2️⃣ Initialise EasyMDE (with pre‑loaded liner notes)</span>
+<span class="w">    </span><span class="c1">// 3️⃣ Initialise search, playlist UI, and UI glue code</span>
+<span class="w">    </span><span class="c1">// 4️⃣ Initialise QR share (from common module)</span>
+<span class="w">    </span><span class="c1">//    - autoShow: true for existing mixtapes (has slug)</span>
+<span class="w">    </span><span class="c1">//    - autoShow: false for new mixtapes (hidden until save)</span>
+<span class="w">    </span><span class="c1">// 5️⃣ Activate the correct Liner‑Notes sub‑tab (Write vs Preview)</span>
+<span class="p">});</span>
+</code></pre></div>
+<ul>
+<li><strong>Pre‑load data</strong> – <code>window.PRELOADED_MIXTAPE</code> (populated by Flask) is read.</li>
+<li><strong>Playlist</strong> – <code>setPlaylist(preloadMixtape.tracks)</code> populates the UI list.</li>
+<li><strong>Cover &amp; Title</strong> – If a cover URL exists, it is set on <code>#playlist-cover</code>; title is placed in the textarea (<code>#playlist-title</code>).</li>
+<li><strong>Unsaved‑Changes Reset</strong> – When editing an existing mixtape (<code>slug</code> present) the stored <code>client_id</code> is kept; for a brand‑new mixtape the local‑storage <code>current_mixtape_client_id</code> is cleared.</li>
+<li><strong>Editor (EasyMDE)</strong> – <code>initEditorNotes(preloadMixtape.liner_notes)</code> creates the markdown editor with the appropriate initial value.</li>
+<li><strong>UI Init</strong> – <code>initSearch()</code>, <code>initPlaylist()</code>, <code>initUI()</code> wire up all interactive pieces (search bar, playlist drag‑&amp;‑drop, floating buttons, unsaved‑change detection, etc.).</li>
+<li><strong>Liner‑Notes Tab</strong> – <code>activateInitialNotesTab(hasNotes)</code> selects Preview if there are saved notes, otherwise Write.</li>
+</ul>
+<h3 id="library-search-searchjs">Library Search (<code>search.js</code>)<a class="headerlink" href="#library-search-searchjs" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Debounced input</strong> – 300 ms after the user stops typing, a request to <code>/editor/search?q=</code> is sent.</li>
+<li><strong>Results Rendering</strong> – Returned JSON is grouped by <code>type</code> (<code>artist</code>, <code>album</code>, <code>track</code>).</li>
+<li><strong>Artists</strong> → collapsible accordion (<code>bg-artist</code>). Clicking expands to lazily load the artist’s albums via <code>/editor/artist_details</code>.</li>
+<li><strong>Albums</strong> → collapsible accordion (<code>bg-album</code>). Expanding loads tracks via <code>/editor/album_details</code>.</li>
+<li><strong>Tracks</strong> → list items with a <strong>preview</strong> button (plays a short preview via the global audio player) and an <strong>add</strong> button (pushes the track into the playlist).</li>
+<li><strong>Add‑Album</strong> – Inside an album accordion a “Add whole album” button adds <em>all</em> tracks at once.</li>
+<li><strong>Highlighting</strong> – Search terms are wrapped in <code>&lt;mark&gt;</code> by the back‑end (<code>MusicCollection.search_highlighting</code>). The UI adds extra colour classes for visual distinction.</li>
+</ul>
+<h3 id="qr-share-integration-commonqrsharejs">QR Share Integration (<code>common/qrShare.js</code>)<a class="headerlink" href="#qr-share-integration-commonqrsharejs" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Module location</strong> – <code>static/js/common/qrShare.js</code> (shared across browser, editor, and player)</li>
+<li><strong>Modal definition</strong> – <code>#qrShareModal</code> in <code>base.html</code> (global, no duplication)</li>
+<li><strong>Button visibility logic</strong> –</li>
+<li><strong>New mixtape</strong>: Share button starts hidden (<code>autoShow: false</code>)</li>
+<li><strong>Existing mixtape</strong>: Share button shown immediately (<code>autoShow: true</code>)</li>
+<li><strong>After save</strong>: <code>mixtape-saved</code> event triggers button visibility update</li>
+<li><strong>Slug detection</strong> – Checks <code>#editing-slug</code> input value, falls back to <code>window.PRELOADED_MIXTAPE.slug</code></li>
+<li><strong>QR display</strong> – Loads <code>/qr/&lt;slug&gt;.png</code> (simple QR for preview)</li>
+<li><strong>Download</strong> – Calls <code>/qr/&lt;slug&gt;/download</code> (enhanced QR with cover art and title)</li>
+<li><strong>Copy link</strong> – Copies <code>/play/share/&lt;slug&gt;</code> to clipboard with toast notification</li>
+</ul>
+<p><strong>Integration in <code>index.js</code>:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="c1">// Determine if existing mixtape (has slug)</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">isExistingMixtape</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">Boolean</span><span class="p">(</span>
+<span class="w">    </span><span class="p">(</span><span class="nx">preloadMixtape</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">preloadMixtape</span><span class="p">.</span><span class="nx">slug</span><span class="p">)</span><span class="w"> </span><span class="o">||</span>
+<span class="w">    </span><span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s1">'editing-slug'</span><span class="p">)</span><span class="o">?</span><span class="p">.</span><span class="nx">value</span>
+<span class="p">);</span>
+
+<span class="nx">initQRShare</span><span class="p">({</span>
+<span class="w">    </span><span class="nx">shareButtonSelector</span><span class="o">:</span><span class="w"> </span><span class="s1">'#share-playlist'</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">modalId</span><span class="o">:</span><span class="w"> </span><span class="s1">'qrShareModal'</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">getSlug</span><span class="o">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="kd">const</span><span class="w"> </span><span class="nx">editingInput</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s1">'editing-slug'</span><span class="p">);</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">editingInput</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">editingInput</span><span class="p">.</span><span class="nx">value</span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="nx">editingInput</span><span class="p">.</span><span class="nx">value</span><span class="p">;</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">window</span><span class="p">.</span><span class="nx">PRELOADED_MIXTAPE</span><span class="o">?</span><span class="p">.</span><span class="nx">slug</span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="nb">window</span><span class="p">.</span><span class="nx">PRELOADED_MIXTAPE</span><span class="p">.</span><span class="nx">slug</span><span class="p">;</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="kc">null</span><span class="p">;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nx">autoShow</span><span class="o">:</span><span class="w"> </span><span class="nx">isExistingMixtape</span><span class="w">  </span><span class="c1">// Show immediately for existing, hide for new</span>
+<span class="p">});</span>
+</code></pre></div>
+<p><strong>Save integration in <code>ui.js</code>:</strong>
+After successful save, trigger the share button visibility:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// In the save function after success</span>
+<span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s1">'editing-slug'</span><span class="p">).</span><span class="nx">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">data</span><span class="p">.</span><span class="nx">slug</span><span class="p">;</span>
+<span class="nb">document</span><span class="p">.</span><span class="nx">dispatchEvent</span><span class="p">(</span><span class="ow">new</span><span class="w"> </span><span class="nx">CustomEvent</span><span class="p">(</span><span class="s1">'mixtape-saved'</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">detail</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">slug</span><span class="o">:</span><span class="w"> </span><span class="nx">data</span><span class="p">.</span><span class="nx">slug</span><span class="w"> </span><span class="p">}</span>
+<span class="p">}));</span>
+</code></pre></div>
+<h3 id="playlist-playlistjs">Playlist (<code>playlist.js</code>)<a class="headerlink" href="#playlist-playlistjs" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Data model</strong> – <code>window.playlist</code> is a plain array of objects <code>{artist, album, track, duration, path, filename, cover}</code>.</li>
+<li><strong>Rendering</strong> – <code>renderPlaylist()</code> builds an ordered list (<code>&lt;ol id="playlist"&gt;</code>) with:</li>
+<li>Drag handle (<code>.drag-handle</code>) for reordering.</li>
+<li>Cover thumbnail (or placeholder).</li>
+<li>Play‑preview overlay button (<code>.play-overlay-btn</code>).</li>
+<li>Track title, artist · album, duration, and a delete button.</li>
+<li><strong>Drag‑&amp;‑Drop</strong> – Powered by <strong>Sortable.js</strong>; after a reorder the array is rebuilt from the DOM order.</li>
+<li><strong>Play‑preview</strong> – Clicking a track’s overlay button:</li>
+<li>Loads the file into the <strong>global audio player</strong> (<code>#global-audio-player</code>).</li>
+<li>Shows the bottom player container (<code>#audio-player-container</code>).</li>
+<li>Updates “Now playing” title/artist and cover image.</li>
+<li>Toggles the button icon between <strong>play</strong> (<code>bi-play-fill</code>) and <strong>pause</strong> (<code>bi-pause-fill</code>).</li>
+<li><strong>Add / Remove callbacks</strong> – <code>registerTrackAddedCallback</code> and <code>registerTrackRemovedCallback</code> fire toast notifications (<code>#addTrackToast</code>, <code>#removeTrackToast</code>).</li>
+</ul>
+<h3 id="linernotes-editornotesjs">Liner‑Notes (<code>editorNotes.js</code>)<a class="headerlink" href="#linernotes-editornotesjs" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>EasyMDE</strong> – Configured with a custom toolbar, spell‑checker disabled, and a <strong>preview renderer</strong> that expands <code>#1</code>, <code>#2‑4</code>, etc. using the current playlist (<code>renderTrackReferences</code>).</li>
+<li><strong>Live preview</strong> – When the <strong>Preview</strong> tab becomes visible, the markdown is rendered with <strong>marked</strong> → <strong>DOMPurify</strong> → inserted into <code>#markdown-preview</code>.</li>
+<li><strong>Two‑way sync</strong> – Switching back to <strong>Write</strong> retains the editor’s current value; changes in the editor automatically update the preview when the tab is active.</li>
+</ul>
+<h3 id="save-workflow-uijs">Save Workflow (<code>ui.js</code>)<a class="headerlink" href="#save-workflow-uijs" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Mark unsaved</strong> – Any mutation (cover upload, title edit, playlist change, liner‑notes edit) calls <code>markUnsaved()</code>.</li>
+<li><strong>Badge &amp; floating button</strong> – An “Unsaved” badge appears on the top‑right <strong>Save</strong> button; a floating <strong>Save</strong> button (<code>#floating-save</code>) appears on mobile.</li>
+<li><strong>Client‑ID handling</strong> –</li>
+<li>For a new mixtape a UUID (<code>crypto.randomUUID()</code>) is stored in <code>localStorage.current_mixtape_client_id</code>.</li>
+<li>The same ID is reused for subsequent saves, guaranteeing <strong>idempotent</strong> creation.</li>
+<li><strong>POST <code>/editor/save</code></strong> – Payload includes:</li>
+<li><code>title</code>, <code>cover</code> (data‑URL or <code>null</code>), <code>liner_notes</code>, <code>tracks</code> (plain objects), optional <code>slug</code>, and <code>client_id</code>.</li>
+<li><strong>Server response</strong> – Returns <code>{success:true, slug, url,…}</code>.</li>
+<li><strong>Open progress modal</strong> – <code>showProgressModal(slug)</code> displays the <strong>Progress Modal</strong>.</li>
+</ol>
+<h3 id="cover-generation-upload-uijs-editorgenerate_composite">Cover Generation / Upload (<code>ui.js</code> + <code>/editor/generate_composite</code>)<a class="headerlink" href="#cover-generation-upload-uijs-editorgenerate_composite" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Cover Options Modal</strong> – Clicking the camera button opens <code>#coverOptionsModal</code> with two choices:</li>
+<li><strong>Upload Image</strong> – Triggers the hidden file input (<code>#cover-upload</code>). Validation checks file type (<code>jpg/png/gif/webp</code>) and size (≤ 5 MiB). On success the image is read as a data‑URL and displayed.</li>
+<li><strong>Generate Composite</strong> – Sends the list of track cover URLs (<code>playlist.map(t=&gt;t.cover)</code>) to <code>/editor/generate_composite</code>. The server returns a <strong>data‑URL</strong> PNG which replaces the current cover.</li>
+<li><strong>Both actions</strong> set <code>coverDataUrl</code> and call <code>markUnsaved()</code>.</li>
+</ul>
+<h3 id="navigation-guard-browser-warning">Navigation Guard &amp; Browser Warning<a class="headerlink" href="#navigation-guard-browser-warning" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Link interception</strong> – Any internal <code>&lt;a&gt;</code> click while <code>hasUnsavedChanges</code> is <code>true</code> shows a <strong>confirmation modal</strong> (<code>showConfirm</code>). If the user confirms, navigation proceeds; otherwise it is cancelled.</li>
+<li><strong><code>beforeunload</code></strong> – Browsers display a native “You have unsaved changes…” dialog when the user tries to close, refresh, or navigate away.</li>
+</ul>
+<h3 id="reorder-mode">Reorder Mode<a class="headerlink" href="#reorder-mode" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Toggle button</strong> – <code>#toggle-reorder-mode</code> adds/removes the class <code>reorder-mode</code> on <code>&lt;body&gt;</code>.</li>
+<li><strong>Effects</strong> –</li>
+<li>Hides the library column (<code>.col-lg-7</code>).</li>
+<li>Expands the mixtape column to full width.</li>
+<li>Enlarges the playlist area for easier drag‑&amp;‑drop.</li>
+<li>Hides the cover/title section to maximize vertical space.</li>
+</ul>
+<h3 id="floating-buttons-mobile">Floating Buttons (Mobile)<a class="headerlink" href="#floating-buttons-mobile" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Save</strong> – <code>#floating-save</code> mirrors the top‑right <strong>Save</strong> button; it becomes visible when there are unsaved changes.</li>
+<li><strong>Tracks</strong> – <code>#floating-tracks</code> jumps to the <strong>Tracks</strong> tab and scrolls the mixtape card into view.</li>
+</ul>
+<hr>
+<p><strong>Summary</strong> – The editor page is a tightly‑coupled SPA‑style UI built on vanilla JavaScript, Bootstrap, and a handful of third‑party libraries (Sortable.js, EasyMDE, marked, DOMPurify). All user actions funnel through the central <code>playlist</code> model, which synchronises the visual list, the global audio player, and the back‑end save endpoint. Unsaved‑change detection, background audio‑caching progress, and cover‑generation utilities provide a polished, production‑ready experience.</p>
+<h2 id="interaction-flow-typical-user-journey">🛤️ Interaction Flow (Typical User Journey)<a class="headerlink" href="#interaction-flow-typical-user-journey" title="Permanent link">¶</a></h2>
+<ol>
+<li><strong>Open</strong> the editor (<code>/editor/</code> or <code>/editor/&lt;slug&gt;</code>).</li>
+<li><strong>Page loads</strong> → <code>index.js</code> pre‑populates playlist, cover, title, and liner notes (if editing).</li>
+<li><strong>Search</strong> → type ≥ 2 characters → <code>search.js</code> fetches results → user clicks Add → track appears in the playlist (toast shown).</li>
+<li><strong>Reorder</strong> (optional) → click the expand button → drag handles appear → rearrange tracks.</li>
+<li><strong>Edit title / liner notes</strong> → any change marks the mixtape as unsaved (badge appears, floating save button fades in).</li>
+<li><strong>Cover</strong> → click camera button → choose Upload or Generate Composite → cover preview updates → unsaved flag set.</li>
+<li><strong>Preview a track</strong> → click the play overlay → bottom player appears, showing cover, title, artist; button toggles play/pause.</li>
+<li><strong>Save</strong> → click Save (or floating save).<ul>
+<li>Client‑id generated (if new).</li>
+<li>POST <code>/editor/save</code>.</li>
+<li>Server writes JSON, possibly triggers background audio‑caching.</li>
+<li>UI shows Progress Modal (<code>showProgressModal(slug)</code>).</li>
+</ul>
+</li>
+<li><strong>Progress Modal</strong> receives SSE events → updates progress bar &amp; log.<ul>
+<li>When <code>completed</code> → “Close” button enabled → user</li>
+</ul>
+</li>
+</ol>
+<h2 id="qrcode-sharing">📤 QR‑Code Sharing<a class="headerlink" href="#qrcode-sharing" title="Permanent link">¶</a></h2>
+<h3 id="share-button-visibility">Share Button &amp; Visibility<a class="headerlink" href="#share-button-visibility" title="Permanent link">¶</a></h3>
+<ul>
+<li>The <strong>Share</strong> button (<code>#share-playlist</code>) is hidden (<code>display:none</code>) until the editor has a valid <code>slug</code>.</li>
+<li>The client‑side module <code>static/js/editor/qrShare.js</code> listens for the custom <strong><code>mixtape-saved</code></strong> event (dispatched by <code>ui.js</code> after a successful <code>POST</code> <code>/editor/save</code>). When the event fires, the module calls <code>updateShareButtonVisibility()</code> which sets <code>shareBtn.style.display = ''</code>.</li>
+<li>If the user opens an existing mixtape (<code>/editor/&lt;slug&gt;</code>), the hidden input <code>#editing-slug</code> already contains the <code>slug</code>, so the button is shown immediately on page load.</li>
+</ul>
+<h3 id="qr-share-modal">QR Share Modal<a class="headerlink" href="#qr-share-modal" title="Permanent link">¶</a></h3>
+<p>The modal contains three UI states:</p>
+<table>
+<thead>
+<tr>
+<th>State</th>
+<th>Element</th>
+<th>Behaviour</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Loading</td>
+<td><code>#qr-loading</code> (spinner)</td>
+<td>Shown while the QR image is being fetched.</td>
+</tr>
+<tr>
+<td>Success</td>
+<td><code>#qr-code-img</code></td>
+<td>Displayed once the PNG loads (<code>onload</code> event).</td>
+</tr>
+<tr>
+<td>Error</td>
+<td><code>#qr-error</code></td>
+<td>Shown if the image request fails (e.g., 404 or server error).</td>
+</tr>
+</tbody>
+</table>
+<p>The <strong>Copy</strong> Link button copies the public mixtape URL (<code>/share/&lt;slug&gt;</code>) to the clipboard and shows a toast (<code>#shareToast</code>). The <strong>Download</strong> button triggers the <strong>enhanced QR</strong> endpoint (<code>/qr/&lt;slug&gt;/download?...</code>) and forces a file download with a friendly filename (<code>&lt;Mixtape‑Title&gt;-qr-code.png</code>).</p>
+<h3 id="backend-qr-blueprint-qr">Backend QR Blueprint (<code>/qr/...</code>)<a class="headerlink" href="#backend-qr-blueprint-qr" title="Permanent link">¶</a></h3>
+<p>Implemented in <code>routes/qr_blueprint.py</code> and exposed via the <code>qr</code> Flask blueprint:</p>
+<table>
+<thead>
+<tr>
+<th>Route</th>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/qr/&lt;slug&gt;.png</code></td>
+<td><code>GET</code></td>
+<td>Returns a simple QR PNG (<code>size</code> = size px, optional logo).</td>
+</tr>
+<tr>
+<td><code>/qr/&lt;slug&gt;/download</code></td>
+<td><code>GET</code></td>
+<td>Returns an enhanced QR PNG that can include the mixtape’s cover art, title banner, and optional logo.</td>
+</tr>
+</tbody>
+</table>
+<p>Both routes:</p>
+<ul>
+<li>Validate that the mixtape exists (<code>MixtapeManager.get(slug)</code>).</li>
+<li>Resolve the optional logo (<code>static/logo.svg</code> → fallback <code>static/logo.png</code>).</li>
+<li>For the <strong>download</strong> endpoint, also resolve the mixtape cover (<code>app.config["COVER_DIR"]</code>).</li>
+<li>Use the <strong><code>qr_generator</code></strong> package (<code>generate_mixtape_qr</code> / <code>generate_mixtape_qr_with_cover</code>).</li>
+<li>Return <strong><code>Cache‑Control: public, max-age=3600</code></strong> and an appropriate <strong><code>Content‑Disposition</code></strong> header (<code>inline</code> for the preview, <code>attachment</code> for the download).</li>
+</ul>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+</div>
+<p>The QR blueprint is registered separately from the editor blueprint:</p>
+<p><code>python
+  # app.py (excerpt)
+  from routes.qr_blueprint import create_qr_blueprint
+  app.register_blueprint(
+      create_qr_blueprint(mixtape_manager, logger=get_logger(__name__)),
+      url_prefix="/qr",
+  )</code></p>
+<h3 id="frontend-integration-staticjseditorqrsharejs">Front‑End Integration (<code>static/js/editor/qrShare.js</code>)<a class="headerlink" href="#frontend-integration-staticjseditorqrsharejs" title="Permanent link">¶</a></h3>
+<p>Key functions (full source in <code>editorQrShare.js</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>initEditorQRShare()</code></td>
+<td>Finds the Share button and modal, registers the mixtape-saved listener, toggles button visibility, and wires up the modal’s Copy and Download actions.</td>
+</tr>
+<tr>
+<td><code>showQRModal(modal, slug)</code></td>
+<td>Builds the preview URL (<code>/qr/&lt;slug&gt;.png?...</code>), shows the loading spinner, loads the image, and handles success/error UI transitions.</td>
+</tr>
+<tr>
+<td><code>downloadQRCode(slug)</code></td>
+<td>Calls <code>/qr/&lt;slug&gt;/download?...</code> with <code>size=800&amp;include_cover=true&amp;include_title=true</code>, parses the <code>Content-Disposition</code> header for a friendly filename, and triggers a browser download.</td>
+</tr>
+<tr>
+<td><code>copyShareLink()</code></td>
+<td>Copies the public share URL (<code>window.location.origin + "/share/" + slug</code>) to the clipboard and shows a toast.</td>
+</tr>
+<tr>
+<td><code>triggerShare()</code></td>
+<td>Public helper that can be called from other scripts (e.g., a keyboard shortcut) to open the QR modal programmatically.</td>
+</tr>
+</tbody>
+</table>
+<p>The module is imported at the bottom of <code>editor.html</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="p">&lt;</span><span class="nt">script</span> <span class="na">type</span><span class="o">=</span><span class="s">"module"</span> <span class="na">src</span><span class="o">=</span><span class="s">"{{ url_for('static', filename='js/editor/qrShare.js') }}"</span><span class="p">&gt;&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+</code></pre></div>
+<h3 id="example-request-flow">Example Request Flow<a class="headerlink" href="#example-request-flow" title="Permanent link">¶</a></h3>
+<div class="panzoom-box" data-key="alt" id="panzoom0" oncontextmenu="return false;">
+    
+    <nav class="panzoom-nav">
+    <button class="panzoom-info panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M464 256A208 208 0 1 0 48 256a208 208 0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm169.8-90.7c7.9-22.3 29.1-37.3 52.8-37.3l58.3 0c34.9 0 63.1 28.3 63.1 63.1c0 22.6-12.1 43.5-31.7 54.8L280 264.4c-.2 13-10.9 23.6-24 23.6c-13.3 0-24-10.7-24-24l0-13.5c0-8.6 4.6-16.5 12.1-20.8l44.3-25.4c4.7-2.7 7.6-7.7 7.6-13.1c0-8.4-6.8-15.1-15.1-15.1l-58.3 0c-3.4 0-6.4 2.1-7.5 5.3l-.4 1.2c-4.4 12.5-18.2 19-30.6 14.6s-19-18.2-14.6-30.6l.4-1.2zM224 352a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z"></path>
+    </svg>
+</button><button class="panzoom-reset panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M125.7 160l50.3 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L48 224c-17.7 0-32-14.3-32-32L16 64c0-17.7 14.3-32 32-32s32 14.3 32 32l0 51.2L97.6 97.6c87.5-87.5 229.3-87.5 316.8 0s87.5 229.3 0 316.8s-229.3 87.5-316.8 0c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0c62.5 62.5 163.8 62.5 226.3 0s62.5-163.8 0-226.3s-163.8-62.5-226.3 0L125.7 160z"></path>
+    </svg>
+</button><button class="panzoom-max panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M32 32C14.3 32 0 46.3 0 64l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L32 32zM64 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 32c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM448 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96z"></path>
+    </svg>
+</button><button class="panzoom-min panzoom-button panzoom-hidden">
+    <svg class="panzoom-icon" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M160 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96zM32 320c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM352 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 320c-17.7 0-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0z"></path>
+    </svg>
+</button>
+    </nav>
+    <pre class="mermaid"><code>sequenceDiagram
+    participant UI as Editor UI
+    participant QRBlueprint as /qr Blueprint
+    participant MM as MixtapeManager
+    participant QRGen as qr_generator
+    participant FS as FileSystem (static folder)
+
+    Note over UI,FS: Simple QR Request Flow
+    UI-&gt;&gt;QRBlueprint: GET /qr/awesome-mixtape.png?size=400&amp;logo=true
+    QRBlueprint-&gt;&gt;MM: get('awesome-mixtape')
+    MM--&gt;&gt;QRBlueprint: mixtape dict
+
+    Note over QRBlueprint,FS: Resolve logo (SVG preferred, fallback PNG, else None)
+    QRBlueprint-&gt;&gt;FS: Check static/logo.svg or static/logo.png
+    alt logo found
+        FS--&gt;&gt;QRBlueprint: logo_path
+    else none
+        FS--&gt;&gt;QRBlueprint: logo_path = None
+    end
+
+    Note over QRBlueprint,QRGen: Build share URL &amp; generate QR
+    QRBlueprint-&gt;&gt;QRBlueprint: share_url = url_for('play.public_play', slug, _external=True)
+    QRBlueprint-&gt;&gt;QRGen: generate_mixtape_qr(url, title, logo_path, size=400)
+    QRGen--&gt;&gt;QRBlueprint: PNG bytes
+
+    Note over QRBlueprint,UI: Return simple QR
+    QRBlueprint-&gt;&gt;UI: 200 OK, image/png, inline filename
+    UI-&gt;&gt;UI: Hide spinner, display img element
+
+    Note over UI,FS: Enhanced QR Request Flow (download)
+    UI-&gt;&gt;QRBlueprint: GET /qr/awesome-mixtape/download?size=800&amp;include_cover=true
+    QRBlueprint-&gt;&gt;MM: get('awesome-mixtape')
+    MM--&gt;&gt;QRBlueprint: mixtape dict
+
+    Note over QRBlueprint,FS: Resolve logo &amp; cover
+    QRBlueprint-&gt;&gt;FS: Check static/logo.svg/logo.png and COVER_DIR
+    alt logo or cover exists
+        FS--&gt;&gt;QRBlueprint: logo_path, cover_path
+    else missing
+        FS--&gt;&gt;QRBlueprint: logo_path/cover_path = None
+    end
+
+    Note over QRBlueprint,QRGen: Generate enhanced QR
+    QRBlueprint-&gt;&gt;QRBlueprint: share_url = url_for('play.public_play', slug, _external=True)
+    QRBlueprint-&gt;&gt;QRGen: generate_mixtape_qr_with_cover(params)
+    QRGen--&gt;&gt;QRBlueprint: PNG bytes
+
+    Note over QRBlueprint,UI: Return downloadable QR
+    QRBlueprint-&gt;&gt;UI: 200 OK, image/png, attachment filename
+    UI-&gt;&gt;UI: Prompt file download dialog</code></pre> 
+    <div class="panzoom-info-box panzoom-info-box-bottom panzoom-hidden">
+Hold "Alt" / "Option" to enable pan &amp; zoom
+</div>
+</div>
+<p>Explanation of the diagram</p>
+<ol>
+<li>
+<p><strong>Simple QR preview</strong> – The editor UI requests <code>/qr/&lt;slug&gt;.png</code>.</p>
+<ul>
+<li>The QR blueprint validates the mixtape, resolves an optional logo, builds the public share URL, and calls <code>qr_generator.generate_mixtape_qr</code>.</li>
+<li>The generated PNG is returned with caching headers; the UI hides the spinner and shows the image inside the modal.</li>
+</ul>
+</li>
+<li>
+<p><strong>Enhanced QR (download)</strong> – When the user clicks <strong>Download</strong>, the editor requests <code>/qr/&lt;slug&gt;/download</code> with extra query parameters.</p>
+<ul>
+<li>The blueprint additionally resolves the mixtape’s cover image (if it exists) and passes it to <code>generate_mixtape_qr_with_cover</code>.</li>
+<li>The response includes a <strong>Content‑Disposition: attachment</strong> header so the browser prompts a file‑save dialog with a friendly filename.</li>
+</ul>
+</li>
+<li>
+<p><strong>Error handling</strong> (not shown in the happy‑path diagram) –</p>
+<ul>
+<li>If <code>MixtapeManager.get(slug)</code> returns <code>None</code>, the blueprint aborts with <code>404</code>.</li>
+<li>If the <code>qrcode</code> library is missing, an <code>ImportError</code> is caught and a <code>500</code> response with a helpful message is sent.</li>
+<li>Any unexpected exception is logged (<code>logger.exception</code>) and results in a <code>500</code> error.</li>
+</ul>
+</li>
+<li>
+<p><strong>QR Share Architecture</strong> –</p>
+<ul>
+<li>The QR modal (<code>#qrShareModal</code>) is defined once in <code>base.html</code> (available globally on all pages)</li>
+<li>The common module (<code>static/js/common/qrShare.js</code>) handles all QR functionality</li>
+<li>Each page (browser, editor, player) calls <code>initQRShare()</code> with page-specific config</li>
+<li>For the editor: Share button is hidden initially (<code>autoShow: false</code>), shown after save</li>
+<li>After saving, the UI dispatches <code>mixtape-saved</code> event, which triggers share button visibility</li>
+</ul>
+</li>
+</ol>
+<p>This sequence diagram captures the complete round‑trip for both the preview and download QR flows, illustrating how the front‑end (now using a common module), Flask blueprint, and QR‑generation library collaborate.</p>
+<h2 id="core-helper-functions-backend">🔧 Core Helper Functions (Back‑End)<a class="headerlink" href="#core-helper-functions-backend" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>File</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>new_mixtape()</code></td>
+<td><code>editor.py</code></td>
+<td>Returns a fresh empty mixtape JSON for the template.</td>
+</tr>
+<tr>
+<td><code>edit_mixtape(slug)</code></td>
+<td><code>editor.py</code></td>
+<td>Retrieves a mixtape via <code>MixtapeManager.get(slug)</code> and renders the editor with pre-loaded data.</td>
+</tr>
+<tr>
+<td><code>search()</code></td>
+<td><code>editor.py</code></td>
+<td>Calls <code>collection.search_highlighting(query, limit=50)</code> (the same high-level search used elsewhere).</td>
+</tr>
+<tr>
+<td><code>artist_details()</code></td>
+<td><code>editor.py</code></td>
+<td>Wrapper around <code>MusicCollection.get_artist_details(artist)</code>.</td>
+</tr>
+<tr>
+<td><code>album_details()</code></td>
+<td><code>editor.py</code></td>
+<td>Wrapper around <code>MusicCollection.get_album_details(release_dir)</code>.</td>
+</tr>
+<tr>
+<td><code>save_mixtape()</code></td>
+<td><code>editor.py</code></td>
+<td>Normalises incoming JSON, enriches each track with its cover (<code>collection.get_cover(release_dir)</code>), then either <code>MixtapeManager.update(slug, …)</code> or <code>MixtapeManager.save(...)</code>.</td>
+</tr>
+<tr>
+<td><code>_trigger_audio_caching_async()</code></td>
+<td><code>editor.py</code></td>
+<td>Fires a background thread that calls <code>schedule_mixtape_caching</code> (from <code>audio_cache</code>) and emits progress events via <code>ProgressTracker</code>.</td>
+</tr>
+<tr>
+<td><code>generate_composite()</code></td>
+<td><code>editor.py</code></td>
+<td>Calls <code>CoverCompositor.generate_grid_composite(covers)</code> and returns a data-URL.</td>
+</tr>
+<tr>
+<td><code>progress_stream(slug)</code></td>
+<td><code>editor.py</code></td>
+<td>Returns an SSE Response that streams events from the shared <code>ProgressTracker</code>.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="important-behaviours">Important behaviours<a class="headerlink" href="#important-behaviours" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Cover handling</strong> – If the client sends a <code>data:image/...</code> URL, the server decodes, resizes (max 1200 px width) and stores it as <code>covers/&lt;slug&gt;.jpg</code>.</li>
+<li><strong>Timestamp handling</strong> – <code>MixtapeManager</code> adds <code>created_at</code> and <code>updated_at</code> ISO‑8601 timestamps on creation; <code>updated_at</code> is refreshed on each edit.</li>
+<li><strong>Client‑ID reuse</strong> – <code>save_mixtape</code> preserves the original <code>client_id</code> when updating, ensuring idempotent uploads.</li>
+</ul>
+<h2 id="api-contract-json-schemas">📄 API Contract (JSON Schemas)<a class="headerlink" href="#api-contract-json-schemas" title="Permanent link">¶</a></h2>
+<h3 id="save-payload-post-editorsave">Save Payload (<code>POST</code> <code>/editor/save</code>)<a class="headerlink" href="#save-payload-post-editorsave" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string (optional, defaults to \"Unnamed Mixtape\")"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"cover"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string | null – data:image/*;base64 or null"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"liner_notes"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string (markdown)"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"tracks"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"artist"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"album"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"track"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"duration"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string (MM:SS or seconds)"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string – relative to MUSIC_ROOT"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"filename"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"cover"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string | null – relative URL to cover image"</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">],</span>
+<span class="w">  </span><span class="nt">"slug"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string | null – present only when editing"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"client_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string – UUID, generated client‑side"</span>
+<span class="p">}</span>
+</code></pre></div>
+<h4 id="response-success">Response (success)<a class="headerlink" href="#response-success" title="Permanent link">¶</a></h4>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"success"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"..."</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"slug"</span><span class="p">:</span><span class="w"> </span><span class="s2">"..."</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"client_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"..."</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"url"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/editor/&lt;slug&gt;"</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><strong>Error responses</strong> – <code>400</code> for validation errors, <code>404</code> if an edit targets a missing mixtape, <code>500</code> for server failures.</p>
+<h3 id="search-result-excerpt">Search Result (excerpt)<a class="headerlink" href="#search-result-excerpt" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="p">[</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"artist"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"artist"</span><span class="p">:</span><span class="w"> </span><span class="s2">"The Beatles"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"raw_artist"</span><span class="p">:</span><span class="w"> </span><span class="s2">"The Beatles"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"reasons"</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="w"> </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"album"</span><span class="p">,</span><span class="w"> </span><span class="nt">"text"</span><span class="p">:</span><span class="w"> </span><span class="s2">"3 album(s)"</span><span class="w"> </span><span class="p">}],</span>
+<span class="w">    </span><span class="nt">"num_albums"</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"albums"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">               </span><span class="c1">// lazy‑loaded later</span>
+<span class="w">    </span><span class="nt">"load_on_demand"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"clickable"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"click_query"</span><span class="p">:</span><span class="w"> </span><span class="s2">"artist:'The Beatles'"</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"album"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"artist"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Radiohead"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"album"</span><span class="p">:</span><span class="w"> </span><span class="s2">"OK Computer"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"raw_album"</span><span class="p">:</span><span class="w"> </span><span class="s2">"OK Computer"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"cover"</span><span class="p">:</span><span class="w"> </span><span class="s2">"covers/ok_computer.jpg"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"is_compilation"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"reasons"</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="w"> </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"track"</span><span class="p">,</span><span class="w"> </span><span class="nt">"text"</span><span class="p">:</span><span class="w"> </span><span class="s2">"12 track(s)"</span><span class="w"> </span><span class="p">}],</span>
+<span class="w">    </span><span class="nt">"num_tracks"</span><span class="p">:</span><span class="w"> </span><span class="mi">12</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"tracks"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">               </span><span class="c1">// lazy‑loaded later</span>
+<span class="w">    </span><span class="nt">"load_on_demand"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"click_query"</span><span class="p">:</span><span class="w"> </span><span class="s2">"release_dir:/Radiohead/OK%20Computer/"</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"track"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"artist"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Pink Floyd"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"album"</span><span class="p">:</span><span class="w"> </span><span class="s2">"The Wall"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"track"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Another Brick in the Wall"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"duration"</span><span class="p">:</span><span class="w"> </span><span class="s2">"5:12"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Pink Floyd/The Wall/05 Another Brick in the Wall.flac"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"filename"</span><span class="p">:</span><span class="w"> </span><span class="s2">"05 Another Brick in the Wall.flac"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"cover"</span><span class="p">:</span><span class="w"> </span><span class="s2">"covers/the_wall.jpg"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"highlighted_track"</span><span class="p">:</span><span class="w"> </span><span class="s2">"&lt;mark&gt;Another&lt;/mark&gt; Brick in the Wall"</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">]</span>
+</code></pre></div>
+<h3 id="sse-progress-event-from-editorprogressslug">SSE Progress Event (from <code>/editor/progress/&lt;slug&gt;</code>)<a class="headerlink" href="#sse-progress-event-from-editorprogressslug" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"progress"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"step"</span><span class="p">:</span><span class="w"> </span><span class="s2">"caching"</span><span class="p">,</span><span class="w">               </span><span class="c1">// initializing | analyzing | caching | completed | error</span>
+<span class="w">  </span><span class="nt">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"in_progress"</span><span class="p">,</span><span class="w">        </span><span class="c1">// pending | in_progress | completed | failed | skipped</span>
+<span class="w">  </span><span class="nt">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Caching 3/12 files…"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"current"</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"total"</span><span class="p">:</span><span class="w"> </span><span class="mi">12</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="api">🔌 API<a class="headerlink" href="#api" title="Permanent link">¶</a></h2>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="src.routes.editor" class="doc doc-heading">
+            <code>src.routes.editor</code>
+
+
+<a href="#src.routes.editor" class="headerlink" title="Permanent link">¶</a></h3>
+
+    <div class="doc doc-contents first">
+
+
+
+
+
+
+
+
+
+
+
+
+<p><span class="doc-section-title">Functions:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+            <tr class="doc-section-item">
+              <td><code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;create_editor_blueprint&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;collection&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;logger&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt; (&lt;code&gt;src.routes.editor.create_editor_blueprint&lt;/code&gt;)" href="#src.routes.editor.create_editor_blueprint">create_editor_blueprint</a></code></td>
+              <td>
+                <div class="doc-md-description">
+                  <p>Creates and configures the Flask blueprint for the mixtape editor.</p>
+                </div>
+              </td>
+            </tr>
+      </tbody>
+    </table>
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="src.routes.editor.create_editor_blueprint" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">create_editor_blueprint</span><span class="p">(</span><span class="n">collection</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#src.routes.editor.create_editor_blueprint" class="headerlink" title="Permanent link">¶</a></h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Creates and configures the Flask blueprint for the mixtape editor.</p>
+<p>Sets up routes for creating, editing, searching, and saving mixtapes, and provides helper functions for cover image and JSON handling.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>collection</code>
+            </td>
+            <td>
+                  <code><span title="MusicCollection">MusicCollection</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The music collection instance to use for searching.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>logger</code>
+            </td>
+            <td>
+                  <code><span title="common.logging.Logger">Logger</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The logger instance for error reporting.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>Blueprint</code></td>            <td>
+                  <code><span title="flask.Blueprint">Blueprint</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The configured Flask blueprint for the editor.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>src/routes/editor.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 30</span>
+<span class="normal"> 31</span>
+<span class="normal"> 32</span>
+<span class="normal"> 33</span>
+<span class="normal"> 34</span>
+<span class="normal"> 35</span>
+<span class="normal"> 36</span>
+<span class="normal"> 37</span>
+<span class="normal"> 38</span>
+<span class="normal"> 39</span>
+<span class="normal"> 40</span>
+<span class="normal"> 41</span>
+<span class="normal"> 42</span>
+<span class="normal"> 43</span>
+<span class="normal"> 44</span>
+<span class="normal"> 45</span>
+<span class="normal"> 46</span>
+<span class="normal"> 47</span>
+<span class="normal"> 48</span>
+<span class="normal"> 49</span>
+<span class="normal"> 50</span>
+<span class="normal"> 51</span>
+<span class="normal"> 52</span>
+<span class="normal"> 53</span>
+<span class="normal"> 54</span>
+<span class="normal"> 55</span>
+<span class="normal"> 56</span>
+<span class="normal"> 57</span>
+<span class="normal"> 58</span>
+<span class="normal"> 59</span>
+<span class="normal"> 60</span>
+<span class="normal"> 61</span>
+<span class="normal"> 62</span>
+<span class="normal"> 63</span>
+<span class="normal"> 64</span>
+<span class="normal"> 65</span>
+<span class="normal"> 66</span>
+<span class="normal"> 67</span>
+<span class="normal"> 68</span>
+<span class="normal"> 69</span>
+<span class="normal"> 70</span>
+<span class="normal"> 71</span>
+<span class="normal"> 72</span>
+<span class="normal"> 73</span>
+<span class="normal"> 74</span>
+<span class="normal"> 75</span>
+<span class="normal"> 76</span>
+<span class="normal"> 77</span>
+<span class="normal"> 78</span>
+<span class="normal"> 79</span>
+<span class="normal"> 80</span>
+<span class="normal"> 81</span>
+<span class="normal"> 82</span>
+<span class="normal"> 83</span>
+<span class="normal"> 84</span>
+<span class="normal"> 85</span>
+<span class="normal"> 86</span>
+<span class="normal"> 87</span>
+<span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span>
+<span class="normal">180</span>
+<span class="normal">181</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span>
+<span class="normal">215</span>
+<span class="normal">216</span>
+<span class="normal">217</span>
+<span class="normal">218</span>
+<span class="normal">219</span>
+<span class="normal">220</span>
+<span class="normal">221</span>
+<span class="normal">222</span>
+<span class="normal">223</span>
+<span class="normal">224</span>
+<span class="normal">225</span>
+<span class="normal">226</span>
+<span class="normal">227</span>
+<span class="normal">228</span>
+<span class="normal">229</span>
+<span class="normal">230</span>
+<span class="normal">231</span>
+<span class="normal">232</span>
+<span class="normal">233</span>
+<span class="normal">234</span>
+<span class="normal">235</span>
+<span class="normal">236</span>
+<span class="normal">237</span>
+<span class="normal">238</span>
+<span class="normal">239</span>
+<span class="normal">240</span>
+<span class="normal">241</span>
+<span class="normal">242</span>
+<span class="normal">243</span>
+<span class="normal">244</span>
+<span class="normal">245</span>
+<span class="normal">246</span>
+<span class="normal">247</span>
+<span class="normal">248</span>
+<span class="normal">249</span>
+<span class="normal">250</span>
+<span class="normal">251</span>
+<span class="normal">252</span>
+<span class="normal">253</span>
+<span class="normal">254</span>
+<span class="normal">255</span>
+<span class="normal">256</span>
+<span class="normal">257</span>
+<span class="normal">258</span>
+<span class="normal">259</span>
+<span class="normal">260</span>
+<span class="normal">261</span>
+<span class="normal">262</span>
+<span class="normal">263</span>
+<span class="normal">264</span>
+<span class="normal">265</span>
+<span class="normal">266</span>
+<span class="normal">267</span>
+<span class="normal">268</span>
+<span class="normal">269</span>
+<span class="normal">270</span>
+<span class="normal">271</span>
+<span class="normal">272</span>
+<span class="normal">273</span>
+<span class="normal">274</span>
+<span class="normal">275</span>
+<span class="normal">276</span>
+<span class="normal">277</span>
+<span class="normal">278</span>
+<span class="normal">279</span>
+<span class="normal">280</span>
+<span class="normal">281</span>
+<span class="normal">282</span>
+<span class="normal">283</span>
+<span class="normal">284</span>
+<span class="normal">285</span>
+<span class="normal">286</span>
+<span class="normal">287</span>
+<span class="normal">288</span>
+<span class="normal">289</span>
+<span class="normal">290</span>
+<span class="normal">291</span>
+<span class="normal">292</span>
+<span class="normal">293</span>
+<span class="normal">294</span>
+<span class="normal">295</span>
+<span class="normal">296</span>
+<span class="normal">297</span>
+<span class="normal">298</span>
+<span class="normal">299</span>
+<span class="normal">300</span>
+<span class="normal">301</span>
+<span class="normal">302</span>
+<span class="normal">303</span>
+<span class="normal">304</span>
+<span class="normal">305</span>
+<span class="normal">306</span>
+<span class="normal">307</span>
+<span class="normal">308</span>
+<span class="normal">309</span>
+<span class="normal">310</span>
+<span class="normal">311</span>
+<span class="normal">312</span>
+<span class="normal">313</span>
+<span class="normal">314</span>
+<span class="normal">315</span>
+<span class="normal">316</span>
+<span class="normal">317</span>
+<span class="normal">318</span>
+<span class="normal">319</span>
+<span class="normal">320</span>
+<span class="normal">321</span>
+<span class="normal">322</span>
+<span class="normal">323</span>
+<span class="normal">324</span>
+<span class="normal">325</span>
+<span class="normal">326</span>
+<span class="normal">327</span>
+<span class="normal">328</span>
+<span class="normal">329</span>
+<span class="normal">330</span>
+<span class="normal">331</span>
+<span class="normal">332</span>
+<span class="normal">333</span>
+<span class="normal">334</span>
+<span class="normal">335</span>
+<span class="normal">336</span>
+<span class="normal">337</span>
+<span class="normal">338</span>
+<span class="normal">339</span>
+<span class="normal">340</span>
+<span class="normal">341</span>
+<span class="normal">342</span>
+<span class="normal">343</span>
+<span class="normal">344</span>
+<span class="normal">345</span>
+<span class="normal">346</span>
+<span class="normal">347</span>
+<span class="normal">348</span>
+<span class="normal">349</span>
+<span class="normal">350</span>
+<span class="normal">351</span>
+<span class="normal">352</span>
+<span class="normal">353</span>
+<span class="normal">354</span>
+<span class="normal">355</span>
+<span class="normal">356</span>
+<span class="normal">357</span>
+<span class="normal">358</span>
+<span class="normal">359</span>
+<span class="normal">360</span>
+<span class="normal">361</span>
+<span class="normal">362</span>
+<span class="normal">363</span>
+<span class="normal">364</span>
+<span class="normal">365</span>
+<span class="normal">366</span>
+<span class="normal">367</span>
+<span class="normal">368</span>
+<span class="normal">369</span>
+<span class="normal">370</span>
+<span class="normal">371</span>
+<span class="normal">372</span>
+<span class="normal">373</span>
+<span class="normal">374</span>
+<span class="normal">375</span>
+<span class="normal">376</span>
+<span class="normal">377</span>
+<span class="normal">378</span>
+<span class="normal">379</span>
+<span class="normal">380</span>
+<span class="normal">381</span>
+<span class="normal">382</span>
+<span class="normal">383</span>
+<span class="normal">384</span>
+<span class="normal">385</span>
+<span class="normal">386</span>
+<span class="normal">387</span>
+<span class="normal">388</span>
+<span class="normal">389</span>
+<span class="normal">390</span>
+<span class="normal">391</span>
+<span class="normal">392</span>
+<span class="normal">393</span>
+<span class="normal">394</span>
+<span class="normal">395</span>
+<span class="normal">396</span>
+<span class="normal">397</span>
+<span class="normal">398</span>
+<span class="normal">399</span>
+<span class="normal">400</span>
+<span class="normal">401</span>
+<span class="normal">402</span>
+<span class="normal">403</span>
+<span class="normal">404</span>
+<span class="normal">405</span>
+<span class="normal">406</span>
+<span class="normal">407</span>
+<span class="normal">408</span>
+<span class="normal">409</span>
+<span class="normal">410</span>
+<span class="normal">411</span>
+<span class="normal">412</span>
+<span class="normal">413</span>
+<span class="normal">414</span>
+<span class="normal">415</span>
+<span class="normal">416</span>
+<span class="normal">417</span>
+<span class="normal">418</span>
+<span class="normal">419</span>
+<span class="normal">420</span>
+<span class="normal">421</span>
+<span class="normal">422</span>
+<span class="normal">423</span>
+<span class="normal">424</span>
+<span class="normal">425</span>
+<span class="normal">426</span>
+<span class="normal">427</span>
+<span class="normal">428</span>
+<span class="normal">429</span>
+<span class="normal">430</span>
+<span class="normal">431</span>
+<span class="normal">432</span>
+<span class="normal">433</span>
+<span class="normal">434</span>
+<span class="normal">435</span>
+<span class="normal">436</span>
+<span class="normal">437</span>
+<span class="normal">438</span>
+<span class="normal">439</span>
+<span class="normal">440</span>
+<span class="normal">441</span>
+<span class="normal">442</span>
+<span class="normal">443</span>
+<span class="normal">444</span>
+<span class="normal">445</span>
+<span class="normal">446</span>
+<span class="normal">447</span>
+<span class="normal">448</span>
+<span class="normal">449</span>
+<span class="normal">450</span>
+<span class="normal">451</span>
+<span class="normal">452</span>
+<span class="normal">453</span>
+<span class="normal">454</span>
+<span class="normal">455</span>
+<span class="normal">456</span>
+<span class="normal">457</span>
+<span class="normal">458</span>
+<span class="normal">459</span>
+<span class="normal">460</span>
+<span class="normal">461</span>
+<span class="normal">462</span>
+<span class="normal">463</span>
+<span class="normal">464</span>
+<span class="normal">465</span>
+<span class="normal">466</span>
+<span class="normal">467</span>
+<span class="normal">468</span>
+<span class="normal">469</span>
+<span class="normal">470</span>
+<span class="normal">471</span>
+<span class="normal">472</span>
+<span class="normal">473</span>
+<span class="normal">474</span>
+<span class="normal">475</span>
+<span class="normal">476</span>
+<span class="normal">477</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">create_editor_blueprint</span><span class="p">(</span>
+    <span class="n">collection</span><span class="p">:</span> <span class="n">MusicCollectionUI</span><span class="p">,</span> <span class="n">logger</span><span class="p">:</span> <span class="n">Logger</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Blueprint</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Creates and configures the Flask blueprint for the mixtape editor.</span>
+
+<span class="sd">    Sets up routes for creating, editing, searching, and saving mixtapes, and provides helper functions for cover image and JSON handling.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        collection (MusicCollection): The music collection instance to use for searching.</span>
+<span class="sd">        logger (Logger): The logger instance for error reporting.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Blueprint: The configured Flask blueprint for the editor.</span>
+<span class="sd">    """</span>
+    <span class="n">editor</span> <span class="o">=</span> <span class="n">Blueprint</span><span class="p">(</span><span class="s2">"editor"</span><span class="p">,</span> <span class="vm">__name__</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="p">:</span> <span class="n">Logger</span> <span class="o">=</span> <span class="n">logger</span> <span class="ow">or</span> <span class="n">NullLogger</span><span class="p">()</span>
+
+    <span class="nd">@editor</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">"/"</span><span class="p">)</span>
+    <span class="nd">@require_auth</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">new_mixtape</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Render de pagina voor het aanmaken van een nieuwe mixtape.</span>
+
+<span class="sd">        Geeft het HTML-template terug voor het aanmaken van een nieuwe mixtape.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: De gerenderde HTML-pagina voor het aanmaken van een nieuwe mixtape.</span>
+<span class="sd">        """</span>
+        <span class="n">empty_mixtape</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"title"</span><span class="p">:</span> <span class="s2">""</span><span class="p">,</span>
+            <span class="s2">"cover"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">"liner_notes"</span><span class="p">:</span> <span class="s2">""</span><span class="p">,</span>
+            <span class="s2">"tracks"</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s2">"slug"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">"created_at"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">"updated_at"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s2">"editor.html"</span><span class="p">,</span> <span class="n">preload_mixtape</span><span class="o">=</span><span class="n">empty_mixtape</span><span class="p">)</span>
+
+    <span class="nd">@editor</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">"/&lt;slug&gt;"</span><span class="p">)</span>
+    <span class="nd">@require_auth</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">edit_mixtape</span><span class="p">(</span><span class="n">slug</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Loads and renders the page for editing an existing mixtape.</span>
+
+<span class="sd">        Retrieves the mixtape data from a JSON file and returns the HTML template with the mixtape preloaded.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            slug: The unique identifier for the mixtape.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: The rendered HTML page for editing the mixtape.</span>
+<span class="sd">        """</span>
+        <span class="n">mixtape_manager</span> <span class="o">=</span> <span class="n">MixtapeManager</span><span class="p">(</span>
+            <span class="n">path_mixtapes</span><span class="o">=</span><span class="n">current_app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">"MIXTAPE_DIR"</span><span class="p">],</span> <span class="n">collection</span><span class="o">=</span><span class="n">collection</span>
+        <span class="p">)</span>
+        <span class="n">mixtape</span> <span class="o">=</span> <span class="n">mixtape_manager</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">slug</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span>
+            <span class="s2">"editor.html"</span><span class="p">,</span> <span class="n">preload_mixtape</span><span class="o">=</span><span class="n">mixtape</span><span class="p">,</span> <span class="n">editing_slug</span><span class="o">=</span><span class="n">slug</span>
+        <span class="p">)</span>
+
+    <span class="nd">@editor</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">"/search"</span><span class="p">)</span>
+    <span class="nd">@require_auth</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">search</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Searches the music collection and returns the results.</span>
+
+<span class="sd">        Receives a search query, searches the collection, and returns the results as JSON.</span>
+<span class="sd">        Includes comprehensive error handling to ensure JSON is always returned.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Response: A JSON response containing the search results or error information.</span>
+<span class="sd">        """</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">query</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"q"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">query</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">jsonify</span><span class="p">([])</span>
+
+            <span class="c1"># Log the search query for debugging</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Search query: </span><span class="si">{</span><span class="n">query</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+            <span class="n">results</span> <span class="o">=</span> <span class="n">collection</span><span class="o">.</span><span class="n">search_highlighting</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">jsonify</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># Log the full error with traceback</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Search error for query '</span><span class="si">{</span><span class="n">query</span><span class="si">}</span><span class="s2">': </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="c1"># Return a proper JSON error response</span>
+            <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span>
+                <span class="s2">"error"</span><span class="p">:</span> <span class="s2">"Search failed"</span><span class="p">,</span>
+                <span class="s2">"message"</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span>
+                <span class="s2">"query"</span><span class="p">:</span> <span class="n">query</span>
+            <span class="p">}),</span> <span class="mi">500</span>
+
+    <span class="nd">@editor</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">"/artist_details"</span><span class="p">)</span>
+    <span class="nd">@require_auth</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">artist_details</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Response</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Retrieves and returns detailed information about an artist in JSON format.</span>
+
+<span class="sd">        Fetches artist details from the music collection using the artist name from the request arguments and returns them as a JSON response.</span>
+<span class="sd">        Handles missing artist errors and returns an error response if necessary.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Response: A JSON response containing the artist's details or an error message.</span>
+<span class="sd">        """</span>
+        <span class="n">artist</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"artist"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">artist</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s2">"error"</span><span class="p">:</span> <span class="s2">"Missing artist"</span><span class="p">}),</span> <span class="mi">400</span>
+        <span class="n">details</span> <span class="o">=</span> <span class="n">collection</span><span class="o">.</span><span class="n">get_artist_details</span><span class="p">(</span><span class="n">artist</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">jsonify</span><span class="p">(</span><span class="n">details</span><span class="p">)</span>
+
+    <span class="nd">@editor</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">"/album_details"</span><span class="p">)</span>
+    <span class="nd">@require_auth</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">album_details</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Response</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Retrieves and returns detailed information about an album in JSON format.</span>
+
+<span class="sd">        Fetches album details from the music collection using the release directory from the request arguments and returns them as a JSON response.</span>
+<span class="sd">        Handles missing release directory errors and returns an error response if necessary.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Response: A JSON response containing the album's details or an error message.</span>
+<span class="sd">        """</span>
+        <span class="n">release_dir</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"release_dir"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">release_dir</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s2">"error"</span><span class="p">:</span> <span class="s2">"Missing release_dir"</span><span class="p">}),</span> <span class="mi">400</span>
+        <span class="n">details</span> <span class="o">=</span> <span class="n">collection</span><span class="o">.</span><span class="n">get_album_details</span><span class="p">(</span><span class="n">release_dir</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">jsonify</span><span class="p">(</span><span class="n">details</span><span class="p">)</span>
+
+    <span class="nd">@editor</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">"/save"</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s2">"POST"</span><span class="p">])</span>
+    <span class="nd">@require_auth</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_mixtape</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Saves a new or edited mixtape based on the provided data.</span>
+
+<span class="sd">        Handles both creation of new mixtapes and updates to existing ones, including cover image processing and validation.</span>
+<span class="sd">        Returns a JSON response indicating success or failure.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Response: A JSON response with the result of the save operation.</span>
+<span class="sd">        """</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">get_json</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">data</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"tracks"</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s2">"error"</span><span class="p">:</span> <span class="s2">"Empty mixtape"</span><span class="p">}),</span> <span class="mi">400</span>
+
+            <span class="n">title</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"title"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">or</span> <span class="s2">"Unnamed Mixtape"</span>
+            <span class="n">liner_notes</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"liner_notes"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
+            <span class="n">slug</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"slug"</span><span class="p">)</span>  <span class="c1"># Present only when editing</span>
+
+            <span class="c1"># Adding track covers</span>
+            <span class="n">tracks</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"tracks"</span><span class="p">,</span> <span class="p">[])</span>
+            <span class="k">for</span> <span class="n">track</span> <span class="ow">in</span> <span class="n">tracks</span><span class="p">:</span>
+                <span class="n">release_dir</span> <span class="o">=</span> <span class="n">collection</span><span class="o">.</span><span class="n">_get_release_dir</span><span class="p">(</span>
+                    <span class="n">track</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"path"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
+                <span class="p">)</span>  <span class="c1"># Reuse existing helper</span>
+                <span class="n">track</span><span class="p">[</span><span class="s2">"cover"</span><span class="p">]</span> <span class="o">=</span> <span class="n">collection</span><span class="o">.</span><span class="n">get_cover</span><span class="p">(</span><span class="n">release_dir</span><span class="p">)</span>
+
+            <span class="c1"># Prepare clean data for the manager</span>
+            <span class="n">mixtape_data</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">"title"</span><span class="p">:</span> <span class="n">title</span><span class="p">,</span>
+                <span class="s2">"tracks"</span><span class="p">:</span> <span class="n">tracks</span><span class="p">,</span>
+                <span class="s2">"liner_notes"</span><span class="p">:</span> <span class="n">liner_notes</span><span class="p">,</span>
+                <span class="s2">"cover"</span><span class="p">:</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"cover"</span><span class="p">),</span>
+            <span class="p">}</span>
+
+            <span class="c1"># Instantiate the manager</span>
+            <span class="n">mixtape_manager</span> <span class="o">=</span> <span class="n">MixtapeManager</span><span class="p">(</span>
+                <span class="n">path_mixtapes</span><span class="o">=</span><span class="n">current_app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">"MIXTAPE_DIR"</span><span class="p">],</span>
+                <span class="n">collection</span><span class="o">=</span><span class="n">collection</span><span class="p">,</span>
+                <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">slug</span><span class="p">:</span>
+                <span class="c1"># Editing</span>
+                <span class="n">existing</span> <span class="o">=</span> <span class="n">mixtape_manager</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">slug</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">existing</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s2">"error"</span><span class="p">:</span> <span class="s2">"Mixtape not found"</span><span class="p">}),</span> <span class="mi">404</span>
+
+                <span class="n">mixtape_data</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">"created_at"</span><span class="p">,</span> <span class="n">existing</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"created_at"</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">mixtape_data</span><span class="p">[</span><span class="s2">"cover"</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># Preserve old cover if no new one</span>
+                    <span class="n">mixtape_data</span><span class="p">[</span><span class="s2">"cover"</span><span class="p">]</span> <span class="o">=</span> <span class="n">existing</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"cover"</span><span class="p">)</span>
+
+                <span class="n">final_slug</span> <span class="o">=</span> <span class="n">mixtape_manager</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">slug</span><span class="p">,</span> <span class="n">mixtape_data</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Creating</span>
+                <span class="n">mixtape_data</span><span class="p">[</span><span class="s2">"created_at"</span><span class="p">]</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span>
+                <span class="n">final_slug</span> <span class="o">=</span> <span class="n">mixtape_manager</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">mixtape_data</span><span class="p">)</span>
+
+            <span class="c1"># Trigger background audio caching in a separate thread</span>
+            <span class="k">if</span> <span class="n">current_app</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"AUDIO_CACHE_PRECACHE_ON_UPLOAD"</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+                <span class="c1"># Copy app reference and context for the thread</span>
+                <span class="n">app</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">_get_current_object</span><span class="p">()</span>
+
+                <span class="k">def</span><span class="w"> </span><span class="nf">run_with_context</span><span class="p">():</span>
+                    <span class="k">with</span> <span class="n">app</span><span class="o">.</span><span class="n">app_context</span><span class="p">():</span>
+                        <span class="n">_trigger_audio_caching_async</span><span class="p">(</span>
+                            <span class="n">final_slug</span><span class="p">,</span> <span class="n">mixtape_manager</span><span class="p">,</span> <span class="nb">bool</span><span class="p">(</span><span class="n">slug</span><span class="p">)</span>
+                        <span class="p">)</span>
+
+                <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">run_with_context</span><span class="p">,</span> <span class="n">daemon</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+            <span class="k">return</span> <span class="n">jsonify</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">"success"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="s2">"title"</span><span class="p">:</span> <span class="n">title</span><span class="p">,</span>
+                    <span class="s2">"slug"</span><span class="p">:</span> <span class="n">final_slug</span><span class="p">,</span>
+                    <span class="s2">"client_id"</span><span class="p">:</span> <span class="n">mixtape_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"client_id"</span><span class="p">),</span>
+                    <span class="s2">"url"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"/editor/</span><span class="si">{</span><span class="n">final_slug</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Mixtape save error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s2">"error"</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)}),</span> <span class="mi">500</span>
+
+    <span class="nd">@editor</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">"/progress/&lt;slug&gt;"</span><span class="p">)</span>
+    <span class="nd">@require_auth</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">progress</span><span class="p">(</span><span class="n">slug</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Response</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Server-Sent Events endpoint for real-time progress updates.</span>
+
+<span class="sd">        Streams progress events during mixtape caching operations.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            slug: The mixtape slug to track progress for</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Response: SSE stream of progress events</span>
+<span class="sd">        """</span>
+        <span class="n">tracker</span> <span class="o">=</span> <span class="n">get_progress_tracker</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">generate</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">yield from</span> <span class="n">tracker</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="n">slug</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Progress stream error for </span><span class="si">{</span><span class="n">slug</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                <span class="k">yield</span> <span class="sa">f</span><span class="s2">"data: </span><span class="se">{{</span><span class="s2">'error': '</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">'</span><span class="se">}}\n\n</span><span class="s2">"</span>
+
+        <span class="k">return</span> <span class="n">Response</span><span class="p">(</span>
+            <span class="n">stream_with_context</span><span class="p">(</span><span class="n">generate</span><span class="p">()),</span>
+            <span class="n">mimetype</span><span class="o">=</span><span class="s2">"text/event-stream"</span><span class="p">,</span>
+            <span class="n">headers</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">"Cache-Control"</span><span class="p">:</span> <span class="s2">"no-cache"</span><span class="p">,</span>
+                <span class="s2">"X-Accel-Buffering"</span><span class="p">:</span> <span class="s2">"no"</span><span class="p">,</span>  <span class="c1"># Disable nginx buffering</span>
+            <span class="p">},</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_trigger_audio_caching_async</span><span class="p">(</span>
+        <span class="n">slug</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">mixtape_manager</span><span class="p">:</span> <span class="n">MixtapeManager</span><span class="p">,</span> <span class="n">is_update</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Triggers background audio caching with progress tracking.</span>
+
+<span class="sd">        This runs in a separate thread to avoid blocking the save response.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            slug: The unique identifier for the mixtape.</span>
+<span class="sd">            mixtape_manager: The MixtapeManager instance to retrieve mixtape data.</span>
+<span class="sd">            is_update: Whether this is an update to an existing mixtape.</span>
+<span class="sd">        """</span>
+        <span class="n">tracker</span> <span class="o">=</span> <span class="n">get_progress_tracker</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Emit initial event</span>
+            <span class="n">tracker</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span>
+                <span class="n">task_id</span><span class="o">=</span><span class="n">slug</span><span class="p">,</span>
+                <span class="n">step</span><span class="o">=</span><span class="s2">"initializing"</span><span class="p">,</span>
+                <span class="n">status</span><span class="o">=</span><span class="n">ProgressStatus</span><span class="o">.</span><span class="n">IN_PROGRESS</span><span class="p">,</span>
+                <span class="n">message</span><span class="o">=</span><span class="s2">"Starting cache process..."</span><span class="p">,</span>
+                <span class="n">current</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="n">total</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Check if audio_cache is available</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">current_app</span><span class="p">,</span> <span class="s2">"audio_cache"</span><span class="p">):</span>
+                <span class="n">tracker</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span>
+                    <span class="n">task_id</span><span class="o">=</span><span class="n">slug</span><span class="p">,</span>
+                    <span class="n">step</span><span class="o">=</span><span class="s2">"error"</span><span class="p">,</span>
+                    <span class="n">status</span><span class="o">=</span><span class="n">ProgressStatus</span><span class="o">.</span><span class="n">FAILED</span><span class="p">,</span>
+                    <span class="n">message</span><span class="o">=</span><span class="s2">"Audio cache not initialized"</span><span class="p">,</span>
+                    <span class="n">current</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                    <span class="n">total</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"Audio cache not initialized, skipping pre-caching"</span><span class="p">)</span>
+                <span class="k">return</span>
+
+            <span class="c1"># Get the saved mixtape data</span>
+            <span class="n">saved_mixtape</span> <span class="o">=</span> <span class="n">mixtape_manager</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">slug</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">saved_mixtape</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">saved_mixtape</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"tracks"</span><span class="p">):</span>
+                <span class="n">tracker</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span>
+                    <span class="n">task_id</span><span class="o">=</span><span class="n">slug</span><span class="p">,</span>
+                    <span class="n">step</span><span class="o">=</span><span class="s2">"completed"</span><span class="p">,</span>
+                    <span class="n">status</span><span class="o">=</span><span class="n">ProgressStatus</span><span class="o">.</span><span class="n">COMPLETED</span><span class="p">,</span>
+                    <span class="n">message</span><span class="o">=</span><span class="s2">"No tracks to cache"</span><span class="p">,</span>
+                    <span class="n">current</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                    <span class="n">total</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No tracks to cache for mixtape: </span><span class="si">{</span><span class="n">slug</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                <span class="k">return</span>
+
+            <span class="n">tracks</span> <span class="o">=</span> <span class="n">saved_mixtape</span><span class="p">[</span><span class="s2">"tracks"</span><span class="p">]</span>
+            <span class="n">total_tracks</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tracks</span><span class="p">)</span>
+
+            <span class="c1"># Emit starting cache event</span>
+            <span class="n">tracker</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span>
+                <span class="n">task_id</span><span class="o">=</span><span class="n">slug</span><span class="p">,</span>
+                <span class="n">step</span><span class="o">=</span><span class="s2">"analyzing"</span><span class="p">,</span>
+                <span class="n">status</span><span class="o">=</span><span class="n">ProgressStatus</span><span class="o">.</span><span class="n">IN_PROGRESS</span><span class="p">,</span>
+                <span class="n">message</span><span class="o">=</span><span class="sa">f</span><span class="s2">"Analyzing </span><span class="si">{</span><span class="n">total_tracks</span><span class="si">}</span><span class="s2"> tracks..."</span><span class="p">,</span>
+                <span class="n">current</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="n">total</span><span class="o">=</span><span class="n">total_tracks</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Get configuration</span>
+            <span class="n">qualities</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="s2">"AUDIO_CACHE_PRECACHE_QUALITIES"</span><span class="p">,</span> <span class="p">[</span><span class="s2">"medium"</span><span class="p">]</span>
+            <span class="p">)</span>
+            <span class="n">music_root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">current_app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">"MUSIC_ROOT"</span><span class="p">])</span>
+
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"Starting pre-cache for mixtape '</span><span class="si">{</span><span class="n">slug</span><span class="si">}</span><span class="s2">' "</span>
+                <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="s1">'update'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">is_update</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'new'</span><span class="si">}</span><span class="s2">) with </span><span class="si">{</span><span class="n">total_tracks</span><span class="si">}</span><span class="s2"> tracks"</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Create progress callback</span>
+            <span class="n">progress_callback</span> <span class="o">=</span> <span class="n">ProgressCallback</span><span class="p">(</span><span class="n">slug</span><span class="p">,</span> <span class="n">tracker</span><span class="p">,</span> <span class="n">total_tracks</span><span class="p">)</span>
+
+            <span class="c1"># Start caching</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">schedule_mixtape_caching</span><span class="p">(</span>
+                <span class="n">mixtape_tracks</span><span class="o">=</span><span class="n">tracks</span><span class="p">,</span>
+                <span class="n">music_root</span><span class="o">=</span><span class="n">music_root</span><span class="p">,</span>
+                <span class="n">audio_cache</span><span class="o">=</span><span class="n">current_app</span><span class="o">.</span><span class="n">audio_cache</span><span class="p">,</span>
+                <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span>
+                <span class="n">qualities</span><span class="o">=</span><span class="n">qualities</span><span class="p">,</span>
+                <span class="n">async_mode</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">progress_callback</span><span class="o">=</span><span class="n">progress_callback</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Small delay to ensure all progress events are queued</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.2</span><span class="p">)</span>
+
+            <span class="c1"># Analyze results</span>
+            <span class="n">total_files</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Processing completed: </span><span class="si">{</span><span class="n">total_files</span><span class="si">}</span><span class="s2"> results returned"</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">total_files</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># No results means something went wrong</span>
+                <span class="n">tracker</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span>
+                    <span class="n">task_id</span><span class="o">=</span><span class="n">slug</span><span class="p">,</span>
+                    <span class="n">step</span><span class="o">=</span><span class="s2">"completed"</span><span class="p">,</span>
+                    <span class="n">status</span><span class="o">=</span><span class="n">ProgressStatus</span><span class="o">.</span><span class="n">COMPLETED</span><span class="p">,</span>
+                    <span class="n">message</span><span class="o">=</span><span class="s2">"No files processed (empty results)"</span><span class="p">,</span>
+                    <span class="n">current</span><span class="o">=</span><span class="n">total_tracks</span><span class="p">,</span>
+                    <span class="n">total</span><span class="o">=</span><span class="n">total_tracks</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No results returned for mixtape '</span><span class="si">{</span><span class="n">slug</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
+                <span class="k">return</span>
+
+            <span class="c1"># Count successful operations (cached or skipped)</span>
+            <span class="n">cached</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+                <span class="nb">isinstance</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+                <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">"skipped"</span><span class="p">,</span> <span class="s2">"reason"</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+                <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+            <span class="p">)</span>
+            <span class="n">skipped</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+                <span class="nb">bool</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"skipped"</span><span class="p">))</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+            <span class="p">)</span>
+            <span class="n">failed</span> <span class="o">=</span> <span class="n">total_files</span> <span class="o">-</span> <span class="n">cached</span> <span class="o">-</span> <span class="n">skipped</span>
+
+            <span class="c1"># Build completion message</span>
+            <span class="n">parts</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="n">cached</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">cached</span><span class="si">}</span><span class="s2"> cached"</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">skipped</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">skipped</span><span class="si">}</span><span class="s2"> skipped"</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">failed</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">failed</span><span class="si">}</span><span class="s2"> failed"</span><span class="p">)</span>
+
+            <span class="n">message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"Complete! </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">parts</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'No files processed'</span><span class="si">}</span><span class="s2">"</span>
+
+            <span class="c1"># Emit completion event</span>
+            <span class="n">tracker</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span>
+                <span class="n">task_id</span><span class="o">=</span><span class="n">slug</span><span class="p">,</span>
+                <span class="n">step</span><span class="o">=</span><span class="s2">"completed"</span><span class="p">,</span>
+                <span class="n">status</span><span class="o">=</span><span class="n">ProgressStatus</span><span class="o">.</span><span class="n">COMPLETED</span><span class="p">,</span>
+                <span class="n">message</span><span class="o">=</span><span class="n">message</span><span class="p">,</span>
+                <span class="n">current</span><span class="o">=</span><span class="n">total_files</span><span class="p">,</span>
+                <span class="n">total</span><span class="o">=</span><span class="n">total_files</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Small delay to ensure completion event is queued</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"Pre-caching completed for '</span><span class="si">{</span><span class="n">slug</span><span class="si">}</span><span class="s2">': "</span>
+                <span class="sa">f</span><span class="s2">"cached=</span><span class="si">{</span><span class="n">cached</span><span class="si">}</span><span class="s2">, skipped=</span><span class="si">{</span><span class="n">skipped</span><span class="si">}</span><span class="s2">, failed=</span><span class="si">{</span><span class="n">failed</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># Emit error event</span>
+            <span class="n">tracker</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span>
+                <span class="n">task_id</span><span class="o">=</span><span class="n">slug</span><span class="p">,</span>
+                <span class="n">step</span><span class="o">=</span><span class="s2">"error"</span><span class="p">,</span>
+                <span class="n">status</span><span class="o">=</span><span class="n">ProgressStatus</span><span class="o">.</span><span class="n">FAILED</span><span class="p">,</span>
+                <span class="n">message</span><span class="o">=</span><span class="sa">f</span><span class="s2">"Caching failed: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="n">current</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="n">total</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Pre-caching failed for mixtape '</span><span class="si">{</span><span class="n">slug</span><span class="si">}</span><span class="s2">': </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">"Detailed error:"</span><span class="p">)</span>
+
+    <span class="nd">@editor</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">"/generate_composite"</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s2">"POST"</span><span class="p">])</span>
+    <span class="nd">@require_auth</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate_composite</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Response</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Generates a composite cover image from a list of individual cover images.</span>
+
+<span class="sd">        Accepts a JSON payload containing cover identifiers, composes them into a grid image, and returns the result as a data URL.</span>
+<span class="sd">        Validates the input list and returns JSON error responses for invalid requests or generation failures.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Response: A JSON response containing the composite image data URL or an error message.</span>
+<span class="sd">        """</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">get_json</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">data</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"covers"</span><span class="p">),</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s2">"error"</span><span class="p">:</span> <span class="s2">"Missing covers list"</span><span class="p">}),</span> <span class="mi">400</span>
+
+        <span class="n">covers</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">"covers"</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">covers</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s2">"error"</span><span class="p">:</span> <span class="s2">"No covers provided"</span><span class="p">}),</span> <span class="mi">400</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">compositor</span> <span class="o">=</span> <span class="n">CoverCompositor</span><span class="p">(</span><span class="n">collection</span><span class="o">.</span><span class="n">covers_dir</span><span class="p">)</span>
+            <span class="n">data_url</span> <span class="o">=</span> <span class="n">compositor</span><span class="o">.</span><span class="n">generate_grid_composite</span><span class="p">(</span><span class="n">covers</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s2">"data_url"</span><span class="p">:</span> <span class="n">data_url</span><span class="p">})</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s2">"error"</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)}),</span> <span class="mi">400</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Composite generation failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s2">"error"</span><span class="p">:</span> <span class="s2">"Failed to generate composite"</span><span class="p">}),</span> <span class="mi">500</span>
+
+    <span class="k">return</span> <span class="n">editor</span>
+</code></pre></div></td></tr></tbody></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+
+
+  
+    
+  
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"></path></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="January 11, 2026 09:45:01 UTC">January 11, 2026</span>
+  </span>
+
+    
+    
+    
+    
+  </aside>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.top", "navigation.indexes", "navigation.sections", "content.code.copy", "content.code.select", "content.action.edit", "content.tooltips"], "search": "../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      
+        <script src="../../assets/javascripts/panzoom.min.js"></script>
+      
+        <script src="../../assets/javascripts/zoompan.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>

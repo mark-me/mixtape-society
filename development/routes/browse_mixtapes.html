@@ -1,0 +1,3549 @@
+<!DOCTYPE html><html lang="en" class="no-js"><head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../common.html">
+      
+      
+        <link rel="next" href="editor.html">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../images/favicon.svg">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+    
+    
+      
+        <title>Browser - Mixtape Society</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.618322db.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+        <script src="https://unpkg.com/iframe-worker/shim"></script>
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/panzoom.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  <link href="../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style><meta name="panzoom-theme" content="material">
+<meta name="panzoom-data" content='{"selectors": [".mermaid", ".d2"], "initial_zoom_level": 1.0}'> </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#browse-mixtapes" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../index.html" title="Mixtape Society" class="md-header__button md-logo" aria-label="Mixtape Society" data-md-component="logo">
+      
+  <img src="../../images/logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Mixtape Society
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Browser
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/mark-me/mixtape-society" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../index.html" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Introduction
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../user/getting-started.html" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../intro.html" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Architecture &amp; Development
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../project/index.html" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Project
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../index.html" title="Mixtape Society" class="md-nav__button md-logo" aria-label="Mixtape Society" data-md-component="logo">
+      
+  <img src="../../images/logo.svg" alt="logo">
+
+    </a>
+    Mixtape Society
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/mark-me/mixtape-society" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2">
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user/getting-started.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2">
+        
+          
+          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Installation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Local Development (Docker)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user/docker.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Production Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_3">
+        
+          
+          <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Using Mixtape Society
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Using Mixtape Society
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user/editor.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Editor Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user/collection-management.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Collection Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user/sharing.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sharing &amp; Public Links
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture &amp; Development
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture &amp; Development
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../intro.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2">
+        
+          
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core Components
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Core Components
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2_1">
+        
+          
+          <label class="md-nav__link" for="__nav_3_2_1" id="__nav_3_2_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Music Library (musiclib)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_2_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Music Library (musiclib)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../musiclib/intro.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../musiclib/reading.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reader
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../musiclib/loading.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Loader
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mixtape_manager.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mixtape Manager
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../audio_caching.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Audio Caching
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qr_generation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    QR Code creation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../utilities.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Flask app
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Flask app
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../app.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Main App
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../common.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Common
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3_3_3" id="__nav_3_3_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Routes
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_3_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Routes
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Browser
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="browse_mixtapes.html" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Browser
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#high-level-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🌐 High-Level Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#flask-blueprint-routes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🗺️ Flask Blueprint &amp; Routes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#authentication-access-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔒 Authentication &amp; Access Control
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#search-sort-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔍 Search &amp; Sort Features
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-flow-server-side-logic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📄 Data Flow &amp; Server-Side Logic
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ui-layout-jinja-template-browse_mixtapeshtml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🖥️ UI Layout (Jinja Template — browse_mixtapes.html)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#static-assets-css-js" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧱 Static Assets (CSS &amp; JS)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#class-sequence-diagrams" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📊 Class &amp; Sequence Diagrams
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#user-experience-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎯 User Experience Features
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📌 API
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔧 Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#customization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎨 Customization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#responsive-breakpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📱 Responsive Breakpoints
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="editor.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Editor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="playback.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Playback
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="authentication.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Authentication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="opengraph_images.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OpenGraph
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="qr_codes.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    QR Codes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../project/index.html" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Project
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../project/changelog.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../project/roadmap.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4">
+        
+          
+          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ideas
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Ideas
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../project/ideas/ideas.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    General
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../project/ideas/design_implementation_map.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design &amp; Implementation Map
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../project/contributing.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../project/about.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#high-level-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🌐 High-Level Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#flask-blueprint-routes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🗺️ Flask Blueprint &amp; Routes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#authentication-access-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔒 Authentication &amp; Access Control
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#search-sort-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔍 Search &amp; Sort Features
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-flow-server-side-logic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📄 Data Flow &amp; Server-Side Logic
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ui-layout-jinja-template-browse_mixtapeshtml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🖥️ UI Layout (Jinja Template — browse_mixtapes.html)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#static-assets-css-js" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧱 Static Assets (CSS &amp; JS)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#class-sequence-diagrams" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📊 Class &amp; Sequence Diagrams
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#user-experience-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎯 User Experience Features
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📌 API
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔧 Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#customization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎨 Customization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#responsive-breakpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📱 Responsive Breakpoints
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/mark-me/mixtape-society/edit/master/docs/development/routes/browse_mixtapes.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"></path></svg>
+    </a>
+  
+  
+
+
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../images/browser.png" data-title="Browse Mixtapes" data-desc-position="bottom"><img align="right" alt="Browse Mixtapes" src="../../images/browser.png" width="90"></a></p>
+<h1 id="browse-mixtapes">Browse Mixtapes<a class="headerlink" href="#browse-mixtapes" title="Permanent link">¶</a></h1>
+<p>The <code>browse_mixtapes</code> Flask blueprint (<code>routes/browse_mixtapes.py</code>) powers the Mixtapes listing page with advanced search and sorting capabilities, file serving, and redirection to the public player. It explains the routes, authentication flow, interaction with MixtapeManager, and the front-end assets (browse_mixtapes.html, CSS, and JavaScript).</p>
+<h2 id="high-level-overview">🌐 High-Level Overview<a class="headerlink" href="#high-level-overview" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>browse_mixtapes</code> Blueprint (<code>routes/browse_mixtapes.py</code>)</td>
+<td>Registers all UI-facing routes under the <code>/mixtapes</code> prefix, enforces authentication, handles search/sort parameters, and delegates data access to <code>MixtapeManager</code>.</td>
+</tr>
+<tr>
+<td><code>MixtapeManager</code> (<code>mixtape_manager.py</code>)</td>
+<td>Reads/writes mixtape JSON files, manages cover images, and provides <code>list_all()</code> for the browse view.</td>
+</tr>
+<tr>
+<td>Templates (<code>templates/browse_mixtapes.html</code>)</td>
+<td>Renders the list of mixtapes with a compact search/sort bar and mixtape cards, each with cover, meta info, and action buttons (edit, play, share, delete).</td>
+</tr>
+<tr>
+<td>Static assets (<code>static/css/browse_mixtapes.css</code>, <code>static/js/browser/*.js</code>)</td>
+<td>Provide responsive styling, hybrid search functionality (instant title + deep track search), sorting logic, and delete-confirmation modal.</td>
+</tr>
+<tr>
+<td>Authentication (<code>auth.py</code>)</td>
+<td><code>@require_auth</code> decorator and <code>check_auth()</code> helper ensure only logged-in users can reach any route in this blueprint.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="flask-blueprint-routes">🗺️ Flask Blueprint &amp; Routes<a class="headerlink" href="#flask-blueprint-routes" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>HTTP Method</th>
+<th>URL Pattern</th>
+<th>View Function</th>
+<th>Query Parameters</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GET</code></td>
+<td><code>/mixtapes/</code></td>
+<td><code>browse()</code></td>
+<td><code>sort_by</code>, <code>sort_order</code>, <code>search</code>, <code>deep</code></td>
+<td>Retrieves all mixtapes (<code>MixtapeManager.list_all()</code>), applies search/sort filters, and renders <code>browse_mixtapes.html</code>.</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/mixtapes/play/&lt;slug&gt;</code></td>
+<td><code>play(slug)</code></td>
+<td>-</td>
+<td>Redirect to the public player (<code>play.public_play</code>) for the given mixtape slug.</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/mixtapes/files/&lt;path:filename&gt;</code></td>
+<td><code>files(filename)</code></td>
+<td>-</td>
+<td>Serves static files (JSON, cover images, etc.) from the configured <code>MIXTAPE_DIR</code>.</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/mixtapes/delete/&lt;slug&gt;</code></td>
+<td><code>delete_mixtape(slug)</code></td>
+<td>-</td>
+<td>Deletes the mixtape JSON and its cover image; returns JSON <code>{ success: true }</code> or an error.</td>
+</tr>
+<tr>
+<td><code>before_request</code></td>
+<td>—</td>
+<td><code>blueprint_require_auth()</code></td>
+<td>-</td>
+<td>Runs before every request in this blueprint; redirects unauthenticated users to the landing page (<code>url_for("landing")</code>).</td>
+</tr>
+</tbody>
+</table>
+<p>All routes are wrapped with <code>@require_auth</code> (except the <code>before_request</code> hook, which performs the same check).</p>
+<h3 id="query-parameters">Query Parameters<a class="headerlink" href="#query-parameters" title="Permanent link">¶</a></h3>
+<p><strong>Sort Parameters:</strong>
+- <code>sort_by</code>: Field to sort by (<code>updated_at</code>, <code>created_at</code>, <code>title</code>, <code>track_count</code>)
+- <code>sort_order</code>: Sort direction (<code>asc</code>, <code>desc</code>)
+- Default: <code>sort_by=updated_at&amp;sort_order=desc</code> (most recently modified first)</p>
+<p><strong>Search Parameters:</strong>
+- <code>search</code>: Search query string
+- <code>deep</code>: Boolean (<code>true</code>/<code>false</code>) indicating deep search mode
+  - <code>false</code> or absent: Client-side title filtering only
+  - <code>true</code>: Server-side search through tracks, artists, albums, and liner notes</p>
+<p><strong>Examples:</strong>
+</p><div class="highlight"><pre><span></span><code>/mixtapes/?sort_by=title&amp;sort_order=asc
+/mixtapes/?search=rock&amp;deep=true&amp;sort_by=track_count&amp;sort_order=desc
+</code></pre></div><p></p>
+<h2 id="authentication-access-control">🔒 Authentication &amp; Access Control<a class="headerlink" href="#authentication-access-control" title="Permanent link">¶</a></h2>
+<ul>
+<li><strong>Decorator</strong> — <code>@require_auth</code> (imported from <code>auth.py</code>) checks the session for a valid user. If the check fails, the decorator returns a redirect to the login page.</li>
+<li><strong>Blueprint-wide guard</strong> — <code>@browser.before_request</code> executes <code>check_auth()</code> for every request hitting this blueprint. This is a defensive second line; even if a route is accidentally left undecorated, the guard will still enforce authentication.</li>
+</ul>
+<p><strong>Result</strong>: Only logged-in users can view the mixtape list, play a mixtape, download files, or delete a mixtape.</p>
+<h2 id="search-sort-features">🔍 Search &amp; Sort Features<a class="headerlink" href="#search-sort-features" title="Permanent link">¶</a></h2>
+<h3 id="hybrid-search-system">Hybrid Search System<a class="headerlink" href="#hybrid-search-system" title="Permanent link">¶</a></h3>
+<p>The browse page implements a two-tier search system:</p>
+<p><strong>1. Instant Title Search (Client-Side)</strong>
+- Filters mixtapes by title as you type
+- No server round-trip required
+- Instant visual feedback
+- Implemented in <code>static/js/browser/search.js</code></p>
+<p><strong>2. Deep Search (Server-Side)</strong>
+- Click "Tracks" button to search within:
+  - Track names (song titles)
+  - Artist names
+  - Album names
+  - Mixtape titles
+  - Liner notes
+- Implemented in <code>_deep_search_mixtapes()</code> helper function
+- Returns filtered list to template</p>
+<h3 id="sorting-system">Sorting System<a class="headerlink" href="#sorting-system" title="Permanent link">¶</a></h3>
+<p>Users can sort by 8 different combinations via a single dropdown:</p>
+<p><strong>Date Options:</strong>
+- 📅 Recent First (updated_at desc)
+- 📅 Oldest First (updated_at asc)
+- 📅 Newest Created (created_at desc)
+- 📅 Oldest Created (created_at asc)</p>
+<p><strong>Name &amp; Size Options:</strong>
+- 🔤 A → Z (title asc)
+- 🔤 Z → A (title desc)
+- 🎵 Most Tracks (track_count desc)
+- 🎵 Fewest Tracks (track_count asc)</p>
+<p>Sorting is applied <strong>after</strong> search filtering, so search results respect the selected sort order.</p>
+<h2 id="data-flow-server-side-logic">📄 Data Flow &amp; Server-Side Logic<a class="headerlink" href="#data-flow-server-side-logic" title="Permanent link">¶</a></h2>
+<h3 id="listing-mixtapes-get-mixtapes">Listing Mixtapes (<code>GET</code> <code>/mixtapes/</code>)<a class="headerlink" href="#listing-mixtapes-get-mixtapes" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Request</strong> → Flask routes the request to <code>browse()</code> (protected).</li>
+<li><strong>Parse parameters</strong> — Extract <code>sort_by</code>, <code>sort_order</code>, <code>search</code>, and <code>deep</code> from query string.</li>
+<li><strong>Mixtape retrieval</strong> — <code>mixtape_manager.list_all()</code> reads every <code>*.json</code> file in <code>app.config["MIXTAPE_DIR"]</code> and returns a list of dicts.</li>
+<li><strong>Apply search</strong> — If <code>search</code> and <code>deep=true</code>, filter mixtapes using <code>_deep_search_mixtapes()</code>:
+    <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">_deep_search_mixtapes</span><span class="p">(</span><span class="n">mixtapes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Searches across mixtape metadata and all tracks"""</span>
+    <span class="n">query_lower</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">mixtape</span> <span class="ow">in</span> <span class="n">mixtapes</span><span class="p">:</span>
+        <span class="c1"># Check title, liner notes</span>
+        <span class="k">if</span> <span class="n">query_lower</span> <span class="ow">in</span> <span class="n">mixtape</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'title'</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+            <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mixtape</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="c1"># Check all tracks (name, artist, album)</span>
+        <span class="k">for</span> <span class="n">track</span> <span class="ow">in</span> <span class="n">mixtape</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'tracks'</span><span class="p">,</span> <span class="p">[]):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">query_lower</span> <span class="ow">in</span> <span class="n">track</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'track'</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">or</span>
+                <span class="n">query_lower</span> <span class="ow">in</span> <span class="n">track</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'artist'</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">or</span>
+                <span class="n">query_lower</span> <span class="ow">in</span> <span class="n">track</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'album'</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()):</span>
+                <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mixtape</span><span class="p">)</span>
+                <span class="k">break</span>
+
+    <span class="k">return</span> <span class="n">results</span>
+</code></pre></div></li>
+<li><strong>Apply sorting</strong> — Sort the filtered list based on <code>sort_by</code> and <code>sort_order</code>:
+    <div class="highlight"><pre><span></span><code><span class="k">if</span> <span class="n">sort_by</span> <span class="o">==</span> <span class="s1">'title'</span><span class="p">:</span>
+    <span class="n">mixtapes</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'title'</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> 
+                 <span class="n">reverse</span><span class="o">=</span><span class="p">(</span><span class="n">sort_order</span> <span class="o">==</span> <span class="s1">'desc'</span><span class="p">))</span>
+<span class="k">elif</span> <span class="n">sort_by</span> <span class="o">==</span> <span class="s1">'track_count'</span><span class="p">:</span>
+    <span class="n">mixtapes</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'tracks'</span><span class="p">,</span> <span class="p">[])),</span> 
+                 <span class="n">reverse</span><span class="o">=</span><span class="p">(</span><span class="n">sort_order</span> <span class="o">==</span> <span class="s1">'desc'</span><span class="p">))</span>
+<span class="c1"># ... etc</span>
+</code></pre></div></li>
+<li><strong>Template rendering</strong> — Pass <code>mixtapes</code>, <code>sort_by</code>, <code>sort_order</code>, <code>search_query</code>, and <code>search_deep</code> to template.</li>
+<li><strong>HTML output</strong> — Renders search/sort controls and filtered mixtape cards.</li>
+</ol>
+<h3 id="playing-a-mixtape-get-mixtapesplayslug">Playing a Mixtape (<code>GET</code> <code>/mixtapes/play/&lt;slug&gt;</code>)<a class="headerlink" href="#playing-a-mixtape-get-mixtapesplayslug" title="Permanent link">¶</a></h3>
+<ul>
+<li>The view simply redirects to the public player route defined elsewhere (e.g. play.public_play).
+    <div class="highlight"><pre><span></span><code><span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s2">"public_play"</span><span class="p">,</span> <span class="n">slug</span><span class="o">=</span><span class="n">slug</span><span class="p">))</span>
+</code></pre></div></li>
+<li>The client ends up on <code>/play/&lt;slug&gt;#play</code>, where the full mixtape UI is rendered.</li>
+</ul>
+<h3 id="serving-files-get-mixtapesfilesfilename">Serving Files (<code>GET</code> <code>/mixtapes/files/&lt;filename&gt;</code>)<a class="headerlink" href="#serving-files-get-mixtapesfilesfilename" title="Permanent link">¶</a></h3>
+<ul>
+<li>Uses Flask's <code>send_from_directory</code> to serve any file under <code>app.config["MIXTAPE_DIR"]</code>.</li>
+<li>This includes the JSON file (<code>&lt;slug&gt;.json</code>) and cover images (<code>covers/&lt;slug&gt;.jpg</code>).</li>
+</ul>
+<h3 id="deleting-a-mixtape-post-mixtapesdeleteslug">Deleting a Mixtape (<code>POST</code> <code>/mixtapes/delete/&lt;slug&gt;</code>)<a class="headerlink" href="#deleting-a-mixtape-post-mixtapesdeleteslug" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Existence check</strong> — Verifies that <code>&lt;slug&gt;.json</code> exists; if not, returns <code>404</code> with JSON error.</li>
+<li>Calls <code>mixtape_manager.delete(slug)</code>, which removes the JSON file and any associated cover image (<code>covers/&lt;slug&gt;.jpg</code>).</li>
+<li>Returns JSON <code>{ "success": true }</code> on success, or <code>{ "success": false, "error": "..." }</code> with the appropriate HTTP status on failure.</li>
+</ol>
+<h3 id="error-handling">Error Handling<a class="headerlink" href="#error-handling" title="Permanent link">¶</a></h3>
+<ul>
+<li>All routes catch generic <code>Exception</code> and log the traceback via the injected <code>logger</code>.</li>
+<li>Errors are reported to the client as JSON with a descriptive <code>error</code> field and an appropriate HTTP status code (<code>400</code>, <code>404</code>, <code>500</code>).</li>
+</ul>
+<h2 id="ui-layout-jinja-template-browse_mixtapeshtml">🖥️ UI Layout (Jinja Template — <code>browse_mixtapes.html</code>)<a class="headerlink" href="#ui-layout-jinja-template-browse_mixtapeshtml" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Section</th>
+<th>Details</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Header</td>
+<td>Compact header with "My Mixtapes" title and a "New" button linking to <code>/editor</code>. Responsive sizing (smaller on mobile).</td>
+</tr>
+<tr>
+<td>Search &amp; Sort Bar</td>
+<td>Compact card containing: • Search input with clear button • "Tracks" button (with tooltip) for deep search • Combined sort dropdown (field + order in one) • Minimal vertical space (~50px desktop, ~70px mobile) • Bootstrap theme-aware styling</td>
+</tr>
+<tr>
+<td>Search Result Banner</td>
+<td>When search is active, shows info banner with query, result count, and "Clear Search" button. Distinguishes between title search and deep search results.</td>
+</tr>
+<tr>
+<td>Mixtape Cards</td>
+<td>Loop over filtered/sorted mixtapes. Each card (<code>.mixtape-item</code>) contains: • Cover (<code>.mixtape-cover</code>) • Title (<code>.mixtape-title</code>) • Meta info (<code>.mixtape-meta</code>) • Action buttons (<code>.action-btn</code>): edit, play, QR share, delete</td>
+</tr>
+<tr>
+<td>Empty State</td>
+<td>Context-aware: • No mixtapes: "No mixtapes yet..." • No search results: "No mixtapes found" with clear search button</td>
+</tr>
+<tr>
+<td>Delete Confirmation Modal</td>
+<td>Modal (<code>#deleteConfirmModal</code>) that asks the user to confirm deletion; populated with the mixtape title via JS.</td>
+</tr>
+<tr>
+<td>Delete Success Toast</td>
+<td>Toast (<code>#deleteSuccessToast</code>) shown after a successful deletion.</td>
+</tr>
+<tr>
+<td>JS Entry Point</td>
+<td><code>&lt;script type="module" src="{{ url_for('static', filename='js/browser/index.js') }}"&gt;&lt;/script&gt;</code> — wires up search, sort, delete, QR share, and tooltip functionality.</td>
+</tr>
+</tbody>
+</table>
+<p>All UI elements use <strong>Bootstrap 5</strong> utilities and custom CSS variables (<code>--bs-body-bg</code>, <code>--bs-border-color</code>, <code>--bs-body-color</code>) to stay theme-aware (light/dark modes).</p>
+<h3 id="compact-searchsort-bar-features">Compact Search/Sort Bar Features<a class="headerlink" href="#compact-searchsort-bar-features" title="Permanent link">¶</a></h3>
+<p><strong>Space Efficiency:</strong>
+- 60%+ vertical space reduction compared to separate cards
+- Single card with all controls
+- Mobile-optimized with reduced padding</p>
+<p><strong>Responsive Layout:</strong>
+- <strong>Desktop (≥992px):</strong> Search input expands to fill space, Tracks + Sort align right
+- <strong>Tablet (768-991px):</strong> Two-row layout with natural wrapping
+- <strong>Mobile (&lt;768px):</strong> Stacked controls, full-width inputs
+- <strong>Tiny (&lt;576px):</strong> Extra compact sizing</p>
+<p><strong>Theming:</strong>
+- Search icon respects Bootstrap color variables
+- No hardcoded colors (works in light/dark mode)
+- Proper contrast in all themes</p>
+<p><strong>Tooltips:</strong>
+- Tracks button has tooltip: "Search within song names, artists, and albums"
+- Works on both enabled and disabled states
+- Helps users understand deep search feature</p>
+<h2 id="static-assets-css-js">🧱 Static Assets (CSS &amp; JS)<a class="headerlink" href="#static-assets-css-js" title="Permanent link">¶</a></h2>
+<h3 id="browse_mixtapescss"><code>browse_mixtapes.css</code><a class="headerlink" href="#browse_mixtapescss" title="Permanent link">¶</a></h3>
+<p><strong>Search &amp; Sort Styling:</strong>
+- Compact card with minimal padding (<code>p-2</code> on mobile, <code>p-md-3</code> on desktop)
+- Theme-aware colors using CSS variables
+- Input group styling with seamless borders
+- Combined sort dropdown with emoji icons
+- Responsive adjustments for all screen sizes</p>
+<p><strong>Mixtape Cards:</strong>
+- <strong>Responsive card layout</strong> — Flexbox with wrapping, subtle shadows, and a hover lift effect
+- <strong>Action buttons</strong> — Circular, color-coded (edit=primary, play=success, share=info, delete=danger). Hover scales the button
+- <strong>Mobile adjustments</strong> — Smaller cover size, reduced button dimensions, and a stacked layout for very narrow viewports (<code>max-width: 480px</code>)</p>
+<p><strong>Animations:</strong>
+- Slide-down animation for search result banner
+- Smooth hover transitions on cards and buttons
+- Subtle lift effect on card hover</p>
+<h3 id="javascript-modules">JavaScript Modules<a class="headerlink" href="#javascript-modules" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Exported function(s)</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>search.js</code></td>
+<td><code>initSearch()</code></td>
+<td>Handles hybrid search: instant title filtering (client-side), deep search button click, clear search, and Enter key support. Disables client-side filtering when viewing deep search results.</td>
+</tr>
+<tr>
+<td><code>sorting.js</code></td>
+<td><code>initSorting()</code></td>
+<td>Handles combined sort dropdown changes, updates URL with sort parameters, preserves search state during sort changes.</td>
+</tr>
+<tr>
+<td><code>deleteMixtape.js</code></td>
+<td><code>initDeleteMixtape()</code></td>
+<td>Handles the delete workflow: opens the confirmation modal, sends a POST <code>/mixtapes/delete/&lt;slug&gt;</code> request, shows success toast, and reloads the page.</td>
+</tr>
+<tr>
+<td><code>index.js</code></td>
+<td>—</td>
+<td>Imports and initializes all modules on <code>DOMContentLoaded</code>: search, sorting, delete, QR share, and Bootstrap tooltips.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Common Module (Shared):</strong>
+- <code>../common/qrShare.js</code> - Provides QR code generation, modal display, copy-to-clipboard, and download functionality. Used across browser, editor, and player pages.</p>
+<p>All scripts are ES6 modules (<code>type="module"</code>), ensuring they are loaded after the DOM is ready and that they don't pollute the global namespace.</p>
+<h3 id="search-implementation-details">Search Implementation Details<a class="headerlink" href="#search-implementation-details" title="Permanent link">¶</a></h3>
+<p><strong>Client-Side Title Search:</strong>
+</p><div class="highlight"><pre><span></span><code><span class="kd">function</span><span class="w"> </span><span class="nx">filterByTitle</span><span class="p">(</span><span class="nx">query</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Skip if on deep search results page</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">isDeepSearchActive</span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="p">;</span>
+
+<span class="w">    </span><span class="nx">mixtapeItems</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="nx">item</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="kd">const</span><span class="w"> </span><span class="nx">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">item</span><span class="p">.</span><span class="nx">querySelector</span><span class="p">(</span><span class="s1">'.mixtape-title'</span><span class="p">).</span><span class="nx">textContent</span><span class="p">;</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">title</span><span class="p">.</span><span class="nx">toLowerCase</span><span class="p">().</span><span class="nx">includes</span><span class="p">(</span><span class="nx">query</span><span class="p">.</span><span class="nx">toLowerCase</span><span class="p">()))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">item</span><span class="p">.</span><span class="nx">style</span><span class="p">.</span><span class="nx">display</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">originalDisplays</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="nx">item</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">item</span><span class="p">.</span><span class="nx">style</span><span class="p">.</span><span class="nx">display</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'none'</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">});</span>
+<span class="p">}</span>
+</code></pre></div><p></p>
+<p><strong>Deep Search Navigation:</strong>
+</p><div class="highlight"><pre><span></span><code><span class="nx">deepSearchBtn</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s1">'click'</span><span class="p">,</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">URL</span><span class="p">(</span><span class="nb">window</span><span class="p">.</span><span class="nx">location</span><span class="p">.</span><span class="nx">href</span><span class="p">);</span>
+<span class="w">    </span><span class="nx">url</span><span class="p">.</span><span class="nx">searchParams</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">'search'</span><span class="p">,</span><span class="w"> </span><span class="nx">query</span><span class="p">);</span>
+<span class="w">    </span><span class="nx">url</span><span class="p">.</span><span class="nx">searchParams</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">'deep'</span><span class="p">,</span><span class="w"> </span><span class="s1">'true'</span><span class="p">);</span>
+<span class="w">    </span><span class="c1">// Preserve sort parameters</span>
+<span class="w">    </span><span class="nb">window</span><span class="p">.</span><span class="nx">location</span><span class="p">.</span><span class="nx">href</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">url</span><span class="p">.</span><span class="nx">toString</span><span class="p">();</span>
+<span class="p">});</span>
+</code></pre></div><p></p>
+<p><strong>Key Features:</strong>
+- Instant filtering respects search state (doesn't interfere with server-side results)
+- Clear button removes both client-side filters and navigates away from deep search
+- Enter key triggers deep search
+- URL parameters maintain complete state (search + sort)</p>
+<h2 id="class-sequence-diagrams">📊 Class &amp; Sequence Diagrams<a class="headerlink" href="#class-sequence-diagrams" title="Permanent link">¶</a></h2>
+<h3 id="class-diagram">Class Diagram<a class="headerlink" href="#class-diagram" title="Permanent link">¶</a></h3>
+<div class="panzoom-box" data-key="alt" id="panzoom0" oncontextmenu="return false;">
+    
+    <nav class="panzoom-nav">
+    <button class="panzoom-info panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M464 256A208 208 0 1 0 48 256a208 208 0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm169.8-90.7c7.9-22.3 29.1-37.3 52.8-37.3l58.3 0c34.9 0 63.1 28.3 63.1 63.1c0 22.6-12.1 43.5-31.7 54.8L280 264.4c-.2 13-10.9 23.6-24 23.6c-13.3 0-24-10.7-24-24l0-13.5c0-8.6 4.6-16.5 12.1-20.8l44.3-25.4c4.7-2.7 7.6-7.7 7.6-13.1c0-8.4-6.8-15.1-15.1-15.1l-58.3 0c-3.4 0-6.4 2.1-7.5 5.3l-.4 1.2c-4.4 12.5-18.2 19-30.6 14.6s-19-18.2-14.6-30.6l.4-1.2zM224 352a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z"></path>
+    </svg>
+</button><button class="panzoom-reset panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M125.7 160l50.3 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L48 224c-17.7 0-32-14.3-32-32L16 64c0-17.7 14.3-32 32-32s32 14.3 32 32l0 51.2L97.6 97.6c87.5-87.5 229.3-87.5 316.8 0s87.5 229.3 0 316.8s-229.3 87.5-316.8 0c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0c62.5 62.5 163.8 62.5 226.3 0s62.5-163.8 0-226.3s-163.8-62.5-226.3 0L125.7 160z"></path>
+    </svg>
+</button><button class="panzoom-max panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M32 32C14.3 32 0 46.3 0 64l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L32 32zM64 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 32c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM448 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96z"></path>
+    </svg>
+</button><button class="panzoom-min panzoom-button panzoom-hidden">
+    <svg class="panzoom-icon" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M160 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96zM32 320c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM352 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 320c-17.7 0-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0z"></path>
+    </svg>
+</button>
+    </nav>
+    <pre class="mermaid"><code>classDiagram
+    class browse_mixtapes_Blueprint {
+        +browse()
+        +play(slug)
+        +files(filename)
+        +delete_mixtape(slug)
+        +blueprint_require_auth()
+        -_deep_search_mixtapes()
+    }
+    class MixtapeManager {
+        +list_all()
+        +delete(slug)
+    }
+    class AuthSystem {
+        +require_auth()
+        +check_auth()
+    }
+    class SearchSystem {
+        +initSearch()
+        +filterByTitle()
+        +deepSearch()
+    }
+    class SortSystem {
+        +initSorting()
+        +updateURL()
+    }
+
+    browse_mixtapes_Blueprint --&gt; MixtapeManager : uses
+    browse_mixtapes_Blueprint --&gt; AuthSystem : enforces authentication
+    browse_mixtapes_Blueprint --&gt; SearchSystem : client-side filtering
+    browse_mixtapes_Blueprint --&gt; SortSystem : URL parameter management</code></pre> 
+    <div class="panzoom-info-box panzoom-info-box-bottom panzoom-hidden">
+Hold "Alt" / "Option" to enable pan &amp; zoom
+</div>
+</div>
+<h3 id="sequence-diagram-searching-and-sorting-mixtapes">Sequence Diagram - Searching and Sorting Mixtapes<a class="headerlink" href="#sequence-diagram-searching-and-sorting-mixtapes" title="Permanent link">¶</a></h3>
+<div class="panzoom-box" data-key="alt" id="panzoom0" oncontextmenu="return false;">
+    
+    <nav class="panzoom-nav">
+    <button class="panzoom-info panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M464 256A208 208 0 1 0 48 256a208 208 0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm169.8-90.7c7.9-22.3 29.1-37.3 52.8-37.3l58.3 0c34.9 0 63.1 28.3 63.1 63.1c0 22.6-12.1 43.5-31.7 54.8L280 264.4c-.2 13-10.9 23.6-24 23.6c-13.3 0-24-10.7-24-24l0-13.5c0-8.6 4.6-16.5 12.1-20.8l44.3-25.4c4.7-2.7 7.6-7.7 7.6-13.1c0-8.4-6.8-15.1-15.1-15.1l-58.3 0c-3.4 0-6.4 2.1-7.5 5.3l-.4 1.2c-4.4 12.5-18.2 19-30.6 14.6s-19-18.2-14.6-30.6l.4-1.2zM224 352a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z"></path>
+    </svg>
+</button><button class="panzoom-reset panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M125.7 160l50.3 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L48 224c-17.7 0-32-14.3-32-32L16 64c0-17.7 14.3-32 32-32s32 14.3 32 32l0 51.2L97.6 97.6c87.5-87.5 229.3-87.5 316.8 0s87.5 229.3 0 316.8s-229.3 87.5-316.8 0c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0c62.5 62.5 163.8 62.5 226.3 0s62.5-163.8 0-226.3s-163.8-62.5-226.3 0L125.7 160z"></path>
+    </svg>
+</button><button class="panzoom-max panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M32 32C14.3 32 0 46.3 0 64l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L32 32zM64 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 32c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM448 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96z"></path>
+    </svg>
+</button><button class="panzoom-min panzoom-button panzoom-hidden">
+    <svg class="panzoom-icon" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M160 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96zM32 320c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM352 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 320c-17.7 0-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0z"></path>
+    </svg>
+</button>
+    </nav>
+    <pre class="mermaid"><code>sequenceDiagram
+    participant User
+    participant BrowserJS
+    participant FlaskApp
+    participant Blueprint as browse_mixtapes
+    participant MixtapeManager
+
+    User-&gt;&gt;BrowserJS: Types in search box
+    BrowserJS-&gt;&gt;BrowserJS: Filter by title (instant)
+
+    User-&gt;&gt;BrowserJS: Clicks "Tracks" button
+    BrowserJS-&gt;&gt;FlaskApp: GET /mixtapes/?search=rock&amp;deep=true&amp;sort_by=title&amp;sort_order=asc
+    FlaskApp-&gt;&gt;Blueprint: browse(search='rock', deep='true', ...)
+    Blueprint-&gt;&gt;MixtapeManager: list_all()
+    MixtapeManager--&gt;&gt;Blueprint: all mixtapes
+    Blueprint-&gt;&gt;Blueprint: _deep_search_mixtapes(mixtapes, 'rock')
+    Blueprint-&gt;&gt;Blueprint: sort by title ascending
+    Blueprint--&gt;&gt;FlaskApp: render template with filtered results
+    FlaskApp--&gt;&gt;User: HTML page with search results</code></pre> 
+    <div class="panzoom-info-box panzoom-info-box-bottom panzoom-hidden">
+Hold "Alt" / "Option" to enable pan &amp; zoom
+</div>
+</div>
+<h3 id="sequence-diagram-deleting-a-mixtape">Sequence Diagram - Deleting a Mixtape<a class="headerlink" href="#sequence-diagram-deleting-a-mixtape" title="Permanent link">¶</a></h3>
+<div class="panzoom-box" data-key="alt" id="panzoom0" oncontextmenu="return false;">
+    
+    <nav class="panzoom-nav">
+    <button class="panzoom-info panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M464 256A208 208 0 1 0 48 256a208 208 0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm169.8-90.7c7.9-22.3 29.1-37.3 52.8-37.3l58.3 0c34.9 0 63.1 28.3 63.1 63.1c0 22.6-12.1 43.5-31.7 54.8L280 264.4c-.2 13-10.9 23.6-24 23.6c-13.3 0-24-10.7-24-24l0-13.5c0-8.6 4.6-16.5 12.1-20.8l44.3-25.4c4.7-2.7 7.6-7.7 7.6-13.1c0-8.4-6.8-15.1-15.1-15.1l-58.3 0c-3.4 0-6.4 2.1-7.5 5.3l-.4 1.2c-4.4 12.5-18.2 19-30.6 14.6s-19-18.2-14.6-30.6l.4-1.2zM224 352a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z"></path>
+    </svg>
+</button><button class="panzoom-reset panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M125.7 160l50.3 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L48 224c-17.7 0-32-14.3-32-32L16 64c0-17.7 14.3-32 32-32s32 14.3 32 32l0 51.2L97.6 97.6c87.5-87.5 229.3-87.5 316.8 0s87.5 229.3 0 316.8s-229.3 87.5-316.8 0c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0c62.5 62.5 163.8 62.5 226.3 0s62.5-163.8 0-226.3s-163.8-62.5-226.3 0L125.7 160z"></path>
+    </svg>
+</button><button class="panzoom-max panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M32 32C14.3 32 0 46.3 0 64l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L32 32zM64 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 32c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM448 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96z"></path>
+    </svg>
+</button><button class="panzoom-min panzoom-button panzoom-hidden">
+    <svg class="panzoom-icon" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M160 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96zM32 320c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM352 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 320c-17.7 0-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0z"></path>
+    </svg>
+</button>
+    </nav>
+    <pre class="mermaid"><code>sequenceDiagram
+    participant User
+    participant BrowserJS
+    participant FlaskApp
+    participant browse_mixtapes as Blueprint
+    participant MixtapeManager
+
+    User-&gt;&gt;BrowserJS: Click Delete → opens modal
+    BrowserJS-&gt;&gt;FlaskApp: POST /mixtapes/delete/&lt;slug&gt;
+    FlaskApp-&gt;&gt;Blueprint: delete_mixtape(slug)
+    Blueprint-&gt;&gt;MixtapeManager: delete(slug)
+    MixtapeManager--&gt;&gt;Blueprint: success
+    Blueprint--&gt;&gt;FlaskApp: JSON {success:true}
+    FlaskApp--&gt;&gt;BrowserJS: JSON response
+    BrowserJS-&gt;&gt;BrowserJS: Show success toast, reload page</code></pre> 
+    <div class="panzoom-info-box panzoom-info-box-bottom panzoom-hidden">
+Hold "Alt" / "Option" to enable pan &amp; zoom
+</div>
+</div>
+<h2 id="user-experience-features">🎯 User Experience Features<a class="headerlink" href="#user-experience-features" title="Permanent link">¶</a></h2>
+<h3 id="search-flow">Search Flow<a class="headerlink" href="#search-flow" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Quick Title Search:</strong></li>
+<li>User types in search box</li>
+<li>Results filter instantly (no page reload)</li>
+<li>Clear button appears</li>
+<li>
+<p>Tracks button becomes enabled</p>
+</li>
+<li>
+<p><strong>Deep Search:</strong></p>
+</li>
+<li>User clicks "Tracks" button (or presses Enter)</li>
+<li>Page reloads with <code>?search=query&amp;deep=true</code></li>
+<li>Server searches all metadata</li>
+<li>Results include mixtapes with matching songs/artists/albums</li>
+<li>
+<p>Banner shows "Deep search results for: {query}"</p>
+</li>
+<li>
+<p><strong>Clear Search:</strong></p>
+</li>
+<li>Click clear button (X)</li>
+<li>Returns to full mixtape list</li>
+<li>Preserves sort settings</li>
+</ol>
+<h3 id="sort-flow">Sort Flow<a class="headerlink" href="#sort-flow" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Select Sort Option:</strong></li>
+<li>User selects from dropdown (e.g., "🎵 Most Tracks")</li>
+<li>Page reloads with new sort parameters</li>
+<li>
+<p>Search state is preserved if active</p>
+</li>
+<li>
+<p><strong>Combined with Search:</strong></p>
+</li>
+<li>Search results can be re-sorted</li>
+<li>Sort order maintained during searches</li>
+<li>URL reflects complete state</li>
+</ol>
+<h3 id="mobile-optimizations">Mobile Optimizations<a class="headerlink" href="#mobile-optimizations" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Compact Controls:</strong> 60% less vertical space than desktop</li>
+<li><strong>Touch-Friendly:</strong> All buttons meet WCAG size standards</li>
+<li><strong>Smart Layout:</strong> Inputs stack appropriately</li>
+<li><strong>Visual Clarity:</strong> Emoji icons aid recognition</li>
+<li><strong>Performance:</strong> Client-side filtering remains instant</li>
+</ul>
+<h2 id="api">📌 API<a class="headerlink" href="#api" title="Permanent link">¶</a></h2>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="src.routes.browse_mixtapes" class="doc doc-heading">
+            <code>src.routes.browse_mixtapes</code>
+
+
+<a href="#src.routes.browse_mixtapes" class="headerlink" title="Permanent link">¶</a></h3>
+
+    <div class="doc doc-contents first">
+
+
+
+
+
+
+
+
+
+
+
+
+<p><span class="doc-section-title">Functions:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+            <tr class="doc-section-item">
+              <td><code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;highlight language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;create_browser_blueprint&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mixtape_manager&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;func_processing_status&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;logger&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt; (&lt;code&gt;src.routes.browse_mixtapes.create_browser_blueprint&lt;/code&gt;)" href="#src.routes.browse_mixtapes.create_browser_blueprint">create_browser_blueprint</a></code></td>
+              <td>
+                <div class="doc-md-description">
+                  <p>Creates and configures the Flask blueprint for browsing, playing, and managing mixtapes.</p>
+                </div>
+              </td>
+            </tr>
+      </tbody>
+    </table>
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="src.routes.browse_mixtapes.create_browser_blueprint" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">create_browser_blueprint</span><span class="p">(</span><span class="n">mixtape_manager</span><span class="p">,</span> <span class="n">func_processing_status</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#src.routes.browse_mixtapes.create_browser_blueprint" class="headerlink" title="Permanent link">¶</a></h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Creates and configures the Flask blueprint for browsing, playing, and managing mixtapes.</p>
+<p>Sets up routes for listing mixtapes, serving cover images and files, deleting mixtapes, and handling authentication for all routes in the blueprint.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>mixtape_manager</code>
+            </td>
+            <td>
+                  <code><span title="mixtape_manager.MixtapeManager">MixtapeManager</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The manager instance for retrieving and managing mixtapes.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>func_processing_status</code>
+            </td>
+            <td>
+                  <code><span title="any">any</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A function to check the current indexing or processing status.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>logger</code>
+            </td>
+            <td>
+                  <code><span title="common.logging.Logger">Logger</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The logger instance for error reporting.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>Blueprint</code></td>            <td>
+                  <code><span title="flask.Blueprint">Blueprint</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The configured Flask blueprint for browsing and managing mixtapes.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>src/routes/browse_mixtapes.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 17</span>
+<span class="normal"> 18</span>
+<span class="normal"> 19</span>
+<span class="normal"> 20</span>
+<span class="normal"> 21</span>
+<span class="normal"> 22</span>
+<span class="normal"> 23</span>
+<span class="normal"> 24</span>
+<span class="normal"> 25</span>
+<span class="normal"> 26</span>
+<span class="normal"> 27</span>
+<span class="normal"> 28</span>
+<span class="normal"> 29</span>
+<span class="normal"> 30</span>
+<span class="normal"> 31</span>
+<span class="normal"> 32</span>
+<span class="normal"> 33</span>
+<span class="normal"> 34</span>
+<span class="normal"> 35</span>
+<span class="normal"> 36</span>
+<span class="normal"> 37</span>
+<span class="normal"> 38</span>
+<span class="normal"> 39</span>
+<span class="normal"> 40</span>
+<span class="normal"> 41</span>
+<span class="normal"> 42</span>
+<span class="normal"> 43</span>
+<span class="normal"> 44</span>
+<span class="normal"> 45</span>
+<span class="normal"> 46</span>
+<span class="normal"> 47</span>
+<span class="normal"> 48</span>
+<span class="normal"> 49</span>
+<span class="normal"> 50</span>
+<span class="normal"> 51</span>
+<span class="normal"> 52</span>
+<span class="normal"> 53</span>
+<span class="normal"> 54</span>
+<span class="normal"> 55</span>
+<span class="normal"> 56</span>
+<span class="normal"> 57</span>
+<span class="normal"> 58</span>
+<span class="normal"> 59</span>
+<span class="normal"> 60</span>
+<span class="normal"> 61</span>
+<span class="normal"> 62</span>
+<span class="normal"> 63</span>
+<span class="normal"> 64</span>
+<span class="normal"> 65</span>
+<span class="normal"> 66</span>
+<span class="normal"> 67</span>
+<span class="normal"> 68</span>
+<span class="normal"> 69</span>
+<span class="normal"> 70</span>
+<span class="normal"> 71</span>
+<span class="normal"> 72</span>
+<span class="normal"> 73</span>
+<span class="normal"> 74</span>
+<span class="normal"> 75</span>
+<span class="normal"> 76</span>
+<span class="normal"> 77</span>
+<span class="normal"> 78</span>
+<span class="normal"> 79</span>
+<span class="normal"> 80</span>
+<span class="normal"> 81</span>
+<span class="normal"> 82</span>
+<span class="normal"> 83</span>
+<span class="normal"> 84</span>
+<span class="normal"> 85</span>
+<span class="normal"> 86</span>
+<span class="normal"> 87</span>
+<span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span>
+<span class="normal">180</span>
+<span class="normal">181</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">create_browser_blueprint</span><span class="p">(</span>
+    <span class="n">mixtape_manager</span><span class="p">:</span> <span class="n">MixtapeManager</span><span class="p">,</span>
+    <span class="n">func_processing_status</span><span class="p">:</span> <span class="nb">any</span><span class="p">,</span>
+    <span class="n">logger</span><span class="p">:</span> <span class="n">Logger</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Blueprint</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Creates and configures the Flask blueprint for browsing, playing, and managing mixtapes.</span>
+
+<span class="sd">    Sets up routes for listing mixtapes, serving cover images and files, deleting mixtapes, and handling authentication for all routes in the blueprint.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        mixtape_manager (MixtapeManager): The manager instance for retrieving and managing mixtapes.</span>
+<span class="sd">        func_processing_status (any): A function to check the current indexing or processing status.</span>
+<span class="sd">        logger (Logger): The logger instance for error reporting.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Blueprint: The configured Flask blueprint for browsing and managing mixtapes.</span>
+<span class="sd">    """</span>
+    <span class="n">browser</span> <span class="o">=</span> <span class="n">Blueprint</span><span class="p">(</span><span class="s2">"browse_mixtapes"</span><span class="p">,</span> <span class="vm">__name__</span><span class="p">,</span> <span class="n">template_folder</span><span class="o">=</span><span class="s2">"../templates"</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="p">:</span> <span class="n">Logger</span> <span class="o">=</span> <span class="n">logger</span> <span class="ow">or</span> <span class="n">NullLogger</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_deep_search_mixtapes</span><span class="p">(</span><span class="n">mixtapes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Performs a deep search across mixtape tracks, artists, albums, and liner notes.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            mixtapes: List of mixtape dictionaries to search</span>
+<span class="sd">            query: Search query string (case-insensitive)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Filtered list of mixtapes matching the search query</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">query</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">mixtapes</span>
+
+        <span class="n">query_lower</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">mixtape</span> <span class="ow">in</span> <span class="n">mixtapes</span><span class="p">:</span>
+            <span class="c1"># Search in mixtape title</span>
+            <span class="k">if</span> <span class="n">query_lower</span> <span class="ow">in</span> <span class="n">mixtape</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'title'</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mixtape</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># Search in liner notes</span>
+            <span class="k">if</span> <span class="n">query_lower</span> <span class="ow">in</span> <span class="n">mixtape</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'liner_notes'</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mixtape</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># Search within tracks</span>
+            <span class="n">tracks</span> <span class="o">=</span> <span class="n">mixtape</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'tracks'</span><span class="p">,</span> <span class="p">[])</span>
+            <span class="n">found</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">track</span> <span class="ow">in</span> <span class="n">tracks</span><span class="p">:</span>
+                <span class="c1"># Search track name</span>
+                <span class="k">if</span> <span class="n">query_lower</span> <span class="ow">in</span> <span class="n">track</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'track'</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                    <span class="n">found</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">break</span>
+                <span class="c1"># Search artist</span>
+                <span class="k">if</span> <span class="n">query_lower</span> <span class="ow">in</span> <span class="n">track</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'artist'</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                    <span class="n">found</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">break</span>
+                <span class="c1"># Search album</span>
+                <span class="k">if</span> <span class="n">query_lower</span> <span class="ow">in</span> <span class="n">track</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'album'</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                    <span class="n">found</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">break</span>
+
+            <span class="k">if</span> <span class="n">found</span><span class="p">:</span>
+                <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mixtape</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">results</span>
+
+    <span class="nd">@browser</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">"/"</span><span class="p">)</span>
+    <span class="nd">@require_auth</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">browse</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Response</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Renders the browse mixtapes page or indexing progress if active.</span>
+
+<span class="sd">        Checks for ongoing indexing and shows progress if active. Otherwise, lists all mixtapes.</span>
+<span class="sd">        Supports sorting by title, date (created/updated), and track count with ascending/descending order.</span>
+<span class="sd">        Supports search by title (client-side) and deep search by tracks/artists/albums (server-side).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Response: The rendered template for mixtapes or indexing progress.</span>
+<span class="sd">        """</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">flask</span><span class="w"> </span><span class="kn">import</span> <span class="n">request</span>
+
+        <span class="c1"># Get sorting parameters from query string</span>
+        <span class="n">sort_by</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'sort_by'</span><span class="p">,</span> <span class="s1">'updated_at'</span><span class="p">)</span>  <span class="c1"># default: most recent</span>
+        <span class="n">sort_order</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'sort_order'</span><span class="p">,</span> <span class="s1">'desc'</span><span class="p">)</span>  <span class="c1"># default: descending</span>
+        <span class="n">search_query</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'search'</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">search_deep</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'deep'</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">'true'</span>
+
+        <span class="n">mixtapes</span> <span class="o">=</span> <span class="n">mixtape_manager</span><span class="o">.</span><span class="n">list_all</span><span class="p">()</span>
+
+        <span class="c1"># Apply deep search if requested (searches within tracks, artists, albums)</span>
+        <span class="k">if</span> <span class="n">search_query</span> <span class="ow">and</span> <span class="n">search_deep</span><span class="p">:</span>
+            <span class="n">mixtapes</span> <span class="o">=</span> <span class="n">_deep_search_mixtapes</span><span class="p">(</span><span class="n">mixtapes</span><span class="p">,</span> <span class="n">search_query</span><span class="p">)</span>
+
+        <span class="c1"># Apply sorting</span>
+        <span class="k">if</span> <span class="n">sort_by</span> <span class="o">==</span> <span class="s1">'title'</span><span class="p">:</span>
+            <span class="n">mixtapes</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'title'</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> 
+                         <span class="n">reverse</span><span class="o">=</span><span class="p">(</span><span class="n">sort_order</span> <span class="o">==</span> <span class="s1">'desc'</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">sort_by</span> <span class="o">==</span> <span class="s1">'created_at'</span><span class="p">:</span>
+            <span class="n">mixtapes</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'created_at'</span><span class="p">)</span> <span class="ow">or</span> <span class="s1">''</span><span class="p">,</span> 
+                         <span class="n">reverse</span><span class="o">=</span><span class="p">(</span><span class="n">sort_order</span> <span class="o">==</span> <span class="s1">'desc'</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">sort_by</span> <span class="o">==</span> <span class="s1">'updated_at'</span><span class="p">:</span>
+            <span class="n">mixtapes</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'updated_at'</span><span class="p">)</span> <span class="ow">or</span> <span class="n">x</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'created_at'</span><span class="p">)</span> <span class="ow">or</span> <span class="s1">''</span><span class="p">,</span> 
+                         <span class="n">reverse</span><span class="o">=</span><span class="p">(</span><span class="n">sort_order</span> <span class="o">==</span> <span class="s1">'desc'</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">sort_by</span> <span class="o">==</span> <span class="s1">'track_count'</span><span class="p">:</span>
+            <span class="n">mixtapes</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'tracks'</span><span class="p">,</span> <span class="p">[])),</span> 
+                         <span class="n">reverse</span><span class="o">=</span><span class="p">(</span><span class="n">sort_order</span> <span class="o">==</span> <span class="s1">'desc'</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s2">"browse_mixtapes.html"</span><span class="p">,</span> 
+                             <span class="n">mixtapes</span><span class="o">=</span><span class="n">mixtapes</span><span class="p">,</span>
+                             <span class="n">sort_by</span><span class="o">=</span><span class="n">sort_by</span><span class="p">,</span>
+                             <span class="n">sort_order</span><span class="o">=</span><span class="n">sort_order</span><span class="p">,</span>
+                             <span class="n">search_query</span><span class="o">=</span><span class="n">search_query</span><span class="p">,</span>
+                             <span class="n">search_deep</span><span class="o">=</span><span class="n">search_deep</span><span class="p">)</span>
+
+    <span class="nd">@browser</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">"/play/&lt;slug&gt;"</span><span class="p">)</span>
+    <span class="nd">@require_auth</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">play</span><span class="p">(</span><span class="n">slug</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Response</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Redirects to the public play page for a given mixtape slug.</span>
+
+<span class="sd">        Takes the mixtape slug and redirects the user to the corresponding public play route.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            slug: The unique identifier for the mixtape.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Response: A redirect response to the public play page for the mixtape.</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s2">"public_play"</span><span class="p">,</span> <span class="n">slug</span><span class="o">=</span><span class="n">slug</span><span class="p">))</span>
+
+    <span class="nd">@browser</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">"/files/&lt;path:filename&gt;"</span><span class="p">)</span>
+    <span class="nd">@require_auth</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">files</span><span class="p">(</span><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Response</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Serves a mixtape file from the mixtape directory.</span>
+
+<span class="sd">        Returns the requested file as a Flask response for download or display.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            filename: The path to the mixtape file within the mixtape directory.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Response: A Flask response serving the requested file.</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="n">send_from_directory</span><span class="p">(</span><span class="n">current_app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">"MIXTAPE_DIR"</span><span class="p">],</span> <span class="n">filename</span><span class="p">)</span>
+
+    <span class="nd">@browser</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">"/delete/&lt;slug&gt;"</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s2">"POST"</span><span class="p">])</span>
+    <span class="nd">@require_auth</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">delete_mixtape</span><span class="p">(</span><span class="n">slug</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Response</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Deletes a mixtape and its associated cover image.</span>
+
+<span class="sd">        Removes the mixtape JSON file and cover image from disk if they exist. Returns a 200 response on success or 404 if the mixtape is not found.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            slug: The unique identifier for the mixtape to delete.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Response: An empty response with status 200 if successful, or 404 if the mixtape does not exist.</span>
+<span class="sd">        """</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># First check if it exists</span>
+            <span class="n">json_path</span> <span class="o">=</span> <span class="n">mixtape_manager</span><span class="o">.</span><span class="n">path_mixtapes</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">slug</span><span class="si">}</span><span class="s2">.json"</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">json_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s2">"success"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">"error"</span><span class="p">:</span> <span class="s2">"Mixtape not found"</span><span class="p">}),</span> <span class="mi">404</span>
+
+            <span class="n">mixtape_manager</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">slug</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s2">"success"</span><span class="p">:</span> <span class="kc">True</span><span class="p">}),</span> <span class="mi">200</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">"Error deleting mixtape"</span><span class="p">)</span>  <span class="c1"># if you have logger</span>
+            <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s2">"success"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">"error"</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)}),</span> <span class="mi">500</span>
+
+    <span class="nd">@browser</span><span class="o">.</span><span class="n">before_request</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">blueprint_require_auth</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Response</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Ensures authentication for all routes in the browse_mixtapes blueprint.</span>
+
+<span class="sd">        Checks if the user is authenticated before allowing access to any route in this blueprint. Redirects unauthenticated users to the landing page.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Response or None: A redirect response to the landing page if not authenticated, otherwise None.</span>
+<span class="sd">        """</span>
+        <span class="c1"># Protect everything in this blueprint</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">check_auth</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s2">"landing"</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">browser</span>
+</code></pre></div></td></tr></tbody></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div><h2 id="configuration">🔧 Configuration<a class="headerlink" href="#configuration" title="Permanent link">¶</a></h2>
+<p>The browse functionality relies on the following configuration values:</p>
+<ul>
+<li><code>MIXTAPE_DIR</code>: Directory where mixtape JSON files and covers are stored</li>
+<li><code>DATA_ROOT</code>: Root directory for application data</li>
+<li>Session configuration for authentication</li>
+</ul>
+<h2 id="customization">🎨 Customization<a class="headerlink" href="#customization" title="Permanent link">¶</a></h2>
+<h3 id="adding-new-sort-options">Adding New Sort Options<a class="headerlink" href="#adding-new-sort-options" title="Permanent link">¶</a></h3>
+<ol>
+<li>Add option to HTML template select dropdown</li>
+<li>Update <code>browse()</code> function to handle new sort field</li>
+<li>Ensure proper sorting logic (ascending/descending)</li>
+</ol>
+<h3 id="modifying-search-behavior">Modifying Search Behavior<a class="headerlink" href="#modifying-search-behavior" title="Permanent link">¶</a></h3>
+<p><strong>Client-side (Title Search):</strong>
+- Edit <code>static/js/browser/search.js</code>
+- Modify <code>filterByTitle()</code> function</p>
+<p><strong>Server-side (Deep Search):</strong>
+- Edit <code>_deep_search_mixtapes()</code> in <code>routes/browse_mixtapes.py</code>
+- Add or modify search fields</p>
+<h3 id="theming">Theming<a class="headerlink" href="#theming" title="Permanent link">¶</a></h3>
+<p>All colors use CSS custom properties:
+</p><div class="highlight"><pre><span></span><code><span class="p">.</span><span class="nc">input-group-text</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">background-color</span><span class="p">:</span><span class="w"> </span><span class="nf">var</span><span class="p">(</span><span class="nv">--bs-body-bg</span><span class="p">);</span>
+<span class="w">    </span><span class="k">color</span><span class="p">:</span><span class="w"> </span><span class="nf">var</span><span class="p">(</span><span class="nv">--bs-body-color</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div><p></p>
+<p>Override these in your theme CSS to customize appearance.</p>
+<h2 id="responsive-breakpoints">📱 Responsive Breakpoints<a class="headerlink" href="#responsive-breakpoints" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Breakpoint</th>
+<th>Width</th>
+<th>Layout Changes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Desktop</td>
+<td>≥992px</td>
+<td>Search expands, controls align right, single row</td>
+</tr>
+<tr>
+<td>Tablet</td>
+<td>768-991px</td>
+<td>Two-row layout, natural wrapping</td>
+</tr>
+<tr>
+<td>Mobile</td>
+<td>576-767px</td>
+<td>Stacked pairs, larger touch targets</td>
+</tr>
+<tr>
+<td>Tiny</td>
+<td>&lt;576px</td>
+<td>Full stack, extra compact sizing</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+  
+    
+  
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"></path></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="January 11, 2026 09:45:01 UTC">January 11, 2026</span>
+  </span>
+
+    
+    
+    
+    
+  </aside>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.top", "navigation.indexes", "navigation.sections", "content.code.copy", "content.code.select", "content.action.edit", "content.tooltips"], "search": "../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      
+        <script src="../../assets/javascripts/panzoom.min.js"></script>
+      
+        <script src="../../assets/javascripts/zoompan.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>
