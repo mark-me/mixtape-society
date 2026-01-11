@@ -12,6 +12,10 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 **🗓️** 2026-01-xx
 
+### ✨ Added
+
+- Added PWA (Progressive Web App) support for offline playback and installation
+
 ### 🐛 Fixed
 
 - Allow searching for strange characters in artist/album/track names
