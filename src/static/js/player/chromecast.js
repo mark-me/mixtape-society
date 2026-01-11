@@ -419,20 +419,43 @@ export function castJumpToTrack(index) {
     );
 }
 
+/**
+ * Build proper audio URL from track data
+ * 
+ * Strategy:
+ * 1. Prefer DOM data-path (already has full encoded URL from Flask url_for)
+ * 2. Fallback: construct from baseUrl + encoded path
+ * 
+ * Note: track.path is a RAW file path (e.g., "Artist/Album/01 - Song.mp3")
+ *       It must be encoded before concatenating with baseUrl
+ */
 function buildTrackUrl(track, quality) {
     const trackItems = document.querySelectorAll('.track-item');
     
+    // Try to find the matching track item in the DOM to get its pre-encoded data-path
     for (let item of trackItems) {
         if (item.dataset.title === track.track && item.dataset.artist === track.artist) {
+            // Found matching track - use its data-path which is already a full URL from Flask
+            // data-path format: "/play/Artist%2FAlbum%2F01%20Song.mp3" (already encoded)
             const basePath = item.dataset.path;
-            const url = `${basePath}&quality=${quality}`;
+            
+            // Add quality parameter
+            // Check if URL already has query params
+            const separator = basePath.includes('?') ? '&' : '?';
+            const url = `${basePath}${separator}quality=${quality}`;
+            
             debugLog(`URL from DOM: ${url.substring(0, 60)}...`);
             return url;
         }
     }
     
+    // Fallback: construct URL from raw path
+    // IMPORTANT: track.path is RAW and needs encoding
+    // Example: "Artist/Album/01 - Song.mp3" -> "Artist%2FAlbum%2F01%20-%20Song.mp3"
     const baseUrl = window.__mixtapeData?.baseUrl || window.location.origin + '/play/';
-    const trackUrl = `${baseUrl}${track.path}?quality=${quality}`;
+    const encodedPath = encodeURIComponent(track.path);
+    const trackUrl = `${baseUrl}${encodedPath}?quality=${quality}`;
+    
     debugLog(`Constructed URL: ${trackUrl.substring(0, 60)}...`);
     return trackUrl;
 }
