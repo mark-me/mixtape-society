@@ -212,6 +212,34 @@ function findCurrentQueueIndex(itemId, queueItems) {
     return queueItems.findIndex(item => item.itemId === itemId);
 }
 
+/**
+ * Get the current queue index from the media
+ */
+function getCurrentQueueIndex() {
+    if (!currentMedia || !currentMedia.media || !currentMedia.media.queueData) {
+        return -1;
+    }
+    
+    const currentItemId = currentMedia.currentItemId;
+    return findCurrentQueueIndex(currentItemId, currentMedia.media.queueData.items);
+}
+
+/**
+ * Get item ID for a specific queue index
+ */
+function getItemIdForIndex(index) {
+    if (!currentMedia || !currentMedia.media || !currentMedia.media.queueData) {
+        return null;
+    }
+    
+    const items = currentMedia.media.queueData.items;
+    if (index < 0 || index >= items.length) {
+        return null;
+    }
+    
+    return items[index].itemId;
+}
+
 function receiverListener(availability) {
     if (availability === chrome.cast.ReceiverAvailability.AVAILABLE) {
         debugLog('Chromecast device found ✓');
@@ -314,33 +342,75 @@ export function castSeek(currentTime) {
     );
 }
 
+/**
+ * Navigate to next track in queue
+ * Correctly computes the next itemId and jumps to it
+ */
 export function castNext() {
     if (!currentMedia) return;
     
-    const queueNextRequest = new chrome.cast.media.QueueJumpRequest(1);
-    currentMedia.queueJumpToItem(queueNextRequest,
-        () => debugLog('Next track ✓'),
+    const currentIndex = getCurrentQueueIndex();
+    if (currentIndex === -1) {
+        debugLog('Cannot get current index for next');
+        return;
+    }
+    
+    const nextIndex = currentIndex + 1;
+    const nextItemId = getItemIdForIndex(nextIndex);
+    
+    if (nextItemId === null) {
+        debugLog('No next track available');
+        return;
+    }
+    
+    const jumpRequest = new chrome.cast.media.QueueJumpRequest(nextItemId);
+    currentMedia.queueJumpToItem(jumpRequest,
+        () => debugLog(`Next track (index ${nextIndex}) ✓`),
         error => debugLog('Next failed', error)
     );
 }
 
+/**
+ * Navigate to previous track in queue
+ * Correctly computes the previous itemId and jumps to it
+ */
 export function castPrevious() {
     if (!currentMedia) return;
     
-    const queuePrevRequest = new chrome.cast.media.QueueJumpRequest(-1);
-    currentMedia.queueJumpToItem(queuePrevRequest,
-        () => debugLog('Previous track ✓'),
+    const currentIndex = getCurrentQueueIndex();
+    if (currentIndex === -1) {
+        debugLog('Cannot get current index for previous');
+        return;
+    }
+    
+    const prevIndex = currentIndex - 1;
+    const prevItemId = getItemIdForIndex(prevIndex);
+    
+    if (prevItemId === null) {
+        debugLog('No previous track available');
+        return;
+    }
+    
+    const jumpRequest = new chrome.cast.media.QueueJumpRequest(prevItemId);
+    currentMedia.queueJumpToItem(jumpRequest,
+        () => debugLog(`Previous track (index ${prevIndex}) ✓`),
         error => debugLog('Previous failed', error)
     );
 }
 
+/**
+ * Jump to a specific track by index
+ */
 export function castJumpToTrack(index) {
-    if (!currentMedia || !currentMedia.media || !currentMedia.media.queueData) return;
+    if (!currentMedia) return;
     
-    const items = currentMedia.media.queueData.items;
-    if (index < 0 || index >= items.length) return;
+    const targetItemId = getItemIdForIndex(index);
     
-    const targetItemId = items[index].itemId;
+    if (targetItemId === null) {
+        debugLog(`Cannot jump to index ${index} - out of bounds`);
+        return;
+    }
+    
     const jumpRequest = new chrome.cast.media.QueueJumpRequest(targetItemId);
     
     currentMedia.queueJumpToItem(jumpRequest,
