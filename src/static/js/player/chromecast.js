@@ -1,4 +1,5 @@
 // static/js/player/chromecast.js
+import { silenceLocalPlayer, clearMediaSession } from './playerUtils.js';
 
 const CAST_APP_ID = 'CC1AD845';
 
@@ -480,22 +481,8 @@ function loadQueue(session) {
         () => {
             console.log('✅ Playlist successfully queued on Chromecast');
             
-            // CRITICAL: Completely disable local player to prevent duplicate controls
-            const localPlayer = document.getElementById('main-player');
-            if (localPlayer) {
-                localPlayer.pause();
-                localPlayer.src = '';
-                localPlayer.load();
-                
-                // Remove the controls attribute to hide native controls completely
-                localPlayer.removeAttribute('controls');
-                
-                // Clear Media Session to prevent Android notification
-                if ('mediaSession' in navigator) {
-                    navigator.mediaSession.metadata = null;
-                    navigator.mediaSession.playbackState = 'none';
-                }
-            }
+            // Use shared utility to silence local player
+            silenceLocalPlayer();
         },
         (error) => {
             console.error('❌ Failed to load queue on Chromecast:', error);
@@ -513,12 +500,6 @@ export function stopCasting() {
             currentMedia = null;
             castPlayState = 'IDLE';
             onCastSessionEnd();
-            
-            // Re-enable local player controls
-            const localPlayer = document.getElementById('main-player');
-            if (localPlayer) {
-                localPlayer.setAttribute('controls', '');
-            }
         }, onError);
     }
 }

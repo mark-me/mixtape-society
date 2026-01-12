@@ -13,6 +13,19 @@ import {
     getCurrentCastTime
 } from './chromecast.js';
 
+import {
+    detectiOS,
+    logDeviceInfo,
+    silenceLocalPlayer,
+    enableLocalPlayer,
+    clearMediaSession,
+    setupCastMediaSession,
+    setupLocalMediaSession,
+    updateMediaSessionPosition,
+    updateMediaSessionPlaybackState,
+    extractMetadataFromDOM
+} from './playerUtils.js';
+
 /**
  * Quality settings for audio playback
  */
@@ -25,100 +38,14 @@ const QUALITY_LEVELS = {
 
 const DEFAULT_QUALITY = 'medium';
 
-/**
- * Detect iOS device and version
- */
-function detectiOS() {
-    const ua = navigator.userAgent;
-    const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
-    
-    if (!isIOS) return null;
-    
-    // Extract iOS version
-    const match = ua.match(/OS (\d+)_(\d+)/);
-    const major = match ? parseInt(match[1], 10) : 0;
-    const minor = match ? parseInt(match[2], 10) : 0;
-    
-    return {
-        isIOS: true,
-        version: major,
-        versionString: `${major}.${minor}`,
-        supportsMediaSession: major >= 15,
-        isPWA: window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches
-    };
-}
+// Global flag to prevent duplicate iOS help setup
+let iOSHelpInitialized = false;
 
 const iOS = detectiOS();
 
 /**
- * Log device and feature support
+ * Extract metadata from Chromecast
  */
-function logDeviceInfo() {
-    if (iOS) {
-        console.log('📱 iOS Device Detected');
-        console.log(`   Version: iOS ${iOS.versionString}`);
-        console.log(`   PWA Mode: ${iOS.isPWA ? 'Yes' : 'No'}`);
-        console.log(`   Media Session: ${iOS.supportsMediaSession ? 'Supported ✓' : 'Not Supported (need iOS 15+) ✗'}`);
-    } else {
-        console.log('📱 Android/Desktop Device');
-    }
-    
-    console.log(`   Media Session API: ${'mediaSession' in navigator ? 'Available ✓' : 'Not Available ✗'}`);
-    console.log(`   Cast API: ${typeof chrome !== 'undefined' && chrome.cast ? 'Available ✓' : 'Not Available ✗'}`);
-}
-
-function getMimeTypeFromUrl(url) {
-    const extension = url.split('.').pop().toLowerCase();
-    const mimeMap = {
-        'jpg': 'image/jpeg',
-        'jpeg': 'image/jpeg',
-        'png': 'image/png',
-        'webp': 'image/webp',
-        'gif': 'image/gif',
-        'bmp': 'image/bmp',
-    };
-    return mimeMap[extension] || 'image/jpeg';
-}
-
-/**
- * Extract metadata with iOS-optimized artwork sizes
- */
-function extractMetadataFromDOM(trackElement) {
-    const coverImg = trackElement.querySelector('.track-cover');
-    let artwork = [];
-
-    if (coverImg && coverImg.src) {
-        const mimeType = getMimeTypeFromUrl(coverImg.src);
-        const absoluteSrc = new URL(coverImg.src, window.location.origin).href;
-        
-        // iOS prefers specific sizes, with 512x512 being most reliable
-        if (iOS) {
-            artwork = [
-                { src: absoluteSrc, sizes: '512x512', type: mimeType }, // Primary for iOS
-                { src: absoluteSrc, sizes: '256x256', type: mimeType },
-                { src: absoluteSrc, sizes: '128x128', type: mimeType }
-            ];
-        } else {
-            // Android supports more sizes
-            artwork = [
-                { src: absoluteSrc, sizes: '96x96',   type: mimeType },
-                { src: absoluteSrc, sizes: '128x128', type: mimeType },
-                { src: absoluteSrc, sizes: '192x192', type: mimeType },
-                { src: absoluteSrc, sizes: '256x256', type: mimeType },
-                { src: absoluteSrc, sizes: '384x384', type: mimeType },
-                { src: absoluteSrc, sizes: '512x512', type: mimeType }
-            ];
-        }
-    }
-
-    return {
-        title: trackElement.dataset.title || 'Unknown',
-        artist: trackElement.dataset.artist || 'Unknown Artist',
-        album: trackElement.dataset.album || '',
-        artwork: artwork
-    };
-}
-
 function extractMetadataFromCast() {
     const castMetadata = getCurrentCastMetadata();
     
@@ -143,9 +70,12 @@ function extractMetadataFromCast() {
 
 /**
  * Show iOS-specific help message if Chromecast isn't working
+ * Only initializes once per page lifecycle
  */
 function showiOSCastHelp() {
-    if (!iOS) return;
+    if (!iOS || iOSHelpInitialized) return;
+    
+    iOSHelpInitialized = true; // Prevent duplicate initialization
     
     const helpHtml = `
         <div class="alert alert-info alert-dismissible fade show" role="alert" style="position: fixed; top: 70px; left: 50%; transform: translateX(-50%); z-index: 9999; max-width: 90%; width: 400px;">
@@ -168,6 +98,7 @@ function showiOSCastHelp() {
     const castBtn = document.getElementById('cast-button');
     
     if (castBtn) {
+        // Use once: true to automatically remove listener after first call
         castBtn.addEventListener('click', () => {
             castButtonClicked = true;
             
@@ -180,7 +111,7 @@ function showiOSCastHelp() {
                     }
                 }
             }, 3000);
-        });
+        }, { once: true }); // Prevents duplicate listeners
     }
 }
 
@@ -202,7 +133,7 @@ export function initPlayerControls() {
     // Log device info on initialization
     logDeviceInfo();
     
-    // Show iOS cast help if needed
+    // Show iOS cast help if needed (only once)
     if (iOS) {
         showiOSCastHelp();
     }
@@ -213,114 +144,6 @@ export function initPlayerControls() {
                 handler.apply(this, args);
             }
         };
-    }
-
-    /**
-     * CRITICAL: Silence local player but keep Media Session for cast controls
-     */
-    function silenceLocalPlayer() {
-        if (!player) return;
-        
-        console.log('🔇 Silencing local player (keeping Media Session for cast)');
-        player.pause();
-        player.src = '';
-        player.load();
-        
-        // Remove controls to prevent duplicate UI
-        player.removeAttribute('controls');
-    }
-
-    /**
-     * Setup Media Session for Chromecast control
-     * iOS-optimized with proper error handling
-     */
-    function setupCastMediaSession(metadata) {
-        if (!('mediaSession' in navigator)) {
-            console.warn('⚠️ Media Session API not available');
-            return;
-        }
-        
-        try {
-            console.log('🎵 Setting up Media Session for Chromecast', metadata);
-            
-            // Set metadata with artwork
-            navigator.mediaSession.metadata = new MediaMetadata({
-                title: metadata.title,
-                artist: metadata.artist,
-                album: metadata.album,
-                artwork: metadata.artwork
-            });
-            
-            // Set playback state
-            navigator.mediaSession.playbackState = 'playing';
-            
-            // Set action handlers to control Chromecast
-            navigator.mediaSession.setActionHandler('play', () => {
-                console.log('Media Session: play');
-                castPlay();
-            });
-
-            navigator.mediaSession.setActionHandler('pause', () => {
-                console.log('Media Session: pause');
-                castPause();
-            });
-
-            navigator.mediaSession.setActionHandler('previoustrack', () => {
-                console.log('Media Session: previous');
-                castPrevious();
-            });
-
-            navigator.mediaSession.setActionHandler('nexttrack', () => {
-                console.log('Media Session: next');
-                castNext();
-            });
-            
-            // iOS: Try to set seekbackward/seekforward (may not be supported)
-            if (iOS && iOS.version >= 15) {
-                try {
-                    navigator.mediaSession.setActionHandler('seekbackward', () => {
-                        console.log('Media Session: seek backward');
-                        castPrevious();
-                    });
-                    
-                    navigator.mediaSession.setActionHandler('seekforward', () => {
-                        console.log('Media Session: seek forward');
-                        castNext();
-                    });
-                } catch (e) {
-                    console.debug('iOS seek actions not supported:', e);
-                }
-            }
-            
-            // Update position state
-            updateCastPositionState();
-            
-            if (iOS) {
-                console.log('✅ Media Session configured for iOS');
-            }
-        } catch (error) {
-            console.error('❌ Failed to setup Media Session:', error);
-        }
-    }
-
-    /**
-     * Re-enable local player after casting ends
-     */
-    function enableLocalPlayer() {
-        if (!player) return;
-        
-        console.log('🔊 Re-enabling local player');
-        player.setAttribute('controls', '');
-        
-        // Clear Media Session when casting ends
-        if ('mediaSession' in navigator) {
-            try {
-                navigator.mediaSession.metadata = null;
-                navigator.mediaSession.playbackState = 'none';
-            } catch (e) {
-                console.warn('Error clearing Media Session:', e);
-            }
-        }
     }
 
     function setupAudioControlInterception() {
@@ -439,74 +262,29 @@ export function initPlayerControls() {
         toast.show();
     }
 
-    function updateMediaSession(metadata) {
-        if (!('mediaSession' in navigator)) return;
-        if (isCurrentlyCasting) return; // Don't update when casting (handled separately)
-
-        try {
-            navigator.mediaSession.metadata = new MediaMetadata({
-                title: metadata.title,
-                artist: metadata.artist,
-                album: metadata.album,
-                artwork: metadata.artwork
-            });
-
-            navigator.mediaSession.setActionHandler('play', () => {
-                player.play().catch(e => console.log('Media Session play failed:', e));
-            });
-
-            navigator.mediaSession.setActionHandler('pause', () => {
-                player.pause();
-            });
-
-            navigator.mediaSession.setActionHandler('previoustrack', () => {
-                playTrack(currentIndex - 1);
-            });
-
-            navigator.mediaSession.setActionHandler('nexttrack', () => {
-                playTrack(currentIndex + 1);
-            });
-
-            updatePositionState();
-        } catch (error) {
-            console.warn('Error updating Media Session:', error);
-        }
+    function updateLocalMediaSession(metadata) {
+        if (isCurrentlyCasting) return; // Don't update when casting
+        
+        setupLocalMediaSession(metadata, {
+            play: () => player.play().catch(e => console.log('Media Session play failed:', e)),
+            pause: () => player.pause(),
+            previous: () => playTrack(currentIndex - 1),
+            next: () => playTrack(currentIndex + 1)
+        });
+        
+        updatePositionState();
     }
 
     function updatePositionState() {
-        if (!('mediaSession' in navigator) || !('setPositionState' in navigator.mediaSession)) return;
         if (isCurrentlyCasting) return;
-
-        if (player.duration && !isNaN(player.duration) && isFinite(player.duration)) {
-            try {
-                navigator.mediaSession.setPositionState({
-                    duration: player.duration,
-                    playbackRate: player.playbackRate || 1.0,
-                    position: Math.min(player.currentTime, player.duration)
-                });
-            } catch (error) {
-                console.debug('Could not set position state:', error);
-            }
-        }
+        updateMediaSessionPosition(player.currentTime, player.duration, player.playbackRate || 1.0);
     }
 
     function updateCastPositionState() {
-        if (!('mediaSession' in navigator) || !('setPositionState' in navigator.mediaSession)) return;
         if (!isCurrentlyCasting) return;
-
-        const timeInfo = getCurrentCastTime();
         
-        if (timeInfo.duration && !isNaN(timeInfo.duration) && isFinite(timeInfo.duration) && timeInfo.duration > 0) {
-            try {
-                navigator.mediaSession.setPositionState({
-                    duration: timeInfo.duration,
-                    playbackRate: 1.0,
-                    position: Math.min(timeInfo.currentTime, timeInfo.duration)
-                });
-            } catch (error) {
-                console.debug('Could not set cast position state:', error);
-            }
-        }
+        const timeInfo = getCurrentCastTime();
+        updateMediaSessionPosition(timeInfo.currentTime, timeInfo.duration, 1.0);
     }
 
     function buildAudioUrl(basePath, quality) {
@@ -533,7 +311,12 @@ export function initPlayerControls() {
             setTimeout(() => {
                 const metadata = extractMetadataFromCast();
                 if (metadata) {
-                    setupCastMediaSession(metadata);
+                    setupCastMediaSession(metadata, {
+                        play: castPlay,
+                        pause: castPause,
+                        previous: castPrevious,
+                        next: castNext
+                    });
                 }
             }, delay);
             return;
@@ -562,7 +345,7 @@ export function initPlayerControls() {
         updateUIForTrack(index);
 
         const metadata = extractMetadataFromDOM(track);
-        updateMediaSession(metadata);
+        updateLocalMediaSession(metadata);
 
         player.play().catch(e => console.log('Autoplay prevented:', e));
     }
@@ -591,11 +374,7 @@ export function initPlayerControls() {
         trackItems.forEach(t => t.classList.remove('active-track'));
         currentIndex = -1;
         
-        if ('mediaSession' in navigator) {
-            try {
-                navigator.mediaSession.metadata = null;
-            } catch (e) {}
-        }
+        clearMediaSession();
     }
 
     function syncPlayIcons() {
@@ -649,6 +428,7 @@ export function initPlayerControls() {
             isCurrentlyCasting = true;
             console.log('🎵 Casting started');
             
+            // Use shared utility to silence local player
             silenceLocalPlayer();
             syncPlayIcons();
             
@@ -656,7 +436,12 @@ export function initPlayerControls() {
             if (currentIndex >= 0 && currentIndex < trackItems.length) {
                 const track = trackItems[currentIndex];
                 const metadata = extractMetadataFromDOM(track);
-                setupCastMediaSession(metadata);
+                setupCastMediaSession(metadata, {
+                    play: castPlay,
+                    pause: castPause,
+                    previous: castPrevious,
+                    next: castNext
+                });
             }
         });
 
@@ -664,7 +449,9 @@ export function initPlayerControls() {
             isCurrentlyCasting = false;
             console.log('🎵 Casting ended');
             
+            // Use shared utilities to re-enable local player
             enableLocalPlayer();
+            clearMediaSession();
             syncPlayIcons();
         });
 
@@ -676,7 +463,12 @@ export function initPlayerControls() {
                 // Update Media Session with new track metadata
                 const metadata = extractMetadataFromCast();
                 if (metadata) {
-                    setupCastMediaSession(metadata);
+                    setupCastMediaSession(metadata, {
+                        play: castPlay,
+                        pause: castPause,
+                        previous: castPrevious,
+                        next: castNext
+                    });
                 }
             },
             onPlayStateChange: (state) => {
@@ -684,15 +476,9 @@ export function initPlayerControls() {
                 syncPlayIcons();
                 
                 // Update playback state in Media Session
-                if ('mediaSession' in navigator) {
-                    try {
-                        navigator.mediaSession.playbackState = 
-                            state === 'PLAYING' ? 'playing' : 
-                            state === 'PAUSED' ? 'paused' : 'none';
-                    } catch (e) {
-                        console.warn('Error updating playback state:', e);
-                    }
-                }
+                const playbackState = state === 'PLAYING' ? 'playing' : 
+                                     state === 'PAUSED' ? 'paused' : 'none';
+                updateMediaSessionPlaybackState(playbackState);
             },
             onTimeUpdate: (time) => {
                 updateCastPositionState();
