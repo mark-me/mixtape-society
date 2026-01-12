@@ -48,13 +48,29 @@ def create_app() -> Flask:
         app,
         resources={
             r"/*": {
-                "origins": "*",
-                "allow_headers": ["Content-Type"],
-                "expose_headers": ["Content-Type"],
+                "origins": "*",  # Allow all origins (adjust if you need restriction)
+                "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+                "allow_headers": [
+                    "Content-Type",
+                    "Authorization",
+                    "X-Requested-With",
+                    "Accept",
+                    "Origin",
+                    "Access-Control-Request-Method",
+                    "Access-Control-Request-Headers",
+                    "Range",  # Important for audio seeking
+                ],
+                "expose_headers": [
+                    "Content-Type",
+                    "Content-Length",
+                    "Content-Range",
+                    "Accept-Ranges",
+                ],
                 "supports_credentials": False,
+                "max_age": 3600,  # Cache preflight for 1 hour
             }
         },
-    )  # This adds Access-Control-Allow-Origin: * to ALL responses
+    )
 
     limiter = Limiter(
         get_remote_address,
