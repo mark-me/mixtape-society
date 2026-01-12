@@ -36,8 +36,6 @@ const DEFAULT_QUALITY = 'medium';
 
 /**
  * Guesses the MIME type based on the file extension in the URL
- * @param {string} url - The image URL
- * @returns {string} MIME type (falls back to 'image/jpeg')
  */
 function getMimeTypeFromUrl(url) {
     const extension = url.split('.').pop().toLowerCase();
@@ -54,8 +52,6 @@ function getMimeTypeFromUrl(url) {
 
 /**
  * Extracts normalized metadata from a DOM track element
- * @param {HTMLElement} trackElement - The track list item element
- * @returns {TrackMetadata}
  */
 function extractMetadataFromDOM(trackElement) {
     const coverImg = trackElement.querySelector('.track-cover');
@@ -63,13 +59,15 @@ function extractMetadataFromDOM(trackElement) {
 
     if (coverImg && coverImg.src) {
         const mimeType = getMimeTypeFromUrl(coverImg.src);
+        const absoluteSrc = new URL(coverImg.src, window.location.origin).href;
+        
         artwork = [
-            { src: coverImg.src, sizes: '96x96',   type: mimeType },
-            { src: coverImg.src, sizes: '128x128', type: mimeType },
-            { src: coverImg.src, sizes: '192x192', type: mimeType },
-            { src: coverImg.src, sizes: '256x256', type: mimeType },
-            { src: coverImg.src, sizes: '384x384', type: mimeType },
-            { src: coverImg.src, sizes: '512x512', type: mimeType }
+            { src: absoluteSrc, sizes: '96x96',   type: mimeType },
+            { src: absoluteSrc, sizes: '128x128', type: mimeType },
+            { src: absoluteSrc, sizes: '192x192', type: mimeType },
+            { src: absoluteSrc, sizes: '256x256', type: mimeType },
+            { src: absoluteSrc, sizes: '384x384', type: mimeType },
+            { src: absoluteSrc, sizes: '512x512', type: mimeType }
         ];
     }
 
@@ -83,7 +81,6 @@ function extractMetadataFromDOM(trackElement) {
 
 /**
  * Extracts normalized metadata from Chromecast
- * @returns {TrackMetadata}
  */
 function extractMetadataFromCast() {
     const castMetadata = getCurrentCastMetadata();
@@ -97,7 +94,6 @@ function extractMetadataFromCast() {
         };
     }
 
-    // Convert cast artwork format to our normalized format
     const artwork = castMetadata.artwork.map(img => ({
         src: img.url,
         sizes: '512x512',
@@ -129,8 +125,6 @@ export function initPlayerControls() {
 
     /**
      * Wrapper for player event handlers that should only run when NOT casting
-     * @param {Function} handler - The handler function to wrap
-     * @returns {Function} Wrapped handler that no-ops when casting
      */
     function onlyWhenNotCasting(handler) {
         return function(...args) {
@@ -141,8 +135,31 @@ export function initPlayerControls() {
     }
 
     /**
-     * Initialize quality selector dropdown and event handlers
+     * Intercept native audio player controls to route to Chromecast when casting
      */
+    function setupAudioControlInterception() {
+        player.addEventListener('play', (e) => {
+            if (isCurrentlyCasting) {
+                e.preventDefault();
+                player.pause();
+                castPlay();
+                return false;
+            }
+        }, true);
+
+        player.addEventListener('pause', (e) => {
+            if (isCurrentlyCasting) {
+                castPause();
+            }
+        });
+
+        player.addEventListener('seeking', (e) => {
+            if (isCurrentlyCasting) {
+                e.preventDefault();
+            }
+        }, true);
+    }
+
     function initQualitySelector() {
         const qualityBtn = document.getElementById('quality-btn-bottom');
         const qualityMenu = document.getElementById('quality-menu');
@@ -151,20 +168,17 @@ export function initPlayerControls() {
 
         updateQualityButtonText();
 
-        // Toggle dropdown
         qualityBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             qualityMenu.classList.toggle('show');
         });
 
-        // Close dropdown when clicking outside
         document.addEventListener('click', (e) => {
             if (!qualityBtn.contains(e.target) && !qualityMenu.contains(e.target)) {
                 qualityMenu.classList.remove('show');
             }
         });
 
-        // Handle quality selection
         qualityMenu.querySelectorAll('.quality-option').forEach(option => {
             option.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -179,9 +193,6 @@ export function initPlayerControls() {
         });
     }
 
-    /**
-     * Updates quality button text to show current quality
-     */
     function updateQualityButtonText() {
         const qualityBtn = document.getElementById('quality-btn-bottom');
         if (!qualityBtn) return;
@@ -190,9 +201,6 @@ export function initPlayerControls() {
         qualityBtn.innerHTML = `<i class="bi bi-gear-fill me-1"></i>${qualityLabel}`;
     }
 
-    /**
-     * Updates active state of quality menu options
-     */
     function updateQualityMenuState(quality) {
         document.querySelectorAll('.quality-option').forEach(opt => {
             const checkIcon = opt.querySelector('.bi-check2');
@@ -206,9 +214,6 @@ export function initPlayerControls() {
         });
     }
 
-    /**
-     * Changes audio quality and reloads current track if playing
-     */
     function changeQuality(newQuality) {
         currentQuality = newQuality;
         localStorage.setItem('audioQuality', newQuality);
@@ -216,7 +221,6 @@ export function initPlayerControls() {
         updateQualityButtonText();
         updateQualityMenuState(newQuality);
 
-        // If something is playing locally, reload with new quality
         if (currentIndex >= 0 && player.src && !isCurrentlyCasting) {
             const wasPlaying = !player.paused;
             const currentTime = player.currentTime;
@@ -231,9 +235,6 @@ export function initPlayerControls() {
         showQualityToast(newQuality);
     }
 
-    /**
-     * Shows toast notification for quality change
-     */
     function showQualityToast(quality) {
         const toastEl = document.getElementById('qualityToast');
         if (!toastEl) return;
@@ -249,10 +250,6 @@ export function initPlayerControls() {
         toast.show();
     }
 
-    /**
-     * Updates Media Session API metadata for mobile notifications
-     * @param {TrackMetadata} metadata - Normalized metadata object
-     */
     function updateMediaSession(metadata) {
         if (!('mediaSession' in navigator)) return;
 
@@ -263,7 +260,6 @@ export function initPlayerControls() {
             artwork: metadata.artwork
         });
 
-        // Set action handlers for media controls
         navigator.mediaSession.setActionHandler('play', () => {
             if (isCurrentlyCasting) {
                 castPlay();
@@ -296,7 +292,6 @@ export function initPlayerControls() {
             }
         });
 
-        // Update position state
         if (isCurrentlyCasting) {
             updateCastPositionState();
         } else {
@@ -304,14 +299,10 @@ export function initPlayerControls() {
         }
     }
 
-    /**
-     * Updates Media Session position state for local player
-     */
     function updatePositionState() {
         if (!('mediaSession' in navigator) || !('setPositionState' in navigator.mediaSession)) return;
-        if (isCurrentlyCasting) return; // Don't update for local player when casting
+        if (isCurrentlyCasting) return;
 
-        // Only update if we have valid duration and position data
         if (player.duration && !isNaN(player.duration) && isFinite(player.duration)) {
             try {
                 navigator.mediaSession.setPositionState({
@@ -325,9 +316,6 @@ export function initPlayerControls() {
         }
     }
 
-    /**
-     * Updates Media Session position state for Chromecast
-     */
     function updateCastPositionState() {
         if (!('mediaSession' in navigator) || !('setPositionState' in navigator.mediaSession)) return;
         if (!isCurrentlyCasting) return;
@@ -347,9 +335,6 @@ export function initPlayerControls() {
         }
     }
 
-    /**
-     * Builds audio source URL with quality parameter
-     */
     function buildAudioUrl(basePath, quality) {
         const urlParams = new URLSearchParams();
         urlParams.set('quality', quality);
@@ -357,23 +342,29 @@ export function initPlayerControls() {
     }
 
     /**
-     * Plays track at given index with current quality setting
+     * Plays track at given index - routes to Chromecast if casting
      */
     function playTrack(index) {
-        // If casting, use cast controls instead
+        // CRITICAL: Route to Chromecast if currently casting
         if (isCurrentlyCasting) {
+            console.log(`▶️ Routing track ${index} to Chromecast`);
             castJumpToTrack(index);
             updateUIForTrack(index);
+            
+            // Update Media Session with cast metadata (will update when cast changes track)
+            setTimeout(() => {
+                const metadata = extractMetadataFromCast();
+                updateMediaSession(metadata);
+            }, 100);
             return;
         }
 
-        // If index is same as current, don't reload the source
+        // Local playback
         if (index === currentIndex && player.src !== '') {
             player.play().catch(e => console.log('Autoplay prevented:', e));
             return;
         }
 
-        // Handle bounds and stopping
         if (index < 0 || index >= trackItems.length) {
             stopPlayback();
             return;
@@ -384,24 +375,18 @@ export function initPlayerControls() {
         player.src = buildAudioUrl(track.dataset.path, currentQuality);
         if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {
             try {
-                navigator.mediaSession.setPositionState(); // Clear state
-            } catch (e) {
-                // Catch browser error if there is no state yet
-            }
+                navigator.mediaSession.setPositionState();
+            } catch (e) {}
         }
 
         updateUIForTrack(index);
 
-        // Extract and update Media Session metadata from DOM
         const metadata = extractMetadataFromDOM(track);
         updateMediaSession(metadata);
 
         player.play().catch(e => console.log('Autoplay prevented:', e));
     }
 
-    /**
-     * Updates UI elements for a given track index
-     */
     function updateUIForTrack(index) {
         if (index < 0 || index >= trackItems.length) return;
 
@@ -418,39 +403,30 @@ export function initPlayerControls() {
         window.currentTrackIndex = index;
     }
 
-    /**
-     * Stops playback and hides player
-     */
     function stopPlayback() {
         player.pause();
         player.src = '';
-        player.load(); // Reset player
+        player.load();
         container.style.display = 'none';
         trackItems.forEach(t => t.classList.remove('active-track'));
         currentIndex = -1;
         
-        // Clear Media Session
         if ('mediaSession' in navigator) {
             navigator.mediaSession.metadata = null;
         }
     }
 
-    /**
-     * Syncs play/pause icon states across all track items
-     */
     function syncPlayIcons() {
         trackItems.forEach((item, idx) => {
             const icon = item.querySelector('.play-overlay-btn i');
             if (!icon) return;
 
             const isCurrentTrack = idx === currentIndex;
-            // Check if playing: either casting and playing, or local player playing
             const isPlaying = isCurrentTrack && (
                 (isCurrentlyCasting && isCastPlaying()) || 
                 (!isCurrentlyCasting && !player.paused)
             );
 
-            // Update icon
             if (isPlaying) {
                 icon.classList.remove('bi-play-fill');
                 icon.classList.add('bi-pause-fill');
@@ -459,7 +435,6 @@ export function initPlayerControls() {
                 icon.classList.add('bi-play-fill');
             }
 
-            // Update track item state
             if (isPlaying) {
                 item.classList.add('playing');
             } else {
@@ -468,15 +443,10 @@ export function initPlayerControls() {
         });
     }
 
-    /**
-     * Toggles play/pause for the current track
-     */
     function togglePlayPause() {
         if (isCurrentlyCasting) {
-            // Use proper toggle for Chromecast that checks play state
             castTogglePlayPause();
         } else {
-            // Local player toggle
             if (player.paused) {
                 player.play().catch(err => console.error("Resume failed:", err));
             } else {
@@ -485,9 +455,6 @@ export function initPlayerControls() {
         }
     }
 
-    /**
-     * Updates audio player progress bar coloring
-     */
     function updateAudioProgress() {
         if (!player.duration || isNaN(player.duration)) return;
 
@@ -495,16 +462,11 @@ export function initPlayerControls() {
         player.style.setProperty('--audio-progress', `${progress}%`);
     }
 
-    /**
-     * Setup Chromecast event listeners
-     */
     function initCastListeners() {
-        // Listen for casting state changes
         document.addEventListener('cast:started', () => {
             isCurrentlyCasting = true;
-            console.log('Casting started - controls now route to Chromecast');
+            console.log('🎵 Casting started - app now controls Chromecast');
             
-            // CRITICAL: Stop local player completely to avoid duplicate notifications
             if (!player.paused) {
                 player.pause();
             }
@@ -516,31 +478,26 @@ export function initPlayerControls() {
 
         document.addEventListener('cast:ended', () => {
             isCurrentlyCasting = false;
-            console.log('Casting ended - controls back to local player');
+            console.log('🎵 Casting ended - controls back to local player');
             syncPlayIcons();
             
-            // Clear Media Session
             if ('mediaSession' in navigator) {
                 navigator.mediaSession.metadata = null;
             }
         });
 
-        // Register callbacks for Chromecast events
         setCastControlCallbacks({
             onTrackChange: (index) => {
                 console.log(`Cast track changed to index: ${index}`);
                 updateUIForTrack(index);
                 
-                // Update media session with cast metadata (source of truth when casting)
                 const metadata = extractMetadataFromCast();
                 updateMediaSession(metadata);
             },
             onPlayStateChange: (state) => {
                 console.log(`Cast play state: ${state}`);
-                // Sync icons when cast play state changes
                 syncPlayIcons();
                 
-                // Update playback state in Media Session
                 if ('mediaSession' in navigator) {
                     navigator.mediaSession.playbackState = 
                         state === 'PLAYING' ? 'playing' : 
@@ -548,17 +505,12 @@ export function initPlayerControls() {
                 }
             },
             onTimeUpdate: (time) => {
-                // Update position state periodically for cast
                 updateCastPositionState();
             }
         });
     }
 
-    /**
-     * Initializes all event listeners
-     */
     function initEventListeners() {
-        // Big play button
         document.getElementById('big-play-btn')?.addEventListener('click', () => {
             if (trackItems.length === 0) return;
             if (currentIndex === -1) {
@@ -570,7 +522,6 @@ export function initPlayerControls() {
             }
         });
 
-        // Player events - wrapped to only fire when NOT casting
         player?.addEventListener('play', onlyWhenNotCasting(() => {
             syncPlayIcons();
         }));
@@ -586,13 +537,11 @@ export function initPlayerControls() {
             }
         });
 
-        // Audio progress for adaptive theming - only when not casting
         const handleAudioProgress = onlyWhenNotCasting(updateAudioProgress);
         player?.addEventListener('timeupdate', handleAudioProgress);
         player?.addEventListener('loadedmetadata', handleAudioProgress);
         player?.addEventListener('seeked', handleAudioProgress);
 
-        // Media Session position updates - only for local playback
         const handlePositionUpdate = onlyWhenNotCasting(updatePositionState);
         player?.addEventListener('loadedmetadata', handlePositionUpdate);
         player?.addEventListener('play', handlePositionUpdate);
@@ -600,7 +549,6 @@ export function initPlayerControls() {
         player?.addEventListener('ratechange', handlePositionUpdate);
         player?.addEventListener('seeked', handlePositionUpdate);
 
-        // Throttle timeupdate to once per second
         let lastPositionUpdate = 0;
         player?.addEventListener('timeupdate', onlyWhenNotCasting(() => {
             const now = Date.now();
@@ -610,7 +558,6 @@ export function initPlayerControls() {
             }
         }));
 
-        // Navigation buttons - now work for both local and cast
         prevBtn?.addEventListener('click', () => {
             if (isCurrentlyCasting) {
                 castPrevious();
@@ -629,25 +576,26 @@ export function initPlayerControls() {
 
         closeBtn?.addEventListener('click', stopPlayback);
 
-        // Track item play buttons
+        // Track item click handlers - route to cast when casting
         trackItems.forEach((item, i) => {
             const overlayBtn = item.querySelector('.play-overlay-btn');
             if (!overlayBtn) return;
 
             overlayBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
+                
                 if (i === currentIndex) {
+                    // Same track - toggle play/pause
                     togglePlayPause();
                 } else {
+                    // Different track - play it (routes to cast if casting)
+                    console.log(`Track ${i} clicked`);
                     playTrack(i);
                 }
             });
         });
     }
 
-    /**
-     * Handles auto-start scenarios (hash or session storage)
-     */
     function handleAutoStart() {
         if (trackItems.length === 0) return;
 
@@ -659,13 +607,13 @@ export function initPlayerControls() {
         }
     }
 
-    // Initialize everything
+    // Initialize
     initQualitySelector();
+    setupAudioControlInterception();
     initCastListeners();
     initEventListeners();
     handleAutoStart();
 
-    // Return public API
     return {
         playTrack,
         syncPlayIcons,

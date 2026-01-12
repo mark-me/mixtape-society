@@ -44,7 +44,17 @@ def create_app() -> Flask:
 
     app.secret_key = config_cls.PASSWORD
     app.config.from_object(config_cls)
-    CORS(app)  # This adds Access-Control-Allow-Origin: * to ALL responses
+    CORS(
+        app,
+        resources={
+            r"/*": {
+                "origins": "*",
+                "allow_headers": ["Content-Type"],
+                "expose_headers": ["Content-Type"],
+                "supports_credentials": False,
+            }
+        },
+    )  # This adds Access-Control-Allow-Origin: * to ALL responses
 
     limiter = Limiter(
         get_remote_address,
@@ -76,28 +86,24 @@ def create_app() -> Flask:
         path_mixtapes=config_cls.MIXTAPE_DIR, collection=collection
     )
 
-
-    @app.route('/service-worker.js')
+    @app.route("/service-worker.js")
     def service_worker():
-        """Serve service worker with proper headers"""
         response = send_from_directory(
             app.root_path,  # Serves from app root directory
-            'service-worker.js',
-            mimetype='application/javascript'
+            "service-worker.js",
+            mimetype="application/javascript",
         )
         # Prevent caching so updates work
-        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
         # Scope to /play/ only
-        response.headers['Service-Worker-Allowed'] = '/play/'
+        response.headers["Service-Worker-Allowed"] = "/play/"
         return response
 
-    @app.route('/manifest.json')
+    @app.route("/manifest.json")
     def manifest():
         """Serve PWA manifest"""
         return send_from_directory(
-            app.root_path,
-            'manifest.json',
-            mimetype='application/manifest+json'
+            app.root_path, "manifest.json", mimetype="application/manifest+json"
         )
 
     @app.errorhandler(DatabaseCorruptionError)
