@@ -19,7 +19,7 @@ let debugMessages = [];
 
 function initDebugOverlay() {
     if (debugOverlay) return;
-
+    
     debugOverlay = document.createElement('div');
     debugOverlay.id = 'cast-debug-overlay';
     debugOverlay.style.cssText = `
@@ -39,7 +39,7 @@ function initDebugOverlay() {
         display: none;
     `;
     document.body.appendChild(debugOverlay);
-
+    
     // Add toggle button
     const toggleBtn = document.createElement('button');
     toggleBtn.textContent = '🐛';
@@ -66,18 +66,18 @@ function initDebugOverlay() {
 function debugLog(message, data = null) {
     const timestamp = new Date().toLocaleTimeString();
     const fullMessage = `[${timestamp}] ${message}`;
-
+    
     console.log(fullMessage, data || '');
-
+    
     debugMessages.unshift(fullMessage);
     if (data) {
         debugMessages.unshift('  → ' + JSON.stringify(data));
     }
-
+    
     if (debugMessages.length > 50) {
         debugMessages = debugMessages.slice(0, 50);
     }
-
+    
     if (debugOverlay) {
         debugOverlay.innerHTML = debugMessages.join('<br>');
     }
@@ -86,7 +86,7 @@ function debugLog(message, data = null) {
 export function initChromecast() {
     initDebugOverlay();
     debugLog('Initializing Chromecast...');
-
+    
     window['__onGCastApiAvailable'] = function(isAvailable) {
         if (isAvailable) {
             debugLog('Cast API available ✓');
@@ -181,7 +181,7 @@ function attachMediaListener(media) {
         if (isAlive) {
             const status = media.playerState;
             const currentTime = media.getEstimatedTime();
-            const {currentItemId} = media;
+            const currentItemId = media.currentItemId;
 
             // Update cast play state
             castPlayState = status;
@@ -219,8 +219,8 @@ function getCurrentQueueIndex() {
     if (!currentMedia || !currentMedia.media || !currentMedia.media.queueData) {
         return -1;
     }
-
-    const {currentItemId} = currentMedia;
+    
+    const currentItemId = currentMedia.currentItemId;
     return findCurrentQueueIndex(currentItemId, currentMedia.media.queueData.items);
 }
 
@@ -231,13 +231,43 @@ function getItemIdForIndex(index) {
     if (!currentMedia || !currentMedia.media || !currentMedia.media.queueData) {
         return null;
     }
-
-    const {items} = currentMedia.media.queueData;
+    
+    const items = currentMedia.media.queueData.items;
     if (index < 0 || index >= items.length) {
         return null;
     }
-
+    
     return items[index].itemId;
+}
+
+/**
+ * Get current cast media metadata
+ */
+export function getCurrentCastMetadata() {
+    if (!currentMedia || !currentMedia.media || !currentMedia.media.metadata) {
+        return null;
+    }
+    
+    return {
+        title: currentMedia.media.metadata.title || 'Unknown',
+        artist: currentMedia.media.metadata.artist || 'Unknown Artist',
+        album: currentMedia.media.metadata.albumName || '',
+        artwork: currentMedia.media.metadata.images || []
+    };
+}
+
+/**
+ * Get current cast time and duration
+ */
+export function getCurrentCastTime() {
+    if (!currentMedia) {
+        return { currentTime: 0, duration: 0 };
+    }
+    
+    return {
+        currentTime: currentMedia.getEstimatedTime() || 0,
+        duration: currentMedia.media?.duration || 0
+    };
 }
 
 function receiverListener(availability) {
@@ -257,7 +287,7 @@ function onCastSessionStart() {
         btn.classList.add('connected');
         btn.title = 'Casting to device • Click to stop';
     }
-
+    
     document.dispatchEvent(new CustomEvent('cast:started'));
 }
 
@@ -268,7 +298,7 @@ function onCastSessionEnd() {
         btn.classList.remove('connected');
         btn.title = 'Cast to device';
     }
-
+    
     document.dispatchEvent(new CustomEvent('cast:ended'));
 }
 
@@ -299,9 +329,9 @@ export function isCastPlaying() {
  */
 export function castPlay() {
     if (!currentMedia) return;
-
+    
     const playRequest = new chrome.cast.media.PlayRequest();
-    currentMedia.play(playRequest,
+    currentMedia.play(playRequest, 
         () => debugLog('Play command sent ✓'),
         error => debugLog('Play failed', error)
     );
@@ -309,7 +339,7 @@ export function castPlay() {
 
 export function castPause() {
     if (!currentMedia) return;
-
+    
     const pauseRequest = new chrome.cast.media.PauseRequest();
     currentMedia.pause(pauseRequest,
         () => debugLog('Pause command sent ✓'),
@@ -322,7 +352,7 @@ export function castPause() {
  */
 export function castTogglePlayPause() {
     if (!currentMedia) return;
-
+    
     if (isCastPlaying()) {
         castPause();
     } else {
@@ -332,10 +362,10 @@ export function castTogglePlayPause() {
 
 export function castSeek(currentTime) {
     if (!currentMedia) return;
-
+    
     const seekRequest = new chrome.cast.media.SeekRequest();
     seekRequest.currentTime = currentTime;
-
+    
     currentMedia.seek(seekRequest,
         () => debugLog(`Seek to ${currentTime}s ✓`),
         error => debugLog('Seek failed', error)
@@ -348,21 +378,21 @@ export function castSeek(currentTime) {
  */
 export function castNext() {
     if (!currentMedia) return;
-
+    
     const currentIndex = getCurrentQueueIndex();
     if (currentIndex === -1) {
         debugLog('Cannot get current index for next');
         return;
     }
-
+    
     const nextIndex = currentIndex + 1;
     const nextItemId = getItemIdForIndex(nextIndex);
-
+    
     if (nextItemId === null) {
         debugLog('No next track available');
         return;
     }
-
+    
     const jumpRequest = new chrome.cast.media.QueueJumpRequest(nextItemId);
     currentMedia.queueJumpToItem(jumpRequest,
         () => debugLog(`Next track (index ${nextIndex}) ✓`),
@@ -376,21 +406,21 @@ export function castNext() {
  */
 export function castPrevious() {
     if (!currentMedia) return;
-
+    
     const currentIndex = getCurrentQueueIndex();
     if (currentIndex === -1) {
         debugLog('Cannot get current index for previous');
         return;
     }
-
+    
     const prevIndex = currentIndex - 1;
     const prevItemId = getItemIdForIndex(prevIndex);
-
+    
     if (prevItemId === null) {
         debugLog('No previous track available');
         return;
     }
-
+    
     const jumpRequest = new chrome.cast.media.QueueJumpRequest(prevItemId);
     currentMedia.queueJumpToItem(jumpRequest,
         () => debugLog(`Previous track (index ${prevIndex}) ✓`),
@@ -403,16 +433,16 @@ export function castPrevious() {
  */
 export function castJumpToTrack(index) {
     if (!currentMedia) return;
-
+    
     const targetItemId = getItemIdForIndex(index);
-
+    
     if (targetItemId === null) {
         debugLog(`Cannot jump to index ${index} - out of bounds`);
         return;
     }
-
+    
     const jumpRequest = new chrome.cast.media.QueueJumpRequest(targetItemId);
-
+    
     currentMedia.queueJumpToItem(jumpRequest,
         () => debugLog(`Jumped to track ${index} ✓`),
         error => debugLog('Jump failed', error)
@@ -421,39 +451,39 @@ export function castJumpToTrack(index) {
 
 /**
  * Build proper audio URL from track data
- *
+ * 
  * CRITICAL: Chromecast requires FULL absolute URLs (including protocol and domain)
  * Relative paths like "/play/..." will NOT work - they must be "https://example.com/play/..."
- *
+ * 
  * Strategy:
  * 1. Prefer DOM data-path (already has full encoded URL from Flask url_for)
  * 2. Fallback: construct from baseUrl + encoded path
  * 3. Convert to absolute URL using window.location.origin
- *
+ * 
  * Note: track.path is a RAW file path (e.g., "Artist/Album/01 - Song.mp3")
  *       It must be encoded before concatenating with baseUrl
  */
 function buildTrackUrl(track, quality) {
     const trackItems = document.querySelectorAll('.track-item');
-
+    
     let relativePath = null;
-
+    
     // Try to find the matching track item in the DOM to get its pre-encoded data-path
     for (let item of trackItems) {
         if (item.dataset.title === track.track && item.dataset.artist === track.artist) {
             // Found matching track - use its data-path which is already a full URL from Flask
             // data-path format: "/play/Artist%2FAlbum%2F01%20Song.mp3" (already encoded)
             relativePath = item.dataset.path;
-
+            
             // Add quality parameter
             // Check if URL already has query params
             const separator = relativePath.includes('?') ? '&' : '?';
             relativePath = `${relativePath}${separator}quality=${quality}`;
-
+            
             break;
         }
     }
-
+    
     // Fallback: construct URL from raw path
     if (!relativePath) {
         // IMPORTANT: track.path is RAW and needs encoding
@@ -462,20 +492,20 @@ function buildTrackUrl(track, quality) {
         const encodedPath = encodeURIComponent(track.path);
         relativePath = `${baseUrl}${encodedPath}?quality=${quality}`;
     }
-
+    
     // Convert to absolute URL
     // This handles protocol and domain: "/play/..." -> "https://example.com/play/..."
     const absoluteUrl = new URL(relativePath, window.location.origin).href;
-
+    
     debugLog(`Full URL: ${absoluteUrl}`);
     console.log(`Built full URL: ${absoluteUrl}`);
-
+    
     return absoluteUrl;
 }
 
 export function castMixtapePlaylist() {
     debugLog('Starting cast request...');
-
+    
     if (currentCastSession) {
         loadQueue(currentCastSession);
         return;
@@ -507,24 +537,24 @@ function loadQueue(session) {
     const queueItems = tracks.map((track, index) => {
         const trackUrl = buildTrackUrl(track, quality);
         const contentType = getAudioMimeFromPath(track.path, quality);
-
+        
         if (index === 0) {
             // Only log first track in detail to avoid clutter
             debugLog(`Track 0: ${track.track}`);
             debugLog(`Type: ${contentType}`);
         }
-
+        
         console.log(`Track ${index}: ${track.track}`);
         console.log(`  URL: ${trackUrl}`);
         console.log(`  Content-Type: ${contentType}`);
-
+        
         const mediaInfo = new chrome.cast.media.MediaInfo(trackUrl, contentType);
         mediaInfo.streamType = chrome.cast.media.StreamType.BUFFERED;
-
+        
         if (track.duration) {
             mediaInfo.duration = track.duration;
         }
-
+        
         const metadata = new chrome.cast.media.MusicTrackMediaMetadata();
         metadata.title = track.track || 'Unknown Title';
         metadata.artist = track.artist || 'Unknown Artist';
@@ -541,7 +571,7 @@ function loadQueue(session) {
         const queueItem = new chrome.cast.media.QueueItem(mediaInfo);
         queueItem.autoplay = true;
         queueItem.preloadTime = 5;
-
+        
         return queueItem;
     });
 
@@ -549,8 +579,8 @@ function loadQueue(session) {
     queueRequest.repeatMode = chrome.cast.media.RepeatMode.OFF;
 
     let startIndex = 0;
-    if (Number.isInteger(window.currentTrackIndex) &&
-        window.currentTrackIndex >= 0 &&
+    if (Number.isInteger(window.currentTrackIndex) && 
+        window.currentTrackIndex >= 0 && 
         window.currentTrackIndex < queueItems.length) {
         startIndex = window.currentTrackIndex;
     }
@@ -564,8 +594,14 @@ function loadQueue(session) {
         () => {
             debugLog('Queue loaded successfully! ✓');
             console.log('Playlist successfully queued on Chromecast');
+            
+            // CRITICAL: Stop and clear the local player completely
             const localPlayer = document.getElementById('main-player');
-            if (localPlayer) localPlayer.pause();
+            if (localPlayer) {
+                localPlayer.pause();
+                localPlayer.src = '';  // Clear source to stop media session
+                localPlayer.load();     // Reset the player
+            }
         },
         (error) => {
             debugLog('Queue load FAILED ✗', {
