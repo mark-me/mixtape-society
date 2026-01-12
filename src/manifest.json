@@ -58,21 +58,5 @@
       "purpose": "any maskable"
     }
   ],
-  "screenshots": [
-    {
-      "src": "/static/screenshots/desktop-1.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Browse your mixtape collection"
-    },
-    {
-      "src": "/static/screenshots/mobile-1.png",
-      "sizes": "750x1334",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Play mixtapes on mobile"
-    }
-  ],
   "categories": ["music", "entertainment", "lifestyle"]
 }

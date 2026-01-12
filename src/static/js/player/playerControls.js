@@ -1,11 +1,11 @@
 // static/js/player/playerControls.js
-import { 
-    isCasting, 
-    castPlay, 
-    castPause, 
+import {
+    isCasting,
+    castPlay,
+    castPause,
     castTogglePlayPause,
-    castNext, 
-    castPrevious, 
+    castNext,
+    castPrevious,
     castJumpToTrack,
     isCastPlaying,
     setCastControlCallbacks
@@ -309,7 +309,7 @@ export function initPlayerControls() {
         if (index < 0 || index >= trackItems.length) return;
 
         const track = trackItems[index];
-        
+
         bottomTitle.textContent = track.dataset.title;
         bottomArtistAlbum.textContent = `${track.dataset.artist} • ${track.dataset.album}`;
         container.style.display = 'block';
@@ -343,7 +343,7 @@ export function initPlayerControls() {
             const isCurrentTrack = idx === currentIndex;
             // Check if playing: either casting and playing, or local player playing
             const isPlaying = isCurrentTrack && (
-                (isCurrentlyCasting && isCastPlaying()) || 
+                (isCurrentlyCasting && isCastPlaying()) ||
                 (!isCurrentlyCasting && !player.paused)
             );
 
@@ -370,16 +370,15 @@ export function initPlayerControls() {
      */
     function togglePlayPause() {
         if (isCurrentlyCasting) {
-            // Use proper toggle for Chromecast that checks play state
-            castTogglePlayPause();
-        } else {
-            // Local player toggle
-            if (player.paused) {
-                player.play().catch(err => console.error("Resume failed:", err));
-            } else {
-                player.pause();
-            }
-        }
+                    // Use proper toggle for Chromecast that checks play state
+                    castTogglePlayPause();
+                }
+        else if (player.paused) {
+                        player.play().catch(err => console.error("Resume failed:", err));
+                    }
+        else {
+                        player.pause();
+                    }
     }
 
     /**
@@ -400,12 +399,12 @@ export function initPlayerControls() {
         document.addEventListener('cast:started', () => {
             isCurrentlyCasting = true;
             console.log('Casting started - controls now route to Chromecast');
-            
+
             // Pause local player
             if (!player.paused) {
                 player.pause();
             }
-            
+
             syncPlayIcons();
         });
 
@@ -420,7 +419,7 @@ export function initPlayerControls() {
             onTrackChange: (index) => {
                 console.log(`Cast track changed to index: ${index}`);
                 updateUIForTrack(index);
-                
+
                 // Update media session if available
                 if (index >= 0 && index < trackItems.length) {
                     updateMediaSession(trackItems[index]);
