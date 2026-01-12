@@ -25,6 +25,48 @@ const QUALITY_LEVELS = {
 
 const DEFAULT_QUALITY = 'medium';
 
+/**
+ * Detect iOS device and version
+ */
+function detectiOS() {
+    const ua = navigator.userAgent;
+    const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+    
+    if (!isIOS) return null;
+    
+    // Extract iOS version
+    const match = ua.match(/OS (\d+)_(\d+)/);
+    const major = match ? parseInt(match[1], 10) : 0;
+    const minor = match ? parseInt(match[2], 10) : 0;
+    
+    return {
+        isIOS: true,
+        version: major,
+        versionString: `${major}.${minor}`,
+        supportsMediaSession: major >= 15,
+        isPWA: window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches
+    };
+}
+
+const iOS = detectiOS();
+
+/**
+ * Log device and feature support
+ */
+function logDeviceInfo() {
+    if (iOS) {
+        console.log('📱 iOS Device Detected');
+        console.log(`   Version: iOS ${iOS.versionString}`);
+        console.log(`   PWA Mode: ${iOS.isPWA ? 'Yes' : 'No'}`);
+        console.log(`   Media Session: ${iOS.supportsMediaSession ? 'Supported ✓' : 'Not Supported (need iOS 15+) ✗'}`);
+    } else {
+        console.log('📱 Android/Desktop Device');
+    }
+    
+    console.log(`   Media Session API: ${'mediaSession' in navigator ? 'Available ✓' : 'Not Available ✗'}`);
+    console.log(`   Cast API: ${typeof chrome !== 'undefined' && chrome.cast ? 'Available ✓' : 'Not Available ✗'}`);
+}
+
 function getMimeTypeFromUrl(url) {
     const extension = url.split('.').pop().toLowerCase();
     const mimeMap = {
@@ -38,6 +80,9 @@ function getMimeTypeFromUrl(url) {
     return mimeMap[extension] || 'image/jpeg';
 }
 
+/**
+ * Extract metadata with iOS-optimized artwork sizes
+ */
 function extractMetadataFromDOM(trackElement) {
     const coverImg = trackElement.querySelector('.track-cover');
     let artwork = [];
@@ -46,14 +91,24 @@ function extractMetadataFromDOM(trackElement) {
         const mimeType = getMimeTypeFromUrl(coverImg.src);
         const absoluteSrc = new URL(coverImg.src, window.location.origin).href;
         
-        artwork = [
-            { src: absoluteSrc, sizes: '96x96',   type: mimeType },
-            { src: absoluteSrc, sizes: '128x128', type: mimeType },
-            { src: absoluteSrc, sizes: '192x192', type: mimeType },
-            { src: absoluteSrc, sizes: '256x256', type: mimeType },
-            { src: absoluteSrc, sizes: '384x384', type: mimeType },
-            { src: absoluteSrc, sizes: '512x512', type: mimeType }
-        ];
+        // iOS prefers specific sizes, with 512x512 being most reliable
+        if (iOS) {
+            artwork = [
+                { src: absoluteSrc, sizes: '512x512', type: mimeType }, // Primary for iOS
+                { src: absoluteSrc, sizes: '256x256', type: mimeType },
+                { src: absoluteSrc, sizes: '128x128', type: mimeType }
+            ];
+        } else {
+            // Android supports more sizes
+            artwork = [
+                { src: absoluteSrc, sizes: '96x96',   type: mimeType },
+                { src: absoluteSrc, sizes: '128x128', type: mimeType },
+                { src: absoluteSrc, sizes: '192x192', type: mimeType },
+                { src: absoluteSrc, sizes: '256x256', type: mimeType },
+                { src: absoluteSrc, sizes: '384x384', type: mimeType },
+                { src: absoluteSrc, sizes: '512x512', type: mimeType }
+            ];
+        }
     }
 
     return {
@@ -86,6 +141,49 @@ function extractMetadataFromCast() {
     };
 }
 
+/**
+ * Show iOS-specific help message if Chromecast isn't working
+ */
+function showiOSCastHelp() {
+    if (!iOS) return;
+    
+    const helpHtml = `
+        <div class="alert alert-info alert-dismissible fade show" role="alert" style="position: fixed; top: 70px; left: 50%; transform: translateX(-50%); z-index: 9999; max-width: 90%; width: 400px;">
+            <h6 class="alert-heading">📱 Casting from iPhone</h6>
+            <small>
+                <strong>To cast to Chromecast:</strong><br>
+                1. Install Google Home app<br>
+                2. Use Chrome browser (not Safari)<br>
+                3. Connect to same WiFi network<br>
+                <br>
+                <strong>For best experience:</strong><br>
+                Add this page to your Home Screen (PWA mode)
+            </small>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    
+    // Show help after 3 seconds if cast button is clicked but no devices found
+    let castButtonClicked = false;
+    const castBtn = document.getElementById('cast-button');
+    
+    if (castBtn) {
+        castBtn.addEventListener('click', () => {
+            castButtonClicked = true;
+            
+            setTimeout(() => {
+                // If still no session, show help
+                if (castButtonClicked && !isCasting()) {
+                    const existingHelp = document.querySelector('.alert-info');
+                    if (!existingHelp) {
+                        document.body.insertAdjacentHTML('afterbegin', helpHtml);
+                    }
+                }
+            }, 3000);
+        });
+    }
+}
+
 export function initPlayerControls() {
     const player = document.getElementById('main-player');
     const container = document.getElementById('bottom-player-container');
@@ -100,6 +198,14 @@ export function initPlayerControls() {
     window.currentTrackIndex = currentIndex;
     let currentQuality = localStorage.getItem('audioQuality') || DEFAULT_QUALITY;
     let isCurrentlyCasting = false;
+
+    // Log device info on initialization
+    logDeviceInfo();
+    
+    // Show iOS cast help if needed
+    if (iOS) {
+        showiOSCastHelp();
+    }
 
     function onlyWhenNotCasting(handler) {
         return function(...args) {
@@ -126,47 +232,75 @@ export function initPlayerControls() {
 
     /**
      * Setup Media Session for Chromecast control
-     * This allows the Android notification to show cast metadata and controls
+     * iOS-optimized with proper error handling
      */
     function setupCastMediaSession(metadata) {
-        if (!('mediaSession' in navigator)) return;
+        if (!('mediaSession' in navigator)) {
+            console.warn('⚠️ Media Session API not available');
+            return;
+        }
         
-        console.log('🎵 Setting up Media Session for Chromecast', metadata);
-        
-        // Set metadata with artwork
-        navigator.mediaSession.metadata = new MediaMetadata({
-            title: metadata.title,
-            artist: metadata.artist,
-            album: metadata.album,
-            artwork: metadata.artwork
-        });
-        
-        // Set playback state
-        navigator.mediaSession.playbackState = 'playing';
-        
-        // Set action handlers to control Chromecast
-        navigator.mediaSession.setActionHandler('play', () => {
-            console.log('Media Session: play');
-            castPlay();
-        });
+        try {
+            console.log('🎵 Setting up Media Session for Chromecast', metadata);
+            
+            // Set metadata with artwork
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: metadata.title,
+                artist: metadata.artist,
+                album: metadata.album,
+                artwork: metadata.artwork
+            });
+            
+            // Set playback state
+            navigator.mediaSession.playbackState = 'playing';
+            
+            // Set action handlers to control Chromecast
+            navigator.mediaSession.setActionHandler('play', () => {
+                console.log('Media Session: play');
+                castPlay();
+            });
 
-        navigator.mediaSession.setActionHandler('pause', () => {
-            console.log('Media Session: pause');
-            castPause();
-        });
+            navigator.mediaSession.setActionHandler('pause', () => {
+                console.log('Media Session: pause');
+                castPause();
+            });
 
-        navigator.mediaSession.setActionHandler('previoustrack', () => {
-            console.log('Media Session: previous');
-            castPrevious();
-        });
+            navigator.mediaSession.setActionHandler('previoustrack', () => {
+                console.log('Media Session: previous');
+                castPrevious();
+            });
 
-        navigator.mediaSession.setActionHandler('nexttrack', () => {
-            console.log('Media Session: next');
-            castNext();
-        });
-        
-        // Update position state
-        updateCastPositionState();
+            navigator.mediaSession.setActionHandler('nexttrack', () => {
+                console.log('Media Session: next');
+                castNext();
+            });
+            
+            // iOS: Try to set seekbackward/seekforward (may not be supported)
+            if (iOS && iOS.version >= 15) {
+                try {
+                    navigator.mediaSession.setActionHandler('seekbackward', () => {
+                        console.log('Media Session: seek backward');
+                        castPrevious();
+                    });
+                    
+                    navigator.mediaSession.setActionHandler('seekforward', () => {
+                        console.log('Media Session: seek forward');
+                        castNext();
+                    });
+                } catch (e) {
+                    console.debug('iOS seek actions not supported:', e);
+                }
+            }
+            
+            // Update position state
+            updateCastPositionState();
+            
+            if (iOS) {
+                console.log('✅ Media Session configured for iOS');
+            }
+        } catch (error) {
+            console.error('❌ Failed to setup Media Session:', error);
+        }
     }
 
     /**
@@ -180,8 +314,12 @@ export function initPlayerControls() {
         
         // Clear Media Session when casting ends
         if ('mediaSession' in navigator) {
-            navigator.mediaSession.metadata = null;
-            navigator.mediaSession.playbackState = 'none';
+            try {
+                navigator.mediaSession.metadata = null;
+                navigator.mediaSession.playbackState = 'none';
+            } catch (e) {
+                console.warn('Error clearing Media Session:', e);
+            }
         }
     }
 
@@ -305,30 +443,34 @@ export function initPlayerControls() {
         if (!('mediaSession' in navigator)) return;
         if (isCurrentlyCasting) return; // Don't update when casting (handled separately)
 
-        navigator.mediaSession.metadata = new MediaMetadata({
-            title: metadata.title,
-            artist: metadata.artist,
-            album: metadata.album,
-            artwork: metadata.artwork
-        });
+        try {
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: metadata.title,
+                artist: metadata.artist,
+                album: metadata.album,
+                artwork: metadata.artwork
+            });
 
-        navigator.mediaSession.setActionHandler('play', () => {
-            player.play().catch(e => console.log('Media Session play failed:', e));
-        });
+            navigator.mediaSession.setActionHandler('play', () => {
+                player.play().catch(e => console.log('Media Session play failed:', e));
+            });
 
-        navigator.mediaSession.setActionHandler('pause', () => {
-            player.pause();
-        });
+            navigator.mediaSession.setActionHandler('pause', () => {
+                player.pause();
+            });
 
-        navigator.mediaSession.setActionHandler('previoustrack', () => {
-            playTrack(currentIndex - 1);
-        });
+            navigator.mediaSession.setActionHandler('previoustrack', () => {
+                playTrack(currentIndex - 1);
+            });
 
-        navigator.mediaSession.setActionHandler('nexttrack', () => {
-            playTrack(currentIndex + 1);
-        });
+            navigator.mediaSession.setActionHandler('nexttrack', () => {
+                playTrack(currentIndex + 1);
+            });
 
-        updatePositionState();
+            updatePositionState();
+        } catch (error) {
+            console.warn('Error updating Media Session:', error);
+        }
     }
 
     function updatePositionState() {
@@ -386,13 +528,14 @@ export function initPlayerControls() {
             updateUIForTrack(index);
             
             // Update Media Session with cast metadata after a brief delay
-            // (gives Chromecast time to update metadata)
+            // iOS needs a bit more time for metadata to propagate
+            const delay = iOS ? 800 : 500;
             setTimeout(() => {
                 const metadata = extractMetadataFromCast();
                 if (metadata) {
                     setupCastMediaSession(metadata);
                 }
-            }, 500);
+            }, delay);
             return;
         }
 
@@ -449,7 +592,9 @@ export function initPlayerControls() {
         currentIndex = -1;
         
         if ('mediaSession' in navigator) {
-            navigator.mediaSession.metadata = null;
+            try {
+                navigator.mediaSession.metadata = null;
+            } catch (e) {}
         }
     }
 
@@ -540,9 +685,13 @@ export function initPlayerControls() {
                 
                 // Update playback state in Media Session
                 if ('mediaSession' in navigator) {
-                    navigator.mediaSession.playbackState = 
-                        state === 'PLAYING' ? 'playing' : 
-                        state === 'PAUSED' ? 'paused' : 'none';
+                    try {
+                        navigator.mediaSession.playbackState = 
+                            state === 'PLAYING' ? 'playing' : 
+                            state === 'PAUSED' ? 'paused' : 'none';
+                    } catch (e) {
+                        console.warn('Error updating playback state:', e);
+                    }
                 }
             },
             onTimeUpdate: (time) => {
