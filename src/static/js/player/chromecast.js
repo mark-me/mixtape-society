@@ -37,6 +37,8 @@ function initDebugOverlay() {
         border-radius: 5px;
         z-index: 9999;
         display: none;
+        white-space: pre-wrap;
+        word-break: break-word;
     `;
     document.body.appendChild(debugOverlay);
     
@@ -63,23 +65,33 @@ function initDebugOverlay() {
     document.body.appendChild(toggleBtn);
 }
 
+/**
+ * Safely logs debug messages without XSS vulnerabilities
+ * Uses textContent instead of innerHTML to prevent script injection
+ */
 function debugLog(message, data = null) {
     const timestamp = new Date().toLocaleTimeString();
     const fullMessage = `[${timestamp}] ${message}`;
     
     console.log(fullMessage, data || '');
     
-    debugMessages.unshift(fullMessage);
+    // Build message string safely
+    let logEntry = fullMessage;
     if (data) {
-        debugMessages.unshift('  → ' + JSON.stringify(data));
+        // JSON.stringify is safe - it escapes special characters
+        logEntry += '\n  → ' + JSON.stringify(data);
     }
+    
+    debugMessages.unshift(logEntry);
     
     if (debugMessages.length > 50) {
         debugMessages = debugMessages.slice(0, 50);
     }
     
     if (debugOverlay) {
-        debugOverlay.innerHTML = debugMessages.join('<br>');
+        // SECURITY: Use textContent instead of innerHTML to prevent XSS
+        // textContent automatically escapes HTML/script tags
+        debugOverlay.textContent = debugMessages.join('\n');
     }
 }
 
