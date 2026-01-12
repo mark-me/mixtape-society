@@ -135,7 +135,7 @@ export function initPlayerControls() {
         // If something is playing locally, reload with new quality
         if (currentIndex >= 0 && player.src && !isCurrentlyCasting) {
             const wasPlaying = !player.paused;
-            const currentTime = player.currentTime;
+            const {currentTime} = player;
 
             playTrack(currentIndex);
 
@@ -370,15 +370,15 @@ export function initPlayerControls() {
      */
     function togglePlayPause() {
         if (isCurrentlyCasting) {
-                    // Use proper toggle for Chromecast that checks play state
-                    castTogglePlayPause();
-                }
+            // Use proper toggle for Chromecast that checks play state
+            castTogglePlayPause();
+        }
         else if (player.paused) {
-                        player.play().catch(err => console.error("Resume failed:", err));
-                    }
+            player.play().catch(err => console.error("Resume failed:", err));
+        }
         else {
-                        player.pause();
-                    }
+            player.pause();
+        }
     }
 
     /**
