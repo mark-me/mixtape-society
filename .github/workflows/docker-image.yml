@@ -91,12 +91,23 @@ jobs:
             echo "display_version=dev.${BRANCH}.${SHORT_SHA}" >> $GITHUB_OUTPUT
           fi
 
+      - name: Determine build platforms
+        id: platforms
+        run: |
+          # Test branch: amd64 only for faster builds
+          # Main and tags: multi-architecture build (amd64, arm64)
+          if [[ ${{ github.ref }} == refs/heads/test ]]; then
+            echo "platforms=linux/amd64" >> $GITHUB_OUTPUT
+          else
+            echo "platforms=linux/amd64,linux/arm64" >> $GITHUB_OUTPUT
+          fi
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
           context: .
           file: docker/Dockerfile
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ steps.platforms.outputs.platforms }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
