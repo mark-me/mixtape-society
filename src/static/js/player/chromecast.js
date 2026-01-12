@@ -13,98 +13,14 @@ let castControlCallbacks = {
 // Track current cast play state
 let castPlayState = 'IDLE'; // IDLE, PLAYING, PAUSED, BUFFERING
 
-// Debug overlay for mobile
-let debugOverlay = null;
-let debugMessages = [];
-
-function initDebugOverlay() {
-    if (debugOverlay) return;
-    
-    debugOverlay = document.createElement('div');
-    debugOverlay.id = 'cast-debug-overlay';
-    debugOverlay.style.cssText = `
-        position: fixed;
-        bottom: 80px;
-        right: 10px;
-        max-width: 90%;
-        max-height: 300px;
-        overflow-y: auto;
-        background: rgba(0, 0, 0, 0.9);
-        color: #0f0;
-        font-family: monospace;
-        font-size: 10px;
-        padding: 10px;
-        border-radius: 5px;
-        z-index: 9999;
-        display: none;
-        white-space: pre-wrap;
-        word-break: break-word;
-    `;
-    document.body.appendChild(debugOverlay);
-    
-    // Add toggle button
-    const toggleBtn = document.createElement('button');
-    toggleBtn.textContent = '🐛';
-    toggleBtn.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        right: 10px;
-        z-index: 10000;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: #007bff;
-        color: white;
-        border: none;
-        font-size: 20px;
-        cursor: pointer;
-    `;
-    toggleBtn.onclick = () => {
-        debugOverlay.style.display = debugOverlay.style.display === 'none' ? 'block' : 'none';
-    };
-    document.body.appendChild(toggleBtn);
-}
-
-/**
- * Safely logs debug messages without XSS vulnerabilities
- * Uses textContent instead of innerHTML to prevent script injection
- */
-function debugLog(message, data = null) {
-    const timestamp = new Date().toLocaleTimeString();
-    const fullMessage = `[${timestamp}] ${message}`;
-    
-    console.log(fullMessage, data || '');
-    
-    // Build message string safely
-    let logEntry = fullMessage;
-    if (data) {
-        // JSON.stringify is safe - it escapes special characters
-        logEntry += '\n  → ' + JSON.stringify(data);
-    }
-    
-    debugMessages.unshift(logEntry);
-    
-    if (debugMessages.length > 50) {
-        debugMessages = debugMessages.slice(0, 50);
-    }
-    
-    if (debugOverlay) {
-        // SECURITY: Use textContent instead of innerHTML to prevent XSS
-        // textContent automatically escapes HTML/script tags
-        debugOverlay.textContent = debugMessages.join('\n');
-    }
-}
-
 export function initChromecast() {
-    initDebugOverlay();
-    debugLog('Initializing Chromecast...');
+    console.log('Initializing Chromecast...');
     
     window['__onGCastApiAvailable'] = function(isAvailable) {
         if (isAvailable) {
-            debugLog('Cast API available ✓');
+            console.log('Cast API available');
             initializeCastApi();
         } else {
-            debugLog('Cast API NOT available ✗');
             console.warn('Google Cast API not available');
         }
     };
@@ -123,15 +39,11 @@ function initializeCastApi() {
 }
 
 function onInitSuccess() {
-    debugLog('Cast SDK initialized ✓');
     console.log('Cast SDK initialized successfully');
-
-    // Fire the event so other modules know the API is ready
     document.dispatchEvent(new CustomEvent('cast:ready'));
 }
 
 function onError(error) {
-    debugLog('Cast error', error);
     console.error('Cast initialization failed:', error);
 }
 
@@ -156,7 +68,6 @@ function getAudioMimeFromPath(path, quality) {
 */
 
 function sessionListener(session) {
-    debugLog('New session', session.sessionId);
     console.log('New session:', session.sessionId);
     currentCastSession = session;
 
@@ -167,26 +78,23 @@ function sessionListener(session) {
     }
 
     session.addMediaListener(media => {
-        debugLog('New media loaded');
         console.log('New media loaded in session');
         attachMediaListener(media);
     });
 
     session.addUpdateListener(isAlive => {
         if (!isAlive) {
-            debugLog('Session ended');
+            console.log('Cast session ended');
             currentCastSession = null;
             currentMedia = null;
             castPlayState = 'IDLE';
             onCastSessionEnd();
-            console.log('Cast session ended');
         }
     });
 }
 
 function attachMediaListener(media) {
     currentMedia = media;
-    debugLog('Media listener attached');
     console.log('Attached media listener');
 
     media.addUpdateListener(isAlive => {
@@ -198,7 +106,6 @@ function attachMediaListener(media) {
             // Update cast play state
             castPlayState = status;
 
-            debugLog(`State: ${status}, Time: ${currentTime}s`);
             console.log(`Media update - State: ${status}, Time: ${currentTime}, ItemId: ${currentItemId}`);
 
             if (castControlCallbacks.onPlayStateChange) {
@@ -284,16 +191,16 @@ export function getCurrentCastTime() {
 
 function receiverListener(availability) {
     if (availability === chrome.cast.ReceiverAvailability.AVAILABLE) {
-        debugLog('Chromecast device found ✓');
+        console.log('Chromecast device found');
         const btn = document.getElementById('cast-button');
         if (btn) btn.hidden = false;
     } else {
-        debugLog('No Chromecast devices');
+        console.log('No Chromecast devices available');
     }
 }
 
 function onCastSessionStart() {
-    debugLog('Casting started ✓');
+    console.log('Casting started');
     const btn = document.querySelector('#cast-button');
     if (btn) {
         btn.classList.add('connected');
@@ -304,7 +211,7 @@ function onCastSessionStart() {
 }
 
 function onCastSessionEnd() {
-    debugLog('Casting ended');
+    console.log('Casting ended');
     const btn = document.querySelector('#cast-button');
     if (btn) {
         btn.classList.remove('connected');
@@ -344,8 +251,8 @@ export function castPlay() {
     
     const playRequest = new chrome.cast.media.PlayRequest();
     currentMedia.play(playRequest, 
-        () => debugLog('Play command sent ✓'),
-        error => debugLog('Play failed', error)
+        () => console.log('Play command sent'),
+        error => console.error('Play failed:', error)
     );
 }
 
@@ -354,8 +261,8 @@ export function castPause() {
     
     const pauseRequest = new chrome.cast.media.PauseRequest();
     currentMedia.pause(pauseRequest,
-        () => debugLog('Pause command sent ✓'),
-        error => debugLog('Pause failed', error)
+        () => console.log('Pause command sent'),
+        error => console.error('Pause failed:', error)
     );
 }
 
@@ -379,8 +286,8 @@ export function castSeek(currentTime) {
     seekRequest.currentTime = currentTime;
     
     currentMedia.seek(seekRequest,
-        () => debugLog(`Seek to ${currentTime}s ✓`),
-        error => debugLog('Seek failed', error)
+        () => console.log(`Seek to ${currentTime}s`),
+        error => console.error('Seek failed:', error)
     );
 }
 
@@ -393,7 +300,7 @@ export function castNext() {
     
     const currentIndex = getCurrentQueueIndex();
     if (currentIndex === -1) {
-        debugLog('Cannot get current index for next');
+        console.warn('Cannot get current index for next');
         return;
     }
     
@@ -401,14 +308,14 @@ export function castNext() {
     const nextItemId = getItemIdForIndex(nextIndex);
     
     if (nextItemId === null) {
-        debugLog('No next track available');
+        console.warn('No next track available');
         return;
     }
     
     const jumpRequest = new chrome.cast.media.QueueJumpRequest(nextItemId);
     currentMedia.queueJumpToItem(jumpRequest,
-        () => debugLog(`Next track (index ${nextIndex}) ✓`),
-        error => debugLog('Next failed', error)
+        () => console.log(`Next track (index ${nextIndex})`),
+        error => console.error('Next failed:', error)
     );
 }
 
@@ -421,7 +328,7 @@ export function castPrevious() {
     
     const currentIndex = getCurrentQueueIndex();
     if (currentIndex === -1) {
-        debugLog('Cannot get current index for previous');
+        console.warn('Cannot get current index for previous');
         return;
     }
     
@@ -429,14 +336,14 @@ export function castPrevious() {
     const prevItemId = getItemIdForIndex(prevIndex);
     
     if (prevItemId === null) {
-        debugLog('No previous track available');
+        console.warn('No previous track available');
         return;
     }
     
     const jumpRequest = new chrome.cast.media.QueueJumpRequest(prevItemId);
     currentMedia.queueJumpToItem(jumpRequest,
-        () => debugLog(`Previous track (index ${prevIndex}) ✓`),
-        error => debugLog('Previous failed', error)
+        () => console.log(`Previous track (index ${prevIndex})`),
+        error => console.error('Previous failed:', error)
     );
 }
 
@@ -449,15 +356,15 @@ export function castJumpToTrack(index) {
     const targetItemId = getItemIdForIndex(index);
     
     if (targetItemId === null) {
-        debugLog(`Cannot jump to index ${index} - out of bounds`);
+        console.warn(`Cannot jump to index ${index} - out of bounds`);
         return;
     }
     
     const jumpRequest = new chrome.cast.media.QueueJumpRequest(targetItemId);
     
     currentMedia.queueJumpToItem(jumpRequest,
-        () => debugLog(`Jumped to track ${index} ✓`),
-        error => debugLog('Jump failed', error)
+        () => console.log(`Jumped to track ${index}`),
+        error => console.error('Jump failed:', error)
     );
 }
 
@@ -509,14 +416,13 @@ function buildTrackUrl(track, quality) {
     // This handles protocol and domain: "/play/..." -> "https://example.com/play/..."
     const absoluteUrl = new URL(relativePath, window.location.origin).href;
     
-    debugLog(`Full URL: ${absoluteUrl}`);
-    console.log(`Built full URL: ${absoluteUrl}`);
+    console.log(`Built URL: ${absoluteUrl}`);
     
     return absoluteUrl;
 }
 
 export function castMixtapePlaylist() {
-    debugLog('Starting cast request...');
+    console.log('Starting cast request...');
     
     if (currentCastSession) {
         loadQueue(currentCastSession);
@@ -528,33 +434,25 @@ export function castMixtapePlaylist() {
             currentCastSession = session;
             loadQueue(session);
         },
-        error => debugLog('Session request failed', error)
+        error => console.error('Session request failed:', error)
     );
 }
 
 function loadQueue(session) {
     const tracks = window.__mixtapeData?.tracks || [];
     if (tracks.length === 0) {
-        debugLog('No tracks found! ✗');
         console.warn('No tracks available to cast');
         return;
     }
 
-    debugLog(`Loading ${tracks.length} tracks...`);
-    console.log('Loading queue with tracks:', tracks);
+    console.log(`Loading queue with ${tracks.length} tracks`);
 
     const quality = localStorage.getItem('audioQuality') || 'medium';
-    debugLog(`Quality: ${quality}`);
+    console.log(`Quality: ${quality}`);
 
     const queueItems = tracks.map((track, index) => {
         const trackUrl = buildTrackUrl(track, quality);
         const contentType = getAudioMimeFromPath(track.path, quality);
-        
-        if (index === 0) {
-            // Only log first track in detail to avoid clutter
-            debugLog(`Track 0: ${track.track}`);
-            debugLog(`Type: ${contentType}`);
-        }
         
         console.log(`Track ${index}: ${track.track}`);
         console.log(`  URL: ${trackUrl}`);
@@ -598,13 +496,11 @@ function loadQueue(session) {
     }
     queueRequest.startIndex = startIndex;
 
-    debugLog(`Queue load: ${queueItems.length} tracks, start at ${startIndex}`);
-    console.log(`Loading queue with ${queueItems.length} tracks, starting at index ${startIndex}`);
+    console.log(`Queue load starting at index ${startIndex}`);
 
     session.queueLoad(
         queueRequest,
         () => {
-            debugLog('Queue loaded successfully! ✓');
             console.log('Playlist successfully queued on Chromecast');
             
             // CRITICAL: Stop and clear the local player completely
@@ -616,21 +512,16 @@ function loadQueue(session) {
             }
         },
         (error) => {
-            debugLog('Queue load FAILED ✗', {
-                code: error.code,
-                desc: error.description
-            });
             console.error('Failed to load queue on Chromecast:', error);
             console.error('Error code:', error.code);
             console.error('Error description:', error.description);
-            console.error('Error details:', JSON.stringify(error));
         }
     );
 }
 
 export function stopCasting() {
     if (currentCastSession) {
-        debugLog('Stopping cast...');
+        console.log('Stopping cast...');
         currentCastSession.stop(() => {
             currentCastSession = null;
             currentMedia = null;
