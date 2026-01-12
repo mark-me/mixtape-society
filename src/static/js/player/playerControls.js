@@ -27,15 +27,6 @@ const DEFAULT_QUALITY = 'medium';
 
 /**
  * Normalized metadata structure
- * @typedef {Object} TrackMetadata
- * @property {string} title
- * @property {string} artist
- * @property {string} album
- * @property {Array<{src: string, sizes: string, type: string}>} artwork
- */
-
-/**
- * Guesses the MIME type based on the file extension in the URL
  */
 function getMimeTypeFromUrl(url) {
     const extension = url.split('.').pop().toLowerCase();
@@ -50,9 +41,6 @@ function getMimeTypeFromUrl(url) {
     return mimeMap[extension] || 'image/jpeg';
 }
 
-/**
- * Extracts normalized metadata from a DOM track element
- */
 function extractMetadataFromDOM(trackElement) {
     const coverImg = trackElement.querySelector('.track-cover');
     let artwork = [];
@@ -79,9 +67,6 @@ function extractMetadataFromDOM(trackElement) {
     };
 }
 
-/**
- * Extracts normalized metadata from Chromecast
- */
 function extractMetadataFromCast() {
     const castMetadata = getCurrentCastMetadata();
     
@@ -123,9 +108,6 @@ export function initPlayerControls() {
     let currentQuality = localStorage.getItem('audioQuality') || DEFAULT_QUALITY;
     let isCurrentlyCasting = false;
 
-    /**
-     * Wrapper for player event handlers that should only run when NOT casting
-     */
     function onlyWhenNotCasting(handler) {
         return function(...args) {
             if (!isCurrentlyCasting) {
@@ -135,12 +117,53 @@ export function initPlayerControls() {
     }
 
     /**
-     * Intercept native audio player controls to route to Chromecast when casting
+     * CRITICAL: Completely silence local player when casting
      */
+    function silenceLocalPlayer() {
+        if (!player) return;
+        
+        console.log('🔇 Silencing local player');
+        player.pause();
+        player.src = '';
+        player.load();
+        
+        // Remove controls to prevent Android from showing media notification
+        player.removeAttribute('controls');
+        
+        // Clear Media Session API completely
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.metadata = null;
+            navigator.mediaSession.playbackState = 'none';
+            
+            // Remove all action handlers
+            try {
+                navigator.mediaSession.setActionHandler('play', null);
+                navigator.mediaSession.setActionHandler('pause', null);
+                navigator.mediaSession.setActionHandler('previoustrack', null);
+                navigator.mediaSession.setActionHandler('nexttrack', null);
+                navigator.mediaSession.setActionHandler('seekbackward', null);
+                navigator.mediaSession.setActionHandler('seekforward', null);
+            } catch (e) {
+                console.warn('Error removing media session handlers:', e);
+            }
+        }
+    }
+
+    /**
+     * Re-enable local player after casting ends
+     */
+    function enableLocalPlayer() {
+        if (!player) return;
+        
+        console.log('🔊 Re-enabling local player');
+        player.setAttribute('controls', '');
+    }
+
     function setupAudioControlInterception() {
         player.addEventListener('play', (e) => {
             if (isCurrentlyCasting) {
                 e.preventDefault();
+                e.stopPropagation();
                 player.pause();
                 castPlay();
                 return false;
@@ -149,6 +172,7 @@ export function initPlayerControls() {
 
         player.addEventListener('pause', (e) => {
             if (isCurrentlyCasting) {
+                e.stopPropagation();
                 castPause();
             }
         });
@@ -156,6 +180,7 @@ export function initPlayerControls() {
         player.addEventListener('seeking', (e) => {
             if (isCurrentlyCasting) {
                 e.preventDefault();
+                e.stopPropagation();
             }
         }, true);
     }
@@ -252,6 +277,7 @@ export function initPlayerControls() {
 
     function updateMediaSession(metadata) {
         if (!('mediaSession' in navigator)) return;
+        if (isCurrentlyCasting) return; // Don't update when casting
 
         navigator.mediaSession.metadata = new MediaMetadata({
             title: metadata.title,
@@ -261,42 +287,22 @@ export function initPlayerControls() {
         });
 
         navigator.mediaSession.setActionHandler('play', () => {
-            if (isCurrentlyCasting) {
-                castPlay();
-            } else {
-                player.play().catch(e => console.log('Media Session play failed:', e));
-            }
+            player.play().catch(e => console.log('Media Session play failed:', e));
         });
 
         navigator.mediaSession.setActionHandler('pause', () => {
-            if (isCurrentlyCasting) {
-                castPause();
-            } else {
-                player.pause();
-            }
+            player.pause();
         });
 
         navigator.mediaSession.setActionHandler('previoustrack', () => {
-            if (isCurrentlyCasting) {
-                castPrevious();
-            } else {
-                playTrack(currentIndex - 1);
-            }
+            playTrack(currentIndex - 1);
         });
 
         navigator.mediaSession.setActionHandler('nexttrack', () => {
-            if (isCurrentlyCasting) {
-                castNext();
-            } else {
-                playTrack(currentIndex + 1);
-            }
+            playTrack(currentIndex + 1);
         });
 
-        if (isCurrentlyCasting) {
-            updateCastPositionState();
-        } else {
-            updatePositionState();
-        }
+        updatePositionState();
     }
 
     function updatePositionState() {
@@ -342,19 +348,28 @@ export function initPlayerControls() {
     }
 
     /**
-     * Plays track at given index - routes to Chromecast if casting
+     * CRITICAL: playTrack must check casting state FIRST
      */
     function playTrack(index) {
+        console.log(`🎵 playTrack called with index: ${index}, casting: ${isCurrentlyCasting}`);
+        
         // CRITICAL: Route to Chromecast if currently casting
         if (isCurrentlyCasting) {
-            console.log(`▶️ Routing track ${index} to Chromecast`);
+            console.log(`📡 Routing track ${index} to Chromecast`);
             castJumpToTrack(index);
             updateUIForTrack(index);
             
-            // Update Media Session with cast metadata (will update when cast changes track)
+            // Update Media Session with cast metadata
             setTimeout(() => {
                 const metadata = extractMetadataFromCast();
-                updateMediaSession(metadata);
+                if ('mediaSession' in navigator) {
+                    navigator.mediaSession.metadata = new MediaMetadata({
+                        title: metadata.title,
+                        artist: metadata.artist,
+                        album: metadata.album,
+                        artwork: metadata.artwork
+                    });
+                }
             }, 100);
             return;
         }
@@ -465,25 +480,18 @@ export function initPlayerControls() {
     function initCastListeners() {
         document.addEventListener('cast:started', () => {
             isCurrentlyCasting = true;
-            console.log('🎵 Casting started - app now controls Chromecast');
+            console.log('🎵 Casting started - silencing local player');
             
-            if (!player.paused) {
-                player.pause();
-            }
-            player.src = '';
-            player.load();
-            
+            silenceLocalPlayer();
             syncPlayIcons();
         });
 
         document.addEventListener('cast:ended', () => {
             isCurrentlyCasting = false;
-            console.log('🎵 Casting ended - controls back to local player');
-            syncPlayIcons();
+            console.log('🎵 Casting ended - re-enabling local player');
             
-            if ('mediaSession' in navigator) {
-                navigator.mediaSession.metadata = null;
-            }
+            enableLocalPlayer();
+            syncPlayIcons();
         });
 
         setCastControlCallbacks({
@@ -492,7 +500,15 @@ export function initPlayerControls() {
                 updateUIForTrack(index);
                 
                 const metadata = extractMetadataFromCast();
-                updateMediaSession(metadata);
+                if ('mediaSession' in navigator) {
+                    navigator.mediaSession.metadata = new MediaMetadata({
+                        title: metadata.title,
+                        artist: metadata.artist,
+                        album: metadata.album,
+                        artwork: metadata.artwork
+                    });
+                    navigator.mediaSession.playbackState = 'playing';
+                }
             },
             onPlayStateChange: (state) => {
                 console.log(`Cast play state: ${state}`);
@@ -576,20 +592,23 @@ export function initPlayerControls() {
 
         closeBtn?.addEventListener('click', stopPlayback);
 
-        // Track item click handlers - route to cast when casting
+        // CRITICAL: Track item click handlers
         trackItems.forEach((item, i) => {
             const overlayBtn = item.querySelector('.play-overlay-btn');
             if (!overlayBtn) return;
 
             overlayBtn.addEventListener('click', (e) => {
+                e.preventDefault();
                 e.stopPropagation();
+                e.stopImmediatePropagation();
+                
+                console.log(`🖱️ Track ${i} button clicked, casting: ${isCurrentlyCasting}`);
                 
                 if (i === currentIndex) {
                     // Same track - toggle play/pause
                     togglePlayPause();
                 } else {
-                    // Different track - play it (routes to cast if casting)
-                    console.log(`Track ${i} clicked`);
+                    // Different track - play it
                     playTrack(i);
                 }
             });

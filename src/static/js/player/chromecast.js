@@ -200,7 +200,7 @@ function receiverListener(availability) {
 }
 
 function onCastSessionStart() {
-    console.log('Casting started');
+    console.log('🎵 Casting started');
     const btn = document.querySelector('#cast-button');
     if (btn) {
         btn.classList.add('connected');
@@ -211,7 +211,7 @@ function onCastSessionStart() {
 }
 
 function onCastSessionEnd() {
-    console.log('Casting ended');
+    console.log('🎵 Casting ended');
     const btn = document.querySelector('#cast-button');
     if (btn) {
         btn.classList.remove('connected');
@@ -251,7 +251,7 @@ export function castPlay() {
     
     const playRequest = new chrome.cast.media.PlayRequest();
     currentMedia.play(playRequest, 
-        () => console.log('Play command sent'),
+        () => console.log('▶️ Play command sent to Chromecast'),
         error => console.error('Play failed:', error)
     );
 }
@@ -261,7 +261,7 @@ export function castPause() {
     
     const pauseRequest = new chrome.cast.media.PauseRequest();
     currentMedia.pause(pauseRequest,
-        () => console.log('Pause command sent'),
+        () => console.log('⏸️ Pause command sent to Chromecast'),
         error => console.error('Pause failed:', error)
     );
 }
@@ -293,7 +293,6 @@ export function castSeek(currentTime) {
 
 /**
  * Navigate to next track in queue
- * Correctly computes the next itemId and jumps to it
  */
 export function castNext() {
     if (!currentMedia) return;
@@ -314,14 +313,13 @@ export function castNext() {
     
     const jumpRequest = new chrome.cast.media.QueueJumpRequest(nextItemId);
     currentMedia.queueJumpToItem(jumpRequest,
-        () => console.log(`Next track (index ${nextIndex})`),
+        () => console.log(`⏭️ Next track (index ${nextIndex})`),
         error => console.error('Next failed:', error)
     );
 }
 
 /**
  * Navigate to previous track in queue
- * Correctly computes the previous itemId and jumps to it
  */
 export function castPrevious() {
     if (!currentMedia) return;
@@ -342,7 +340,7 @@ export function castPrevious() {
     
     const jumpRequest = new chrome.cast.media.QueueJumpRequest(prevItemId);
     currentMedia.queueJumpToItem(jumpRequest,
-        () => console.log(`Previous track (index ${prevIndex})`),
+        () => console.log(`⏮️ Previous track (index ${prevIndex})`),
         error => console.error('Previous failed:', error)
     );
 }
@@ -363,59 +361,38 @@ export function castJumpToTrack(index) {
     const jumpRequest = new chrome.cast.media.QueueJumpRequest(targetItemId);
     
     currentMedia.queueJumpToItem(jumpRequest,
-        () => console.log(`Jumped to track ${index}`),
+        () => console.log(`🎵 Jumped to track ${index}`),
         error => console.error('Jump failed:', error)
     );
 }
 
 /**
  * Build proper audio URL from track data
- * 
- * CRITICAL: Chromecast requires FULL absolute URLs (including protocol and domain)
- * Relative paths like "/play/..." will NOT work - they must be "https://example.com/play/..."
- * 
- * Strategy:
- * 1. Prefer DOM data-path (already has full encoded URL from Flask url_for)
- * 2. Fallback: construct from baseUrl + encoded path
- * 3. Convert to absolute URL using window.location.origin
- * 
- * Note: track.path is a RAW file path (e.g., "Artist/Album/01 - Song.mp3")
- *       It must be encoded before concatenating with baseUrl
  */
 function buildTrackUrl(track, quality) {
     const trackItems = document.querySelectorAll('.track-item');
     
     let relativePath = null;
     
-    // Try to find the matching track item in the DOM to get its pre-encoded data-path
+    // Try to find matching track in DOM
     for (let item of trackItems) {
         if (item.dataset.title === track.track && item.dataset.artist === track.artist) {
-            // Found matching track - use its data-path which is already a full URL from Flask
-            // data-path format: "/play/Artist%2FAlbum%2F01%20Song.mp3" (already encoded)
             relativePath = item.dataset.path;
-            
-            // Add quality parameter
-            // Check if URL already has query params
             const separator = relativePath.includes('?') ? '&' : '?';
             relativePath = `${relativePath}${separator}quality=${quality}`;
-            
             break;
         }
     }
     
     // Fallback: construct URL from raw path
     if (!relativePath) {
-        // IMPORTANT: track.path is RAW and needs encoding
-        // Example: "Artist/Album/01 - Song.mp3" -> "Artist%2FAlbum%2F01%20-%20Song.mp3"
         const baseUrl = window.__mixtapeData?.baseUrl || '/play/';
         const encodedPath = encodeURIComponent(track.path);
         relativePath = `${baseUrl}${encodedPath}?quality=${quality}`;
     }
     
-    // Convert to absolute URL
-    // This handles protocol and domain: "/play/..." -> "https://example.com/play/..."
+    // Convert to absolute URL for Chromecast
     const absoluteUrl = new URL(relativePath, window.location.origin).href;
-    
     console.log(`Built URL: ${absoluteUrl}`);
     
     return absoluteUrl;
@@ -501,18 +478,27 @@ function loadQueue(session) {
     session.queueLoad(
         queueRequest,
         () => {
-            console.log('Playlist successfully queued on Chromecast');
+            console.log('✅ Playlist successfully queued on Chromecast');
             
-            // CRITICAL: Stop and clear the local player completely
+            // CRITICAL: Completely disable local player to prevent duplicate controls
             const localPlayer = document.getElementById('main-player');
             if (localPlayer) {
                 localPlayer.pause();
-                localPlayer.src = '';  // Clear source to stop media session
-                localPlayer.load();     // Reset the player
+                localPlayer.src = '';
+                localPlayer.load();
+                
+                // Remove the controls attribute to hide native controls completely
+                localPlayer.removeAttribute('controls');
+                
+                // Clear Media Session to prevent Android notification
+                if ('mediaSession' in navigator) {
+                    navigator.mediaSession.metadata = null;
+                    navigator.mediaSession.playbackState = 'none';
+                }
             }
         },
         (error) => {
-            console.error('Failed to load queue on Chromecast:', error);
+            console.error('❌ Failed to load queue on Chromecast:', error);
             console.error('Error code:', error.code);
             console.error('Error description:', error.description);
         }
@@ -527,6 +513,12 @@ export function stopCasting() {
             currentMedia = null;
             castPlayState = 'IDLE';
             onCastSessionEnd();
+            
+            // Re-enable local player controls
+            const localPlayer = document.getElementById('main-player');
+            if (localPlayer) {
+                localPlayer.setAttribute('controls', '');
+            }
         }, onError);
     }
 }
