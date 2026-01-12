@@ -26,6 +26,15 @@ const QUALITY_LEVELS = {
 const DEFAULT_QUALITY = 'medium';
 
 /**
+ * Normalized metadata structure
+ * @typedef {Object} TrackMetadata
+ * @property {string} title
+ * @property {string} artist
+ * @property {string} album
+ * @property {Array<{src: string, sizes: string, type: string}>} artwork
+ */
+
+/**
  * Guesses the MIME type based on the file extension in the URL
  * @param {string} url - The image URL
  * @returns {string} MIME type (falls back to 'image/jpeg')
@@ -43,6 +52,66 @@ function getMimeTypeFromUrl(url) {
     return mimeMap[extension] || 'image/jpeg';
 }
 
+/**
+ * Extracts normalized metadata from a DOM track element
+ * @param {HTMLElement} trackElement - The track list item element
+ * @returns {TrackMetadata}
+ */
+function extractMetadataFromDOM(trackElement) {
+    const coverImg = trackElement.querySelector('.track-cover');
+    let artwork = [];
+
+    if (coverImg && coverImg.src) {
+        const mimeType = getMimeTypeFromUrl(coverImg.src);
+        artwork = [
+            { src: coverImg.src, sizes: '96x96',   type: mimeType },
+            { src: coverImg.src, sizes: '128x128', type: mimeType },
+            { src: coverImg.src, sizes: '192x192', type: mimeType },
+            { src: coverImg.src, sizes: '256x256', type: mimeType },
+            { src: coverImg.src, sizes: '384x384', type: mimeType },
+            { src: coverImg.src, sizes: '512x512', type: mimeType }
+        ];
+    }
+
+    return {
+        title: trackElement.dataset.title || 'Unknown',
+        artist: trackElement.dataset.artist || 'Unknown Artist',
+        album: trackElement.dataset.album || '',
+        artwork: artwork
+    };
+}
+
+/**
+ * Extracts normalized metadata from Chromecast
+ * @returns {TrackMetadata}
+ */
+function extractMetadataFromCast() {
+    const castMetadata = getCurrentCastMetadata();
+    
+    if (!castMetadata) {
+        return {
+            title: 'Unknown',
+            artist: 'Unknown Artist',
+            album: '',
+            artwork: []
+        };
+    }
+
+    // Convert cast artwork format to our normalized format
+    const artwork = castMetadata.artwork.map(img => ({
+        src: img.url,
+        sizes: '512x512',
+        type: 'image/png'
+    }));
+
+    return {
+        title: castMetadata.title,
+        artist: castMetadata.artist,
+        album: castMetadata.album,
+        artwork: artwork
+    };
+}
+
 export function initPlayerControls() {
     const player = document.getElementById('main-player');
     const container = document.getElementById('bottom-player-container');
@@ -57,6 +126,19 @@ export function initPlayerControls() {
     window.currentTrackIndex = currentIndex;
     let currentQuality = localStorage.getItem('audioQuality') || DEFAULT_QUALITY;
     let isCurrentlyCasting = false;
+
+    /**
+     * Wrapper for player event handlers that should only run when NOT casting
+     * @param {Function} handler - The handler function to wrap
+     * @returns {Function} Wrapped handler that no-ops when casting
+     */
+    function onlyWhenNotCasting(handler) {
+        return function(...args) {
+            if (!isCurrentlyCasting) {
+                handler.apply(this, args);
+            }
+        };
+    }
 
     /**
      * Initialize quality selector dropdown and event handlers
@@ -169,47 +251,17 @@ export function initPlayerControls() {
 
     /**
      * Updates Media Session API metadata for mobile notifications
-     * When casting, this controls the unified notification
+     * @param {TrackMetadata} metadata - Normalized metadata object
      */
-    function updateMediaSession(track, isCast = false) {
+    function updateMediaSession(metadata) {
         if (!('mediaSession' in navigator)) return;
 
-        let artwork = [];
-        
-        if (isCast) {
-            // Get artwork from cast metadata
-            const castMetadata = getCurrentCastMetadata();
-            if (castMetadata && castMetadata.artwork && castMetadata.artwork.length > 0) {
-                artwork = castMetadata.artwork.map(img => ({
-                    src: img.url,
-                    sizes: '512x512',
-                    type: 'image/png'
-                }));
-            }
-        } else {
-            // Get artwork from DOM
-            const coverImg = track.querySelector('.track-cover');
-            if (coverImg && coverImg.src) {
-                const mimeType = getMimeTypeFromUrl(coverImg.src);
-                artwork = [
-                    { src: coverImg.src, sizes: '96x96',   type: mimeType },
-                    { src: coverImg.src, sizes: '128x128', type: mimeType },
-                    { src: coverImg.src, sizes: '192x192', type: mimeType },
-                    { src: coverImg.src, sizes: '256x256', type: mimeType },
-                    { src: coverImg.src, sizes: '384x384', type: mimeType },
-                    { src: coverImg.src, sizes: '512x512', type: mimeType }
-                ];
-            }
-        }
-
-        const metadata = new MediaMetadata({
-            title: track.dataset ? track.dataset.title : track.title || 'Unknown',
-            artist: track.dataset ? track.dataset.artist : track.artist || 'Unknown Artist',
-            album: track.dataset ? (track.dataset.album || '') : (track.album || ''),
-            artwork: artwork
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: metadata.title,
+            artist: metadata.artist,
+            album: metadata.album,
+            artwork: metadata.artwork
         });
-
-        navigator.mediaSession.metadata = metadata;
 
         // Set action handlers for media controls
         navigator.mediaSession.setActionHandler('play', () => {
@@ -340,8 +392,9 @@ export function initPlayerControls() {
 
         updateUIForTrack(index);
 
-        // Update Media Session metadata for mobile notifications
-        updateMediaSession(track, false);
+        // Extract and update Media Session metadata from DOM
+        const metadata = extractMetadataFromDOM(track);
+        updateMediaSession(metadata);
 
         player.play().catch(e => console.log('Autoplay prevented:', e));
     }
@@ -478,11 +531,9 @@ export function initPlayerControls() {
                 console.log(`Cast track changed to index: ${index}`);
                 updateUIForTrack(index);
                 
-                // Update media session with cast metadata
-                if (index >= 0 && index < trackItems.length) {
-                    const track = trackItems[index];
-                    updateMediaSession(track, true);
-                }
+                // Update media session with cast metadata (source of truth when casting)
+                const metadata = extractMetadataFromCast();
+                updateMediaSession(metadata);
             },
             onPlayStateChange: (state) => {
                 console.log(`Cast play state: ${state}`);
@@ -519,14 +570,14 @@ export function initPlayerControls() {
             }
         });
 
-        // Player events - only for local playback
-        player?.addEventListener('play', () => {
-            if (!isCurrentlyCasting) syncPlayIcons();
-        });
+        // Player events - wrapped to only fire when NOT casting
+        player?.addEventListener('play', onlyWhenNotCasting(() => {
+            syncPlayIcons();
+        }));
         
-        player?.addEventListener('pause', () => {
-            if (!isCurrentlyCasting) syncPlayIcons();
-        });
+        player?.addEventListener('pause', onlyWhenNotCasting(() => {
+            syncPlayIcons();
+        }));
         
         player?.addEventListener('ended', () => {
             syncPlayIcons();
@@ -536,44 +587,28 @@ export function initPlayerControls() {
         });
 
         // Audio progress for adaptive theming - only when not casting
-        player?.addEventListener('timeupdate', () => {
-            if (!isCurrentlyCasting) updateAudioProgress();
-        });
-        player?.addEventListener('loadedmetadata', () => {
-            if (!isCurrentlyCasting) updateAudioProgress();
-        });
-        player?.addEventListener('seeked', () => {
-            if (!isCurrentlyCasting) updateAudioProgress();
-        });
+        const handleAudioProgress = onlyWhenNotCasting(updateAudioProgress);
+        player?.addEventListener('timeupdate', handleAudioProgress);
+        player?.addEventListener('loadedmetadata', handleAudioProgress);
+        player?.addEventListener('seeked', handleAudioProgress);
 
         // Media Session position updates - only for local playback
-        player?.addEventListener('loadedmetadata', () => {
-            if (!isCurrentlyCasting) updatePositionState();
-        });
-        player?.addEventListener('play', () => {
-            if (!isCurrentlyCasting) updatePositionState();
-        });
-        player?.addEventListener('pause', () => {
-            if (!isCurrentlyCasting) updatePositionState();
-        });
-        player?.addEventListener('ratechange', () => {
-            if (!isCurrentlyCasting) updatePositionState();
-        });
-        player?.addEventListener('seeked', () => {
-            if (!isCurrentlyCasting) updatePositionState();
-        });
+        const handlePositionUpdate = onlyWhenNotCasting(updatePositionState);
+        player?.addEventListener('loadedmetadata', handlePositionUpdate);
+        player?.addEventListener('play', handlePositionUpdate);
+        player?.addEventListener('pause', handlePositionUpdate);
+        player?.addEventListener('ratechange', handlePositionUpdate);
+        player?.addEventListener('seeked', handlePositionUpdate);
 
         // Throttle timeupdate to once per second
         let lastPositionUpdate = 0;
-        player?.addEventListener('timeupdate', () => {
-            if (isCurrentlyCasting) return; // Don't update when casting
-            
+        player?.addEventListener('timeupdate', onlyWhenNotCasting(() => {
             const now = Date.now();
             if (now - lastPositionUpdate >= 1000) {
                 updatePositionState();
                 lastPositionUpdate = now;
             }
-        });
+        }));
 
         // Navigation buttons - now work for both local and cast
         prevBtn?.addEventListener('click', () => {
