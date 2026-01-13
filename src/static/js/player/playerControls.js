@@ -120,10 +120,12 @@ export function initPlayerControls() {
     function setupAudioControlInterception() {
         player.addEventListener('play', (e) => {
             if (checkCastingState()) {
+                console.log('🛑 Intercepting play event - routing to Chromecast');
                 e.preventDefault();
                 e.stopPropagation();
                 e.stopImmediatePropagation();
                 player.pause();
+                clearMediaSession(); // Clear immediately
                 castPlay();
                 return false;
             }
@@ -131,22 +133,44 @@ export function initPlayerControls() {
 
         player.addEventListener('pause', (e) => {
             if (checkCastingState()) {
+                console.log('🛑 Intercepting pause event - routing to Chromecast');
                 e.stopPropagation();
+                clearMediaSession(); // Clear immediately
                 castPause();
             }
         });
 
         player.addEventListener('seeking', (e) => {
             if (checkCastingState()) {
+                console.log('🛑 Intercepting seek event - blocked while casting');
                 e.preventDefault();
                 e.stopPropagation();
+                clearMediaSession(); // Clear immediately
             }
         }, true);
         
         player.addEventListener('loadeddata', (e) => {
             if (checkCastingState()) {
+                console.log('🛑 Intercepting loadeddata - blocked while casting');
                 e.stopPropagation();
                 player.pause();
+                clearMediaSession(); // Clear immediately
+            }
+        }, true);
+        
+        // Block any metadata events while casting
+        player.addEventListener('loadedmetadata', (e) => {
+            if (checkCastingState()) {
+                console.log('🛑 Blocking metadata event while casting');
+                e.stopPropagation();
+                clearMediaSession(); // Clear immediately
+            }
+        }, true);
+        
+        // Block timeupdate events while casting
+        player.addEventListener('timeupdate', (e) => {
+            if (checkCastingState()) {
+                clearMediaSession(); // Clear on every timeupdate
             }
         }, true);
     }
@@ -383,6 +407,9 @@ export function initPlayerControls() {
     }
 
     function initCastListeners() {
+        // Interval to continuously clear Media Session while casting
+        let clearMediaSessionInterval = null;
+        
         document.addEventListener('cast:started', () => {
             console.log('🎯 cast:started - NOT creating Media Session');
             isCurrentlyCasting = true;
@@ -391,11 +418,28 @@ export function initPlayerControls() {
             silenceLocalPlayer();
             clearMediaSession();
             syncPlayIcons();
+            
+            // CRITICAL: Continuously clear Media Session every second while casting
+            // This prevents the audio element from re-creating it
+            clearMediaSessionInterval = setInterval(() => {
+                if (checkCastingState()) {
+                    clearMediaSession();
+                }
+            }, 1000);
+            
+            console.log('🔄 Started continuous Media Session clearing');
         });
 
         document.addEventListener('cast:ended', () => {
             console.log('🎯 cast:ended');
             isCurrentlyCasting = false;
+            
+            // Stop continuous clearing
+            if (clearMediaSessionInterval) {
+                clearInterval(clearMediaSessionInterval);
+                clearMediaSessionInterval = null;
+                console.log('🛑 Stopped continuous Media Session clearing');
+            }
             
             enableLocalPlayer();
             clearMediaSession();

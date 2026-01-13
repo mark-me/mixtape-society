@@ -50,18 +50,31 @@ export function logDeviceInfo() {
 /**
  * Completely silence the local player
  * Used when casting starts to prevent duplicate media controls
+ * AGGRESSIVELY removes all player attributes
  */
 export function silenceLocalPlayer() {
     const player = document.getElementById('main-player');
     if (!player) return;
     
-    console.log('🔇 Silencing local player');
+    console.log('🔇 AGGRESSIVELY silencing local player');
+    
+    // Pause and clear source
     player.pause();
     player.src = '';
     player.load();
     
-    // Remove controls to prevent duplicate UI
+    // Remove ALL player attributes that could trigger Media Session
     player.removeAttribute('controls');
+    player.removeAttribute('autoplay');
+    
+    // Set volume to 0 as extra safety
+    player.volume = 0;
+    player.muted = true;
+    
+    // Remove from tab order
+    player.setAttribute('tabindex', '-1');
+    
+    console.log('✅ Local player completely silenced');
 }
 
 /**
@@ -73,30 +86,61 @@ export function enableLocalPlayer() {
     if (!player) return;
     
     console.log('🔊 Re-enabling local player');
+    
+    // Restore controls
     player.setAttribute('controls', '');
+    
+    // Restore volume and unmute
+    player.volume = 1.0;
+    player.muted = false;
+    
+    // Restore to tab order
+    player.removeAttribute('tabindex');
+    
+    console.log('✅ Local player re-enabled');
 }
 
 /**
  * Clear Media Session API completely
  * Removes all metadata and action handlers
+ * AGGRESSIVELY prevents re-creation
  */
 export function clearMediaSession() {
     if (!('mediaSession' in navigator)) return;
     
     try {
-        console.log('🧹 Clearing Media Session');
-        navigator.mediaSession.metadata = null;
+        console.log('🧹 AGGRESSIVELY clearing Media Session');
+        
+        // Set playback state to 'none' FIRST
         navigator.mediaSession.playbackState = 'none';
         
-        // Remove all action handlers
-        const actions = ['play', 'pause', 'previoustrack', 'nexttrack', 'seekbackward', 'seekforward', 'stop'];
+        // Clear metadata
+        navigator.mediaSession.metadata = null;
+        
+        // Remove ALL action handlers (including seek and stop)
+        const actions = [
+            'play', 'pause', 'stop',
+            'previoustrack', 'nexttrack',
+            'seekbackward', 'seekforward',
+            'seekto'
+        ];
+        
         actions.forEach(action => {
             try {
                 navigator.mediaSession.setActionHandler(action, null);
             } catch (e) {
-                // Action may not be supported
+                // Action may not be supported, that's fine
             }
         });
+        
+        // Try to clear position state
+        try {
+            navigator.mediaSession.setPositionState(null);
+        } catch (e) {
+            // May not be supported
+        }
+        
+        console.log('✅ Media Session cleared completely');
     } catch (error) {
         console.warn('Error clearing Media Session:', error);
     }
