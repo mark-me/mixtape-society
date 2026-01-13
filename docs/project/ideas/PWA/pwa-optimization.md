@@ -1,4 +1,4 @@
-![PWA](../images/pwa.png){ align=right width="90" }
+![PWA](../../../images/app.png){ align=right width="90" }
 
 # Progressive Web App (PWA) Optimization
 
@@ -140,12 +140,12 @@ iOS displays artwork most reliably at 512×512 pixels. The app automatically pro
 export function detectiOS() {
     const ua = navigator.userAgent;
     const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
-    
+
     if (!isIOS) return null;
-    
+
     const match = ua.match(/OS (\d+)_(\d+)/);
     const major = match ? parseInt(match[1], 10) : 0;
-    
+
     return {
         isIOS: true,
         version: major,
@@ -185,13 +185,13 @@ async function lockOrientationLandscape() {
 // Enters fullscreen and locks orientation when user taps play
 async function enterFullscreenAndLock() {
     const container = document.getElementById('cassette-player-container');
-    
+
     if (container.requestFullscreen) {
         await container.requestFullscreen();
     } else if (container.webkitRequestFullscreen) {  // iOS Safari
         await container.webkitRequestFullscreen();
     }
-    
+
     await lockOrientationLandscape();
 }
 ```
@@ -249,7 +249,7 @@ if ('serviceWorker' in navigator) {
 
 ```html
 <!-- Shows when offline in PWA mode -->
-<div id="offline-indicator" 
+<div id="offline-indicator"
      class="alert alert-warning"
      style="display: none;">
     <i class="bi bi-wifi-off"></i>
@@ -444,8 +444,8 @@ caches.keys().then(names => {
 
 ```javascript
 // Automatically adjusts based on network conditions
-const quality = navigator.connection?.effectiveType === '4g' 
-    ? 'high' 
+const quality = navigator.connection?.effectiveType === '4g'
+    ? 'high'
     : 'medium';
 ```
 
