@@ -108,6 +108,9 @@ function attachMediaListener(media) {
     currentMedia = media;
     console.log('🎧 Attached media listener');
 
+    // Setup Media Session for this media immediately
+    updateMediaSessionForCast(media);
+
     media.addUpdateListener(isAlive => {
         if (isAlive) {
             const status = media.playerState;
@@ -119,6 +122,14 @@ function attachMediaListener(media) {
 
             console.log(`📻 Media update - State: ${status}, Time: ${currentTime.toFixed(1)}s, ItemId: ${currentItemId}`);
 
+            // Update Media Session playback state
+            updateMediaSessionPlaybackState(status);
+
+            // Update position state
+            if (media.media && media.media.duration) {
+                updateMediaSessionPosition(currentTime, media.media.duration);
+            }
+
             if (castControlCallbacks.onPlayStateChange) {
                 castControlCallbacks.onPlayStateChange(status);
             }
@@ -129,12 +140,134 @@ function attachMediaListener(media) {
 
             if (media.media && media.media.queueData) {
                 const currentIndex = findCurrentQueueIndex(currentItemId, media.media.queueData.items);
-                if (currentIndex !== -1 && castControlCallbacks.onTrackChange) {
-                    castControlCallbacks.onTrackChange(currentIndex);
+                if (currentIndex !== -1) {
+                    // Update Media Session when track changes
+                    updateMediaSessionForCast(media);
+                    
+                    if (castControlCallbacks.onTrackChange) {
+                        castControlCallbacks.onTrackChange(currentIndex);
+                    }
                 }
             }
         }
     });
+}
+
+/**
+ * Setup/update Media Session API to mirror Chromecast state
+ * This creates the unified media control with metadata
+ */
+function updateMediaSessionForCast(media) {
+    if (!('mediaSession' in navigator)) {
+        console.log('⚠️ Media Session API not available');
+        return;
+    }
+
+    if (!media || !media.media || !media.media.metadata) {
+        console.log('⚠️ No metadata available for Media Session');
+        return;
+    }
+
+    const metadata = media.media.metadata;
+    
+    console.log('🎵 Updating Media Session for Cast:');
+    console.log(`   Title: ${metadata.title}`);
+    console.log(`   Artist: ${metadata.artist}`);
+    console.log(`   Album: ${metadata.albumName}`);
+
+    try {
+        // Create MediaMetadata with Chromecast info
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: metadata.title || 'Unknown',
+            artist: metadata.artist || 'Unknown Artist',
+            album: metadata.albumName || '',
+            artwork: metadata.images?.map(img => ({
+                src: img.url,
+                sizes: '512x512',
+                type: 'image/jpeg'
+            })) || []
+        });
+
+        // Set playback state
+        const state = media.playerState === 'PLAYING' ? 'playing' : 
+                     media.playerState === 'PAUSED' ? 'paused' : 'none';
+        navigator.mediaSession.playbackState = state;
+
+        // Setup action handlers that control Chromecast
+        navigator.mediaSession.setActionHandler('play', () => {
+            console.log('🎮 Media Session: play');
+            castPlay();
+        });
+
+        navigator.mediaSession.setActionHandler('pause', () => {
+            console.log('🎮 Media Session: pause');
+            castPause();
+        });
+
+        navigator.mediaSession.setActionHandler('previoustrack', () => {
+            console.log('🎮 Media Session: previous');
+            castPrevious();
+        });
+
+        navigator.mediaSession.setActionHandler('nexttrack', () => {
+            console.log('🎮 Media Session: next');
+            castNext();
+        });
+
+        navigator.mediaSession.setActionHandler('seekto', (details) => {
+            console.log('🎮 Media Session: seekto', details.seekTime);
+            if (details.seekTime !== undefined) {
+                castSeek(details.seekTime);
+            }
+        });
+
+        // Set position state if available
+        if (media.media.duration) {
+            updateMediaSessionPosition(
+                media.getEstimatedTime() || 0,
+                media.media.duration
+            );
+        }
+
+        console.log('✅ Media Session updated for Chromecast');
+    } catch (error) {
+        console.error('❌ Error updating Media Session:', error);
+    }
+}
+
+/**
+ * Update Media Session playback state
+ */
+function updateMediaSessionPlaybackState(castState) {
+    if (!('mediaSession' in navigator)) return;
+    
+    const state = castState === 'PLAYING' ? 'playing' : 
+                 castState === 'PAUSED' ? 'paused' : 'none';
+    
+    try {
+        navigator.mediaSession.playbackState = state;
+    } catch (e) {
+        console.warn('Error updating playback state:', e);
+    }
+}
+
+/**
+ * Update Media Session position state
+ */
+function updateMediaSessionPosition(currentTime, duration, playbackRate = 1.0) {
+    if (!('mediaSession' in navigator) || !('setPositionState' in navigator.mediaSession)) return;
+
+    if (duration && !isNaN(duration) && isFinite(duration) && duration > 0) {
+        try {
+            navigator.mediaSession.setPositionState({
+                duration: duration,
+                playbackRate: playbackRate,
+                position: Math.min(currentTime, duration)
+            });
+        } catch (error) {
+            console.debug('Could not set position state:', error);
+        }
+    }
 }
 
 function findCurrentQueueIndex(itemId, queueItems) {
@@ -212,7 +345,7 @@ function receiverListener(availability) {
 
 function onCastSessionStart() {
     console.log('🎵 CASTING STARTED');
-    console.log('🔇 Silencing local player and clearing Media Session...');
+    console.log('🔇 Silencing local player...');
 
     const btn = document.querySelector('#cast-button');
     if (btn) {
@@ -220,9 +353,9 @@ function onCastSessionStart() {
         btn.title = 'Casting to device • Click to stop';
     }
 
-    // CRITICAL: Silence and clear BEFORE dispatching event
+    // Silence local player but DON'T clear Media Session
+    // Media Session will be updated with Cast metadata when media loads
     silenceLocalPlayer();
-    clearMediaSession();
 
     // Dispatch event after silencing
     document.dispatchEvent(new CustomEvent('cast:started'));
@@ -236,6 +369,10 @@ function onCastSessionEnd() {
         btn.classList.remove('connected');
         btn.title = 'Cast to device';
     }
+
+    // Clear Media Session when casting ends
+    // Local playback will set it up again if needed
+    clearMediaSession();
 
     document.dispatchEvent(new CustomEvent('cast:ended'));
     console.log('✅ cast:ended event dispatched');
@@ -534,9 +671,8 @@ function loadQueue(session) {
         () => {
             console.log('✅ Playlist successfully queued on Chromecast');
 
-            // Double-check player is silenced
+            // Silence local player (Media Session will update when media loads)
             silenceLocalPlayer();
-            clearMediaSession();
         },
         (error) => {
             console.error('❌ Failed to load queue on Chromecast:', error);
