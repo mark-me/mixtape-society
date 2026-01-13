@@ -166,13 +166,6 @@ export function initPlayerControls() {
                 clearMediaSession(); // Clear immediately
             }
         }, true);
-        
-        // Block timeupdate events while casting
-        player.addEventListener('timeupdate', (e) => {
-            if (checkCastingState()) {
-                clearMediaSession(); // Clear on every timeupdate
-            }
-        }, true);
     }
 
     function initQualitySelector() {
