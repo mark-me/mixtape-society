@@ -51,6 +51,26 @@ function onError(error) {
     console.error('❌ Cast initialization failed:', error);
 }
 
+// Track whether Media Session handlers are already set up
+let mediaSessionHandlersRegistered = false;
+
+/**
+ * Convert Chromecast player state to Media Session playback state
+ */
+function castStateToPlaybackState(castState) {
+    switch (castState) {
+        case 'PLAYING':
+            return 'playing';
+        case 'PAUSED':
+            return 'paused';
+        case 'BUFFERING':
+            return 'playing'; // Show as playing during buffering
+        case 'IDLE':
+        default:
+            return 'none';
+    }
+}
+
 function getAudioMimeFromPath(path, quality) {
     let ext = path.split('.').pop().toLowerCase();
     if (quality !== 'original') {
@@ -176,7 +196,7 @@ function updateMediaSessionForCast(media) {
     console.log(`   Album: ${metadata.albumName}`);
 
     try {
-        // Create MediaMetadata with Chromecast info
+        // Update metadata (this changes with each track)
         navigator.mediaSession.metadata = new MediaMetadata({
             title: metadata.title || 'Unknown',
             artist: metadata.artist || 'Unknown Artist',
@@ -189,39 +209,43 @@ function updateMediaSessionForCast(media) {
         });
 
         // Set playback state
-        const state = media.playerState === 'PLAYING' ? 'playing' : 
-                     media.playerState === 'PAUSED' ? 'paused' : 'none';
-        navigator.mediaSession.playbackState = state;
+        navigator.mediaSession.playbackState = castStateToPlaybackState(media.playerState);
 
-        // Setup action handlers that control Chromecast
-        navigator.mediaSession.setActionHandler('play', () => {
-            console.log('🎮 Media Session: play');
-            castPlay();
-        });
+        // Setup action handlers only once per cast session
+        if (!mediaSessionHandlersRegistered) {
+            console.log('🎮 Registering Media Session action handlers');
+            
+            navigator.mediaSession.setActionHandler('play', () => {
+                console.log('🎮 Media Session: play');
+                castPlay();
+            });
 
-        navigator.mediaSession.setActionHandler('pause', () => {
-            console.log('🎮 Media Session: pause');
-            castPause();
-        });
+            navigator.mediaSession.setActionHandler('pause', () => {
+                console.log('🎮 Media Session: pause');
+                castPause();
+            });
 
-        navigator.mediaSession.setActionHandler('previoustrack', () => {
-            console.log('🎮 Media Session: previous');
-            castPrevious();
-        });
+            navigator.mediaSession.setActionHandler('previoustrack', () => {
+                console.log('🎮 Media Session: previous');
+                castPrevious();
+            });
 
-        navigator.mediaSession.setActionHandler('nexttrack', () => {
-            console.log('🎮 Media Session: next');
-            castNext();
-        });
+            navigator.mediaSession.setActionHandler('nexttrack', () => {
+                console.log('🎮 Media Session: next');
+                castNext();
+            });
 
-        navigator.mediaSession.setActionHandler('seekto', (details) => {
-            console.log('🎮 Media Session: seekto', details.seekTime);
-            if (details.seekTime !== undefined) {
-                castSeek(details.seekTime);
-            }
-        });
+            navigator.mediaSession.setActionHandler('seekto', (details) => {
+                console.log('🎮 Media Session: seekto', details.seekTime);
+                if (details.seekTime !== undefined) {
+                    castSeek(details.seekTime);
+                }
+            });
 
-        // Set position state if available
+            mediaSessionHandlersRegistered = true;
+        }
+
+        // Set position state if available (this updates with playback)
         if (media.media.duration) {
             updateMediaSessionPosition(
                 media.getEstimatedTime() || 0,
@@ -241,11 +265,8 @@ function updateMediaSessionForCast(media) {
 function updateMediaSessionPlaybackState(castState) {
     if (!('mediaSession' in navigator)) return;
     
-    const state = castState === 'PLAYING' ? 'playing' : 
-                 castState === 'PAUSED' ? 'paused' : 'none';
-    
     try {
-        navigator.mediaSession.playbackState = state;
+        navigator.mediaSession.playbackState = castStateToPlaybackState(castState);
     } catch (e) {
         console.warn('Error updating playback state:', e);
     }
@@ -373,6 +394,9 @@ function onCastSessionEnd() {
     // Clear Media Session when casting ends
     // Local playback will set it up again if needed
     clearMediaSession();
+    
+    // Reset handler registration flag for next cast session
+    mediaSessionHandlersRegistered = false;
 
     document.dispatchEvent(new CustomEvent('cast:ended'));
     console.log('✅ cast:ended event dispatched');
