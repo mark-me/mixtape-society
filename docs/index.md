@@ -17,7 +17,7 @@ Mixtape Society is a private, self‑hosted web app to create and share beautifu
 - ✅ **No ads, no tracking, no accounts** – pure privacy.
 - 🔗 **Public share links and QR codes** – anyone can listen without an account.
 - 📼 **Cassette‑style experience** – nostalgic UI with modern tech.
-- 📺 **Chromecast support** – cast mixtapes to any TV or smart speaker.
+- 📺 **Cast to any device** – Chromecast and native AirPlay support.
 
 !!! TIP "Quick start"
     👉 [Read the full Getting Started guide](user/getting-started.md)
@@ -101,10 +101,11 @@ Mixtape Society is a private, self‑hosted web app to create and share beautifu
 - **Progressive Web App** – Add to home screen for app-like experience
 - **Cast anywhere** – Stream to Chromecast devices throughout your home
 
-### 📺 Chromecast Integration
+### 📺 Streaming to Any Device
 
-Recipients can cast shared mixtapes to any Chromecast device:
+Recipients can stream shared mixtapes to TVs and speakers using either Chromecast or AirPlay:
 
+**Chromecast (Android/Chrome):**
 - **Simple one-tap casting** – Cast button appears automatically
 - **Full queue support** – Entire mixtape loads to Chromecast
 - **Unified controls** – Control playback from phone, computer, or lock screen
@@ -112,10 +113,18 @@ Recipients can cast shared mixtapes to any Chromecast device:
 - **Track metadata** – Cover art, title, and artist display on TV
 - **Seamless experience** – Continues playing when phone screen turns off
 
+**AirPlay (Apple Devices):**
+- **Native iOS integration** – Built into Safari, no setup required
+- **One-tap streaming** – AirPlay icon in audio controls
+- **System-wide controls** – Lock screen, Control Center, CarPlay
+- **Lossless audio** – High-quality streaming to AirPlay devices
+- **Multi-room** – Stream to multiple AirPlay 2 speakers simultaneously
+- **Apple Watch** – Control from your wrist
+
 Perfect for:
 - 🎉 **Parties** – Share the DJ duties via QR code
 - 🏠 **Home audio** – Stream to whole-home speaker systems
-- 🎁 **Gifts** – Create physical cards with QR codes that cast to TV
+- 🎁 **Gifts** – Create physical cards with QR codes that stream to TV
 - 🎵 **Ambient listening** – Set the mood without managing your phone
 
 ## 👥 Get Involved
