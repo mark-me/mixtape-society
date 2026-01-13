@@ -11,14 +11,14 @@
 export function detectiOS() {
     const ua = navigator.userAgent;
     const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
-    
+
     if (!isIOS) return null;
-    
+
     // Extract iOS version
     const match = ua.match(/OS (\d+)_(\d+)/);
     const major = match ? parseInt(match[1], 10) : 0;
     const minor = match ? parseInt(match[2], 10) : 0;
-    
+
     return {
         isIOS: true,
         version: major,
@@ -33,7 +33,7 @@ export function detectiOS() {
  */
 export function logDeviceInfo() {
     const iOS = detectiOS();
-    
+
     if (iOS) {
         console.log('📱 iOS Device Detected');
         console.log(`   Version: iOS ${iOS.versionString}`);
@@ -42,7 +42,7 @@ export function logDeviceInfo() {
     } else {
         console.log('📱 Android/Desktop Device');
     }
-    
+
     console.log(`   Media Session API: ${'mediaSession' in navigator ? 'Available ✓' : 'Not Available ✗'}`);
     console.log(`   Cast API: ${typeof chrome !== 'undefined' && chrome.cast ? 'Available ✓' : 'Not Available ✗'}`);
 }
@@ -55,25 +55,27 @@ export function logDeviceInfo() {
 export function silenceLocalPlayer() {
     const player = document.getElementById('main-player');
     if (!player) return;
-    
+
     console.log('🔇 AGGRESSIVELY silencing local player');
-    
+
     // Pause and clear source
     player.pause();
     player.src = '';
     player.load();
-    
+
     // Remove ALL player attributes that could trigger Media Session
     player.removeAttribute('controls');
     player.removeAttribute('autoplay');
-    
+
     // Set volume to 0 as extra safety
     player.volume = 0;
     player.muted = true;
-    
+
     // Remove from tab order
     player.setAttribute('tabindex', '-1');
-    
+    window.__removedPlayer = player;  // Store for later restore
+    player.parentNode.removeChild(player);
+
     console.log('✅ Local player completely silenced');
 }
 
@@ -82,21 +84,25 @@ export function silenceLocalPlayer() {
  * Used when casting ends to restore local playback
  */
 export function enableLocalPlayer() {
-    const player = document.getElementById('main-player');
+    const container = document.getElementById('main-player');
     if (!player) return;
-    
+
     console.log('🔊 Re-enabling local player');
-    
+
+    const player = window.__removedPlayer;
+    container.appendChild(player);  // Re-add to DOM
+    window.__removedPlayer = null;
+
     // Restore controls
     player.setAttribute('controls', '');
-    
+
     // Restore volume and unmute
     player.volume = 1.0;
     player.muted = false;
-    
+
     // Restore to tab order
     player.removeAttribute('tabindex');
-    
+
     console.log('✅ Local player re-enabled');
 }
 
@@ -107,16 +113,16 @@ export function enableLocalPlayer() {
  */
 export function clearMediaSession() {
     if (!('mediaSession' in navigator)) return;
-    
+
     try {
         console.log('🧹 AGGRESSIVELY clearing Media Session');
-        
+
         // Set playback state to 'none' FIRST
         navigator.mediaSession.playbackState = 'none';
-        
+
         // Clear metadata
         navigator.mediaSession.metadata = null;
-        
+
         // Remove ALL action handlers (including seek and stop)
         const actions = [
             'play', 'pause', 'stop',
@@ -124,7 +130,7 @@ export function clearMediaSession() {
             'seekbackward', 'seekforward',
             'seekto'
         ];
-        
+
         actions.forEach(action => {
             try {
                 navigator.mediaSession.setActionHandler(action, null);
@@ -132,14 +138,14 @@ export function clearMediaSession() {
                 // Action may not be supported, that's fine
             }
         });
-        
+
         // Try to clear position state
         try {
             navigator.mediaSession.setPositionState(null);
         } catch (e) {
             // May not be supported
         }
-        
+
         console.log('✅ Media Session cleared completely');
     } catch (error) {
         console.warn('Error clearing Media Session:', error);
@@ -161,7 +167,7 @@ export function setupLocalMediaSession(metadata, playerControls) {
 
     try {
         console.log('🎵 Setting up Media Session for LOCAL playback');
-        
+
         navigator.mediaSession.metadata = new MediaMetadata({
             title: metadata.title,
             artist: metadata.artist,
@@ -213,7 +219,7 @@ export function updateMediaSessionPosition(currentTime, duration, playbackRate =
  */
 export function updateMediaSessionPlaybackState(state) {
     if (!('mediaSession' in navigator)) return;
-    
+
     try {
         navigator.mediaSession.playbackState = state; // 'none', 'paused', 'playing'
     } catch (e) {
@@ -248,7 +254,7 @@ export function extractMetadataFromDOM(trackElement) {
     if (coverImg && coverImg.src) {
         const mimeType = getMimeTypeFromUrl(coverImg.src);
         const absoluteSrc = new URL(coverImg.src, window.location.origin).href;
-        
+
         // iOS prefers specific sizes, with 512x512 being most reliable
         if (iOS) {
             artwork = [
