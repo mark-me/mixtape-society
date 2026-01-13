@@ -92,12 +92,11 @@ function getAudioMimeFromPath(path, quality) {
 */
 
 function sessionListener(session) {
-    console.log('🔗 New cast session:', session.sessionId);
+    console.log('🔗 Cast session started');
     currentCastSession = session;
 
     // CRITICAL: Set global state IMMEDIATELY
     globalCastingState = true;
-    console.log(`🎯 globalCastingState set to: ${globalCastingState}`);
 
     // Fire event and silence player IMMEDIATELY
     onCastSessionStart();
@@ -107,7 +106,6 @@ function sessionListener(session) {
     }
 
     session.addMediaListener(media => {
-        console.log('🎵 New media loaded in session');
         attachMediaListener(media);
     });
 
@@ -118,7 +116,6 @@ function sessionListener(session) {
             currentMedia = null;
             castPlayState = 'IDLE';
             globalCastingState = false;
-            console.log(`🎯 globalCastingState set to: ${globalCastingState}`);
             onCastSessionEnd();
         }
     });
@@ -126,7 +123,7 @@ function sessionListener(session) {
 
 function attachMediaListener(media) {
     currentMedia = media;
-    console.log('🎧 Attached media listener');
+    console.log('🎧 Media listener attached');
 
     // Setup Media Session for this media immediately
     updateMediaSessionForCast(media);
@@ -139,8 +136,6 @@ function attachMediaListener(media) {
 
             // Update cast play state
             castPlayState = status;
-
-            console.log(`📻 Media update - State: ${status}, Time: ${currentTime.toFixed(1)}s, ItemId: ${currentItemId}`);
 
             // Update Media Session playback state
             updateMediaSessionPlaybackState(status);
@@ -178,22 +173,10 @@ function attachMediaListener(media) {
  * This creates the unified media control with metadata
  */
 function updateMediaSessionForCast(media) {
-    if (!('mediaSession' in navigator)) {
-        console.log('⚠️ Media Session API not available');
-        return;
-    }
-
-    if (!media || !media.media || !media.media.metadata) {
-        console.log('⚠️ No metadata available for Media Session');
-        return;
-    }
+    if (!('mediaSession' in navigator)) return;
+    if (!media || !media.media || !media.media.metadata) return;
 
     const metadata = media.media.metadata;
-    
-    console.log('🎵 Updating Media Session for Cast:');
-    console.log(`   Title: ${metadata.title}`);
-    console.log(`   Artist: ${metadata.artist}`);
-    console.log(`   Album: ${metadata.albumName}`);
 
     try {
         // Update metadata (this changes with each track)
@@ -213,30 +196,13 @@ function updateMediaSessionForCast(media) {
 
         // Setup action handlers only once per cast session
         if (!mediaSessionHandlersRegistered) {
-            console.log('🎮 Registering Media Session action handlers');
+            console.log('🎮 Media Session handlers registered');
             
-            navigator.mediaSession.setActionHandler('play', () => {
-                console.log('🎮 Media Session: play');
-                castPlay();
-            });
-
-            navigator.mediaSession.setActionHandler('pause', () => {
-                console.log('🎮 Media Session: pause');
-                castPause();
-            });
-
-            navigator.mediaSession.setActionHandler('previoustrack', () => {
-                console.log('🎮 Media Session: previous');
-                castPrevious();
-            });
-
-            navigator.mediaSession.setActionHandler('nexttrack', () => {
-                console.log('🎮 Media Session: next');
-                castNext();
-            });
-
+            navigator.mediaSession.setActionHandler('play', () => castPlay());
+            navigator.mediaSession.setActionHandler('pause', () => castPause());
+            navigator.mediaSession.setActionHandler('previoustrack', () => castPrevious());
+            navigator.mediaSession.setActionHandler('nexttrack', () => castNext());
             navigator.mediaSession.setActionHandler('seekto', (details) => {
-                console.log('🎮 Media Session: seekto', details.seekTime);
                 if (details.seekTime !== undefined) {
                     castSeek(details.seekTime);
                 }
@@ -252,10 +218,8 @@ function updateMediaSessionForCast(media) {
                 media.media.duration
             );
         }
-
-        console.log('✅ Media Session updated for Chromecast');
     } catch (error) {
-        console.error('❌ Error updating Media Session:', error);
+        console.error('❌ Media Session error:', error);
     }
 }
 
@@ -365,8 +329,7 @@ function receiverListener(availability) {
 }
 
 function onCastSessionStart() {
-    console.log('🎵 CASTING STARTED');
-    console.log('🔇 Silencing local player...');
+    console.log('🎵 Casting started');
 
     const btn = document.querySelector('#cast-button');
     if (btn) {
@@ -380,11 +343,10 @@ function onCastSessionStart() {
 
     // Dispatch event after silencing
     document.dispatchEvent(new CustomEvent('cast:started'));
-    console.log('✅ cast:started event dispatched');
 }
 
 function onCastSessionEnd() {
-    console.log('🎵 CASTING ENDED');
+    console.log('🎵 Casting ended');
     const btn = document.querySelector('#cast-button');
     if (btn) {
         btn.classList.remove('connected');
@@ -399,7 +361,6 @@ function onCastSessionEnd() {
     mediaSessionHandlersRegistered = false;
 
     document.dispatchEvent(new CustomEvent('cast:ended'));
-    console.log('✅ cast:ended event dispatched');
 }
 
 export function setCastControlCallbacks(callbacks) {
@@ -408,9 +369,7 @@ export function setCastControlCallbacks(callbacks) {
 }
 
 export function isCasting() {
-    const casting = currentCastSession !== null && currentMedia !== null;
-    console.log(`🔍 isCasting() called: ${casting} (session: ${!!currentCastSession}, media: ${!!currentMedia})`);
-    return casting;
+    return currentCastSession !== null && currentMedia !== null;
 }
 
 /**
@@ -431,34 +390,28 @@ export function isCastPlaying() {
  * Control functions that can be called from player UI
  */
 export function castPlay() {
-    console.log('▶️ castPlay() called');
     if (!currentMedia) {
-        console.warn('⚠️ Cannot play - no media loaded');
-        console.warn(`   currentMedia: ${currentMedia}`);
-        console.warn(`   currentCastSession: ${currentCastSession}`);
+        console.warn('Cannot play - no media loaded');
         return;
     }
 
     const playRequest = new chrome.cast.media.PlayRequest();
     currentMedia.play(playRequest,
-        () => console.log('✅ Play command sent to Chromecast'),
-        error => console.error('❌ Play failed:', error)
+        () => {},
+        error => console.error('Play failed:', error)
     );
 }
 
 export function castPause() {
-    console.log('⏸️ castPause() called');
     if (!currentMedia) {
-        console.warn('⚠️ Cannot pause - no media loaded');
-        console.warn(`   currentMedia: ${currentMedia}`);
-        console.warn(`   currentCastSession: ${currentCastSession}`);
+        console.warn('Cannot pause - no media loaded');
         return;
     }
 
     const pauseRequest = new chrome.cast.media.PauseRequest();
     currentMedia.pause(pauseRequest,
-        () => console.log('✅ Pause command sent to Chromecast'),
-        error => console.error('❌ Pause failed:', error)
+        () => {},
+        error => console.error('Pause failed:', error)
     );
 }
 
@@ -466,9 +419,8 @@ export function castPause() {
  * Toggle play/pause state for Chromecast
  */
 export function castTogglePlayPause() {
-    console.log('⏯️ castTogglePlayPause() called');
     if (!currentMedia) {
-        console.warn('⚠️ Cannot toggle - no media loaded');
+        console.warn('Cannot toggle - no media loaded');
         return;
     }
 
@@ -486,8 +438,8 @@ export function castSeek(currentTime) {
     seekRequest.currentTime = currentTime;
 
     currentMedia.seek(seekRequest,
-        () => console.log(`✅ Seek to ${currentTime}s`),
-        error => console.error('❌ Seek failed:', error)
+        () => {},
+        error => console.error('Seek failed:', error)
     );
 }
 
@@ -495,17 +447,13 @@ export function castSeek(currentTime) {
  * Navigate to next track in queue
  */
 export function castNext() {
-    console.log('⏭️ castNext() called');
     if (!currentMedia) {
-        console.warn('⚠️ Cannot go to next - no media loaded');
+        console.warn('Cannot go to next - no media loaded');
         return;
     }
 
     const currentIndex = getCurrentQueueIndex();
-    if (currentIndex === -1) {
-        console.warn('Cannot get current index for next');
-        return;
-    }
+    if (currentIndex === -1) return;
 
     const nextIndex = currentIndex + 1;
     const nextItemId = getItemIdForIndex(nextIndex);
@@ -517,8 +465,8 @@ export function castNext() {
 
     const jumpRequest = new chrome.cast.media.QueueJumpRequest(nextItemId);
     currentMedia.queueJumpToItem(jumpRequest,
-        () => console.log(`✅ Next track (index ${nextIndex})`),
-        error => console.error('❌ Next failed:', error)
+        () => {},
+        error => console.error('Next failed:', error)
     );
 }
 
@@ -526,17 +474,13 @@ export function castNext() {
  * Navigate to previous track in queue
  */
 export function castPrevious() {
-    console.log('⏮️ castPrevious() called');
     if (!currentMedia) {
-        console.warn('⚠️ Cannot go to previous - no media loaded');
+        console.warn('Cannot go to previous - no media loaded');
         return;
     }
 
     const currentIndex = getCurrentQueueIndex();
-    if (currentIndex === -1) {
-        console.warn('Cannot get current index for previous');
-        return;
-    }
+    if (currentIndex === -1) return;
 
     const prevIndex = currentIndex - 1;
     const prevItemId = getItemIdForIndex(prevIndex);
@@ -548,8 +492,8 @@ export function castPrevious() {
 
     const jumpRequest = new chrome.cast.media.QueueJumpRequest(prevItemId);
     currentMedia.queueJumpToItem(jumpRequest,
-        () => console.log(`✅ Previous track (index ${prevIndex})`),
-        error => console.error('❌ Previous failed:', error)
+        () => {},
+        error => console.error('Previous failed:', error)
     );
 }
 
@@ -557,9 +501,8 @@ export function castPrevious() {
  * Jump to a specific track by index
  */
 export function castJumpToTrack(index) {
-    console.log(`🎯 castJumpToTrack(${index}) called`);
     if (!currentMedia) {
-        console.warn('⚠️ Cannot jump to track - no media loaded');
+        console.warn('Cannot jump to track - no media loaded');
         return;
     }
 
@@ -573,8 +516,8 @@ export function castJumpToTrack(index) {
     const jumpRequest = new chrome.cast.media.QueueJumpRequest(targetItemId);
 
     currentMedia.queueJumpToItem(jumpRequest,
-        () => console.log(`✅ Jumped to track ${index}`),
-        error => console.error('❌ Jump failed:', error)
+        () => {},
+        error => console.error('Jump failed:', error)
     );
 }
 
@@ -604,15 +547,10 @@ function buildTrackUrl(track, quality) {
     }
 
     // Convert to absolute URL for Chromecast
-    const absoluteUrl = new URL(relativePath, window.location.origin).href;
-    console.log(`🔗 Built URL: ${absoluteUrl}`);
-
-    return absoluteUrl;
+    return new URL(relativePath, window.location.origin).href;
 }
 
 export function castMixtapePlaylist() {
-    console.log('🎬 Starting cast request...');
-
     if (currentCastSession) {
         loadQueue(currentCastSession);
         return;
@@ -623,31 +561,24 @@ export function castMixtapePlaylist() {
             currentCastSession = session;
             loadQueue(session);
         },
-        error => console.error('❌ Session request failed:', error)
+        error => console.error('Session request failed:', error)
     );
 }
 
 function loadQueue(session) {
     const tracks = window.__mixtapeData?.tracks || [];
     if (tracks.length === 0) {
-        console.warn('⚠️ No tracks available to cast');
+        console.warn('No tracks available to cast');
         return;
     }
 
-    console.log(`📀 Loading queue with ${tracks.length} tracks`);
+    console.log(`📀 Loading ${tracks.length} tracks to cast`);
 
     const quality = localStorage.getItem('audioQuality') || 'medium';
-    console.log(`🎚️ Quality: ${quality}`);
 
     const queueItems = tracks.map((track, index) => {
         const trackUrl = buildTrackUrl(track, quality);
         const contentType = getAudioMimeFromPath(track.path, quality);
-
-        if (index === 0 || index === tracks.length - 1) {
-            console.log(`Track ${index}: ${track.track}`);
-            console.log(`  URL: ${trackUrl}`);
-            console.log(`  Content-Type: ${contentType}`);
-        }
 
         const mediaInfo = new chrome.cast.media.MediaInfo(trackUrl, contentType);
         mediaInfo.metadataType = chrome.cast.media.MetadataType.MUSIC_TRACK;
@@ -688,27 +619,20 @@ function loadQueue(session) {
     }
     queueRequest.startIndex = startIndex;
 
-    console.log(`▶️ Queue load starting at index ${startIndex}`);
-
     session.queueLoad(
         queueRequest,
         () => {
-            console.log('✅ Playlist successfully queued on Chromecast');
-
-            // Silence local player (Media Session will update when media loads)
+            console.log('✅ Playlist queued successfully');
             silenceLocalPlayer();
         },
         (error) => {
-            console.error('❌ Failed to load queue on Chromecast:', error);
-            console.error('Error code:', error.code);
-            console.error('Error description:', error.description);
+            console.error('❌ Failed to load queue:', error);
         }
     );
 }
 
 export function stopCasting() {
     if (currentCastSession) {
-        console.log('🛑 Stopping cast...');
         currentCastSession.stop(() => {
             currentCastSession = null;
             currentMedia = null;

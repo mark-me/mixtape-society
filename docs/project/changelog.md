@@ -15,6 +15,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 ### ✨ Added
 
 - Added PWA (Progressive Web App) support for offline playback and installation
+- Added ChromeCast support for playback
 
 ### 🐛 Fixed
 

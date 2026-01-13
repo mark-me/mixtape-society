@@ -120,7 +120,6 @@ export function initPlayerControls() {
     function setupAudioControlInterception() {
         player.addEventListener('play', (e) => {
             if (checkCastingState()) {
-                console.log('🛑 Intercepting play event - routing to Chromecast');
                 e.preventDefault();
                 e.stopPropagation();
                 e.stopImmediatePropagation();
@@ -132,7 +131,6 @@ export function initPlayerControls() {
 
         player.addEventListener('pause', (e) => {
             if (checkCastingState()) {
-                console.log('🛑 Intercepting pause event - routing to Chromecast');
                 e.stopPropagation();
                 castPause();
             }
@@ -140,7 +138,6 @@ export function initPlayerControls() {
 
         player.addEventListener('seeking', (e) => {
             if (checkCastingState()) {
-                console.log('🛑 Intercepting seek event - blocked while casting');
                 e.preventDefault();
                 e.stopPropagation();
             }
@@ -148,7 +145,6 @@ export function initPlayerControls() {
         
         player.addEventListener('loadeddata', (e) => {
             if (checkCastingState()) {
-                console.log('🛑 Intercepting loadeddata - blocked while casting');
                 e.stopPropagation();
                 player.pause();
             }
@@ -157,7 +153,6 @@ export function initPlayerControls() {
         // Block metadata events while casting
         player.addEventListener('loadedmetadata', (e) => {
             if (checkCastingState()) {
-                console.log('🛑 Blocking metadata event while casting');
                 e.stopPropagation();
             }
         }, true);
@@ -396,19 +391,13 @@ export function initPlayerControls() {
 
     function initCastListeners() {
         document.addEventListener('cast:started', () => {
-            console.log('🎯 cast:started - Media Session will be managed by chromecast.js');
             isCurrentlyCasting = true;
-            
-            // Silence local player
             silenceLocalPlayer();
             syncPlayIcons();
         });
 
         document.addEventListener('cast:ended', () => {
-            console.log('🎯 cast:ended');
             isCurrentlyCasting = false;
-            
-            // Re-enable local player
             enableLocalPlayer();
             syncPlayIcons();
         });

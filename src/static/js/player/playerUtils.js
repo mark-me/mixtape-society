@@ -50,13 +50,10 @@ export function logDeviceInfo() {
 /**
  * Completely silence the local player
  * Used when casting starts to prevent duplicate media controls
- * AGGRESSIVELY removes all player attributes
  */
 export function silenceLocalPlayer() {
     const player = document.getElementById('main-player');
     if (!player) return;
-    
-    console.log('🔇 AGGRESSIVELY silencing local player');
     
     // Pause and clear source
     player.pause();
@@ -73,8 +70,6 @@ export function silenceLocalPlayer() {
     
     // Remove from tab order
     player.setAttribute('tabindex', '-1');
-    
-    console.log('✅ Local player completely silenced');
 }
 
 /**
@@ -85,8 +80,6 @@ export function enableLocalPlayer() {
     const player = document.getElementById('main-player');
     if (!player) return;
     
-    console.log('🔊 Re-enabling local player');
-    
     // Restore controls
     player.setAttribute('controls', '');
     
@@ -96,21 +89,16 @@ export function enableLocalPlayer() {
     
     // Restore to tab order
     player.removeAttribute('tabindex');
-    
-    console.log('✅ Local player re-enabled');
 }
 
 /**
  * Clear Media Session API completely
  * Removes all metadata and action handlers
- * AGGRESSIVELY prevents re-creation
  */
 export function clearMediaSession() {
     if (!('mediaSession' in navigator)) return;
     
     try {
-        console.log('🧹 AGGRESSIVELY clearing Media Session');
-        
         // Set playback state to 'none' FIRST
         navigator.mediaSession.playbackState = 'none';
         
@@ -139,8 +127,6 @@ export function clearMediaSession() {
         } catch (e) {
             // May not be supported
         }
-        
-        console.log('✅ Media Session cleared completely');
     } catch (error) {
         console.warn('Error clearing Media Session:', error);
     }
@@ -160,8 +146,6 @@ export function setupLocalMediaSession(metadata, playerControls) {
     if (!('mediaSession' in navigator)) return;
 
     try {
-        console.log('🎵 Setting up Media Session for LOCAL playback');
-        
         navigator.mediaSession.metadata = new MediaMetadata({
             title: metadata.title,
             artist: metadata.artist,
