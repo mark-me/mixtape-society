@@ -1,5 +1,6 @@
 // static/js/player/playerControls.js
 import { 
+    globalCastingState,
     isCasting, 
     castPlay, 
     castPause, 
@@ -93,25 +94,19 @@ function showiOSCastHelp() {
         </div>
     `;
     
-    // Show help after 3 seconds if cast button is clicked but no devices found
-    let castButtonClicked = false;
     const castBtn = document.getElementById('cast-button');
     
     if (castBtn) {
-        // Use once: true to automatically remove listener after first call
         castBtn.addEventListener('click', () => {
-            castButtonClicked = true;
-            
             setTimeout(() => {
-                // If still no session, show help
-                if (castButtonClicked && !isCasting()) {
+                if (!isCasting()) {
                     const existingHelp = document.querySelector('.alert-info');
                     if (!existingHelp) {
                         document.body.insertAdjacentHTML('afterbegin', helpHtml);
                     }
                 }
             }, 3000);
-        }, { once: true }); // Prevents duplicate listeners
+        }, { once: true });
     }
 }
 
@@ -128,6 +123,8 @@ export function initPlayerControls() {
     let currentIndex = -1;
     window.currentTrackIndex = currentIndex;
     let currentQuality = localStorage.getItem('audioQuality') || DEFAULT_QUALITY;
+    
+    // Local casting state that syncs with global state
     let isCurrentlyCasting = false;
 
     // Log device info on initialization
@@ -137,10 +134,19 @@ export function initPlayerControls() {
     if (iOS) {
         showiOSCastHelp();
     }
+    
+    console.log('🎮 PlayerControls initialized');
+
+    /**
+     * Check if we're casting using multiple sources of truth
+     */
+    function checkCastingState() {
+        return globalCastingState || isCurrentlyCasting;
+    }
 
     function onlyWhenNotCasting(handler) {
         return function(...args) {
-            if (!isCurrentlyCasting) {
+            if (!checkCastingState()) {
                 handler.apply(this, args);
             }
         };
@@ -148,9 +154,11 @@ export function initPlayerControls() {
 
     function setupAudioControlInterception() {
         player.addEventListener('play', (e) => {
-            if (isCurrentlyCasting) {
+            if (checkCastingState()) {
+                console.log('🛑 Intercepting play event - routing to Chromecast');
                 e.preventDefault();
                 e.stopPropagation();
+                e.stopImmediatePropagation();
                 player.pause();
                 castPlay();
                 return false;
@@ -158,16 +166,27 @@ export function initPlayerControls() {
         }, true);
 
         player.addEventListener('pause', (e) => {
-            if (isCurrentlyCasting) {
+            if (checkCastingState()) {
+                console.log('🛑 Intercepting pause event - routing to Chromecast');
                 e.stopPropagation();
                 castPause();
             }
         });
 
         player.addEventListener('seeking', (e) => {
-            if (isCurrentlyCasting) {
+            if (checkCastingState()) {
+                console.log('🛑 Intercepting seek event - blocked while casting');
                 e.preventDefault();
                 e.stopPropagation();
+            }
+        }, true);
+        
+        // Also intercept loadeddata to prevent local player from activating
+        player.addEventListener('loadeddata', (e) => {
+            if (checkCastingState()) {
+                console.log('🛑 Intercepting loadeddata - blocked while casting');
+                e.stopPropagation();
+                player.pause();
             }
         }, true);
     }
@@ -233,7 +252,7 @@ export function initPlayerControls() {
         updateQualityButtonText();
         updateQualityMenuState(newQuality);
 
-        if (currentIndex >= 0 && player.src && !isCurrentlyCasting) {
+        if (currentIndex >= 0 && player.src && !checkCastingState()) {
             const wasPlaying = !player.paused;
             const currentTime = player.currentTime;
 
@@ -263,7 +282,7 @@ export function initPlayerControls() {
     }
 
     function updateLocalMediaSession(metadata) {
-        if (isCurrentlyCasting) return; // Don't update when casting
+        if (checkCastingState()) return; // Don't update when casting
         
         setupLocalMediaSession(metadata, {
             play: () => player.play().catch(e => console.log('Media Session play failed:', e)),
@@ -276,12 +295,12 @@ export function initPlayerControls() {
     }
 
     function updatePositionState() {
-        if (isCurrentlyCasting) return;
+        if (checkCastingState()) return;
         updateMediaSessionPosition(player.currentTime, player.duration, player.playbackRate || 1.0);
     }
 
     function updateCastPositionState() {
-        if (!isCurrentlyCasting) return;
+        if (!checkCastingState()) return;
         
         const timeInfo = getCurrentCastTime();
         updateMediaSessionPosition(timeInfo.currentTime, timeInfo.duration, 1.0);
@@ -294,19 +313,23 @@ export function initPlayerControls() {
     }
 
     /**
-     * CRITICAL: playTrack must check casting state FIRST
+     * CRITICAL: playTrack must check casting state at EVERY step
      */
     function playTrack(index) {
-        console.log(`🎵 playTrack called with index: ${index}, casting: ${isCurrentlyCasting}`);
+        console.log('═══════════════════════════════════════');
+        console.log(`🎵 playTrack(${index}) called`);
+        console.log(`   isCurrentlyCasting: ${isCurrentlyCasting}`);
+        console.log(`   globalCastingState: ${globalCastingState}`);
+        console.log(`   checkCastingState(): ${checkCastingState()}`);
+        console.log(`   isCasting(): ${isCasting()}`);
         
-        // CRITICAL: Route to Chromecast if currently casting
-        if (isCurrentlyCasting) {
-            console.log(`📡 Routing track ${index} to Chromecast`);
+        // CRITICAL: Check BOTH states
+        if (checkCastingState()) {
+            console.log(`📡 ROUTING TO CHROMECAST`);
             castJumpToTrack(index);
             updateUIForTrack(index);
             
-            // Update Media Session with cast metadata after a brief delay
-            // iOS needs a bit more time for metadata to propagate
+            // Update Media Session with cast metadata
             const delay = iOS ? 800 : 500;
             setTimeout(() => {
                 const metadata = extractMetadataFromCast();
@@ -319,9 +342,13 @@ export function initPlayerControls() {
                     });
                 }
             }, delay);
+            console.log('═══════════════════════════════════════');
             return;
         }
 
+        console.log(`🔊 PLAYING LOCALLY`);
+        console.log('═══════════════════════════════════════');
+        
         // Local playback
         if (index === currentIndex && player.src !== '') {
             player.play().catch(e => console.log('Autoplay prevented:', e));
@@ -384,8 +411,8 @@ export function initPlayerControls() {
 
             const isCurrentTrack = idx === currentIndex;
             const isPlaying = isCurrentTrack && (
-                (isCurrentlyCasting && isCastPlaying()) || 
-                (!isCurrentlyCasting && !player.paused)
+                (checkCastingState() && isCastPlaying()) || 
+                (!checkCastingState() && !player.paused)
             );
 
             if (isPlaying) {
@@ -405,15 +432,24 @@ export function initPlayerControls() {
     }
 
     function togglePlayPause() {
-        if (isCurrentlyCasting) {
+        console.log('═══════════════════════════════════════');
+        console.log(`⏯️ togglePlayPause() called`);
+        console.log(`   isCurrentlyCasting: ${isCurrentlyCasting}`);
+        console.log(`   globalCastingState: ${globalCastingState}`);
+        console.log(`   checkCastingState(): ${checkCastingState()}`);
+        
+        if (checkCastingState()) {
+            console.log('📡 Routing to Chromecast');
             castTogglePlayPause();
         } else {
+            console.log('🔊 Toggling local player');
             if (player.paused) {
                 player.play().catch(err => console.error("Resume failed:", err));
             } else {
                 player.pause();
             }
         }
+        console.log('═══════════════════════════════════════');
     }
 
     function updateAudioProgress() {
@@ -425,31 +461,42 @@ export function initPlayerControls() {
 
     function initCastListeners() {
         document.addEventListener('cast:started', () => {
+            console.log('═══════════════════════════════════════');
+            console.log('🎯 cast:started event received');
             isCurrentlyCasting = true;
-            console.log('🎵 Casting started');
+            console.log(`   Set isCurrentlyCasting = ${isCurrentlyCasting}`);
+            console.log(`   globalCastingState = ${globalCastingState}`);
+            console.log('═══════════════════════════════════════');
             
-            // Use shared utility to silence local player
+            // Silence local player and clear its Media Session
             silenceLocalPlayer();
+            clearMediaSession();
             syncPlayIcons();
             
-            // Setup initial Media Session for the first track
+            // Setup cast Media Session for the current track
             if (currentIndex >= 0 && currentIndex < trackItems.length) {
-                const track = trackItems[currentIndex];
-                const metadata = extractMetadataFromDOM(track);
-                setupCastMediaSession(metadata, {
-                    play: castPlay,
-                    pause: castPause,
-                    previous: castPrevious,
-                    next: castNext
-                });
+                setTimeout(() => {
+                    const track = trackItems[currentIndex];
+                    const metadata = extractMetadataFromDOM(track);
+                    setupCastMediaSession(metadata, {
+                        play: castPlay,
+                        pause: castPause,
+                        previous: castPrevious,
+                        next: castNext
+                    });
+                }, 1000); // Give cast session time to fully establish
             }
         });
 
         document.addEventListener('cast:ended', () => {
+            console.log('═══════════════════════════════════════');
+            console.log('🎯 cast:ended event received');
             isCurrentlyCasting = false;
-            console.log('🎵 Casting ended');
+            console.log(`   Set isCurrentlyCasting = ${isCurrentlyCasting}`);
+            console.log(`   globalCastingState = ${globalCastingState}`);
+            console.log('═══════════════════════════════════════');
             
-            // Use shared utilities to re-enable local player
+            // Re-enable local player
             enableLocalPlayer();
             clearMediaSession();
             syncPlayIcons();
@@ -472,7 +519,7 @@ export function initPlayerControls() {
                 }
             },
             onPlayStateChange: (state) => {
-                console.log(`Cast play state: ${state}`);
+                console.log(`📻 Cast play state: ${state}`);
                 syncPlayIcons();
                 
                 // Update playback state in Media Session
@@ -488,12 +535,16 @@ export function initPlayerControls() {
 
     function initEventListeners() {
         document.getElementById('big-play-btn')?.addEventListener('click', () => {
+            console.log(`🎵 Big play button clicked, checkCastingState(): ${checkCastingState()}`);
+            
             if (trackItems.length === 0) return;
             if (currentIndex === -1) {
                 playTrack(0);
-            } else if (isCurrentlyCasting) {
+            } else if (checkCastingState()) {
+                console.log('📡 Sending play to Chromecast');
                 castPlay();
             } else {
+                console.log('🔊 Playing locally');
                 player.play();
             }
         });
@@ -508,7 +559,7 @@ export function initPlayerControls() {
         
         player?.addEventListener('ended', () => {
             syncPlayIcons();
-            if (!isCurrentlyCasting) {
+            if (!checkCastingState()) {
                 playTrack(currentIndex + 1);
             }
         });
@@ -535,17 +586,25 @@ export function initPlayerControls() {
         }));
 
         prevBtn?.addEventListener('click', () => {
-            if (isCurrentlyCasting) {
+            console.log(`⏮️ Previous button, checkCastingState(): ${checkCastingState()}`);
+            
+            if (checkCastingState()) {
+                console.log('📡 Sending previous to Chromecast');
                 castPrevious();
             } else {
+                console.log('🔊 Previous track locally');
                 playTrack(currentIndex - 1);
             }
         });
 
         nextBtn?.addEventListener('click', () => {
-            if (isCurrentlyCasting) {
+            console.log(`⏭️ Next button, checkCastingState(): ${checkCastingState()}`);
+            
+            if (checkCastingState()) {
+                console.log('📡 Sending next to Chromecast');
                 castNext();
             } else {
+                console.log('🔊 Next track locally');
                 playTrack(currentIndex + 1);
             }
         });
@@ -562,7 +621,9 @@ export function initPlayerControls() {
                 e.stopPropagation();
                 e.stopImmediatePropagation();
                 
-                console.log(`🖱️ Track ${i} button clicked, casting: ${isCurrentlyCasting}`);
+                console.log(`🖱️ Track ${i} button clicked`);
+                console.log(`   checkCastingState(): ${checkCastingState()}`);
+                console.log(`   currentIndex: ${currentIndex}`);
                 
                 if (i === currentIndex) {
                     togglePlayPause();
