@@ -10,13 +10,14 @@ extra:
 
 # Introduction
 
-Mixtape Society is a private, self‑hosted web app to create and share beautiful, add-free music — the way mixtapes were exchanged on paper, but with today’s digital convenience.
+Mixtape Society is a private, self‑hosted web app to create and share beautiful, ad-free music — the way mixtapes were exchanged on paper, but with today's digital convenience.
 
 ## 🎯 Why Mixtape Society?
 
 - ✅ **No ads, no tracking, no accounts** – pure privacy.
 - 🔗 **Public share links and QR codes** – anyone can listen without an account.
 - 📼 **Cassette‑style experience** – nostalgic UI with modern tech.
+- 📺 **Chromecast support** – cast mixtapes to any TV or smart speaker.
 
 !!! TIP "Quick start"
     👉 [Read the full Getting Started guide](user/getting-started.md)
@@ -71,6 +72,52 @@ Mixtape Society is a private, self‑hosted web app to create and share beautifu
 
 </div>
 
+## ✨ Key Features
+
+### 🎵 For Mixtape Creators
+
+- **Private music library** – Host your own collection (FLAC, MP3, M4A, AAC, OGG, WAV)
+- **Beautiful editor** – Live search, drag-and-drop track ordering
+- **Custom cover art** – Upload unique artwork for each mixtape
+- **Liner notes** – Add personal messages with Markdown formatting
+- **Quality control** – Multiple audio quality options (original to 128k)
+- **Smart caching** – Pre-transcode for faster mobile streaming
+
+### 🔗 For Sharing
+
+- **Instant public links** – Share via URL or QR code
+- **No accounts needed** – Recipients stream directly in browser
+- **Permanent or temporary** – Links persist until you delete them
+- **QR code generation** – Print-ready codes with cover art
+- **Mobile responsive** – Perfect playback on any device
+- **Chromecast support** – Cast to TVs and speakers with one tap
+
+### 📱 For Listeners
+
+- **No login required** – Just click and play
+- **Full media controls** – Play, pause, seek, skip
+- **Lock screen integration** – Control from phone notifications
+- **Background playback** – Keep playing with screen off
+- **Progressive Web App** – Add to home screen for app-like experience
+- **Cast anywhere** – Stream to Chromecast devices throughout your home
+
+### 📺 Chromecast Integration
+
+Recipients can cast shared mixtapes to any Chromecast device:
+
+- **Simple one-tap casting** – Cast button appears automatically
+- **Full queue support** – Entire mixtape loads to Chromecast
+- **Unified controls** – Control playback from phone, computer, or lock screen
+- **Quality streaming** – Respects network conditions and quality settings
+- **Track metadata** – Cover art, title, and artist display on TV
+- **Seamless experience** – Continues playing when phone screen turns off
+
+Perfect for:
+- 🎉 **Parties** – Share the DJ duties via QR code
+- 🏠 **Home audio** – Stream to whole-home speaker systems
+- 🎁 **Gifts** – Create physical cards with QR codes that cast to TV
+- 🎵 **Ambient listening** – Set the mood without managing your phone
+
 ## 👥 Get Involved
 
 Interested in where this is headed?
@@ -82,7 +129,6 @@ Interested in where this is headed?
 - 🐛 Report issues or open an [issue](https://github.com/mark-me/mixtape-society/issues)
 
 Pull requests welcome. Still early days, but contributions appreciated.
-
 
 !!! INFO "Personal use only"
     This software is a tool for personal, non-commercial use with legally owned music files. No copyrighted music or artwork is included. You are solely responsible for the media you host and share.

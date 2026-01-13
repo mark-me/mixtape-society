@@ -1,7 +1,7 @@
 ![Mixtape playback](../../images/player.png){ align=right width="90" }
 
 **Purpose** – This document describes the **audio‑streaming subsystem** of the Mixtape Society web app.
-It explains how the Flask blueprint (`play`) validates requests, resolves file paths, chooses the correct MIME type, handles quality‑aware caching, supports HTTP range requests, and serves the public mixtape page.
+It explains how the Flask blueprint (`play`) validates requests, resolves file paths, chooses the correct MIME type, handles quality‑aware caching, supports HTTP range requests, serves the public mixtape page, and integrates with **Chromecast for casting to external devices**.
 All statements below are verified against the current source files (`routes/play.py`, the static JavaScript/CSS assets, and the auxiliary `audio_cache` module).
 
 ## 🌍 High‑Level Overview
@@ -10,13 +10,14 @@ All statements below are verified against the current source files (`routes/play
 | -------------- | -------------- |
 | Validate & resolve the requested audio file path (prevent directory-traversal) | `_resolve_and_validate_path()` |
 | Determine MIME type (including custom audio extensions) | `_guess_mime_type()` |
-| Select the file to serve – original or a cached/transcoded version   to the quality query param | `_get_serving_path()` (uses `AudioCache`) |
+| Select the file to serve – original or a cached/transcoded version  to the quality query param | `_get_serving_path()` (uses `AudioCache`) |
 | Serve full file or partial byte ranges (seeking) | `send_file()` for full files, `_handle_range_request()` for partial |
 | Return appropriate HTTP status (200, 206, 403, 404, 416, 500) | `abort()` + explicit `Response` objects |
 | Render public mixtape page (`/share/<slug>`) | `public_play()` |
 | Serve cover images (`/covers/<filename>`) | `serve_cover()` |
 | Admin cache utilities (`/admin/cache/*`) | `cache_stats()`, `clear_cache()` |
 | Generate QR code for sharing | `qr` blueprint (`/qr/<slug>.png`, `/qr/<slug>/download`) |
+| Cast mixtapes to Chromecast devices | `chromecast.js` module + Google Cast SDK |
 
 All routes live under the Flask Blueprint named `play`.
 
@@ -34,7 +35,7 @@ play = Blueprint("play", __name__)   # registered in the main Flask app
 | `GET` | `/share/<slug>` | `public_play(slug)` | Renders `play_mixtape.html` for a public mixtape; 404 if slug not found. |
 | `GET` | `/covers/<filename>` | `serve_cover(filename)` | Serves a cover image from the configured `COVER_DIR`. |
 | `GET` | `/qr/<slug>.png` | `qr.generate_qr(slug)` | Simple QR – returns a PNG QR code that encodes the public mixtape URL. Optional `size` and `logo` query params. |
-| `GET` | `/qr/<slug>/download` | `qr.download_qr(slug)` | Enhanced QR – returns a PNG that includes the mixtape’s cover art, title banner, and optional logo. Optional `size`, `include_cover`, `include_title` query params. |
+| `GET` | `/qr/<slug>/download` | `qr.download_qr(slug)` | Enhanced QR – returns a PNG that includes the mixtape's cover art, title banner, and optional logo. Optional `size`, `include_cover`, `include_title` query params. |
 | `GET` | `/admin/cache/stats` | `cache_stats()` | Returns JSON with cache size (bytes) and number of cached files. |
 | `POST` | `/admin/cache/clear` | `clear_cache()` | Clears the audio cache; optional `older_than_days` query param. |
 
@@ -94,7 +95,7 @@ sequenceDiagram
 
 ---
 
-## 📦 QR‑Code Generation (Backend)
+## 📦 QR‑Code Generation (Backend)
 
 Implemented in `src/qr_generator/qr_generator.py` and exposed via the `qr` blueprint (`routes/qr_blueprint.py`).
 
@@ -156,7 +157,8 @@ Only activated when the request contains a `Range` header.
 | Header | Value (example) | Reason |
 | ------ | --------------- | ------ |
 | `Accept-Ranges` | `bytes` | Advertise range support. |
-| `Access-Control-Allow-Origin` | `*` | Allow any origin to embed the audio element (needed for cross-origin playback). |
+| `Access-Control-Allow-Origin` | `*` | Allow any origin to embed the audio element (needed for cross-origin playback and **required for Chromecast**). |
+| `Access-Control-Expose-Headers` | `Content-Type, Accept-Encoding, Range` | Required for Chromecast to access range information. |
 | `Cache-Control` | `public, max-age=3600` | Enable browsers/CDNs to cache the file for 1 hour. |
 | `Content-Type` | MIME from `_guess_mime_type` (e.g., `audio/flac`) | Correct media type for the player. |
 | `Content-Range` (partial) | `bytes 0-1023/1234567` | Required for HTTP 206. |
@@ -178,141 +180,295 @@ All logs include the request path and the selected serving path, making troubles
 | --------- | ---------- | ----------- | --------- |
 | Requested file outside `MUSIC_ROOT` | `abort(403)` | 403 Forbidden | warning |
 | File does not exist | `abort(404)` | 404 Not Found | warning |
-| Invalid Range header (out of bounds) | `Response(..., 416)` | 416 Range Not Satisfiable | warning |
-| Unexpected I/O error while reading the file | `abort(500)` (caught in `_handle_range_request`) | 500 Internal Server Error | error |
-| General uncaught exception in `stream_audio` | Propagates → Flask’s default error handling | 500 | error |
+| Invalid range request | `Response("Range Not Satisfiable", 416)` | 416 | warning |
+| IO/system error while reading | `abort(500)` | 500 Internal Server Error | error |
+| Mixtape slug not found | `abort(404)` | 404 Not Found | warning |
+| ValueError or OSError in range handling | `abort(500)` | 500 Internal Server Error | error |
 
 ---
 
-## 🧱 Static Assets that Complement the Endpoint
+## 📡 Chromecast Integration
 
-| Asset | Path | Role |
-| ----- | ---- | ---- |
-| `index.js` | `static/js/player/index.js` | Bootstraps the player UI, adaptive theming, quality selector, cassette-mode UI, and QR sharing. |
-| `playerControls.js` | `static/js/player/playerControls.js` | Implements the quality-selector dropdown, play/pause/skip logic, and UI-state synchronization with the Flask audio element. |
-| `linerNotes.js` | `static/js/player/linerNotes.js` | Renders markdown liner notes (via marked + DOMPurify). |
-| `qrShare.js` (common) | `static/js/common/qrShare.js` | **Shared module** - Handles QR modal display, link copying, and QR download. Used across browser, editor, and player pages. |
-| `adaptiveTheming.js` | `static/js/player/adaptiveTheming.js` | Extracts dominant colors from the mixtape cover (Vibrant.js) and injects CSS custom properties for dynamic theming. |
-| `cassettePlayer.js` | `static/js/player/cassettePlayer.js` | Provides the optional "retro cassette" UI (view-mode toggle, spinning reels, VU meters). |
+The Mixtape Society player supports casting entire mixtapes to Chromecast devices, allowing users to play their mixtapes on TVs and speakers throughout their home.
 
-These assets are loaded by `play_mixtape.html` (the template rendered by `public_play`). They rely on the **JSON API** exposed by the Flask routes (e.g., `/play/<file_path>` for streaming, `/covers/<filename>` for cover art).
-
----
-
-## 📱 Progressive Web App Integration
-
-**Since v1.1.0** — The public playback feature (`/play/share/<slug>`) is enhanced with Progressive Web App capabilities for offline playback.
-
-### Offline Audio Streaming
-
-The service worker intercepts audio streaming requests and implements smart caching:
-
-| Request Type | Service Worker Behavior |
-| ------------ | ----------------------- |
-| **Full file request** (no Range header) | Cache as 200 OK → Available offline |
-| **Range request** (seeking) | Bypass cache → Forward to server (206 response) |
-| **Cached file playback** | Serve instantly from cache ⚡ |
-
-**Why range requests aren't cached:** The Cache API cannot store HTTP 206 (Partial Content) responses. Only full 200 OK responses can be cached. This is a browser platform limitation, not a bug.
-
-### Quality-Aware Caching
-
-Audio cache keys include the quality parameter:
-
-```text
-Cache Key Format: /play/path/to/audio.flac-{quality}
-Examples:
-  - /play/Rammstein/track.flac-medium
-  - /play/Rammstein/track.flac-high
-  - /play/Rammstein/track.flac-low
-```
-
-This allows users to:
-
-- Download mixtapes at different quality levels
-- Switch quality without re-downloading
-- Manage storage vs. quality trade-offs
-
-### Coordination with Backend
-
-The playback routes work seamlessly with the PWA:
-
-1. **`stream_audio()`** adds cache-friendly headers:
-
-   ```python
-   response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
-   response.headers['Access-Control-Allow-Origin'] = '*'
-   ```
-
-2. **Range request handling** returns proper 206 responses that the service worker correctly bypasses
-
-3. **Quality parameter** is passed through and respected by both backend and service worker
-
-### Static Asset Loading
-
-The player page loads PWA-specific JavaScript modules:
-
-```html
-<!-- Only in play_mixtape.html -->
-<script type="module" src="/static/js/pwa/pwa-manager.js"></script>
-```
-
-These modules:
-
-- Register the service worker with `/play/` scope
-- Provide "Download for Offline" functionality
-- Show network status indicators
-- Manage cache storage
-
-### Testing Offline Playback
-
-```bash
-# 1. Visit a mixtape page
-http://localhost:5000/play/share/test-mixtape
-
-# 2. Open DevTools → Application → Service Workers
-# 3. Check "Offline" box
-# 4. Reload page
-# Expected: Page loads from cache ✅
-
-# 5. Click play on a downloaded track
-# Expected: Audio plays from cache ✅
-```
-
-**See the complete PWA documentation:** [Progressive Web App (PWA)](../pwa.md)
-
----
-
-## 📡 Chromecast Support
+### Architecture Overview
 
 ```mermaid
 sequenceDiagram
     actor User
-    participant BrowserPlayer as BrowserPlayer_UI
-    participant ChromecastModule as Chromecast_JS
-    participant CastAPI as Google_Cast_API
-    participant Receiver as Chromecast_Device
-    participant Server as Flask_Server
+    participant Browser as Browser Player
+    participant ChromecastJS as chromecast.js
+    participant CastSDK as Google Cast SDK
+    participant Receiver as Chromecast Device
+    participant Server as Flask Server
 
-    User->>BrowserPlayer: Click cast_button
-    BrowserPlayer->>ChromecastModule: castMixtapePlaylist()
-    alt Existing_cast_session
-        ChromecastModule->>CastAPI: loadQueue(currentCastSession)
-    else No_cast_session
-        ChromecastModule->>CastAPI: requestSession()
-        CastAPI-->>ChromecastModule: session
-        ChromecastModule->>CastAPI: loadQueue(session)
+    User->>Browser: Click cast button
+    Browser->>ChromecastJS: castMixtapePlaylist()
+    
+    alt Existing cast session
+        ChromecastJS->>CastSDK: loadQueue(currentSession)
+    else No active session
+        ChromecastJS->>CastSDK: requestSession()
+        CastSDK-->>ChromecastJS: new session
+        ChromecastJS->>CastSDK: loadQueue(session)
     end
 
-    CastAPI->>Receiver: QueueLoadRequest with media items
-
-    loop For_each_track_in_queue
-        Receiver->>Server: GET /play/<path>?quality=q
-        Server-->>Receiver: 200_or_206 audio/stream with CORS_headers
+    ChromecastJS->>ChromecastJS: silenceLocalPlayer()
+    ChromecastJS->>ChromecastJS: clearMediaSession()
+    
+    CastSDK->>Receiver: QueueLoadRequest with tracks
+    
+    loop For each track
+        Receiver->>Server: GET /play/<path>?quality=medium
+        Server-->>Receiver: 206/200 audio stream + CORS headers
+        Receiver->>Receiver: Buffer & decode
     end
 
-    ChromecastModule->>BrowserPlayer: Pause local main_player
+    Receiver->>CastSDK: Media state updates
+    CastSDK->>ChromecastJS: Player state callbacks
+    ChromecastJS->>Browser: Update UI state
+    
+    Note over Browser,Receiver: User controls playback via phone/computer
+    Note over Receiver: Audio plays on Chromecast device
 ```
+
+### Key Components
+
+#### 1. chromecast.js Module
+
+Located at `static/js/player/chromecast.js`, this module handles all Chromecast interactions:
+
+**Initialization:**
+- `initChromecast()` - Loads Google Cast SDK and sets up API
+- `initializeCastApi()` - Configures Cast API with app ID and session policies
+- Dispatches `cast:ready` event when SDK is initialized
+
+**Session Management:**
+- `sessionListener()` - Handles new cast sessions
+- `onCastSessionStart()` - Fires when casting begins
+- `onCastSessionEnd()` - Cleans up when casting stops
+- Sets `globalCastingState` flag for UI coordination
+
+**Media Control:**
+- `castPlay()` / `castPause()` - Playback control
+- `castNext()` / `castPrevious()` - Track navigation
+- `castSeek()` - Seek to specific time
+- `castJumpToTrack()` - Jump to track by index
+- `castTogglePlayPause()` - Toggle play/pause state
+
+**Queue Management:**
+- `castMixtapePlaylist()` - Loads entire mixtape as a queue
+- `loadQueue()` - Builds queue from `window.__mixtapeData.tracks`
+- Constructs proper audio URLs with quality parameter
+- Includes metadata (title, artist, album, cover art)
+
+#### 2. Media Session Integration
+
+When casting is active, `chromecast.js` manages the browser's Media Session API:
+
+```javascript
+// Update Media Session to mirror Chromecast state
+function updateMediaSessionForCast(media) {
+    navigator.mediaSession.metadata = new MediaMetadata({
+        title: metadata.title,
+        artist: metadata.artist,
+        album: metadata.albumName,
+        artwork: metadata.images
+    });
+    
+    // Set action handlers
+    navigator.mediaSession.setActionHandler('play', () => castPlay());
+    navigator.mediaSession.setActionHandler('pause', () => castPause());
+    navigator.mediaSession.setActionHandler('previoustrack', () => castPrevious());
+    navigator.mediaSession.setActionHandler('nexttrack', () => castNext());
+    navigator.mediaSession.setActionHandler('seekto', (details) => {
+        castSeek(details.seekTime);
+    });
+}
+```
+
+This allows users to control Chromecast playback from:
+- Lock screen media controls
+- Notification shade (Android)
+- Control Center (iOS)
+- Hardware media keys
+
+#### 3. Player Controls Integration
+
+The `playerControls.js` module checks `globalCastingState` to coordinate between local and cast playback:
+
+```javascript
+import { globalCastingState, isCasting, castPlay, castPause } from './chromecast.js';
+
+function playTrack(index) {
+    if (globalCastingState) {
+        // Route to Chromecast
+        castJumpToTrack(index);
+        return;
+    }
+    // Local playback
+    player.src = trackUrl;
+    player.play();
+}
+```
+
+#### 4. Local Player Management
+
+When casting starts, `playerUtils.js` silences the local player:
+
+```javascript
+export function silenceLocalPlayer() {
+    const player = document.getElementById('main-player');
+    player.pause();
+    player.src = '';
+    player.load();
+    player.removeAttribute('controls');
+    player.volume = 0;
+    player.muted = true;
+}
+
+export function clearMediaSession() {
+    navigator.mediaSession.playbackState = 'none';
+    navigator.mediaSession.metadata = null;
+    // Remove all action handlers
+}
+```
+
+This ensures:
+- No duplicate media controls
+- Only Chromecast controls are active
+- Battery-efficient operation
+
+### Server Requirements
+
+For Chromecast to work properly, the Flask server must:
+
+1. **CORS Headers** - Already implemented in `stream_audio()`:
+   ```python
+   response.headers["Access-Control-Allow-Origin"] = "*"
+   response.headers["Access-Control-Expose-Headers"] = "Content-Type, Accept-Encoding, Range"
+   ```
+
+2. **Range Requests** - Chromecast uses range requests for seeking
+   - Handled by `_handle_range_request()`
+   - Returns 206 Partial Content responses
+
+3. **Quality Support** - Chromecast respects quality parameter:
+   ```
+   GET /play/artist/album/track.flac?quality=medium
+   ```
+   - Returns transcoded MP3 if cached
+   - Falls back to original if cache miss
+
+### User Flow
+
+1. **Cast Button Appears** - When Cast SDK loads successfully
+2. **User Clicks Cast** - Opens Cast device picker
+3. **Select Device** - User chooses Chromecast
+4. **Queue Loads** - Entire mixtape loads to Chromecast
+5. **Local Player Silenced** - Browser player pauses and hides controls
+6. **Playback Begins** - Audio plays on Chromecast device
+7. **Controls Unified** - Phone/computer controls Chromecast
+8. **Stop Casting** - Restores local player when user stops
+
+### iOS Support
+
+Special considerations for iOS devices:
+
+```javascript
+function showiOSCastHelp() {
+    const helpHtml = `
+        <div class="alert alert-info">
+            <h6>📱 Casting from iPhone</h6>
+            <small>
+                <strong>To cast to Chromecast:</strong><br>
+                1. Install Google Home app<br>
+                2. Use Chrome browser (not Safari)<br>
+                3. Connect to same WiFi network<br>
+                <br>
+                <strong>For best experience:</strong><br>
+                Add this page to your Home Screen (PWA mode)
+            </small>
+        </div>
+    `;
+}
+```
+
+iOS has limitations:
+- Safari doesn't support Cast SDK (use Chrome)
+- Requires Google Home app installed
+- PWA mode recommended for better integration
+
+### Technical Details
+
+**Cast Application ID:** `CC1AD845` (Default Media Receiver)
+
+**Queue Configuration:**
+- `RepeatMode.OFF` - No repeat
+- `startIndex` - Begins from current track (`window.currentTrackIndex`)
+- `autoplay: true` - Tracks play sequentially
+- `preloadTime: 5` - Preload 5 seconds of next track
+
+**State Management:**
+- `globalCastingState` - Boolean flag for casting status
+- `currentCastSession` - Active Cast session object
+- `currentMedia` - Current media controller
+- `castPlayState` - Player state ('IDLE', 'PLAYING', 'PAUSED', 'BUFFERING')
+
+**Callbacks:**
+```javascript
+setCastControlCallbacks({
+    onTrackChange: (index) => { /* Update UI */ },
+    onPlayStateChange: (state) => { /* Update buttons */ },
+    onTimeUpdate: (time) => { /* Update progress */ }
+});
+```
+
+### Testing Checklist
+
+- [ ] Cast button appears when SDK loads
+- [ ] Device picker opens on click
+- [ ] Mixtape loads to Chromecast
+- [ ] Local player silences when casting starts
+- [ ] Play/pause controls work
+- [ ] Previous/next track navigation works
+- [ ] Seeking works via Media Session
+- [ ] Lock screen controls work (mobile)
+- [ ] Queue plays through entire mixtape
+- [ ] Stopping cast restores local player
+- [ ] Quality parameter respected
+- [ ] Cover art displays on Chromecast
+- [ ] Metadata shows correctly
+
+### Troubleshooting
+
+**Cast button not appearing:**
+- Check browser console for Cast SDK load errors
+- Verify `cast-framework.js` CDN is accessible
+- Ensure HTTPS (Cast requires secure context)
+
+**Audio not playing:**
+- Check CORS headers in network tab
+- Verify audio URLs are absolute (not relative)
+- Confirm MIME types are correct
+- Check server logs for 403/404 errors
+
+**Seeking not working:**
+- Verify Range header support in `_handle_range_request()`
+- Check `Access-Control-Expose-Headers` includes "Range"
+- Confirm 206 responses working correctly
+
+**iOS issues:**
+- User must use Chrome browser (not Safari)
+- Google Home app required
+- Both devices on same WiFi network
+- Consider showing help message automatically
+
+---
+
+## 📐 Class & Sequence Diagrams
+
+### Chromecast Architecture
 
 ```mermaid
 classDiagram
@@ -320,66 +476,86 @@ classDiagram
         <<module>>
         - CAST_APP_ID : string
         - currentCastSession
+        - currentMedia
+        - castPlayState
+        - globalCastingState
         + initChromecast()
         + castMixtapePlaylist()
+        + castPlay()
+        + castPause()
+        + castNext()
+        + castPrevious()
+        + castSeek()
+        + castJumpToTrack()
         + stopCasting()
+        + isCasting()
+        + setCastControlCallbacks()
         - initializeCastApi()
-        - onInitSuccess()
-        - onError(error)
-        - sessionListener(session)
-        - receiverListener(availability)
-        - onCastSessionStart()
-        - onCastSessionEnd()
-        - loadQueue(session)
-    }
-
-    class PlayerIndexJS {
-        <<module>>
-        + initPage()
+        - sessionListener()
+        - attachMediaListener()
+        - loadQueue()
+        - updateMediaSessionForCast()
     }
 
     class PlayerControlsJS {
         <<module>>
         - currentIndex : number
         - currentQuality : string
+        - isCurrentlyCasting : boolean
         + initPlayerControls()
         - playTrack(index)
+        - handlePlayPause()
         - updateAudioProgress()
+    }
+    
+    class PlayerUtilsJS {
+        <<module>>
+        + silenceLocalPlayer()
+        + enableLocalPlayer()
+        + clearMediaSession()
+        + setupLocalMediaSession()
+        + detectiOS()
+    }
+
+    class PlayerIndexJS {
+        <<module>>
+        + DOMContentLoaded handler
     }
 
     class PlayMixtapeTemplate {
-        <<template>>
+        <<HTML template>>
         + cast_button
         + main_player
-        + mixtapeData_div
-        + __mixtapeData_rawMarkdown (rawMarkdown)
-        + __mixtapeData_tracks (tracks)
-        + __mixtapeData_baseUrl (baseUrl)
+        + __mixtapeData
+        + track_items
     }
 
     class PlayRoute {
-        <<Flask_route>>
-        + Response stream_audio(file_path)
-        - Response _handle_range_request(path, range_header)
+        <<Flask route>>
+        + stream_audio(file_path)
+        + public_play(slug)
+        - _handle_range_request()
+        - _get_serving_path()
+    }
+    
+    class GoogleCastSDK {
+        <<External SDK>>
+        + chrome.cast.initialize()
+        + chrome.cast.requestSession()
+        + QueueLoadRequest
+        + MediaInfo
+        + MusicTrackMediaMetadata
     }
 
+    ChromecastModule ..> PlayerControlsJS : provides casting state
+    ChromecastModule ..> PlayerUtilsJS : uses player control
+    ChromecastModule ..> GoogleCastSDK : uses Cast API
     ChromecastModule ..> PlayMixtapeTemplate : reads __mixtapeData
-    ChromecastModule ..> PlayerControlsJS : reads window.currentTrackIndex
-    PlayerIndexJS ..> ChromecastModule : calls initChromecast()
-    PlayerIndexJS ..> ChromecastModule : calls castMixtapePlaylist()
-    PlayerIndexJS ..> ChromecastModule : calls stopCasting()
-    PlayerIndexJS ..> PlayMixtapeTemplate : binds cast_button events
-    PlayerControlsJS ..> PlayMixtapeTemplate : controls main_player
-    PlayerControlsJS --> PlayMixtapeTemplate : updates window.currentTrackIndex
-    PlayRoute --> PlayMixtapeTemplate : serves audio URLs for tracks
-
-    PlayRoute : sets header Access-Control-Allow-Origin
-    PlayRoute : sets header Access-Control-Expose-Headers
+    PlayerIndexJS ..> ChromecastModule : initializes & binds
+    PlayerControlsJS ..> ChromecastModule : checks globalCastingState
+    ChromecastModule ..> PlayRoute : requests audio streams
+    GoogleCastSDK ..> PlayRoute : fetches media with CORS
 ```
-
----
-
-## 📐 Class & Sequence Diagrams
 
 ### Blueprint/Class Diagram
 
@@ -418,7 +594,7 @@ classDiagram
     _get_serving_path ..> AudioCache : uses
 ```
 
-## 🔁 Sequence Diagram
+### Sequence Diagram
 
 ```mermaid
 sequenceDiagram
