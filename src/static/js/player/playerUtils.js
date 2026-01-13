@@ -103,76 +103,11 @@ export function clearMediaSession() {
 }
 
 /**
- * Setup Media Session for Chromecast control
- * iOS-optimized with proper error handling
+ * REMOVED: setupCastMediaSession
+ * When casting, we DO NOT create our own Media Session.
+ * The Chromecast creates its own native media control with all features.
+ * We only create Media Session for LOCAL playback.
  */
-export function setupCastMediaSession(metadata, castControls) {
-    if (!('mediaSession' in navigator)) {
-        console.warn('⚠️ Media Session API not available');
-        return;
-    }
-    
-    const iOS = detectiOS();
-    
-    try {
-        console.log('🎵 Setting up Media Session for Chromecast', metadata);
-        
-        // Set metadata with artwork
-        navigator.mediaSession.metadata = new MediaMetadata({
-            title: metadata.title,
-            artist: metadata.artist,
-            album: metadata.album,
-            artwork: metadata.artwork
-        });
-        
-        // Set playback state
-        navigator.mediaSession.playbackState = 'playing';
-        
-        // Set action handlers to control Chromecast
-        navigator.mediaSession.setActionHandler('play', () => {
-            console.log('Media Session: play');
-            castControls.play();
-        });
-
-        navigator.mediaSession.setActionHandler('pause', () => {
-            console.log('Media Session: pause');
-            castControls.pause();
-        });
-
-        navigator.mediaSession.setActionHandler('previoustrack', () => {
-            console.log('Media Session: previous');
-            castControls.previous();
-        });
-
-        navigator.mediaSession.setActionHandler('nexttrack', () => {
-            console.log('Media Session: next');
-            castControls.next();
-        });
-        
-        // iOS: Try to set seekbackward/seekforward (may not be supported)
-        if (iOS && iOS.version >= 15) {
-            try {
-                navigator.mediaSession.setActionHandler('seekbackward', () => {
-                    console.log('Media Session: seek backward');
-                    castControls.previous();
-                });
-                
-                navigator.mediaSession.setActionHandler('seekforward', () => {
-                    console.log('Media Session: seek forward');
-                    castControls.next();
-                });
-            } catch (e) {
-                console.debug('iOS seek actions not supported:', e);
-            }
-        }
-        
-        if (iOS) {
-            console.log('✅ Media Session configured for iOS');
-        }
-    } catch (error) {
-        console.error('❌ Failed to setup Media Session:', error);
-    }
-}
 
 /**
  * Setup Media Session for local player control
@@ -181,6 +116,8 @@ export function setupLocalMediaSession(metadata, playerControls) {
     if (!('mediaSession' in navigator)) return;
 
     try {
+        console.log('🎵 Setting up Media Session for LOCAL playback');
+        
         navigator.mediaSession.metadata = new MediaMetadata({
             title: metadata.title,
             artist: metadata.artist,
