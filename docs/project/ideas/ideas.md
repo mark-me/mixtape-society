@@ -34,6 +34,14 @@ To keep the soul of the project:
 - Cache current mixtape for offline playback
 - Queue-based background download of tracks
 - Super-light Flutter/Tauri app (webview + native controls)
+- Background sync for offline actions
+- Push notifications for new mixtapes
+- Predictive caching based on listening patterns
+- Differential updates (only changed tracks)
+- Peer-to-peer sharing (WebRTC)
+- Offline playlist editing (IndexedDB)
+- Advanced compression (Opus codec)
+- Smart preloading next track
 
 ## 💬 Sharing & Discovery
 

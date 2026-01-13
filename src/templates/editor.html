@@ -134,7 +134,7 @@
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link" id="notes-tab" data-bs-toggle="tab" data-bs-target="#notes-pane" type="button">Liner Notes</button>
                             </li>
-                            <li class="nav-item ms-auto"> <!-- This pushes the button to the far right -->
+                            <li class="nav-item ms-auto">
                                 <button id="toggle-reorder-mode" class="nav-link px-3" title="Expand for reordering">
                                     <i class="bi bi-arrows-angle-expand"></i>
                                 </button>
@@ -173,12 +173,6 @@
                                             <textarea id="liner-notes"></textarea>
                                         </div>
                                         <div class="tab-pane fade h-100 overflow-auto p-3 bg-light" id="preview-pane">
-                                        <!--
-                                            The preview pane should blend with the current Bootstrap
-                                            colour scheme (dark or light).  `bg-body` applies the
-                                            appropriate background colour, and `border` adds a thin
-                                            border that also respects the theme.
-                                        -->
                                         <div id="markdown-preview"
                                             class="markdown-body bg-body border rounded p-2"></div>
                                         </div>
@@ -195,7 +189,7 @@
 
     <!-- Floating buttons for mobile only -->
     <div class="floating-buttons d-lg-none position-fixed bottom-0 end-0 p-3" style="z-index: 1050;">
-        <!-- Save button: appears only when unsaved (on the left when visible) -->
+        <!-- Save button -->
         <button id="floating-save"
                 class="btn btn-primary shadow-lg rounded-circle d-flex align-items-center justify-content-center hidden"
                 title="Save Mixtape"
@@ -203,7 +197,7 @@
             <i class="bi bi-save fs-4"></i>
         </button>
 
-        <!-- Tracks button: always visible (on the far right) -->
+        <!-- Tracks button -->
         <button id="floating-tracks"
                 class="btn btn-secondary shadow-lg rounded-circle ms-3 d-flex align-items-center justify-content-center"
                 title="Go to Tracks"
@@ -228,15 +222,15 @@
 
     <!-- Cover Options Modal -->
     <div class="modal fade" id="coverOptionsModal" tabindex="-1" aria-labelledby="coverOptionsModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-md">  <!-- modal-md for balanced size; centers on screen -->
+        <div class="modal-dialog modal-dialog-centered modal-md">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="coverOptionsModalLabel">Choose Cover Option</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="row g-3">  <!-- Responsive grid: full-width on mobile, side-by-side on desktop -->
-                        <div class="col-12 col-md-6">  <!-- Stacks vertically on small screens -->
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
                             <button id="upload-cover-option" class="btn btn-primary w-100 h-100 py-4">
                                 <i class="bi bi-upload me-2"></i>Upload Image
                             </button>
@@ -286,7 +280,6 @@
                 <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
         </div>
-        <!-- NEW: Red "deleted" toast -->
         <div id="removeTrackToast" class="toast align-items-center text-bg-danger border-0 toast-animated" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="d-flex">
                 <div class="toast-body">

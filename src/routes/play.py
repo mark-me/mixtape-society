@@ -81,6 +81,7 @@ def create_play_blueprint(mixtape_manager: MixtapeManager, path_audio_cache: Pat
         response = send_file(serve_path, mimetype=mime_type, download_name=serve_path.name)
         response.headers["Accept-Ranges"] = "bytes"
         response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Expose-Headers"] = "Content-Type, Accept-Encoding, Range"
         response.headers["Cache-Control"] = "public, max-age=3600"
         return response
 
@@ -216,6 +217,7 @@ def create_play_blueprint(mixtape_manager: MixtapeManager, path_audio_cache: Pat
                     "Accept-Ranges": "bytes",
                     "Content-Length": str(length),
                     "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Expose-Headers": "Content-Type, Accept-Encoding, Range",
                     "Cache-Control": "public, max-age=3600",
                 }
             )

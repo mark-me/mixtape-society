@@ -67,6 +67,17 @@
     {% else %}
         <meta name="twitter:image" content="{{ url_for('static', filename='image.jpg') }}"/>
     {% endif %}
+
+    <!-- PWA Manifest - Only for shared pages -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#198754">
+
+    <!-- Apple PWA Support -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Mixtape Society">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
 {% endblock %}
 
 {% block extra_css %}
@@ -78,6 +89,14 @@
 
 {% block content %}
     <div class="container py-5">
+
+        <!-- Offline indicator for PWA -->
+        <div id="offline-indicator"
+             class="alert alert-warning mb-0 text-center rounded-0"
+             style="display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 1050;">
+            <i class="bi bi-wifi-off me-2"></i>
+            <strong>Offline Mode</strong> - Playing cached tracks only
+        </div>
 
         {% if not public %}
         <a href="/mixtapes" class="btn btn-outline-secondary btn-sm mb-4">
@@ -153,6 +172,14 @@
                                 <div class="mb-2 mb-md-0">
                                     <button id="prev-btn-bottom" class="btn btn-sm btn-outline-light"><i class="bi bi-skip-backward-fill"></i></button>
                                     <button id="next-btn-bottom" class="btn btn-sm btn-outline-light ms-1"><i class="bi bi-skip-forward-fill"></i></button>
+                                    <button
+                                        id="cast-button"
+                                        class="btn btn-sm btn-outline-secondary rounded-circle cast-btn"
+                                        title="Cast to device"
+                                        style="width: 38px; height: 38px; padding: 0;"
+                                        hidden>
+                                        <i class="bi bi-cast"></i>
+                                    </button>
 
                                     <!-- Quality selector -->
                                     <div class="quality-selector d-inline-block ms-2">
@@ -199,6 +226,13 @@
                                 title="Copy public share link">
                             <i class="bi bi-share-fill me-2" style="font-size: 1.4rem;"></i>
                             <span class="btn-text">Share</span>
+                        </button>
+                        <button id="download-mixtape-btn"
+                                class="btn btn-outline-success btn-lg rounded-pill px-4 py-3 shadow ms-3"
+                                title="Download all tracks for offline playback"
+                                style="display: none;">
+                            <i class="bi bi-download me-2"></i>
+                            <span class="btn-text">Download for Offline</span>
                         </button>
                     </div>
                 </div>
@@ -276,17 +310,21 @@
     <!-- Vibrant.js for adaptive color theming from cover art -->
     <script src="https://cdn.jsdelivr.net/npm/node-vibrant@3.2.1-alpha.1/dist/vibrant.min.js"></script>
 
-    <script>
-        window.__mixtapeData = {
-            rawMarkdown: {{ mixtape.liner_notes | tojson | safe }},
-            tracks:     {{ mixtape.tracks | tojson | safe }}
-        };
-    </script>
     <div id="mixtape-data"
      data-markdown='{{ mixtape.liner_notes | tojson | safe }}'
      data-tracks='{{ mixtape.tracks | tojson | safe }}'
      style="display:none;">
     </div>
+    <script type="text/javascript" src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
+
+    <script>
+        window.__mixtapeData = {
+            rawMarkdown: {{ mixtape.liner_notes | tojson | safe }},
+            tracks: {{ mixtape.tracks | tojson | safe }},
+            baseUrl: '{{ url_for('play.stream_audio', file_path='') }}'  // For building audio URLs
+        };
+    </script>
 
     <script type="module" src="{{ url_for('static', filename='js/player/index.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/pwa/pwa-manager.js') }}"></script>
 {% endblock %}
