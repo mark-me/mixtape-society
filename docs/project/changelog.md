@@ -8,9 +8,14 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 ## 📦 v0.5.7
 
-<span class="md-tag">Development</span>
+<span class="md-tag">Release</span>
 
-**🗓️** 2026-01-xx
+**🗓️** 2026-01-13
+
+### ✨ Added
+
+- Added PWA (Progressive Web App) support for offline playback and installation
+- Added ChromeCast support for playback
 
 ### 🐛 Fixed
 

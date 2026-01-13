@@ -1,4 +1,29 @@
 // static/js/player/playerControls.js
+import { 
+    globalCastingState,
+    isCasting, 
+    castPlay, 
+    castPause, 
+    castTogglePlayPause,
+    castNext, 
+    castPrevious, 
+    castJumpToTrack,
+    isCastPlaying,
+    setCastControlCallbacks,
+    getCurrentCastMetadata,
+    getCurrentCastTime
+} from './chromecast.js';
+
+import {
+    detectiOS,
+    logDeviceInfo,
+    silenceLocalPlayer,
+    enableLocalPlayer,
+    clearMediaSession,
+    setupLocalMediaSession,
+    updateMediaSessionPosition,
+    extractMetadataFromDOM
+} from './playerUtils.js';
 
 /**
  * Quality settings for audio playback
@@ -12,23 +37,49 @@ const QUALITY_LEVELS = {
 
 const DEFAULT_QUALITY = 'medium';
 
+// Global flag to prevent duplicate iOS help setup
+let iOSHelpInitialized = false;
+
+const iOS = detectiOS();
+
 /**
- * Guesses the MIME type based on the file extension in the URL
- * @param {string} url - The image URL
- * @returns {string} MIME type (falls back to 'image/jpeg')
+ * Show iOS-specific help message
  */
-function getMimeTypeFromUrl(url) {
-    const extension = url.split('.').pop().toLowerCase();
-    const mimeMap = {
-        'jpg': 'image/jpeg',
-        'jpeg': 'image/jpeg',
-        'png': 'image/png',
-        'webp': 'image/webp',
-        'gif': 'image/gif',
-        'bmp': 'image/bmp',
-        // Voeg gerust meer toe als je andere formaten ondersteunt
-    };
-    return mimeMap[extension] || 'image/jpeg'; // veilige fallback
+function showiOSCastHelp() {
+    if (!iOS || iOSHelpInitialized) return;
+    
+    iOSHelpInitialized = true;
+    
+    const helpHtml = `
+        <div class="alert alert-info alert-dismissible fade show" role="alert" style="position: fixed; top: 70px; left: 50%; transform: translateX(-50%); z-index: 9999; max-width: 90%; width: 400px;">
+            <h6 class="alert-heading">📱 Casting from iPhone</h6>
+            <small>
+                <strong>To cast to Chromecast:</strong><br>
+                1. Install Google Home app<br>
+                2. Use Chrome browser (not Safari)<br>
+                3. Connect to same WiFi network<br>
+                <br>
+                <strong>For best experience:</strong><br>
+                Add this page to your Home Screen (PWA mode)
+            </small>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    
+    const castBtn = document.getElementById('cast-button');
+    
+    if (castBtn) {
+        castBtn.addEventListener('click', () => {
+            setTimeout(() => {
+                if (!isCasting()) {
+                    const existingHelp = document.querySelector('.alert-info');
+                    if (!existingHelp) {
+                        document.body.insertAdjacentHTML('afterbegin', helpHtml);
+                    }
+                }
+            }, 3000);
+        }, { once: true });
+    }
 }
 
 export function initPlayerControls() {
@@ -42,11 +93,71 @@ export function initPlayerControls() {
     const bottomArtistAlbum = document.getElementById('bottom-now-artist-album');
 
     let currentIndex = -1;
+    window.currentTrackIndex = currentIndex;
     let currentQuality = localStorage.getItem('audioQuality') || DEFAULT_QUALITY;
+    let isCurrentlyCasting = false;
 
-    /**
-     * Initialize quality selector dropdown and event handlers
-     */
+    logDeviceInfo();
+    
+    if (iOS) {
+        showiOSCastHelp();
+    }
+    
+    console.log('🎮 PlayerControls initialized');
+
+    function checkCastingState() {
+        return globalCastingState || isCurrentlyCasting;
+    }
+
+    function onlyWhenNotCasting(handler) {
+        return function(...args) {
+            if (!checkCastingState()) {
+                handler.apply(this, args);
+            }
+        };
+    }
+
+    function setupAudioControlInterception() {
+        player.addEventListener('play', (e) => {
+            if (checkCastingState()) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                player.pause();
+                castPlay();
+                return false;
+            }
+        }, true);
+
+        player.addEventListener('pause', (e) => {
+            if (checkCastingState()) {
+                e.stopPropagation();
+                castPause();
+            }
+        });
+
+        player.addEventListener('seeking', (e) => {
+            if (checkCastingState()) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }, true);
+        
+        player.addEventListener('loadeddata', (e) => {
+            if (checkCastingState()) {
+                e.stopPropagation();
+                player.pause();
+            }
+        }, true);
+        
+        // Block metadata events while casting
+        player.addEventListener('loadedmetadata', (e) => {
+            if (checkCastingState()) {
+                e.stopPropagation();
+            }
+        }, true);
+    }
+
     function initQualitySelector() {
         const qualityBtn = document.getElementById('quality-btn-bottom');
         const qualityMenu = document.getElementById('quality-menu');
@@ -55,20 +166,17 @@ export function initPlayerControls() {
 
         updateQualityButtonText();
 
-        // Toggle dropdown
         qualityBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             qualityMenu.classList.toggle('show');
         });
 
-        // Close dropdown when clicking outside
         document.addEventListener('click', (e) => {
             if (!qualityBtn.contains(e.target) && !qualityMenu.contains(e.target)) {
                 qualityMenu.classList.remove('show');
             }
         });
 
-        // Handle quality selection
         qualityMenu.querySelectorAll('.quality-option').forEach(option => {
             option.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -83,9 +191,6 @@ export function initPlayerControls() {
         });
     }
 
-    /**
-     * Updates quality button text to show current quality
-     */
     function updateQualityButtonText() {
         const qualityBtn = document.getElementById('quality-btn-bottom');
         if (!qualityBtn) return;
@@ -94,9 +199,6 @@ export function initPlayerControls() {
         qualityBtn.innerHTML = `<i class="bi bi-gear-fill me-1"></i>${qualityLabel}`;
     }
 
-    /**
-     * Updates active state of quality menu options
-     */
     function updateQualityMenuState(quality) {
         document.querySelectorAll('.quality-option').forEach(opt => {
             const checkIcon = opt.querySelector('.bi-check2');
@@ -110,9 +212,6 @@ export function initPlayerControls() {
         });
     }
 
-    /**
-     * Changes audio quality and reloads current track if playing
-     */
     function changeQuality(newQuality) {
         currentQuality = newQuality;
         localStorage.setItem('audioQuality', newQuality);
@@ -120,8 +219,7 @@ export function initPlayerControls() {
         updateQualityButtonText();
         updateQualityMenuState(newQuality);
 
-        // If something is playing, reload with new quality
-        if (currentIndex >= 0 && player.src) {
+        if (currentIndex >= 0 && player.src && !checkCastingState()) {
             const wasPlaying = !player.paused;
             const currentTime = player.currentTime;
 
@@ -135,9 +233,6 @@ export function initPlayerControls() {
         showQualityToast(newQuality);
     }
 
-    /**
-     * Shows toast notification for quality change
-     */
     function showQualityToast(quality) {
         const toastEl = document.getElementById('qualityToast');
         if (!toastEl) return;
@@ -153,107 +248,52 @@ export function initPlayerControls() {
         toast.show();
     }
 
-    /**
-     * Updates Media Session API metadata for mobile notifications
-     */
-    function updateMediaSession(track) {
-        if (!('mediaSession' in navigator)) return;
-
-        const coverImg = track.querySelector('.track-cover');
-        let artwork = [];
-
-        if (coverImg && coverImg.src) {
-            const mimeType = getMimeTypeFromUrl(coverImg.src);
-
-            // Provide multiple sizes – Chrome on Android prefers 512x512 (256x256 on low-end devices)
-            artwork = [
-                { src: coverImg.src, sizes: '96x96',   type: mimeType },
-                { src: coverImg.src, sizes: '128x128', type: mimeType },
-                { src: coverImg.src, sizes: '192x192', type: mimeType },
-                { src: coverImg.src, sizes: '256x256', type: mimeType },
-                { src: coverImg.src, sizes: '384x384', type: mimeType },
-                { src: coverImg.src, sizes: '512x512', type: mimeType }
-            ];
+    function updateLocalMediaSession(metadata) {
+        if (checkCastingState()) {
+            // CRITICAL: Do NOT create Media Session when casting
+            console.log('⏭️ Skipping Media Session - Chromecast handles it');
+            return;
         }
-
-        navigator.mediaSession.metadata = new MediaMetadata({
-            title: track.dataset.title,
-            artist: track.dataset.artist,
-            album: track.dataset.album || '',
-            artwork: artwork
+        
+        setupLocalMediaSession(metadata, {
+            play: () => player.play().catch(e => console.log('Media Session play failed:', e)),
+            pause: () => player.pause(),
+            previous: () => playTrack(currentIndex - 1),
+            next: () => playTrack(currentIndex + 1)
         });
-
-        // Fallback to mixtape-cover or favicon if there's no track cover
-
-        navigator.mediaSession.metadata = new MediaMetadata({
-            title: track.dataset.title,
-            artist: track.dataset.artist,
-            album: track.dataset.album || '',
-            artwork: artwork
-        });
-
-        // Set action handlers for media controls
-        navigator.mediaSession.setActionHandler('play', () => {
-            player.play().catch(e => console.log('Media Session play failed:', e));
-        });
-
-        navigator.mediaSession.setActionHandler('pause', () => {
-            player.pause();
-        });
-
-        navigator.mediaSession.setActionHandler('previoustrack', () => {
-            playTrack(currentIndex - 1);
-        });
-
-        navigator.mediaSession.setActionHandler('nexttrack', () => {
-            playTrack(currentIndex + 1);
-        });
-
-        // Update position state when metadata changes
+        
         updatePositionState();
     }
 
-    /**
-     * Updates Media Session position state for progress indicator
-     */
     function updatePositionState() {
-        if (!('mediaSession' in navigator) || !('setPositionState' in navigator.mediaSession)) return;
-
-        // Only update if we have valid duration and position data
-        if (player.duration && !isNaN(player.duration) && isFinite(player.duration)) {
-            try {
-                navigator.mediaSession.setPositionState({
-                    duration: player.duration,
-                    playbackRate: player.playbackRate || 1.0,
-                    position: Math.min(player.currentTime, player.duration) // Ensure position doesn't exceed duration
-                });
-            } catch (error) {
-                // Silently fail if position state can't be set (some browsers don't support it)
-                console.debug('Could not set position state:', error);
-            }
-        }
+        if (checkCastingState()) return;
+        updateMediaSessionPosition(player.currentTime, player.duration, player.playbackRate || 1.0);
     }
 
-    /**
-     * Builds audio source URL with quality parameter
-     */
     function buildAudioUrl(basePath, quality) {
         const urlParams = new URLSearchParams();
         urlParams.set('quality', quality);
         return `${basePath}?${urlParams.toString()}`;
     }
 
-    /**
-     * Plays track at given index with current quality setting
-     */
     function playTrack(index) {
-        // If index is same as current, don't reload the source
+        console.log(`🎵 playTrack(${index}), casting: ${checkCastingState()}`);
+        
+        if (checkCastingState()) {
+            console.log(`📡 Routing to Chromecast`);
+            castJumpToTrack(index);
+            updateUIForTrack(index);
+            // NO Media Session setup - Chromecast handles it
+            return;
+        }
+
+        console.log(`🔊 Playing locally`);
+        
         if (index === currentIndex && player.src !== '') {
             player.play().catch(e => console.log('Autoplay prevented:', e));
             return;
         }
 
-        // Handle bounds and stopping
         if (index < 0 || index >= trackItems.length) {
             stopPlayback();
             return;
@@ -263,12 +303,24 @@ export function initPlayerControls() {
 
         player.src = buildAudioUrl(track.dataset.path, currentQuality);
         if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {
-        try {
-            navigator.mediaSession.setPositionState(); // Clear state
-        } catch (e) {
-            // Catch browser error if there is no state yet
+            try {
+                navigator.mediaSession.setPositionState();
+            } catch (e) {}
         }
+
+        updateUIForTrack(index);
+
+        const metadata = extractMetadataFromDOM(track);
+        updateLocalMediaSession(metadata);
+
+        player.play().catch(e => console.log('Autoplay prevented:', e));
     }
+
+    function updateUIForTrack(index) {
+        if (index < 0 || index >= trackItems.length) return;
+
+        const track = trackItems[index];
+        
         bottomTitle.textContent = track.dataset.title;
         bottomArtistAlbum.textContent = `${track.dataset.artist} • ${track.dataset.album}`;
         container.style.display = 'block';
@@ -277,36 +329,31 @@ export function initPlayerControls() {
         track.classList.add('active-track');
 
         currentIndex = index;
-
-        // Update Media Session metadata for mobile notifications
-        updateMediaSession(track);
-
-        player.play().catch(e => console.log('Autoplay prevented:', e));
+        window.currentTrackIndex = index;
     }
 
-    /**
-     * Stops playback and hides player
-     */
     function stopPlayback() {
         player.pause();
         player.src = '';
+        player.load();
         container.style.display = 'none';
         trackItems.forEach(t => t.classList.remove('active-track'));
         currentIndex = -1;
+        
+        clearMediaSession();
     }
 
-    /**
-     * Syncs play/pause icon states across all track items
-     */
     function syncPlayIcons() {
         trackItems.forEach((item, idx) => {
             const icon = item.querySelector('.play-overlay-btn i');
             if (!icon) return;
 
             const isCurrentTrack = idx === currentIndex;
-            const isPlaying = isCurrentTrack && !player.paused;
+            const isPlaying = isCurrentTrack && (
+                (checkCastingState() && isCastPlaying()) || 
+                (!checkCastingState() && !player.paused)
+            );
 
-            // Update icon
             if (isPlaying) {
                 icon.classList.remove('bi-play-fill');
                 icon.classList.add('bi-pause-fill');
@@ -315,7 +362,6 @@ export function initPlayerControls() {
                 icon.classList.add('bi-play-fill');
             }
 
-            // Update track item state
             if (isPlaying) {
                 item.classList.add('playing');
             } else {
@@ -324,83 +370,126 @@ export function initPlayerControls() {
         });
     }
 
-    /**
-     * Toggles play/pause for the current track
-     */
     function togglePlayPause() {
-        if (player.paused) {
-            player.play().catch(err => console.error("Resume failed:", err));
+        if (checkCastingState()) {
+            castTogglePlayPause();
         } else {
-            player.pause();
+            if (player.paused) {
+                player.play().catch(err => console.error("Resume failed:", err));
+            } else {
+                player.pause();
+            }
         }
     }
 
-    /**
-     * Updates audio player progress bar coloring
-     */
     function updateAudioProgress() {
         if (!player.duration || isNaN(player.duration)) return;
-        
+
         const progress = (player.currentTime / player.duration) * 100;
         player.style.setProperty('--audio-progress', `${progress}%`);
     }
 
-    /**
-     * Initializes all event listeners
-     */
+    function initCastListeners() {
+        document.addEventListener('cast:started', () => {
+            isCurrentlyCasting = true;
+            silenceLocalPlayer();
+            syncPlayIcons();
+        });
+
+        document.addEventListener('cast:ended', () => {
+            isCurrentlyCasting = false;
+            enableLocalPlayer();
+            syncPlayIcons();
+        });
+
+        setCastControlCallbacks({
+            onTrackChange: (index) => {
+                updateUIForTrack(index);
+            },
+            onPlayStateChange: (state) => {
+                syncPlayIcons();
+            },
+            onTimeUpdate: (time) => {
+                // No-op - Chromecast handles progress
+            }
+        });
+    }
+
     function initEventListeners() {
-        // Big play button
         document.getElementById('big-play-btn')?.addEventListener('click', () => {
             if (trackItems.length === 0) return;
             if (currentIndex === -1) {
                 playTrack(0);
+            } else if (checkCastingState()) {
+                castPlay();
             } else {
                 player.play();
             }
         });
 
-        // Player events
-        player?.addEventListener('play', syncPlayIcons);
-        player?.addEventListener('pause', syncPlayIcons);
+        player?.addEventListener('play', onlyWhenNotCasting(() => {
+            syncPlayIcons();
+        }));
+        
+        player?.addEventListener('pause', onlyWhenNotCasting(() => {
+            syncPlayIcons();
+        }));
+        
         player?.addEventListener('ended', () => {
             syncPlayIcons();
-            playTrack(currentIndex + 1);
+            if (!checkCastingState()) {
+                playTrack(currentIndex + 1);
+            }
         });
 
-        // Audio progress for adaptive theming
-        player?.addEventListener('timeupdate', updateAudioProgress);
-        player?.addEventListener('loadedmetadata', updateAudioProgress);
-        player?.addEventListener('seeked', updateAudioProgress);
+        const handleAudioProgress = onlyWhenNotCasting(updateAudioProgress);
+        player?.addEventListener('timeupdate', handleAudioProgress);
+        player?.addEventListener('loadedmetadata', handleAudioProgress);
+        player?.addEventListener('seeked', handleAudioProgress);
 
-        // Media Session position updates
-        player?.addEventListener('loadedmetadata', updatePositionState);
-        player?.addEventListener('play', updatePositionState);
-        player?.addEventListener('pause', updatePositionState);
-        player?.addEventListener('ratechange', updatePositionState);
-        player?.addEventListener('seeked', updatePositionState); // Update immediately after seeking
+        const handlePositionUpdate = onlyWhenNotCasting(updatePositionState);
+        player?.addEventListener('loadedmetadata', handlePositionUpdate);
+        player?.addEventListener('play', handlePositionUpdate);
+        player?.addEventListener('pause', handlePositionUpdate);
+        player?.addEventListener('ratechange', handlePositionUpdate);
+        player?.addEventListener('seeked', handlePositionUpdate);
 
-        // Throttle timeupdate to once per second to avoid excessive updates
         let lastPositionUpdate = 0;
-        player?.addEventListener('timeupdate', () => {
+        player?.addEventListener('timeupdate', onlyWhenNotCasting(() => {
             const now = Date.now();
             if (now - lastPositionUpdate >= 1000) {
                 updatePositionState();
                 lastPositionUpdate = now;
             }
+        }));
+
+        prevBtn?.addEventListener('click', () => {
+            if (checkCastingState()) {
+                castPrevious();
+            } else {
+                playTrack(currentIndex - 1);
+            }
         });
 
-        // Navigation buttons
-        prevBtn?.addEventListener('click', () => playTrack(currentIndex - 1));
-        nextBtn?.addEventListener('click', () => playTrack(currentIndex + 1));
+        nextBtn?.addEventListener('click', () => {
+            if (checkCastingState()) {
+                castNext();
+            } else {
+                playTrack(currentIndex + 1);
+            }
+        });
+
         closeBtn?.addEventListener('click', stopPlayback);
 
-        // Track item play buttons
         trackItems.forEach((item, i) => {
             const overlayBtn = item.querySelector('.play-overlay-btn');
             if (!overlayBtn) return;
 
             overlayBtn.addEventListener('click', (e) => {
+                e.preventDefault();
                 e.stopPropagation();
+                e.stopImmediatePropagation();
+                
                 if (i === currentIndex) {
                     togglePlayPause();
                 } else {
@@ -410,9 +499,6 @@ export function initPlayerControls() {
         });
     }
 
-    /**
-     * Handles auto-start scenarios (hash or session storage)
-     */
     function handleAutoStart() {
         if (trackItems.length === 0) return;
 
@@ -424,12 +510,13 @@ export function initPlayerControls() {
         }
     }
 
-    // Initialize everything
+    // Initialize
     initQualitySelector();
+    setupAudioControlInterception();
+    initCastListeners();
     initEventListeners();
     handleAutoStart();
 
-    // Return public API
     return {
         playTrack,
         syncPlayIcons,

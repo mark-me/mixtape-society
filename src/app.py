@@ -44,7 +44,33 @@ def create_app() -> Flask:
 
     app.secret_key = config_cls.PASSWORD
     app.config.from_object(config_cls)
-    CORS(app)  # This adds Access-Control-Allow-Origin: * to ALL responses
+    CORS(
+        app,
+        resources={
+            r"/*": {
+                "origins": "*",  # Allow all origins (adjust if you need restriction)
+                "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+                "allow_headers": [
+                    "Content-Type",
+                    "Authorization",
+                    "X-Requested-With",
+                    "Accept",
+                    "Origin",
+                    "Access-Control-Request-Method",
+                    "Access-Control-Request-Headers",
+                    "Range",  # Important for audio seeking
+                ],
+                "expose_headers": [
+                    "Content-Type",
+                    "Content-Length",
+                    "Content-Range",
+                    "Accept-Ranges",
+                ],
+                "supports_credentials": False,
+                "max_age": 3600,  # Cache preflight for 1 hour
+            }
+        },
+    )
 
     limiter = Limiter(
         get_remote_address,
@@ -75,6 +101,26 @@ def create_app() -> Flask:
     mixtape_manager = MixtapeManager(
         path_mixtapes=config_cls.MIXTAPE_DIR, collection=collection
     )
+
+    @app.route("/service-worker.js")
+    def service_worker():
+        response = send_from_directory(
+            app.root_path,  # Serves from app root directory
+            "service-worker.js",
+            mimetype="application/javascript",
+        )
+        # Prevent caching so updates work
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        # Scope to /play/ only
+        response.headers["Service-Worker-Allowed"] = "/play/"
+        return response
+
+    @app.route("/manifest.json")
+    def manifest():
+        """Serve PWA manifest"""
+        return send_from_directory(
+            app.root_path, "manifest.json", mimetype="application/manifest+json"
+        )
 
     @app.errorhandler(DatabaseCorruptionError)
     def handle_database_corruption(e: DatabaseCorruptionError) -> tuple[Response, int]:

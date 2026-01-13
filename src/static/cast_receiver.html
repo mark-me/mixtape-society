@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Mixtape Society - Chromecast</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            overflow: hidden;
+            color: white;
+        }
+
+        #container {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 60px;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+            padding: 60px;
+        }
+        
+        #main-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #album-art {
+            width: 400px;
+            height: 400px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            object-fit: cover;
+            margin-bottom: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.5s ease;
+        }
+
+        #track-info {
+            text-align: center;
+            max-width: 800px;
+        }
+
+        #track-title {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        #track-artist {
+            font-size: 32px;
+            font-weight: 400;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+
+        #track-album {
+            font-size: 24px;
+            opacity: 0.7;
+            font-style: italic;
+        }
+
+        #branding {
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            opacity: 0.8;
+        }
+
+        #branding-logo {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        #branding-text {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        #progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        #progress-fill {
+            height: 100%;
+            background: white;
+            width: 0%;
+            transition: width 0.3s linear;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            opacity: 0.7;
+        }
+        
+        /* Queue Styles */
+        #queue-container {
+            display: none;
+            flex-direction: column;
+            max-height: calc(100vh - 120px);
+            overflow: hidden;
+        }
+        
+        #queue-header {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        #queue-list {
+            overflow-y: auto;
+            flex: 1;
+            padding-right: 10px;
+        }
+        
+        /* Custom scrollbar */
+        #queue-list::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        #queue-list::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        
+        #queue-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+        
+        #queue-list::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        .queue-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .queue-item.current {
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+            transform: scale(1.02);
+        }
+        
+        .queue-item.current .queue-number {
+            background: white;
+            color: #667eea;
+            font-weight: 700;
+        }
+        
+        .queue-item.past {
+            opacity: 0.5;
+        }
+        
+        .queue-number {
+            min-width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .queue-track-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .queue-track-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .queue-track-artist {
+            font-size: 14px;
+            opacity: 0.8;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .current-indicator {
+            font-size: 20px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="main-content">
+            <div class="loading">Connecting to Mixtape Society...</div>
+            <img id="album-art" style="display: none;" />
+            <div id="track-info" style="display: none;">
+                <div id="track-title">Track Title</div>
+                <div id="track-artist">Artist Name</div>
+                <div id="track-album">Album Name</div>
+            </div>
+        </div>
+        
+        <div id="queue-container">
+            <div id="queue-header">Queue</div>
+            <div id="queue-list"></div>
+        </div>
+    </div>
+
+    <div id="branding">
+        <div id="branding-logo">🎵</div>
+        <div id="branding-text">Mixtape Society</div>
+    </div>
+
+    <div id="progress-bar">
+        <div id="progress-fill"></div>
+    </div>
+
+    <script src="//www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
+    <script>
+        const context = cast.framework.CastReceiverContext.getInstance();
+        const playerManager = context.getPlayerManager();
+
+        const albumArt = document.getElementById('album-art');
+        const trackInfo = document.getElementById('track-info');
+        const trackTitle = document.getElementById('track-title');
+        const trackArtist = document.getElementById('track-artist');
+        const trackAlbum = document.getElementById('track-album');
+        const progressFill = document.getElementById('progress-fill');
+        const loading = document.querySelector('.loading');
+        const queueContainer = document.getElementById('queue-container');
+        const queueList = document.getElementById('queue-list');
+        
+        let currentQueue = [];
+        let currentItemId = null;
+
+        // Update UI when media loads
+        playerManager.setMessageInterceptor(
+            cast.framework.messages.MessageType.LOAD,
+            loadRequestData => {
+                console.log('Load request:', loadRequestData);
+                
+                // Store queue items
+                if (loadRequestData.media && loadRequestData.media.queueData) {
+                    currentQueue = loadRequestData.media.queueData.items || [];
+                    renderQueue();
+                }
+                
+                return loadRequestData;
+            }
+        );
+
+        // Listen for media status changes
+        playerManager.addEventListener(
+            cast.framework.events.EventType.MEDIA_STATUS,
+            (event) => {
+                const mediaStatus = event.mediaStatus;
+                if (mediaStatus && mediaStatus.media) {
+                    updateUI(mediaStatus.media);
+                    
+                    // Update current item ID
+                    currentItemId = mediaStatus.currentItemId;
+                    updateQueueHighlight();
+                }
+            }
+        );
+
+        // Update progress bar
+        playerManager.addEventListener(
+            cast.framework.events.EventType.TIME_UPDATE,
+            (event) => {
+                const currentTime = playerManager.getCurrentTimeSec();
+                const duration = playerManager.getDurationSec();
+                
+                if (duration > 0) {
+                    const progress = (currentTime / duration) * 100;
+                    progressFill.style.width = progress + '%';
+                }
+            }
+        );
+        
+        // Listen for queue changes
+        playerManager.addEventListener(
+            cast.framework.events.EventType.QUEUE_CHANGE,
+            (event) => {
+                console.log('Queue changed:', event);
+                const mediaStatus = playerManager.getMediaInformation();
+                if (mediaStatus && mediaStatus.queueData) {
+                    currentQueue = mediaStatus.queueData.items || [];
+                    renderQueue();
+                    updateQueueHighlight();
+                }
+            }
+        );
+
+        function renderQueue() {
+            if (currentQueue.length === 0) return;
+            
+            queueList.innerHTML = '';
+            
+            currentQueue.forEach((item, index) => {
+                const metadata = item.media.metadata;
+                
+                const queueItem = document.createElement('div');
+                queueItem.className = 'queue-item';
+                queueItem.dataset.itemId = item.itemId;
+                
+                queueItem.innerHTML = `
+                    <div class="queue-number">${index + 1}</div>
+                    <div class="queue-track-info">
+                        <div class="queue-track-title">${metadata.title || 'Unknown'}</div>
+                        <div class="queue-track-artist">${metadata.artist || 'Unknown Artist'}</div>
+                    </div>
+                    <div class="current-indicator" style="display: none;">▶</div>
+                `;
+                
+                queueList.appendChild(queueItem);
+            });
+            
+            queueContainer.style.display = 'flex';
+            updateQueueHighlight();
+        }
+        
+        function updateQueueHighlight() {
+            if (!currentItemId) return;
+            
+            const queueItems = queueList.querySelectorAll('.queue-item');
+            let currentIndex = -1;
+            
+            queueItems.forEach((item, index) => {
+                const itemId = parseInt(item.dataset.itemId);
+                const indicator = item.querySelector('.current-indicator');
+                
+                item.classList.remove('current', 'past');
+                indicator.style.display = 'none';
+                
+                if (itemId === currentItemId) {
+                    item.classList.add('current');
+                    indicator.style.display = 'block';
+                    currentIndex = index;
+                    
+                    // Scroll to current item
+                    item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else if (currentIndex !== -1 && index < currentIndex) {
+                    item.classList.add('past');
+                }
+            });
+        }
+
+        function updateUI(media) {
+            loading.style.display = 'none';
+            
+            const metadata = media.metadata;
+            
+            if (metadata) {
+                trackTitle.textContent = metadata.title || 'Unknown Track';
+                trackArtist.textContent = metadata.artist || 'Unknown Artist';
+                trackAlbum.textContent = metadata.albumName || '';
+                
+                // Update album art
+                if (metadata.images && metadata.images.length > 0) {
+                    albumArt.src = metadata.images[0].url;
+                    albumArt.style.display = 'block';
+                    albumArt.classList.add('fade-in');
+                } else {
+                    albumArt.style.display = 'none';
+                }
+                
+                trackInfo.style.display = 'block';
+                trackInfo.classList.add('fade-in');
+            }
+        }
+
+        // Configure receiver options
+        const options = new cast.framework.CastReceiverOptions();
+        
+        // Increase max inactive time to keep session alive longer
+        options.maxInactivity = 3600; // 1 hour
+        
+        // Disable idle timeout
+        options.disableIdleTimeout = false;
+
+        // Start the receiver
+        context.start(options);
+        
+        console.log('Mixtape Society Chromecast Receiver Started');
+    </script>
+</body>
+</html>

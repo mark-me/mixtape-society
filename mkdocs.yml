@@ -61,6 +61,7 @@ nav:
       - Utilities: development/utilities.md
     - Flask app:
       - Main App: development/app.md
+      - Progressive Web App (PWA): development/pwa.md
       - Common: development/common.md
       - Routes:
         - Browser: development/routes/browse_mixtapes.md

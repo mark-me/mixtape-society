@@ -654,3 +654,23 @@ html[data-bs-theme="dark"] .quality-menu {
     color: var(--bs-secondary-color);
     margin-left: 0.5rem;
 }
+
+/* Cast button */
+.cast-btn {
+  transition: all 0.25s ease;
+}
+
+.cast-btn.connected {
+  color: var(--color-track);
+  border-color: var(--color-track);
+  background: rgba(var(--color-track-rgb), 0.12);
+}
+
+.cast-btn.connected i {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.8; }
+  50%      { opacity: 1; }
+}

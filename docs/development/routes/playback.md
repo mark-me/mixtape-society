@@ -20,6 +20,8 @@ All statements below are verified against the current source files (`routes/play
 
 All routes live under the Flask Blueprint named `play`.
 
+---
+
 ## 🗺️ Flask Blueprint & Routes
 
 ```python
@@ -35,6 +37,8 @@ play = Blueprint("play", __name__)   # registered in the main Flask app
 | `GET` | `/qr/<slug>/download` | `qr.download_qr(slug)` | Enhanced QR – returns a PNG that includes the mixtape’s cover art, title banner, and optional logo. Optional `size`, `include_cover`, `include_title` query params. |
 | `GET` | `/admin/cache/stats` | `cache_stats()` | Returns JSON with cache size (bytes) and number of cached files. |
 | `POST` | `/admin/cache/clear` | `clear_cache()` | Clears the audio cache; optional `older_than_days` query param. |
+
+---
 
 ## 🔄 Request Flow (Detailed Sequence)
 
@@ -88,6 +92,8 @@ sequenceDiagram
 
 *The diagram now includes the **quality / cache decision** step (`_get_serving_path`).*
 
+---
+
 ## 📦 QR‑Code Generation (Backend)
 
 Implemented in `src/qr_generator/qr_generator.py` and exposed via the `qr` blueprint (`routes/qr_blueprint.py`).
@@ -103,6 +109,8 @@ See the dedicated **API reference** [page for the QR routes](qr_codes.md) for a 
 
 Both modules also expose a `triggerShare()` helper that can be called programmatically (e.g., from a keyboard shortcut).
 
+---
+
 ## 🔧 Core Helper Functions
 
 | Function | Signature | What it does |
@@ -117,11 +125,15 @@ Both modules also expose a `triggerShare()` helper that can be called programmat
 | `cache_stats` | `dict cache_stats()` | Returns `{ "cache_size_bytes": …, "cache_size_mb": …, "cached_files": … }`. |
 | `clear_cache` | `dict clear_cache()` | Deletes cached files (optionally older than X days) and returns `{ "deleted_files": n, "message": … }`. |
 
+---
+
 ## 💾 Quality & Caching Logic
 
 *Implemented in `routes/play.py` and the auxiliary `audio_cache.py` module.*
 
 **Why this matters** – The client can request a lower bitrate to save bandwidth on mobile connections, while the server can pre‑populate the cache (via a background job) for faster subsequent deliveries.
+
+---
 
 ## 📶 HTTP Range Support
 
@@ -136,6 +148,8 @@ Only activated when the request contains a `Range` header.
     - `Content‑Length: (end‑start+1)`.
     - CORS & cache headers identical to the full‑file response.
 4. **Error** – Out‑of‑bounds ranges → **416 Range Not Satisfiable**.
+
+---
 
 ## 📜 Response Headers & Logging
 
@@ -156,6 +170,8 @@ Only activated when the request contains a `Range` header.
 
 All logs include the request path and the selected serving path, making troubleshooting straightforward.
 
+---
+
 ## ⚠️ Error Handling & Status Codes
 
 | Situation | Flask call | HTTP status | Log level |
@@ -165,6 +181,8 @@ All logs include the request path and the selected serving path, making troubles
 | Invalid Range header (out of bounds) | `Response(..., 416)` | 416 Range Not Satisfiable | warning |
 | Unexpected I/O error while reading the file | `abort(500)` (caught in `_handle_range_request`) | 500 Internal Server Error | error |
 | General uncaught exception in `stream_audio` | Propagates → Flask’s default error handling | 500 | error |
+
+---
 
 ## 🧱 Static Assets that Complement the Endpoint
 
@@ -178,6 +196,188 @@ All logs include the request path and the selected serving path, making troubles
 | `cassettePlayer.js` | `static/js/player/cassettePlayer.js` | Provides the optional "retro cassette" UI (view-mode toggle, spinning reels, VU meters). |
 
 These assets are loaded by `play_mixtape.html` (the template rendered by `public_play`). They rely on the **JSON API** exposed by the Flask routes (e.g., `/play/<file_path>` for streaming, `/covers/<filename>` for cover art).
+
+---
+
+## 📱 Progressive Web App Integration
+
+**Since v1.1.0** — The public playback feature (`/play/share/<slug>`) is enhanced with Progressive Web App capabilities for offline playback.
+
+### Offline Audio Streaming
+
+The service worker intercepts audio streaming requests and implements smart caching:
+
+| Request Type | Service Worker Behavior |
+| ------------ | ----------------------- |
+| **Full file request** (no Range header) | Cache as 200 OK → Available offline |
+| **Range request** (seeking) | Bypass cache → Forward to server (206 response) |
+| **Cached file playback** | Serve instantly from cache ⚡ |
+
+**Why range requests aren't cached:** The Cache API cannot store HTTP 206 (Partial Content) responses. Only full 200 OK responses can be cached. This is a browser platform limitation, not a bug.
+
+### Quality-Aware Caching
+
+Audio cache keys include the quality parameter:
+
+```text
+Cache Key Format: /play/path/to/audio.flac-{quality}
+Examples:
+  - /play/Rammstein/track.flac-medium
+  - /play/Rammstein/track.flac-high
+  - /play/Rammstein/track.flac-low
+```
+
+This allows users to:
+
+- Download mixtapes at different quality levels
+- Switch quality without re-downloading
+- Manage storage vs. quality trade-offs
+
+### Coordination with Backend
+
+The playback routes work seamlessly with the PWA:
+
+1. **`stream_audio()`** adds cache-friendly headers:
+
+   ```python
+   response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+   response.headers['Access-Control-Allow-Origin'] = '*'
+   ```
+
+2. **Range request handling** returns proper 206 responses that the service worker correctly bypasses
+
+3. **Quality parameter** is passed through and respected by both backend and service worker
+
+### Static Asset Loading
+
+The player page loads PWA-specific JavaScript modules:
+
+```html
+<!-- Only in play_mixtape.html -->
+<script type="module" src="/static/js/pwa/pwa-manager.js"></script>
+```
+
+These modules:
+
+- Register the service worker with `/play/` scope
+- Provide "Download for Offline" functionality
+- Show network status indicators
+- Manage cache storage
+
+### Testing Offline Playback
+
+```bash
+# 1. Visit a mixtape page
+http://localhost:5000/play/share/test-mixtape
+
+# 2. Open DevTools → Application → Service Workers
+# 3. Check "Offline" box
+# 4. Reload page
+# Expected: Page loads from cache ✅
+
+# 5. Click play on a downloaded track
+# Expected: Audio plays from cache ✅
+```
+
+**See the complete PWA documentation:** [Progressive Web App (PWA)](../pwa.md)
+
+---
+
+## 📡 Chromecast Support
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant BrowserPlayer as BrowserPlayer_UI
+    participant ChromecastModule as Chromecast_JS
+    participant CastAPI as Google_Cast_API
+    participant Receiver as Chromecast_Device
+    participant Server as Flask_Server
+
+    User->>BrowserPlayer: Click cast_button
+    BrowserPlayer->>ChromecastModule: castMixtapePlaylist()
+    alt Existing_cast_session
+        ChromecastModule->>CastAPI: loadQueue(currentCastSession)
+    else No_cast_session
+        ChromecastModule->>CastAPI: requestSession()
+        CastAPI-->>ChromecastModule: session
+        ChromecastModule->>CastAPI: loadQueue(session)
+    end
+
+    CastAPI->>Receiver: QueueLoadRequest with media items
+
+    loop For_each_track_in_queue
+        Receiver->>Server: GET /play/<path>?quality=q
+        Server-->>Receiver: 200_or_206 audio/stream with CORS_headers
+    end
+
+    ChromecastModule->>BrowserPlayer: Pause local main_player
+```
+
+```mermaid
+classDiagram
+    class ChromecastModule {
+        <<module>>
+        - CAST_APP_ID : string
+        - currentCastSession
+        + initChromecast()
+        + castMixtapePlaylist()
+        + stopCasting()
+        - initializeCastApi()
+        - onInitSuccess()
+        - onError(error)
+        - sessionListener(session)
+        - receiverListener(availability)
+        - onCastSessionStart()
+        - onCastSessionEnd()
+        - loadQueue(session)
+    }
+
+    class PlayerIndexJS {
+        <<module>>
+        + initPage()
+    }
+
+    class PlayerControlsJS {
+        <<module>>
+        - currentIndex : number
+        - currentQuality : string
+        + initPlayerControls()
+        - playTrack(index)
+        - updateAudioProgress()
+    }
+
+    class PlayMixtapeTemplate {
+        <<template>>
+        + cast_button
+        + main_player
+        + mixtapeData_div
+        + __mixtapeData_rawMarkdown (rawMarkdown)
+        + __mixtapeData_tracks (tracks)
+        + __mixtapeData_baseUrl (baseUrl)
+    }
+
+    class PlayRoute {
+        <<Flask_route>>
+        + Response stream_audio(file_path)
+        - Response _handle_range_request(path, range_header)
+    }
+
+    ChromecastModule ..> PlayMixtapeTemplate : reads __mixtapeData
+    ChromecastModule ..> PlayerControlsJS : reads window.currentTrackIndex
+    PlayerIndexJS ..> ChromecastModule : calls initChromecast()
+    PlayerIndexJS ..> ChromecastModule : calls castMixtapePlaylist()
+    PlayerIndexJS ..> ChromecastModule : calls stopCasting()
+    PlayerIndexJS ..> PlayMixtapeTemplate : binds cast_button events
+    PlayerControlsJS ..> PlayMixtapeTemplate : controls main_player
+    PlayerControlsJS --> PlayMixtapeTemplate : updates window.currentTrackIndex
+    PlayRoute --> PlayMixtapeTemplate : serves audio URLs for tracks
+
+    PlayRoute : sets header Access-Control-Allow-Origin
+    PlayRoute : sets header Access-Control-Expose-Headers
+```
+
+---
 
 ## 📐 Class & Sequence Diagrams
 

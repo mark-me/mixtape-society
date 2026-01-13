@@ -1,0 +1,644 @@
+// static/js/player/chromecast.js
+import { silenceLocalPlayer, clearMediaSession } from './playerUtils.js';
+
+const CAST_APP_ID = 'CC1AD845';
+
+let currentCastSession = null;
+let currentMedia = null;
+let castControlCallbacks = {
+    onTrackChange: null,
+    onPlayStateChange: null,
+    onTimeUpdate: null
+};
+
+// Track current cast play state
+let castPlayState = 'IDLE'; // IDLE, PLAYING, PAUSED, BUFFERING
+
+// Global casting state - exported so playerControls can check it directly
+export let globalCastingState = false;
+
+export function initChromecast() {
+    console.log('🎬 Initializing Chromecast...');
+
+    window['__onGCastApiAvailable'] = function(isAvailable) {
+        if (isAvailable) {
+            console.log('✅ Cast API available');
+            initializeCastApi();
+        } else {
+            console.warn('❌ Google Cast API not available');
+        }
+    };
+}
+
+function initializeCastApi() {
+    const sessionRequest = new chrome.cast.SessionRequest(CAST_APP_ID);
+    const apiConfig = new chrome.cast.ApiConfig(
+        sessionRequest,
+        sessionListener,
+        receiverListener,
+        chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
+    );
+
+    chrome.cast.initialize(apiConfig, onInitSuccess, onError);
+}
+
+function onInitSuccess() {
+    console.log('✅ Cast SDK initialized successfully');
+    document.dispatchEvent(new CustomEvent('cast:ready'));
+}
+
+function onError(error) {
+    console.error('❌ Cast initialization failed:', error);
+}
+
+// Track whether Media Session handlers are already set up
+let mediaSessionHandlersRegistered = false;
+
+/**
+ * Convert Chromecast player state to Media Session playback state
+ */
+function castStateToPlaybackState(castState) {
+    switch (castState) {
+        case 'PLAYING':
+            return 'playing';
+        case 'PAUSED':
+            return 'paused';
+        case 'BUFFERING':
+            return 'playing'; // Show as playing during buffering
+        case 'IDLE':
+        default:
+            return 'none';
+    }
+}
+
+function getAudioMimeFromPath(path, quality) {
+    let ext = path.split('.').pop().toLowerCase();
+    if (quality !== 'original') {
+        ext = 'mp3';  // Transcoded files are MP3 from AudioCache
+    }
+    const mimeMap = {
+        'mp3': 'audio/mpeg',
+        'm4a': 'audio/mp4',
+        'aac': 'audio/aac',
+        'flac': 'audio/flac',
+        'ogg': 'audio/ogg',
+        'wav': 'audio/wav',
+    };
+    return mimeMap[ext] || 'audio/mpeg';
+}
+
+/**
+ * Session & Receiver handling
+*/
+
+function sessionListener(session) {
+    console.log('🔗 Cast session started');
+    currentCastSession = session;
+
+    // CRITICAL: Set global state IMMEDIATELY
+    globalCastingState = true;
+
+    // Fire event and silence player IMMEDIATELY
+    onCastSessionStart();
+
+    if (session.media && session.media.length > 0) {
+        attachMediaListener(session.media[0]);
+    }
+
+    session.addMediaListener(media => {
+        attachMediaListener(media);
+    });
+
+    session.addUpdateListener(isAlive => {
+        if (!isAlive) {
+            console.log('💔 Cast session ended');
+            currentCastSession = null;
+            currentMedia = null;
+            castPlayState = 'IDLE';
+            globalCastingState = false;
+            onCastSessionEnd();
+        }
+    });
+}
+
+function attachMediaListener(media) {
+    currentMedia = media;
+    console.log('🎧 Media listener attached');
+
+    // Setup Media Session for this media immediately
+    updateMediaSessionForCast(media);
+
+    media.addUpdateListener(isAlive => {
+        if (isAlive) {
+            const status = media.playerState;
+            const currentTime = media.getEstimatedTime();
+            const currentItemId = media.currentItemId;
+
+            // Update cast play state
+            castPlayState = status;
+
+            // Update Media Session playback state
+            updateMediaSessionPlaybackState(status);
+
+            // Update position state
+            if (media.media && media.media.duration) {
+                updateMediaSessionPosition(currentTime, media.media.duration);
+            }
+
+            if (castControlCallbacks.onPlayStateChange) {
+                castControlCallbacks.onPlayStateChange(status);
+            }
+
+            if (castControlCallbacks.onTimeUpdate) {
+                castControlCallbacks.onTimeUpdate(currentTime);
+            }
+
+            if (media.media && media.media.queueData) {
+                const currentIndex = findCurrentQueueIndex(currentItemId, media.media.queueData.items);
+                if (currentIndex !== -1) {
+                    // Update Media Session when track changes
+                    updateMediaSessionForCast(media);
+                    
+                    if (castControlCallbacks.onTrackChange) {
+                        castControlCallbacks.onTrackChange(currentIndex);
+                    }
+                }
+            }
+        }
+    });
+}
+
+/**
+ * Setup/update Media Session API to mirror Chromecast state
+ * This creates the unified media control with metadata
+ */
+function updateMediaSessionForCast(media) {
+    if (!('mediaSession' in navigator)) return;
+    if (!media || !media.media || !media.media.metadata) return;
+
+    const metadata = media.media.metadata;
+
+    try {
+        // Update metadata (this changes with each track)
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: metadata.title || 'Unknown',
+            artist: metadata.artist || 'Unknown Artist',
+            album: metadata.albumName || '',
+            artwork: metadata.images?.map(img => ({
+                src: img.url,
+                sizes: '512x512',
+                type: 'image/jpeg'
+            })) || []
+        });
+
+        // Set playback state
+        navigator.mediaSession.playbackState = castStateToPlaybackState(media.playerState);
+
+        // Setup action handlers only once per cast session
+        if (!mediaSessionHandlersRegistered) {
+            console.log('🎮 Media Session handlers registered');
+            
+            navigator.mediaSession.setActionHandler('play', () => castPlay());
+            navigator.mediaSession.setActionHandler('pause', () => castPause());
+            navigator.mediaSession.setActionHandler('previoustrack', () => castPrevious());
+            navigator.mediaSession.setActionHandler('nexttrack', () => castNext());
+            navigator.mediaSession.setActionHandler('seekto', (details) => {
+                if (details.seekTime !== undefined) {
+                    castSeek(details.seekTime);
+                }
+            });
+
+            mediaSessionHandlersRegistered = true;
+        }
+
+        // Set position state if available (this updates with playback)
+        if (media.media.duration) {
+            updateMediaSessionPosition(
+                media.getEstimatedTime() || 0,
+                media.media.duration
+            );
+        }
+    } catch (error) {
+        console.error('❌ Media Session error:', error);
+    }
+}
+
+/**
+ * Update Media Session playback state
+ */
+function updateMediaSessionPlaybackState(castState) {
+    if (!('mediaSession' in navigator)) return;
+    
+    try {
+        navigator.mediaSession.playbackState = castStateToPlaybackState(castState);
+    } catch (e) {
+        console.warn('Error updating playback state:', e);
+    }
+}
+
+/**
+ * Update Media Session position state
+ */
+function updateMediaSessionPosition(currentTime, duration, playbackRate = 1.0) {
+    if (!('mediaSession' in navigator) || !('setPositionState' in navigator.mediaSession)) return;
+
+    if (duration && !isNaN(duration) && isFinite(duration) && duration > 0) {
+        try {
+            navigator.mediaSession.setPositionState({
+                duration: duration,
+                playbackRate: playbackRate,
+                position: Math.min(currentTime, duration)
+            });
+        } catch (error) {
+            console.debug('Could not set position state:', error);
+        }
+    }
+}
+
+function findCurrentQueueIndex(itemId, queueItems) {
+    if (!queueItems) return -1;
+    return queueItems.findIndex(item => item.itemId === itemId);
+}
+
+/**
+ * Get the current queue index from the media
+ */
+function getCurrentQueueIndex() {
+    if (!currentMedia || !currentMedia.media || !currentMedia.media.queueData) {
+        return -1;
+    }
+
+    const currentItemId = currentMedia.currentItemId;
+    return findCurrentQueueIndex(currentItemId, currentMedia.media.queueData.items);
+}
+
+/**
+ * Get item ID for a specific queue index
+ */
+function getItemIdForIndex(index) {
+    if (!currentMedia || !currentMedia.media || !currentMedia.media.queueData) {
+        return null;
+    }
+
+    const items = currentMedia.media.queueData.items;
+    if (index < 0 || index >= items.length) {
+        return null;
+    }
+
+    return items[index].itemId;
+}
+
+/**
+ * Get current cast media metadata
+ */
+export function getCurrentCastMetadata() {
+    if (!currentMedia || !currentMedia.media || !currentMedia.media.metadata) {
+        return null;
+    }
+
+    return {
+        title: currentMedia.media.metadata.title || 'Unknown',
+        artist: currentMedia.media.metadata.artist || 'Unknown Artist',
+        album: currentMedia.media.metadata.albumName || '',
+        artwork: currentMedia.media.metadata.images || []
+    };
+}
+
+/**
+ * Get current cast time and duration
+ */
+export function getCurrentCastTime() {
+    if (!currentMedia) {
+        return { currentTime: 0, duration: 0 };
+    }
+
+    return {
+        currentTime: currentMedia.getEstimatedTime() || 0,
+        duration: currentMedia.media?.duration || 0
+    };
+}
+
+function receiverListener(availability) {
+    if (availability === chrome.cast.ReceiverAvailability.AVAILABLE) {
+        console.log('📡 Chromecast device found');
+        const btn = document.getElementById('cast-button');
+        if (btn) btn.hidden = false;
+    } else {
+        console.log('📡 No Chromecast devices available');
+    }
+}
+
+function onCastSessionStart() {
+    console.log('🎵 Casting started');
+
+    const btn = document.querySelector('#cast-button');
+    if (btn) {
+        btn.classList.add('connected');
+        btn.title = 'Casting to device • Click to stop';
+    }
+
+    // Silence local player but DON'T clear Media Session
+    // Media Session will be updated with Cast metadata when media loads
+    silenceLocalPlayer();
+
+    // Dispatch event after silencing
+    document.dispatchEvent(new CustomEvent('cast:started'));
+}
+
+function onCastSessionEnd() {
+    console.log('🎵 Casting ended');
+    const btn = document.querySelector('#cast-button');
+    if (btn) {
+        btn.classList.remove('connected');
+        btn.title = 'Cast to device';
+    }
+
+    // Clear Media Session when casting ends
+    // Local playback will set it up again if needed
+    clearMediaSession();
+    
+    // Reset handler registration flag for next cast session
+    mediaSessionHandlersRegistered = false;
+
+    document.dispatchEvent(new CustomEvent('cast:ended'));
+}
+
+export function setCastControlCallbacks(callbacks) {
+    castControlCallbacks = { ...castControlCallbacks, ...callbacks };
+    console.log('✅ Cast control callbacks registered');
+}
+
+export function isCasting() {
+    return currentCastSession !== null && currentMedia !== null;
+}
+
+/**
+ * Get current cast play state
+ */
+export function getCastPlayState() {
+    return castPlayState;
+}
+
+/**
+ * Check if cast is currently playing (not paused)
+ */
+export function isCastPlaying() {
+    return castPlayState === 'PLAYING';
+}
+
+/**
+ * Control functions that can be called from player UI
+ */
+export function castPlay() {
+    if (!currentMedia) {
+        console.warn('Cannot play - no media loaded');
+        return;
+    }
+
+    const playRequest = new chrome.cast.media.PlayRequest();
+    currentMedia.play(playRequest,
+        () => {},
+        error => console.error('Play failed:', error)
+    );
+}
+
+export function castPause() {
+    if (!currentMedia) {
+        console.warn('Cannot pause - no media loaded');
+        return;
+    }
+
+    const pauseRequest = new chrome.cast.media.PauseRequest();
+    currentMedia.pause(pauseRequest,
+        () => {},
+        error => console.error('Pause failed:', error)
+    );
+}
+
+/**
+ * Toggle play/pause state for Chromecast
+ */
+export function castTogglePlayPause() {
+    if (!currentMedia) {
+        console.warn('Cannot toggle - no media loaded');
+        return;
+    }
+
+    if (isCastPlaying()) {
+        castPause();
+    } else {
+        castPlay();
+    }
+}
+
+export function castSeek(currentTime) {
+    if (!currentMedia) return;
+
+    const seekRequest = new chrome.cast.media.SeekRequest();
+    seekRequest.currentTime = currentTime;
+
+    currentMedia.seek(seekRequest,
+        () => {},
+        error => console.error('Seek failed:', error)
+    );
+}
+
+/**
+ * Navigate to next track in queue
+ */
+export function castNext() {
+    if (!currentMedia) {
+        console.warn('Cannot go to next - no media loaded');
+        return;
+    }
+
+    const currentIndex = getCurrentQueueIndex();
+    if (currentIndex === -1) return;
+
+    const nextIndex = currentIndex + 1;
+    const nextItemId = getItemIdForIndex(nextIndex);
+
+    if (nextItemId === null) {
+        console.warn('No next track available');
+        return;
+    }
+
+    const jumpRequest = new chrome.cast.media.QueueJumpRequest(nextItemId);
+    currentMedia.queueJumpToItem(jumpRequest,
+        () => {},
+        error => console.error('Next failed:', error)
+    );
+}
+
+/**
+ * Navigate to previous track in queue
+ */
+export function castPrevious() {
+    if (!currentMedia) {
+        console.warn('Cannot go to previous - no media loaded');
+        return;
+    }
+
+    const currentIndex = getCurrentQueueIndex();
+    if (currentIndex === -1) return;
+
+    const prevIndex = currentIndex - 1;
+    const prevItemId = getItemIdForIndex(prevIndex);
+
+    if (prevItemId === null) {
+        console.warn('No previous track available');
+        return;
+    }
+
+    const jumpRequest = new chrome.cast.media.QueueJumpRequest(prevItemId);
+    currentMedia.queueJumpToItem(jumpRequest,
+        () => {},
+        error => console.error('Previous failed:', error)
+    );
+}
+
+/**
+ * Jump to a specific track by index
+ */
+export function castJumpToTrack(index) {
+    if (!currentMedia) {
+        console.warn('Cannot jump to track - no media loaded');
+        return;
+    }
+
+    const targetItemId = getItemIdForIndex(index);
+
+    if (targetItemId === null) {
+        console.warn(`Cannot jump to index ${index} - out of bounds`);
+        return;
+    }
+
+    const jumpRequest = new chrome.cast.media.QueueJumpRequest(targetItemId);
+
+    currentMedia.queueJumpToItem(jumpRequest,
+        () => {},
+        error => console.error('Jump failed:', error)
+    );
+}
+
+/**
+ * Build proper audio URL from track data
+ */
+function buildTrackUrl(track, quality) {
+    const trackItems = document.querySelectorAll('.track-item');
+
+    let relativePath = null;
+
+    // Try to find matching track in DOM
+    for (let item of trackItems) {
+        if (item.dataset.title === track.track && item.dataset.artist === track.artist) {
+            relativePath = item.dataset.path;
+            const separator = relativePath.includes('?') ? '&' : '?';
+            relativePath = `${relativePath}${separator}quality=${quality}`;
+            break;
+        }
+    }
+
+    // Fallback: construct URL from raw path
+    if (!relativePath) {
+        const baseUrl = window.__mixtapeData?.baseUrl || '/play/';
+        const encodedPath = encodeURIComponent(track.path);
+        relativePath = `${baseUrl}${encodedPath}?quality=${quality}`;
+    }
+
+    // Convert to absolute URL for Chromecast
+    return new URL(relativePath, window.location.origin).href;
+}
+
+export function castMixtapePlaylist() {
+    if (currentCastSession) {
+        loadQueue(currentCastSession);
+        return;
+    }
+
+    chrome.cast.requestSession(
+        session => {
+            currentCastSession = session;
+            loadQueue(session);
+        },
+        error => console.error('Session request failed:', error)
+    );
+}
+
+function loadQueue(session) {
+    const tracks = window.__mixtapeData?.tracks || [];
+    if (tracks.length === 0) {
+        console.warn('No tracks available to cast');
+        return;
+    }
+
+    console.log(`📀 Loading ${tracks.length} tracks to cast`);
+
+    const quality = localStorage.getItem('audioQuality') || 'medium';
+
+    const queueItems = tracks.map((track, index) => {
+        const trackUrl = buildTrackUrl(track, quality);
+        const contentType = getAudioMimeFromPath(track.path, quality);
+
+        const mediaInfo = new chrome.cast.media.MediaInfo(trackUrl, contentType);
+        mediaInfo.metadataType = chrome.cast.media.MetadataType.MUSIC_TRACK;
+        mediaInfo.streamType = chrome.cast.media.StreamType.BUFFERED;
+
+        if (track.duration) {
+            mediaInfo.duration = track.duration;
+        }
+
+        const metadata = new chrome.cast.media.MusicTrackMediaMetadata();
+        metadata.title = track.track || 'Unknown Title';
+        metadata.artist = track.artist || 'Unknown Artist';
+        metadata.albumName = track.album || '';
+        metadata.trackNumber = index + 1;
+
+        if (track.cover) {
+            const coverUrl = new URL(track.cover, window.location.origin).href;
+            metadata.images = [new chrome.cast.Image(coverUrl)];
+        }
+
+        mediaInfo.metadata = metadata;
+
+        const queueItem = new chrome.cast.media.QueueItem(mediaInfo);
+        queueItem.autoplay = true;
+        queueItem.preloadTime = 5;
+
+        return queueItem;
+    });
+
+    const queueRequest = new chrome.cast.media.QueueLoadRequest(queueItems);
+    queueRequest.repeatMode = chrome.cast.media.RepeatMode.OFF;
+
+    let startIndex = 0;
+    if (Number.isInteger(window.currentTrackIndex) &&
+        window.currentTrackIndex >= 0 &&
+        window.currentTrackIndex < queueItems.length) {
+        startIndex = window.currentTrackIndex;
+    }
+    queueRequest.startIndex = startIndex;
+
+    session.queueLoad(
+        queueRequest,
+        () => {
+            console.log('✅ Playlist queued successfully');
+            silenceLocalPlayer();
+        },
+        (error) => {
+            console.error('❌ Failed to load queue:', error);
+        }
+    );
+}
+
+export function stopCasting() {
+    if (currentCastSession) {
+        currentCastSession.stop(() => {
+            currentCastSession = null;
+            currentMedia = null;
+            castPlayState = 'IDLE';
+            globalCastingState = false;
+            onCastSessionEnd();
+        }, onError);
+    }
+}
