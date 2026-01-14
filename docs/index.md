@@ -17,7 +17,7 @@ Mixtape Society is a private, self‑hosted web app to create and share beautifu
 - ✅ **No ads, no tracking, no accounts** – pure privacy.
 - 🔗 **Public share links and QR codes** – anyone can listen without an account.
 - 📼 **Cassette‑style experience** – nostalgic UI with modern tech.
-- 📺 **Cast to any device** – Chromecast and native AirPlay support.
+- 📺 **Universal streaming** – Chromecast, AirPlay, and Android Auto support.
 
 !!! TIP "Quick start"
     👉 [Read the full Getting Started guide](user/getting-started.md)
@@ -101,9 +101,9 @@ Mixtape Society is a private, self‑hosted web app to create and share beautifu
 - **Progressive Web App** – Add to home screen for app-like experience
 - **Cast anywhere** – Stream to Chromecast devices throughout your home
 
-### 📺 Streaming to Any Device
+### 📺 Stream Everywhere
 
-Recipients can stream shared mixtapes to TVs and speakers using either Chromecast or AirPlay:
+Recipients can stream shared mixtapes to any device using Chromecast, AirPlay, or Android Auto:
 
 **Chromecast (Android/Chrome):**
 - **Simple one-tap casting** – Cast button appears automatically
@@ -121,10 +121,20 @@ Recipients can stream shared mixtapes to TVs and speakers using either Chromecas
 - **Multi-room** – Stream to multiple AirPlay 2 speakers simultaneously
 - **Apple Watch** – Control from your wrist
 
+**Android Auto (In-Car):**
+- **Dashboard integration** – Control from car touchscreen
+- **Voice commands** – "OK Google, pause", "next song"
+- **Steering wheel controls** – Use physical car buttons
+- **Safe driving mode** – Simplified, distraction-free interface
+- **Full metadata** – Album art and track info on display
+- **Automatic connection** – Works when phone connects to car
+
 Perfect for:
+
 - 🎉 **Parties** – Share the DJ duties via QR code
 - 🏠 **Home audio** – Stream to whole-home speaker systems
-- 🎁 **Gifts** – Create physical cards with QR codes that stream to TV
+- 🚗 **Road trips** – Perfect mixtapes for long drives
+- 🎁 **Gifts** – Create physical cards with QR codes that stream anywhere
 - 🎵 **Ambient listening** – Set the mood without managing your phone
 
 ## 👥 Get Involved

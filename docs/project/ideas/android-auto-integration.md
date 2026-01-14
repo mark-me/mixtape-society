@@ -78,49 +78,7 @@ export function setupLocalMediaSession(metadata, playerControls) {
 
 ### Integration into playerControls.js
 
-**Update `playerControls.js`:**
-
-```javascript
-// At the top, add import
-import {
-    setupAndroidAutoMediaSession,
-    clearAndroidAutoMediaSession,
-    logAndroidAutoStatus,
-    isAndroidAutoConnected
-} from './androidAuto.js';
-
-// In initPlayerControls(), after other initialization:
-export function initPlayerControls() {
-    const player = document.getElementById('main-player');
-    // ... existing code ...
-
-    // Log Android Auto status on load
-    logAndroidAutoStatus();
-
-    // Setup Media Session when track plays
-    player.addEventListener('play', () => {
-        const activeTrack = document.querySelector('.track-item.active');
-        if (activeTrack) {
-            const metadata = extractMetadataFromDOM(activeTrack);
-            setupAndroidAutoMediaSession(metadata, playerControlsAPI, player);
-        }
-    });
-
-    // Update Media Session when track changes
-    function playTrack(index) {
-        // ... existing track loading code ...
-
-        const metadata = extractMetadataFromDOM(trackElement);
-
-        // Setup Android Auto Media Session
-        if (!isCasting()) {  // Only for local playback
-            setupAndroidAutoMediaSession(metadata, playerControlsAPI, player);
-        }
-
-        // ... rest of existing code ...
-    }
-}
-```
+**Updated `playerControls.js`:**
 
 ### Testing the Enhancement
 

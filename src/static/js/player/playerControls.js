@@ -1,21 +1,20 @@
 // static/js/player/playerControls.js
-import { 
+import {
     globalCastingState,
-    isCasting, 
-    castPlay, 
-    castPause, 
+    isCasting,
+    castPlay,
+    castPause,
     castTogglePlayPause,
-    castNext, 
-    castPrevious, 
+    castNext,
+    castPrevious,
     castJumpToTrack,
     isCastPlaying,
     setCastControlCallbacks,
-    getCurrentCastMetadata,
-    getCurrentCastTime
 } from './chromecast.js';
 
 import {
     detectiOS,
+    detectAndroid,
     logDeviceInfo,
     silenceLocalPlayer,
     enableLocalPlayer,
@@ -24,6 +23,13 @@ import {
     updateMediaSessionPosition,
     extractMetadataFromDOM
 } from './playerUtils.js';
+
+import {
+    setupAndroidAutoMediaSession,
+    clearAndroidAutoMediaSession,
+    logAndroidAutoStatus,
+    isAndroidAutoConnected
+} from './androidAuto.js';
 
 /**
  * Quality settings for audio playback
@@ -41,15 +47,16 @@ const DEFAULT_QUALITY = 'medium';
 let iOSHelpInitialized = false;
 
 const iOS = detectiOS();
+const androidInfo = detectAndroid();
 
 /**
- * Show iOS-specific help message
+ * Show iOS-specific help message for Chromecast
  */
 function showiOSCastHelp() {
     if (!iOS || iOSHelpInitialized) return;
-    
+
     iOSHelpInitialized = true;
-    
+
     const helpHtml = `
         <div class="alert alert-info alert-dismissible fade show" role="alert" style="position: fixed; top: 70px; left: 50%; transform: translateX(-50%); z-index: 9999; max-width: 90%; width: 400px;">
             <h6 class="alert-heading">📱 Casting from iPhone</h6>
@@ -59,15 +66,15 @@ function showiOSCastHelp() {
                 2. Use Chrome browser (not Safari)<br>
                 3. Connect to same WiFi network<br>
                 <br>
-                <strong>For best experience:</strong><br>
-                Add this page to your Home Screen (PWA mode)
+                <strong>For AirPlay (recommended):</strong><br>
+                Use Safari and tap the AirPlay icon in audio controls
             </small>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     `;
-    
+
     const castBtn = document.getElementById('cast-button');
-    
+
     if (castBtn) {
         castBtn.addEventListener('click', () => {
             setTimeout(() => {
@@ -97,13 +104,37 @@ export function initPlayerControls() {
     let currentQuality = localStorage.getItem('audioQuality') || DEFAULT_QUALITY;
     let isCurrentlyCasting = false;
 
+    // Log device capabilities
     logDeviceInfo();
-    
+
+    // Log Android Auto status if Android device
+    if (androidInfo) {
+        logAndroidAutoStatus();
+    }
+
+    // Show iOS help if needed
     if (iOS) {
         showiOSCastHelp();
     }
-    
+
     console.log('🎮 PlayerControls initialized');
+
+    // Player control API for external modules
+    const playerControlsAPI = {
+        play: () => {
+            if (player.paused) {
+                player.play().catch(err => console.error("Play failed:", err));
+            }
+        },
+        pause: () => {
+            if (!player.paused) {
+                player.pause();
+            }
+        },
+        next: () => playTrack(currentIndex + 1),
+        previous: () => playTrack(currentIndex - 1),
+        jumpTo: (index) => playTrack(index)
+    };
 
     function checkCastingState() {
         return globalCastingState || isCurrentlyCasting;
@@ -142,14 +173,14 @@ export function initPlayerControls() {
                 e.stopPropagation();
             }
         }, true);
-        
+
         player.addEventListener('loadeddata', (e) => {
             if (checkCastingState()) {
                 e.stopPropagation();
                 player.pause();
             }
         }, true);
-        
+
         // Block metadata events while casting
         player.addEventListener('loadedmetadata', (e) => {
             if (checkCastingState()) {
@@ -254,20 +285,21 @@ export function initPlayerControls() {
             console.log('⏭️ Skipping Media Session - Chromecast handles it');
             return;
         }
-        
-        setupLocalMediaSession(metadata, {
-            play: () => player.play().catch(e => console.log('Media Session play failed:', e)),
-            pause: () => player.pause(),
-            previous: () => playTrack(currentIndex - 1),
-            next: () => playTrack(currentIndex + 1)
-        });
-        
-        updatePositionState();
+
+        // Use Android Auto optimized Media Session if connected to car
+        if (isAndroidAutoConnected()) {
+            console.log('🚗 Using Android Auto Media Session');
+            setupAndroidAutoMediaSession(metadata, playerControlsAPI, player);
+        } else {
+            // Standard Media Session for iOS/desktop
+            console.log('📱 Using standard Media Session');
+            setupLocalMediaSession(metadata, playerControlsAPI);
+        }
     }
 
     function updatePositionState() {
         if (checkCastingState()) return;
-        updateMediaSessionPosition(player.currentTime, player.duration, player.playbackRate || 1.0);
+        updateMediaSessionPosition(player.currentTime, player.duration, player.playbackRate);
     }
 
     function buildAudioUrl(basePath, quality) {
@@ -278,7 +310,7 @@ export function initPlayerControls() {
 
     function playTrack(index) {
         console.log(`🎵 playTrack(${index}), casting: ${checkCastingState()}`);
-        
+
         if (checkCastingState()) {
             console.log(`📡 Routing to Chromecast`);
             castJumpToTrack(index);
@@ -288,7 +320,7 @@ export function initPlayerControls() {
         }
 
         console.log(`🔊 Playing locally`);
-        
+
         if (index === currentIndex && player.src !== '') {
             player.play().catch(e => console.log('Autoplay prevented:', e));
             return;
@@ -320,7 +352,7 @@ export function initPlayerControls() {
         if (index < 0 || index >= trackItems.length) return;
 
         const track = trackItems[index];
-        
+
         bottomTitle.textContent = track.dataset.title;
         bottomArtistAlbum.textContent = `${track.dataset.artist} • ${track.dataset.album}`;
         container.style.display = 'block';
@@ -339,8 +371,13 @@ export function initPlayerControls() {
         container.style.display = 'none';
         trackItems.forEach(t => t.classList.remove('active-track'));
         currentIndex = -1;
-        
-        clearMediaSession();
+
+        // Clear appropriate Media Session
+        if (isAndroidAutoConnected()) {
+            clearAndroidAutoMediaSession();
+        } else {
+            clearMediaSession();
+        }
     }
 
     function syncPlayIcons() {
@@ -350,7 +387,7 @@ export function initPlayerControls() {
 
             const isCurrentTrack = idx === currentIndex;
             const isPlaying = isCurrentTrack && (
-                (checkCastingState() && isCastPlaying()) || 
+                (checkCastingState() && isCastPlaying()) ||
                 (!checkCastingState() && !player.paused)
             );
 
@@ -393,12 +430,28 @@ export function initPlayerControls() {
         document.addEventListener('cast:started', () => {
             isCurrentlyCasting = true;
             silenceLocalPlayer();
+
+            // Clear local Media Session when casting starts
+            if (isAndroidAutoConnected()) {
+                clearAndroidAutoMediaSession();
+            } else {
+                clearMediaSession();
+            }
+
             syncPlayIcons();
         });
 
         document.addEventListener('cast:ended', () => {
             isCurrentlyCasting = false;
             enableLocalPlayer();
+
+            // Restore local Media Session when casting ends
+            if (currentIndex >= 0) {
+                const track = trackItems[currentIndex];
+                const metadata = extractMetadataFromDOM(track);
+                updateLocalMediaSession(metadata);
+            }
+
             syncPlayIcons();
         });
 
@@ -430,11 +483,11 @@ export function initPlayerControls() {
         player?.addEventListener('play', onlyWhenNotCasting(() => {
             syncPlayIcons();
         }));
-        
+
         player?.addEventListener('pause', onlyWhenNotCasting(() => {
             syncPlayIcons();
         }));
-        
+
         player?.addEventListener('ended', () => {
             syncPlayIcons();
             if (!checkCastingState()) {
@@ -489,7 +542,7 @@ export function initPlayerControls() {
                 e.preventDefault();
                 e.stopPropagation();
                 e.stopImmediatePropagation();
-                
+
                 if (i === currentIndex) {
                     togglePlayPause();
                 } else {

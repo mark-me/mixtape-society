@@ -29,22 +29,57 @@ export function detectiOS() {
 }
 
 /**
+ * Detect Android device and version
+ */
+export function detectAndroid() {
+    const ua = navigator.userAgent;
+    const isAndroid = /android/i.test(ua);
+    
+    if (!isAndroid) return null;
+    
+    // Extract Android version
+    const match = ua.match(/Android (\d+)\.?(\d+)?/);
+    const major = match ? parseInt(match[1], 10) : 0;
+    const minor = match ? parseInt(match[2], 10) : 0;
+    
+    // Check for Android Auto indicators
+    const isAndroidAuto = ua.toLowerCase().includes('vehicle') || 
+                         ua.toLowerCase().includes('automotive');
+    
+    return {
+        isAndroid: true,
+        version: major,
+        versionString: `${major}.${minor}`,
+        supportsMediaSession: major >= 5, // Android 5.0+
+        isAndroidAuto: isAndroidAuto,
+        isPWA: window.matchMedia('(display-mode: standalone)').matches
+    };
+}
+
+/**
  * Log device and feature support
  */
 export function logDeviceInfo() {
     const iOS = detectiOS();
+    const android = detectAndroid();
     
     if (iOS) {
         console.log('📱 iOS Device Detected');
         console.log(`   Version: iOS ${iOS.versionString}`);
         console.log(`   PWA Mode: ${iOS.isPWA ? 'Yes' : 'No'}`);
-        console.log(`   Media Session: ${iOS.supportsMediaSession ? 'Supported ✓' : 'Not Supported (need iOS 15+) ✗'}`);
+        console.log(`   Media Session: ${iOS.supportsMediaSession ? 'Supported ✅' : 'Not Supported (need iOS 15+) ❌'}`);
+    } else if (android) {
+        console.log('🤖 Android Device Detected');
+        console.log(`   Version: Android ${android.versionString}`);
+        console.log(`   PWA Mode: ${android.isPWA ? 'Yes' : 'No'}`);
+        console.log(`   Android Auto: ${android.isAndroidAuto ? 'Connected ✅' : 'Not Connected'}`);
+        console.log(`   Media Session: ${android.supportsMediaSession ? 'Supported ✅' : 'Not Supported ❌'}`);
     } else {
-        console.log('📱 Android/Desktop Device');
+        console.log('💻 Desktop/Other Device');
     }
     
-    console.log(`   Media Session API: ${'mediaSession' in navigator ? 'Available ✓' : 'Not Available ✗'}`);
-    console.log(`   Cast API: ${typeof chrome !== 'undefined' && chrome.cast ? 'Available ✓' : 'Not Available ✗'}`);
+    console.log(`   Media Session API: ${'mediaSession' in navigator ? 'Available ✅' : 'Not Available ❌'}`);
+    console.log(`   Cast API: ${typeof chrome !== 'undefined' && chrome.cast ? 'Available ✅' : 'Not Available ❌'}`);
 }
 
 /**
@@ -133,14 +168,9 @@ export function clearMediaSession() {
 }
 
 /**
- * REMOVED: setupCastMediaSession
- * When casting, we DO NOT create our own Media Session.
- * The Chromecast creates its own native media control with all features.
- * We only create Media Session for LOCAL playback.
- */
-
-/**
  * Setup Media Session for local player control
+ * This is for basic iOS/desktop support
+ * Android Auto uses its own optimized version in androidAuto.js
  */
 export function setupLocalMediaSession(metadata, playerControls) {
     if (!('mediaSession' in navigator)) return;
@@ -167,6 +197,16 @@ export function setupLocalMediaSession(metadata, playerControls) {
 
         navigator.mediaSession.setActionHandler('nexttrack', () => {
             playerControls.next();
+        });
+
+        // Basic seeking support
+        navigator.mediaSession.setActionHandler('seekto', (details) => {
+            if (details.seekTime !== undefined) {
+                const player = document.getElementById('main-player');
+                if (player) {
+                    player.currentTime = details.seekTime;
+                }
+            }
         });
     } catch (error) {
         console.warn('Error updating Media Session:', error);
@@ -209,7 +249,7 @@ export function updateMediaSessionPlaybackState(state) {
  * Get MIME type from URL extension
  */
 export function getMimeTypeFromUrl(url) {
-    const extension = url.split('.').pop().toLowerCase();
+    const extension = url.split('.').pop().split('?')[0].toLowerCase(); // Handle query params
     const mimeMap = {
         'jpg': 'image/jpeg',
         'jpeg': 'image/jpeg',
@@ -222,33 +262,83 @@ export function getMimeTypeFromUrl(url) {
 }
 
 /**
- * Extract metadata from DOM track element with iOS-optimized artwork sizes
+ * Extract metadata from DOM track element with platform-optimized artwork sizes
+ * NOW REQUESTS DIFFERENT SIZES FROM SERVER
  */
 export function extractMetadataFromDOM(trackElement) {
     const iOS = detectiOS();
+    const android = detectAndroid();
     const coverImg = trackElement.querySelector('.track-cover');
     let artwork = [];
 
     if (coverImg && coverImg.src) {
         const mimeType = getMimeTypeFromUrl(coverImg.src);
-        const absoluteSrc = new URL(coverImg.src, window.location.origin).href;
         
-        // iOS prefers specific sizes, with 512x512 being most reliable
+        // Get the base cover URL (remove any existing size parameters)
+        const coverUrl = new URL(coverImg.src, window.location.origin);
+        const basePath = coverUrl.pathname; // e.g., /covers/abc123.jpg
+        
         if (iOS) {
+            // iOS optimization - prefers 512×512 for best lock screen display
             artwork = [
-                { src: absoluteSrc, sizes: '512x512', type: mimeType }, // Primary for iOS
-                { src: absoluteSrc, sizes: '256x256', type: mimeType },
-                { src: absoluteSrc, sizes: '128x128', type: mimeType }
+                { 
+                    src: `${basePath}?size=large`,  // 512×512
+                    sizes: '512x512', 
+                    type: mimeType 
+                },
+                { 
+                    src: `${basePath}?size=medium`, // 256×256
+                    sizes: '256x256', 
+                    type: mimeType 
+                },
+                { 
+                    src: `${basePath}?size=small`,  // 192×192
+                    sizes: '128x128',  // Declare as 128 for iOS compatibility
+                    type: mimeType 
+                }
+            ];
+        } else if (android) {
+            // Android Auto optimization - requires specific sizes
+            artwork = [
+                { 
+                    src: `${basePath}?size=tiny`,   // 96×96 - Required minimum
+                    sizes: '96x96', 
+                    type: mimeType 
+                },
+                { 
+                    src: `${basePath}?size=small`,  // 192×192 - Optimal for Android
+                    sizes: '128x128', 
+                    type: mimeType 
+                },
+                { 
+                    src: `${basePath}?size=small`,  // 192×192
+                    sizes: '192x192', 
+                    type: mimeType 
+                },
+                { 
+                    src: `${basePath}?size=medium`, // 256×256
+                    sizes: '256x256', 
+                    type: mimeType 
+                },
+                { 
+                    src: `${basePath}?size=large`,  // 512×512
+                    sizes: '512x512', 
+                    type: mimeType 
+                }
             ];
         } else {
-            // Android supports more sizes
+            // Desktop/other - simpler set
             artwork = [
-                { src: absoluteSrc, sizes: '96x96',   type: mimeType },
-                { src: absoluteSrc, sizes: '128x128', type: mimeType },
-                { src: absoluteSrc, sizes: '192x192', type: mimeType },
-                { src: absoluteSrc, sizes: '256x256', type: mimeType },
-                { src: absoluteSrc, sizes: '384x384', type: mimeType },
-                { src: absoluteSrc, sizes: '512x512', type: mimeType }
+                { 
+                    src: `${basePath}?size=small`,  // 192×192
+                    sizes: '192x192', 
+                    type: mimeType 
+                },
+                { 
+                    src: `${basePath}?size=large`,  // 512×512
+                    sizes: '512x512', 
+                    type: mimeType 
+                }
             ];
         }
     }
