@@ -205,14 +205,13 @@ async function handleAudioRequest(request) {
         // If it's a range request, we need to fetch the full file first to cache it
         // Then serve the range from that full file
         if (isRangeRequest) {
-            // Try to fetch the full file (without Range header)
-            const fullRequest = new Request(url.toString(), {
-                method: 'GET',
-                headers: new Headers({
-                    'Accept': request.headers.get('Accept')
-                }),
-                credentials: request.credentials,
-                mode: request.mode
+            // Clone the request and remove the Range header to get full file
+            // This preserves all auth, cookies, and custom headers
+            const headers = new Headers(request.headers);
+            headers.delete('Range');
+            
+            const fullRequest = new Request(request, {
+                headers: headers
             });
             
             try {
@@ -303,24 +302,6 @@ async function createRangeResponse(fullResponse, rangeHeader) {
         statusText: 'Partial Content',
         headers: headers
     });
-}
-
-/**
- * Fetches and caches audio in the background
- * Used for stale-while-revalidate pattern
- */
-async function fetchAndCacheAudio(request, cache, cacheKey) {
-    try {
-        const response = await fetch(request);
-        
-        if (response.ok && response.status === 200) {
-            await cache.put(cacheKey, response.clone());
-            console.log('[SW] Background cache update complete');
-        }
-    } catch (error) {
-        // Silent fail - we're already serving from cache
-        console.debug('[SW] Background update failed:', error.message);
-    }
 }
 
 /**
