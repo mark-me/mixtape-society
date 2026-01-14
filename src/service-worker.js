@@ -2,7 +2,7 @@
 // Progressive Web App service worker for Mixtape Society
 // Provides offline support with smart caching strategies
 
-const CACHE_VERSION = 'v1.0.0';
+const CACHE_VERSION = 'v1.0.1';  // Bumped version for fix
 const CACHE_NAMES = {
     static: `mixtape-static-${CACHE_VERSION}`,
     audio: `mixtape-audio-${CACHE_VERSION}`,
@@ -122,116 +122,186 @@ self.addEventListener('fetch', (event) => {
     }
 
     // Route to appropriate strategy for /play/ routes only
-    if (url.pathname.startsWith('/play/') && !url.pathname.includes('/share/')) {
-        // Audio streaming
-        event.respondWith(handleAudioRequest(request));
-    } else if (url.pathname.startsWith('/play/covers/')) {
-        // Cover images
-        event.respondWith(handleStaticAsset(request));
-    } else if (url.pathname.startsWith('/play/share/')) {
-        // Mixtape pages - network first with offline fallback
+    // FIXED: Check for specific patterns in correct order
+    
+    // 1. Mixtape share pages (HTML pages)
+    if (url.pathname.startsWith('/play/share/')) {
         event.respondWith(handleMixtapePage(request));
-    } else if (url.hostname !== self.location.hostname) {
-        // CDN resources - cache first
+    }
+    // 2. Cover images
+    else if (url.pathname.startsWith('/play/covers/')) {
+        event.respondWith(handleStaticAsset(request));
+    }
+    // 3. CDN resources (external domains)
+    else if (url.hostname !== self.location.hostname) {
         event.respondWith(handleCDNResource(request));
     }
+    // 4. Audio files with caching support
+    // Audio paths look like: /play/Artist/Album/Track.mp3
+    else if (isAudioFile(url.pathname)) {
+        event.respondWith(handleAudioRequest(request));
+    }
+    // 5. Static assets (fallback for anything else)
+    else {
+        event.respondWith(handleStaticAsset(request));
+    }
 });
+
+/**
+ * Determines if a URL pathname is an audio file
+ */
+function isAudioFile(pathname) {
+    const audioExtensions = ['.mp3', '.m4a', '.flac', '.ogg', '.aac', '.wav', '.opus'];
+    const lowerPath = pathname.toLowerCase();
+    return audioExtensions.some(ext => lowerPath.endsWith(ext));
+}
 
 // ======================
 // Strategy Implementations
 // ======================
 
 /**
- * Handles audio file requests
- * Strategy: Cache first with network update
- * - Serves from cache if available (instant playback)
- * - Updates cache in background
- * - Falls back to network if not cached
+ * Handles audio file requests with proper Range request support
  * 
- * Note: Only caches full responses (200), not partial/range responses (206)
+ * Strategy:
+ * 1. For Range requests: Fetch from cache if available, otherwise network
+ * 2. For full requests: Cache-first with network fallback
+ * 3. Always cache full (200) responses for offline support
+ * 
+ * Range requests are critical for audio seeking and must be handled correctly.
  */
 async function handleAudioRequest(request) {
     const url = new URL(request.url);
-    const quality = url.searchParams.get('quality') || 'medium';
-    
-    // Create a cache key that includes quality
-    const cacheKey = `${url.pathname}-${quality}`;
-    
-    // Check if this is a range request
+    const cacheKey = url.toString(); // Full URL including query params
     const isRangeRequest = request.headers.has('Range');
+    
+    console.log('[SW] Audio request:', {
+        path: url.pathname.split('/').pop(),
+        quality: url.searchParams.get('quality'),
+        isRange: isRangeRequest
+    });
     
     try {
         const cache = await caches.open(CACHE_NAMES.audio);
         
-        // If it's a range request, always go to network (can't cache 206 responses)
-        if (isRangeRequest) {
-            console.log('[SW] Range request, bypassing cache:', cacheKey);
-            return fetch(request);
-        }
-        
-        // Try cache first for instant playback (non-range requests)
+        // Try to get full file from cache (we only cache 200 responses, not 206)
         const cachedResponse = await cache.match(cacheKey);
+        
         if (cachedResponse) {
-            console.log('[SW] Audio cache hit:', cacheKey);
+            console.log('[SW] Found cached audio file');
             
-            // Update cache in background (stale-while-revalidate)
-            fetchAndCacheAudio(request, cache, cacheKey).catch(err => {
-                console.warn('[SW] Background audio update failed:', err);
-            });
+            // If this is a range request, we need to slice the cached response
+            if (isRangeRequest) {
+                return createRangeResponse(cachedResponse, request.headers.get('Range'));
+            }
             
+            // For non-range requests, return the full cached file
             return cachedResponse;
         }
         
         // Not in cache - fetch from network
-        console.log('[SW] Audio cache miss, fetching:', cacheKey);
+        console.log('[SW] Fetching from network...');
+        
+        // If it's a range request, we need to fetch the full file first to cache it
+        // Then serve the range from that full file
+        if (isRangeRequest) {
+            // Clone the request and remove the Range header to get full file
+            // This preserves all auth, cookies, and custom headers
+            const headers = new Headers(request.headers);
+            headers.delete('Range');
+            
+            const fullRequest = new Request(request, {
+                headers: headers
+            });
+            
+            try {
+                const fullResponse = await fetch(fullRequest);
+                
+                if (fullResponse.ok && fullResponse.status === 200) {
+                    // Cache the full file for future use
+                    cache.put(cacheKey, fullResponse.clone());
+                    console.log('[SW] Cached full audio file');
+                    
+                    // Create range response from the full file
+                    return createRangeResponse(fullResponse, request.headers.get('Range'));
+                }
+            } catch (fullFetchError) {
+                console.log('[SW] Could not fetch full file, falling back to range request');
+            }
+            
+            // If full file fetch failed, fall back to original range request
+            return fetch(request);
+        }
+        
+        // For non-range requests, just fetch and cache
         const response = await fetch(request);
         
-        // Only cache successful full responses (200), not 206 partial responses
         if (response.ok && response.status === 200) {
-            // Clone before caching
             cache.put(cacheKey, response.clone());
-            console.log('[SW] Cached audio:', cacheKey);
+            console.log('[SW] Cached audio file');
         }
         
         return response;
-    } catch (error) {
-        console.error('[SW] Audio fetch failed:', error);
         
-        // Return a basic error response
-        return new Response('Offline: Audio not available', {
-            status: 503,
-            statusText: 'Service Unavailable',
-            headers: { 'Content-Type': 'text/plain' }
-        });
+    } catch (error) {
+        console.error('[SW] Audio request error:', error.message);
+        
+        // Final fallback: try direct network request
+        try {
+            return await fetch(request);
+        } catch (fallbackError) {
+            return new Response('Audio unavailable', {
+                status: 503,
+                statusText: 'Service Unavailable'
+            });
+        }
     }
 }
 
 /**
- * Fetches and caches audio in the background
- * Only caches full responses (200), not partial responses (206)
+ * Creates a 206 Partial Content response from a full cached response
+ * This allows serving range requests from cached full files
  */
-async function fetchAndCacheAudio(request, cache, cacheKey) {
-    try {
-        // Create a new request WITHOUT range header to get full file
-        const url = new URL(request.url);
-        const fullRequest = new Request(url.toString(), {
-            method: 'GET',
-            headers: new Headers({
-                // Don't include Range header - we want the full file
-            })
-        });
-        
-        const response = await fetch(fullRequest);
-        
-        // Only cache full successful responses (status 200)
-        if (response.ok && response.status === 200) {
-            await cache.put(cacheKey, response.clone());
-            console.log('[SW] Audio cache updated:', cacheKey);
-        }
-    } catch (error) {
-        // Silent fail - we're already serving from cache
-        console.debug('[SW] Background audio update failed (silent):', error);
+async function createRangeResponse(fullResponse, rangeHeader) {
+    const fullResponseClone = fullResponse.clone();
+    const arrayBuffer = await fullResponseClone.arrayBuffer();
+    const fullLength = arrayBuffer.byteLength;
+    
+    // Parse range header: "bytes=0-1023" or "bytes=1024-"
+    const rangeMatch = rangeHeader.match(/bytes=(\d+)-(\d*)/);
+    if (!rangeMatch) {
+        // Invalid range header, return full response
+        return fullResponse;
     }
+    
+    const start = parseInt(rangeMatch[1], 10);
+    const end = rangeMatch[2] ? parseInt(rangeMatch[2], 10) : fullLength - 1;
+    
+    // Validate range
+    if (start >= fullLength || end >= fullLength || start > end) {
+        return new Response('Range Not Satisfiable', {
+            status: 416,
+            headers: {
+                'Content-Range': `bytes */${fullLength}`
+            }
+        });
+    }
+    
+    // Slice the requested range
+    const rangeBuffer = arrayBuffer.slice(start, end + 1);
+    const rangeLength = rangeBuffer.byteLength;
+    
+    // Create 206 Partial Content response
+    const headers = new Headers(fullResponse.headers);
+    headers.set('Content-Length', rangeLength.toString());
+    headers.set('Content-Range', `bytes ${start}-${end}/${fullLength}`);
+    headers.set('Accept-Ranges', 'bytes');
+    
+    return new Response(rangeBuffer, {
+        status: 206,
+        statusText: 'Partial Content',
+        headers: headers
+    });
 }
 
 /**
@@ -247,9 +317,11 @@ async function handleStaticAsset(request) {
             return cachedResponse;
         }
         
+        // Not in cache - fetch from network
         const response = await fetch(request);
         
         if (response.ok) {
+            // Cache for next time
             cache.put(request, response.clone());
         }
         
@@ -464,10 +536,11 @@ self.addEventListener('message', (event) => {
 async function cacheAudioFile(url, quality) {
     const cache = await caches.open(CACHE_NAMES.audio);
     const fullUrl = `${url}?quality=${quality || 'medium'}`;
+    const cacheKey = new Request(fullUrl);
     const response = await fetch(fullUrl);
     
-    if (response.ok) {
-        await cache.put(`${new URL(fullUrl).pathname}-${quality}`, response);
+    if (response.ok && response.status === 200) {
+        await cache.put(cacheKey, response);
         console.log('[SW] Manually cached audio:', fullUrl);
     }
 }
