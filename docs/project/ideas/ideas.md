@@ -30,11 +30,8 @@ To keep the soul of the project:
 ## 📱 Mobile Experience
 
 - Pull-to-refresh on browse page
-- PWA manifest + service worker → installable
-- Cache current mixtape for offline playback
 - Queue-based background download of tracks
 - Super-light Flutter/Tauri app (webview + native controls)
-- Background sync for offline actions
 - Push notifications for new mixtapes
 - Predictive caching based on listening patterns
 - Differential updates (only changed tracks)
@@ -53,14 +50,11 @@ To keep the soul of the project:
 
 Image validation improvements:
 
-- Better MIME checking
-- Reject oversized payloads early
 - Async I/O with aiofiles
 
 ## 👥 Multi-Library & Users
 
 - Support multiple MUSIC_ROOT paths
-- User roles: admin + read-only accounts
 
 ## 📦 Backup & Portability
 
@@ -86,16 +80,12 @@ Image validation improvements:
 ### Browse Page
 
 - Pagination for large libraries (currently loads all)
-- Search endpoint (`/mixtapes/search?q=`)
 - Bulk actions (select → delete/export)
-- Thumbnail generation to reduce bandwidth
 
 ### Base & UI
 
-- Modular CSS (split by component)
 - Accessibility improvements (ARIA, focus trapping)
 - Internationalization (Flask-Babel)
-- Progressive enhancement (JS fallbacks)
 
 ---
 

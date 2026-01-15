@@ -1,4 +1,4 @@
----
+w---
 title: Mixtape Society
 description: Private, self‑hosted web app to create and share beautiful music mixtapes from your own library.
 author: Mark Zwart
@@ -106,6 +106,7 @@ Mixtape Society is a private, self‑hosted web app to create and share beautifu
 Recipients can stream shared mixtapes to any device using Chromecast, AirPlay, or Android Auto:
 
 **Chromecast (Android/Chrome):**
+
 - **Simple one-tap casting** – Cast button appears automatically
 - **Full queue support** – Entire mixtape loads to Chromecast
 - **Unified controls** – Control playback from phone, computer, or lock screen
@@ -114,6 +115,7 @@ Recipients can stream shared mixtapes to any device using Chromecast, AirPlay, o
 - **Seamless experience** – Continues playing when phone screen turns off
 
 **AirPlay (Apple Devices):**
+
 - **Native iOS integration** – Built into Safari, no setup required
 - **One-tap streaming** – AirPlay icon in audio controls
 - **System-wide controls** – Lock screen, Control Center, CarPlay
