@@ -14,8 +14,8 @@ export function initCassettePlayer() {
 
     // Sound effect URLs (using royalty-free button click sounds)
     const SOUNDS = {
-        click: 'data:audio/wav;base64,UklGRhIAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQA=', // Simple click
-        eject: 'data:audio/wav;base64,UklGRhIAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQA=' // Simple beep
+        click: '/static/cassette-btn.mp3',
+        eject: '/static/cassette-btn.mp3'
     };
 
     /**

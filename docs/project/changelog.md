@@ -16,6 +16,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 - Added Android Auto support
 - Size-optimized cover generation
+- Mechanical click sound effect for cassette mode
 
 ---
 
