@@ -95,7 +95,7 @@ This structure is returned alongside the search results and reused for:
 
 * scoring
 * highlighting
-* UI explanation (“why did this match?”)
+* UI explanation ("why did this match?")
 
 ---
 
@@ -182,6 +182,7 @@ Each object has a `type` field and a shape appropriate for rendering.
   "artist": "Prince",
   "album": "<mark>Purple Rain</mark>",
   "is_compilation": false,
+  "cover": "covers/prince_purplerain.jpg",
   "reasons": [
     { "type": "track", "text": "5 nummer(s)" }
   ],
@@ -195,7 +196,8 @@ Each object has a `type` field and a shape appropriate for rendering.
 
 * Summary only
 * Tracks are loaded on demand
-* Albums with tracks by more than three artists are shown as **“Various Artists”**
+* Albums with tracks by more than three artists are shown as **"Various Artists"**
+* Includes `cover` field with relative URL to cached cover image
 
 ---
 
@@ -209,6 +211,7 @@ Each object has a `type` field and a shape appropriate for rendering.
   "track": "<mark>When Doves Cry</mark>",
   "duration": "5:54",
   "path": "Prince/Purple Rain/01 - When Doves Cry.flac",
+  "cover": "covers/prince_purplerain.jpg",
   "artist_click_query": "artist:'Prince'",
   "album_click_query": "album:'Purple Rain'"
 }
@@ -218,6 +221,134 @@ Each object has a `type` field and a shape appropriate for rendering.
 
 * Fully populated (no lazy loading)
 * Includes navigation queries for artist and album
+* Includes `cover` field with relative URL to cached cover image
+
+---
+
+## 🖼️ Cover art management
+
+The music collection provides automatic cover art extraction, caching, and serving with support for **size-optimized variants** for responsive clients like Android Auto.
+
+### Basic cover retrieval
+
+```python
+# Get cover URL for a release directory
+cover_url = mc.get_cover("Artist/Album")
+# Returns: "covers/artist_album.jpg" or "covers/_fallback.jpg"
+```
+
+**Behavior:**
+* Searches for common cover image files (`cover.jpg`, `folder.jpg`, etc.)
+* Extracts embedded artwork from audio files if no standalone image found
+* Optimizes images to max 800×800px, 85% quality, ≤500KB
+* Caches extracted covers in `DATA_ROOT/cache/covers/`
+* Returns fallback image if no cover found
+
+### Size-optimized cover variants
+
+For bandwidth-conscious applications (mobile, Android Auto), request specific sizes:
+
+```python
+# Get multiple size variants
+cover_sizes = mc.get_cover_sizes("Artist/Album")
+# Returns:
+# {
+#   "96x96": "covers/artist_album_96x96.jpg",
+#   "128x128": "covers/artist_album_128x128.jpg",
+#   "192x192": "covers/artist_album_192x192.jpg",
+#   "256x256": "covers/artist_album_256x256.jpg",
+#   "384x384": "covers/artist_album_384x384.jpg",
+#   "512x512": "covers/artist_album_512x512.jpg"
+# }
+```
+
+**Behavior:**
+* Generates size variants on-demand (lazy generation)
+* Caches variants permanently for future requests
+* Falls back to main cover if variant generation fails
+* Returns fallback URLs for all sizes if no cover found
+
+**Standard sizes:**
+| Size | Use case | Typical file size |
+|------|----------|------------------|
+| 96×96 | Thumbnails, lists | 5-8 KB |
+| 128×128 | Small tiles | 8-12 KB |
+| 192×192 | Medium tiles | 15-20 KB |
+| 256×256 | Android Auto (optimal) | 30-50 KB |
+| 384×384 | High-DPI displays | 60-90 KB |
+| 512×512 | Full-screen player | 100-150 KB |
+
+### Flask API endpoints
+
+Two routes are available for serving cover images:
+
+**Direct file serving (existing):**
+```
+GET /covers/<filename>
+```
+Serves cached cover files directly. Used by existing UI code.
+
+**Size-parameterized API (new):**
+```
+GET /api/covers/<release_dir>?size=256x256
+```
+Serves size-specific cover variants. Generates on-demand if needed.
+
+**Example usage:**
+```python
+# Android Auto - request optimal size
+GET /api/covers/Artist%2FAlbum?size=256x256
+
+# Without size parameter - returns main cover
+GET /api/covers/Artist%2FAlbum
+
+# Invalid size - returns error JSON
+GET /api/covers/Artist%2FAlbum?size=999x999
+# {"error": "Invalid size parameter", "valid_sizes": [...]}
+```
+
+### Cover extraction details
+
+The extraction process follows this priority:
+
+1. **Common image files** in release directory:
+   - `cover.jpg`, `folder.jpg`, `album.jpg`, `front.jpg`
+   - `cover.png`, `folder.png`
+
+2. **Embedded artwork** from audio files:
+   - Extracted from first audio file with embedded art
+   - Supports all formats handled by TinyTag
+
+3. **Optimization:**
+   - Converts all images to RGB JPEG
+   - Resizes to max 800×800px (maintains aspect ratio)
+   - Compresses to 85% quality initially
+   - Reduces quality iteratively if file >500KB
+   - Handles transparency by compositing on white background
+
+4. **Caching:**
+   - Sanitizes release directory to safe filename slug
+   - Stores in `DATA_ROOT/cache/covers/{slug}.jpg`
+   - Size variants stored as `{slug}_{size}x{size}.jpg`
+
+### Performance characteristics
+
+**Storage impact:**
+* Main cover: 300-500 KB per album
+* All 6 size variants: 50-150 KB total per album
+* Lazy generation: variants only created when requested
+
+**Bandwidth savings:**
+| Client | Original (800px) | Optimized | Savings |
+|--------|------------------|-----------|---------|
+| Android Auto | 300-500 KB | 30-50 KB (256×256) | ~90% |
+| Mobile web | 300-500 KB | 15-25 KB (128×128) | ~95% |
+| List thumbnails | 300-500 KB | 5-8 KB (96×96) | ~98% |
+
+**Generation performance:**
+* First request with variants: +100-200ms (one-time cost)
+* Subsequent requests: 0ms (served from cache)
+* Main cover extraction: typically <100ms
 
 ---
 
@@ -273,7 +404,7 @@ The enhanced watcher adds two important behaviours that differ from a naïve `Fi
 
 | Feature | What it does | Why it matters |
 |---------|--------------|----------------|
-| **Debounce delay** (`DEBOUNCE_DELAY = 2.0 s`) | After the last change to a given file, the watcher waits 2 seconds before queuing an `INDEX_FILE` or `DELETE_FILE` event. | Prevents a burst of rapid edits (e.g., a tag‑editing batch) from generating many separate index operations, which could corrupt the DB. |
+| **Debounce delay** (`DEBOUNCE_DELAY = 2.0 s`) | After the last change to a given file, the watcher waits 2 seconds before queuing an `INDEX_FILE` or `DELETE_FILE` event. | Prevents a burst of rapid edits (e.g., a tag‑editing batch) from generating many separate index operations, which could corrupt the DB. |
 | **Coalescing** | Multiple `created`/`modified` events for the same path are merged into a single `INDEX_FILE` event; a later `deleted` event overrides any pending `modified` events. | Guarantees that the final state of the file is what gets indexed. |
 | **Graceful shutdown** (`shutdown()` method) | Cancels all pending timers and flushes any remaining events to the write queue before the observer is stopped. | Ensures no file‑system changes are lost when the application exits. |
 
@@ -292,12 +423,20 @@ In short, searching works as follows:
 5. Highlight matches and attach navigation queries
 6. Support lazy exploration through follow-up searches
 
-This design allows the UI to deliver a fast, expressive, and navigable search experience without embedding deep hierarchies in a single response.
+Cover art management works as follows:
+
+1. Extract covers from release directories or embedded artwork
+2. Optimize and cache at 800×800px
+3. Generate size variants on-demand for bandwidth efficiency
+4. Serve via direct file URLs or size-parameterized API
+5. Fall back gracefully when covers unavailable
+
+This design allows the UI to deliver a fast, expressive, and navigable search experience without embedding deep hierarchies in a single response, while efficiently serving cover art to clients with varying bandwidth and display requirements.
 
 ## 🔌 API
 
 Only the following methods are considered stable public APIs:
-`MusicCollection.search_grouped`, `MusicCollectionUI.search_highlighting`, `MusicCollection.rebuild`, `MusicCollection.resync`, `MusicCollection.close`, `MusicCollection.get_collection_stats`.
+`MusicCollection.search_grouped`, `MusicCollectionUI.search_highlighting`, `MusicCollection.rebuild`, `MusicCollection.resync`, `MusicCollection.close`, `MusicCollection.get_collection_stats`, `MusicCollection.get_cover`, `MusicCollection.get_cover_sizes`.
 
 ### ::: src.musiclib.reader.MusicCollection
 

@@ -296,6 +296,80 @@ def create_app() -> Flask:
             abort(404)
         return send_from_directory(covers_dir, filename)
 
+    @app.route("/api/covers/<path:release_dir_encoded>")
+    def serve_cover_by_size(release_dir_encoded):
+        """
+        Serves cover art with optional size parameter for Android Auto and responsive clients.
+        Supports ?size=WxH query parameter (e.g., ?size=256x256).
+        Generates size variants on-demand and caches them for future requests.
+
+        Args:
+            release_dir_encoded: URL-encoded release directory path
+
+        Query Parameters:
+            size: Optional size in format WxH (e.g., 256x256).
+                  Supported sizes: 96x96, 128x128, 192x192, 256x256, 384x384, 512x512
+
+        Returns:
+            Image file from cache directory
+        """
+        from urllib.parse import unquote
+
+        # Decode the release directory
+        release_dir = unquote(release_dir_encoded)
+
+        # Get requested size from query parameter
+        requested_size = request.args.get('size', '').lower()
+
+        # Validate size format and allowed values
+        valid_sizes = ['96x96', '128x128', '192x192', '256x256', '384x384', '512x512']
+
+        covers_dir = app.config["DATA_ROOT"] / "cache" / "covers"
+
+        if not requested_size:
+            # No size specified, return main cover (existing behavior)
+            cover_url = collection.get_cover(release_dir)
+            if cover_url:
+                filename = cover_url.split('/')[-1]
+                return send_from_directory(covers_dir, filename)
+            abort(404)
+
+        # Validate size parameter
+        if requested_size not in valid_sizes:
+            return jsonify({
+                "error": "Invalid size parameter",
+                "valid_sizes": valid_sizes
+            }), 400
+
+        # Get or generate size-specific cover
+        slug = collection._sanitize_release_dir(release_dir)
+        size_filename = f"{slug}_{requested_size}.jpg"
+        size_path = covers_dir / size_filename
+
+        # If size variant doesn't exist, generate it
+        if not size_path.exists():
+            # Ensure main cover exists first
+            main_path = covers_dir / f"{slug}.jpg"
+            if not main_path.exists():
+                collection._extract_cover(release_dir, main_path)
+
+            # Generate variants (will create the requested size)
+            if main_path.exists():
+                collection._generate_cover_variants(release_dir, slug)
+
+        # Serve the size-specific cover if it exists
+        if size_path.exists():
+            return send_from_directory(covers_dir, size_filename)
+
+        # Fallback: try to serve main cover
+        main_filename = f"{slug}.jpg"
+        main_path = covers_dir / main_filename
+        if main_path.exists():
+            return send_from_directory(covers_dir, main_filename)
+
+        # Final fallback
+        return send_from_directory(covers_dir, "_fallback.jpg")
+
     @app.route("/reset-database", methods=["POST"])
     @require_auth
     def reset_database():
