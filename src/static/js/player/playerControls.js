@@ -141,7 +141,7 @@ export function initPlayerControls() {
     }
 
     function onlyWhenNotCasting(handler) {
-        return function(...args) {
+        return function (...args) {
             if (!checkCastingState()) {
                 handler.apply(this, args);
             }
@@ -252,7 +252,7 @@ export function initPlayerControls() {
 
         if (currentIndex >= 0 && player.src && !checkCastingState()) {
             const wasPlaying = !player.paused;
-            const currentTime = player.currentTime;
+            const {currentTime} = player;
 
             playTrack(currentIndex);
 
@@ -337,7 +337,7 @@ export function initPlayerControls() {
         if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {
             try {
                 navigator.mediaSession.setPositionState();
-            } catch (e) {}
+            } catch (e) { }
         }
 
         updateUIForTrack(index);
@@ -410,12 +410,12 @@ export function initPlayerControls() {
     function togglePlayPause() {
         if (checkCastingState()) {
             castTogglePlayPause();
-        } else {
-            if (player.paused) {
-                player.play().catch(err => console.error("Resume failed:", err));
-            } else {
-                player.pause();
-            }
+        }
+        else if (player.paused) {
+            player.play().catch(err => console.error("Resume failed:", err));
+        }
+        else {
+            player.pause();
         }
     }
 

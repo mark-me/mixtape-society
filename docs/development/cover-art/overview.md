@@ -52,11 +52,13 @@ Located in `src/musiclib/reader.py`, the `MusicCollection` class handles cover e
 - `_generate_cover_variants(release_dir, slug)` - Creates size variants
 
 **Extraction Priority:**
+
 1. Common image files (`cover.jpg`, `folder.jpg`, `album.jpg`)
 2. Embedded artwork from audio files
 3. Fallback image
 
 **Optimization:**
+
 - Resizes to max 800×800px
 - Converts to RGB JPEG
 - Compresses to 85% quality
@@ -68,7 +70,7 @@ Located in `src/musiclib/reader.py`, the `MusicCollection` class handles cover e
 
 **File Naming:**
 
-```
+```bash
 {slug}.jpg              # Main cover (800px max)
 {slug}_96x96.jpg        # Thumbnail variant
 {slug}_128x128.jpg      # Small variant
@@ -379,5 +381,3 @@ Potential improvements to the cover art system:
 - [ ] **Analytics** - Track most-requested sizes
 - [ ] **Color extraction** - Dominant colors for UI theming
 - [ ] **Multiple covers** - Support for disc-specific artwork
-
-

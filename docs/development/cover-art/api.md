@@ -147,6 +147,7 @@ Access-Control-Allow-Origin: *
 ```
 
 **Not Found (404):**
+
 ```http
 HTTP/1.1 404 Not Found
 
@@ -235,6 +236,7 @@ const metadata = extractMetadataFromDOM(trackElement);
 **Platform-Specific Sizes:**
 
 **iOS:**
+
 ```javascript
 artwork: [
     { src: "/covers/slug_512x512.jpg", sizes: "512x512", type: "image/jpeg" },
@@ -244,6 +246,7 @@ artwork: [
 ```
 
 **Android Auto:**
+
 ```javascript
 artwork: [
     { src: "/covers/slug_96x96.jpg", sizes: "96x96", type: "image/jpeg" },
@@ -255,6 +258,7 @@ artwork: [
 ```
 
 **Desktop:**
+
 ```javascript
 artwork: [
     { src: "/covers/slug_192x192.jpg", sizes: "192x192", type: "image/jpeg" },
@@ -285,6 +289,7 @@ androidAuto.updateMediaMetadata({
 ```
 
 **Result:**
+
 - MediaSession metadata updated
 - Android Auto displays appropriate size
 - Bandwidth optimized automatically
@@ -319,12 +324,14 @@ Cache-Control: public, max-age=3600
 ```
 
 **Implications:**
+
 - Browsers cache for 1 hour
 - CDN can cache responses
 - Reduces server load
 - Faster subsequent loads
 
 **To force refresh:**
+
 ```javascript
 // Bypass cache with timestamp
 const url = `/covers/${slug}_256x256.jpg?t=${Date.now()}`;

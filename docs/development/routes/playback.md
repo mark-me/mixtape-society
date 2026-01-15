@@ -239,17 +239,20 @@ sequenceDiagram
 Located at `static/js/player/chromecast.js`, this module handles all Chromecast interactions:
 
 **Initialization:**
+
 - `initChromecast()` - Loads Google Cast SDK and sets up API
 - `initializeCastApi()` - Configures Cast API with app ID and session policies
 - Dispatches `cast:ready` event when SDK is initialized
 
 **Session Management:**
+
 - `sessionListener()` - Handles new cast sessions
 - `onCastSessionStart()` - Fires when casting begins
 - `onCastSessionEnd()` - Cleans up when casting stops
 - Sets `globalCastingState` flag for UI coordination
 
 **Media Control:**
+
 - `castPlay()` / `castPause()` - Playback control
 - `castNext()` / `castPrevious()` - Track navigation
 - `castSeek()` - Seek to specific time
@@ -257,6 +260,7 @@ Located at `static/js/player/chromecast.js`, this module handles all Chromecast 
 - `castTogglePlayPause()` - Toggle play/pause state
 
 **Queue Management:**
+
 - `castMixtapePlaylist()` - Loads entire mixtape as a queue
 - `loadQueue()` - Builds queue from `window.__mixtapeData.tracks`
 - Constructs proper audio URLs with quality parameter
@@ -336,6 +340,7 @@ export function clearMediaSession() {
 ```
 
 This ensures:
+
 - No duplicate media controls
 - Only Chromecast controls are active
 - Battery-efficient operation
@@ -345,6 +350,7 @@ This ensures:
 For Chromecast to work properly, the Flask server must:
 
 1. **CORS Headers** - Already implemented in `stream_audio()`:
+
    ```python
    response.headers["Access-Control-Allow-Origin"] = "*"
    response.headers["Access-Control-Expose-Headers"] = "Content-Type, Accept-Encoding, Range"
@@ -355,9 +361,11 @@ For Chromecast to work properly, the Flask server must:
    - Returns 206 Partial Content responses
 
 3. **Quality Support** - Chromecast respects quality parameter:
-   ```
+
+   ```text
    GET /play/artist/album/track.flac?quality=medium
    ```
+
    - Returns transcoded MP3 if cached
    - Falls back to original if cache miss
 
@@ -396,6 +404,7 @@ function showiOSCastHelp() {
 ```
 
 iOS has limitations:
+
 - Safari doesn't support Cast SDK (use Chrome)
 - Requires Google Home app installed
 - PWA mode recommended for better integration
@@ -405,18 +414,21 @@ iOS has limitations:
 **Cast Application ID:** `CC1AD845` (Default Media Receiver)
 
 **Queue Configuration:**
+
 - `RepeatMode.OFF` - No repeat
 - `startIndex` - Begins from current track (`window.currentTrackIndex`)
 - `autoplay: true` - Tracks play sequentially
 - `preloadTime: 5` - Preload 5 seconds of next track
 
 **State Management:**
+
 - `globalCastingState` - Boolean flag for casting status
 - `currentCastSession` - Active Cast session object
 - `currentMedia` - Current media controller
 - `castPlayState` - Player state ('IDLE', 'PLAYING', 'PAUSED', 'BUFFERING')
 
 **Callbacks:**
+
 ```javascript
 setCastControlCallbacks({
     onTrackChange: (index) => { /* Update UI */ },
@@ -444,22 +456,26 @@ setCastControlCallbacks({
 ### Troubleshooting
 
 **Cast button not appearing:**
+
 - Check browser console for Cast SDK load errors
 - Verify `cast-framework.js` CDN is accessible
 - Ensure HTTPS (Cast requires secure context)
 
 **Audio not playing:**
+
 - Check CORS headers in network tab
 - Verify audio URLs are absolute (not relative)
 - Confirm MIME types are correct
 - Check server logs for 403/404 errors
 
 **Seeking not working:**
+
 - Verify Range header support in `_handle_range_request()`
 - Check `Access-Control-Expose-Headers` includes "Range"
 - Confirm 206 responses working correctly
 
 **iOS issues:**
+
 - User must use Chrome browser (not Safari)
 - Google Home app required
 - Both devices on same WiFi network

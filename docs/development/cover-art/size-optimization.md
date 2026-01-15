@@ -147,6 +147,7 @@ def serve_cover_by_size(release_dir_encoded):
 ```
 
 **Usage examples:**
+
 ```bash
 # Get 256×256 variant
 GET /api/covers/Artist%2FAlbum?size=256x256
