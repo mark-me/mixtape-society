@@ -233,7 +233,7 @@ function attachAccordionListeners() {
             const body = collapse.querySelector('.accordion-body');
             if (!body || body.dataset.loading !== 'true') return;
 
-            const artist = collapse.dataset.artist;
+            const {artist} = collapse.dataset;
             fetch(`/editor/artist_details?artist=${encodeURIComponent(artist)}`)
                 .then(r => r.json())
                 .then(details => {

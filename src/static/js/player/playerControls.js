@@ -136,11 +136,11 @@ export function initPlayerControls() {
         jumpTo: (index) => playTrack(index)
     };
 
-    function checkCastingState() {
+    const checkCastingState = () => {
         return globalCastingState || isCurrentlyCasting;
     }
 
-    function onlyWhenNotCasting(handler) {
+    const onlyWhenNotCasting = (handler) => {
         return function (...args) {
             if (!checkCastingState()) {
                 handler.apply(this, args);
@@ -148,7 +148,7 @@ export function initPlayerControls() {
         };
     }
 
-    function setupAudioControlInterception() {
+    const setupAudioControlInterception = () => {
         player.addEventListener('play', (e) => {
             if (checkCastingState()) {
                 e.preventDefault();
@@ -189,7 +189,7 @@ export function initPlayerControls() {
         }, true);
     }
 
-    function initQualitySelector() {
+    const initQualitySelector = () => {
         const qualityBtn = document.getElementById('quality-btn-bottom');
         const qualityMenu = document.getElementById('quality-menu');
 
@@ -222,7 +222,7 @@ export function initPlayerControls() {
         });
     }
 
-    function updateQualityButtonText() {
+    const updateQualityButtonText = () => {
         const qualityBtn = document.getElementById('quality-btn-bottom');
         if (!qualityBtn) return;
 
@@ -230,7 +230,7 @@ export function initPlayerControls() {
         qualityBtn.innerHTML = `<i class="bi bi-gear-fill me-1"></i>${qualityLabel}`;
     }
 
-    function updateQualityMenuState(quality) {
+    const updateQualityMenuState = (quality) => {
         document.querySelectorAll('.quality-option').forEach(opt => {
             const checkIcon = opt.querySelector('.bi-check2');
             if (opt.dataset.quality === quality) {
@@ -243,7 +243,7 @@ export function initPlayerControls() {
         });
     }
 
-    function changeQuality(newQuality) {
+    const changeQuality = (newQuality) => {
         currentQuality = newQuality;
         localStorage.setItem('audioQuality', newQuality);
 
@@ -264,7 +264,7 @@ export function initPlayerControls() {
         showQualityToast(newQuality);
     }
 
-    function showQualityToast(quality) {
+    const showQualityToast = (quality) => {
         const toastEl = document.getElementById('qualityToast');
         if (!toastEl) return;
 
@@ -279,7 +279,7 @@ export function initPlayerControls() {
         toast.show();
     }
 
-    function updateLocalMediaSession(metadata) {
+    const updateLocalMediaSession = (metadata) => {
         if (checkCastingState()) {
             // CRITICAL: Do NOT create Media Session when casting
             console.log('⏭️ Skipping Media Session - Chromecast handles it');
@@ -297,18 +297,18 @@ export function initPlayerControls() {
         }
     }
 
-    function updatePositionState() {
+    const updatePositionState = () => {
         if (checkCastingState()) return;
         updateMediaSessionPosition(player.currentTime, player.duration, player.playbackRate);
     }
 
-    function buildAudioUrl(basePath, quality) {
+    const buildAudioUrl = (basePath, quality) => {
         const urlParams = new URLSearchParams();
         urlParams.set('quality', quality);
         return `${basePath}?${urlParams.toString()}`;
     }
 
-    function playTrack(index) {
+    const playTrack = (index) => {
         console.log(`🎵 playTrack(${index}), casting: ${checkCastingState()}`);
 
         if (checkCastingState()) {
@@ -348,7 +348,7 @@ export function initPlayerControls() {
         player.play().catch(e => console.log('Autoplay prevented:', e));
     }
 
-    function updateUIForTrack(index) {
+    const updateUIForTrack = (index) => {
         if (index < 0 || index >= trackItems.length) return;
 
         const track = trackItems[index];
@@ -364,7 +364,7 @@ export function initPlayerControls() {
         window.currentTrackIndex = index;
     }
 
-    function stopPlayback() {
+    const stopPlayback = () => {
         player.pause();
         player.src = '';
         player.load();
@@ -380,7 +380,7 @@ export function initPlayerControls() {
         }
     }
 
-    function syncPlayIcons() {
+    const syncPlayIcons = () => {
         trackItems.forEach((item, idx) => {
             const icon = item.querySelector('.play-overlay-btn i');
             if (!icon) return;
@@ -407,7 +407,7 @@ export function initPlayerControls() {
         });
     }
 
-    function togglePlayPause() {
+    const togglePlayPause = () => {
         if (checkCastingState()) {
             castTogglePlayPause();
         }
@@ -419,14 +419,14 @@ export function initPlayerControls() {
         }
     }
 
-    function updateAudioProgress() {
+    const updateAudioProgress = () => {
         if (!player.duration || isNaN(player.duration)) return;
 
         const progress = (player.currentTime / player.duration) * 100;
         player.style.setProperty('--audio-progress', `${progress}%`);
     }
 
-    function initCastListeners() {
+    const initCastListeners = () => {
         document.addEventListener('cast:started', () => {
             isCurrentlyCasting = true;
             silenceLocalPlayer();
@@ -468,7 +468,7 @@ export function initPlayerControls() {
         });
     }
 
-    function initEventListeners() {
+    const initEventListeners = () => {
         document.getElementById('big-play-btn')?.addEventListener('click', () => {
             if (trackItems.length === 0) return;
             if (currentIndex === -1) {
@@ -552,7 +552,7 @@ export function initPlayerControls() {
         });
     }
 
-    function handleAutoStart() {
+    const handleAutoStart = () => {
         if (trackItems.length === 0) return;
 
         if (window.location.hash === '#play') {

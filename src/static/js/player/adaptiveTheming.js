@@ -62,7 +62,7 @@ function rgbToHex(r, g, b) {
  */
 function getLuminance(r, g, b) {
     const [rs, gs, bs] = [r, g, b].map(c => {
-        c = c / 255;
+        c /= 255;
         return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
     });
     return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
@@ -224,13 +224,12 @@ function applyColorScheme(colors, isDark) {
     // Apply background gradient
     const gradient = createBackgroundGradient(colors, isDark);
     if (gradient) {
-        root.style.setProperty('--adaptive-bg-gradient', gradient);
-        document.body.style.backgroundImage = gradient;
-    } else {
-        if (window.__ADAPTIVE_THEME_DEBUG__) {
-            console.warn('⚠️ Failed to create background gradient');
+            root.style.setProperty('--adaptive-bg-gradient', gradient);
+            document.body.style.backgroundImage = gradient;
         }
-    }
+    else if (window.__ADAPTIVE_THEME_DEBUG__) {
+                console.warn('⚠️ Failed to create background gradient');
+            }
 
     // Force audio player to use track color
     const audioPlayer = document.getElementById('main-player');
@@ -345,10 +344,8 @@ export function initAdaptiveTheming() {
     // Re-apply colors when theme changes
     const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
-            if (mutation.attributeName === 'data-bs-theme') {
-                if (coverImg.complete) {
-                    extractAndApplyColors(coverImg);
-                }
+            if (mutation.attributeName === 'data-bs-theme' && coverImg.complete) {
+                  extractAndApplyColors(coverImg);
             }
         });
     });

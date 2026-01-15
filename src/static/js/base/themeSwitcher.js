@@ -14,7 +14,7 @@ export function initThemeSwitcher() {
     const themeButtons = document.querySelectorAll('[data-theme]');
     const themeIcon = document.getElementById('themeNavbarIcon');
 
-    function applyTheme(theme) {
+    const applyTheme = (theme) => {
         if (theme === 'auto') {
             const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             html.setAttribute('data-bs-theme', isDark ? 'dark' : 'light');
