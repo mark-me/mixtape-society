@@ -11,14 +11,14 @@
 export function detectiOS() {
     const ua = navigator.userAgent;
     const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
-    
+
     if (!isIOS) return null;
-    
+
     // Extract iOS version
     const match = ua.match(/OS (\d+)_(\d+)/);
     const major = match ? parseInt(match[1], 10) : 0;
     const minor = match ? parseInt(match[2], 10) : 0;
-    
+
     return {
         isIOS: true,
         version: major,
@@ -34,18 +34,18 @@ export function detectiOS() {
 export function detectAndroid() {
     const ua = navigator.userAgent;
     const isAndroid = /android/i.test(ua);
-    
+
     if (!isAndroid) return null;
-    
+
     // Extract Android version
     const match = ua.match(/Android (\d+)\.?(\d+)?/);
     const major = match ? parseInt(match[1], 10) : 0;
     const minor = match ? parseInt(match[2], 10) : 0;
-    
+
     // Check for Android Auto indicators
-    const isAndroidAuto = ua.toLowerCase().includes('vehicle') || 
+    const isAndroidAuto = ua.toLowerCase().includes('vehicle') ||
                          ua.toLowerCase().includes('automotive');
-    
+
     return {
         isAndroid: true,
         version: major,
@@ -62,7 +62,7 @@ export function detectAndroid() {
 export function logDeviceInfo() {
     const iOS = detectiOS();
     const android = detectAndroid();
-    
+
     if (iOS) {
         console.log('📱 iOS Device Detected');
         console.log(`   Version: iOS ${iOS.versionString}`);
@@ -77,7 +77,7 @@ export function logDeviceInfo() {
     } else {
         console.log('💻 Desktop/Other Device');
     }
-    
+
     console.log(`   Media Session API: ${'mediaSession' in navigator ? 'Available ✅' : 'Not Available ❌'}`);
     console.log(`   Cast API: ${typeof chrome !== 'undefined' && chrome.cast ? 'Available ✅' : 'Not Available ❌'}`);
 }
@@ -89,20 +89,20 @@ export function logDeviceInfo() {
 export function silenceLocalPlayer() {
     const player = document.getElementById('main-player');
     if (!player) return;
-    
+
     // Pause and clear source
     player.pause();
     player.src = '';
     player.load();
-    
+
     // Remove ALL player attributes that could trigger Media Session
     player.removeAttribute('controls');
     player.removeAttribute('autoplay');
-    
+
     // Set volume to 0 as extra safety
     player.volume = 0;
     player.muted = true;
-    
+
     // Remove from tab order
     player.setAttribute('tabindex', '-1');
 }
@@ -114,14 +114,14 @@ export function silenceLocalPlayer() {
 export function enableLocalPlayer() {
     const player = document.getElementById('main-player');
     if (!player) return;
-    
+
     // Restore controls
     player.setAttribute('controls', '');
-    
+
     // Restore volume and unmute
     player.volume = 1.0;
     player.muted = false;
-    
+
     // Restore to tab order
     player.removeAttribute('tabindex');
 }
@@ -132,14 +132,14 @@ export function enableLocalPlayer() {
  */
 export function clearMediaSession() {
     if (!('mediaSession' in navigator)) return;
-    
+
     try {
         // Set playback state to 'none' FIRST
         navigator.mediaSession.playbackState = 'none';
-        
+
         // Clear metadata
         navigator.mediaSession.metadata = null;
-        
+
         // Remove ALL action handlers (including seek and stop)
         const actions = [
             'play', 'pause', 'stop',
@@ -147,7 +147,7 @@ export function clearMediaSession() {
             'seekbackward', 'seekforward',
             'seekto'
         ];
-        
+
         actions.forEach(action => {
             try {
                 navigator.mediaSession.setActionHandler(action, null);
@@ -155,7 +155,7 @@ export function clearMediaSession() {
                 // Action may not be supported, that's fine
             }
         });
-        
+
         // Try to clear position state
         try {
             navigator.mediaSession.setPositionState(null);
@@ -237,7 +237,7 @@ export function updateMediaSessionPosition(currentTime, duration, playbackRate =
  */
 export function updateMediaSessionPlaybackState(state) {
     if (!('mediaSession' in navigator)) return;
-    
+
     try {
         navigator.mediaSession.playbackState = state; // 'none', 'paused', 'playing'
     } catch (e) {
@@ -263,7 +263,7 @@ export function getMimeTypeFromUrl(url) {
 
 /**
  * Extract metadata from DOM track element with platform-optimized artwork sizes
- * NOW REQUESTS DIFFERENT SIZES FROM SERVER
+ * Uses the new size-optimized cover API endpoints
  */
 export function extractMetadataFromDOM(trackElement) {
     const iOS = detectiOS();
@@ -273,71 +273,74 @@ export function extractMetadataFromDOM(trackElement) {
 
     if (coverImg && coverImg.src) {
         const mimeType = getMimeTypeFromUrl(coverImg.src);
-        
-        // Get the base cover URL (remove any existing size parameters)
+
+        // Parse the cover URL to extract the slug
+        // Assuming covers are served as: /covers/slug.jpg or /covers/slug_NxN.jpg
         const coverUrl = new URL(coverImg.src, window.location.origin);
-        const basePath = coverUrl.pathname; // e.g., /covers/abc123.jpg
-        
+        const coverPath = coverUrl.pathname; // e.g., /covers/artist_album.jpg
+        const slug = coverPath.split('/').pop().replace('.jpg', '').replace(/_\d+x\d+$/, '');
+
+        // Build size-optimized artwork URLs using the new backend
         if (iOS) {
-            // iOS optimization - prefers 512×512 for best lock screen display
+            // iOS optimization - prefers larger sizes for lock screen
             artwork = [
-                { 
-                    src: `${basePath}?size=large`,  // 512×512
-                    sizes: '512x512', 
-                    type: mimeType 
+                {
+                    src: `/covers/${slug}_512x512.jpg`,
+                    sizes: '512x512',
+                    type: mimeType
                 },
-                { 
-                    src: `${basePath}?size=medium`, // 256×256
-                    sizes: '256x256', 
-                    type: mimeType 
+                {
+                    src: `/covers/${slug}_256x256.jpg`,
+                    sizes: '256x256',
+                    type: mimeType
                 },
-                { 
-                    src: `${basePath}?size=small`,  // 192×192
-                    sizes: '128x128',  // Declare as 128 for iOS compatibility
-                    type: mimeType 
+                {
+                    src: `/covers/${slug}_192x192.jpg`,
+                    sizes: '192x192',
+                    type: mimeType
                 }
             ];
-        } else if (android) {
-            // Android Auto optimization - requires specific sizes
+        } else if (android && android.isAndroidAuto) {
+            // Android Auto - requires full size spectrum
             artwork = [
-                { 
-                    src: `${basePath}?size=tiny`,   // 96×96 - Required minimum
-                    sizes: '96x96', 
-                    type: mimeType 
+                {
+                    src: `/covers/${slug}_96x96.jpg`,
+                    sizes: '96x96',
+                    type: mimeType
                 },
-                { 
-                    src: `${basePath}?size=small`,  // 192×192 - Optimal for Android
-                    sizes: '128x128', 
-                    type: mimeType 
+                {
+                    src: `/covers/${slug}_128x128.jpg`,
+                    sizes: '128x128',
+                    type: mimeType
                 },
-                { 
-                    src: `${basePath}?size=small`,  // 192×192
-                    sizes: '192x192', 
-                    type: mimeType 
+                {
+                    src: `/covers/${slug}_192x192.jpg`,
+                    sizes: '192x192',
+                    type: mimeType
                 },
-                { 
-                    src: `${basePath}?size=medium`, // 256×256
-                    sizes: '256x256', 
-                    type: mimeType 
+                {
+                    src: `/covers/${slug}_256x256.jpg`,
+                    sizes: '256x256',
+                    type: mimeType
                 },
-                { 
-                    src: `${basePath}?size=large`,  // 512×512
-                    sizes: '512x512', 
-                    type: mimeType 
+                {
+                    src: `/covers/${slug}_512x512.jpg`,
+                    sizes: '512x512',
+                    type: mimeType
                 }
             ];
         } else {
             // Desktop/other - simpler set
             artwork = [
-                { 
-                    src: `${basePath}?size=small`,  // 192×192
-                    sizes: '192x192', 
-                    type: mimeType 
+                {
+                    src: `/covers/${slug}_192x192.jpg`,
+                    sizes: '192x192',
+                    type: mimeType
                 },
-                { 
-                    src: `${basePath}?size=large`,  // 512×512
-                    sizes: '512x512', 
-                    type: mimeType 
+                {
+                    src: `/covers/${slug}_512x512.jpg`,
+                    sizes: '512x512',
+                    type: mimeType
                 }
             ];
         }
