@@ -1,4 +1,4 @@
-![Android Auto](../../images/car.png){ align=right width="90" }
+![Android Auto](../../../images/car.png){ align=right width="90" }
 
 # Android Auto Integration
 

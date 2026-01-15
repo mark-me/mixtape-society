@@ -204,7 +204,7 @@ sequenceDiagram
 
     User->>Browser: Click cast button
     Browser->>ChromecastJS: castMixtapePlaylist()
-    
+
     alt Existing cast session
         ChromecastJS->>CastSDK: loadQueue(currentSession)
     else No active session
@@ -215,9 +215,9 @@ sequenceDiagram
 
     ChromecastJS->>ChromecastJS: silenceLocalPlayer()
     ChromecastJS->>ChromecastJS: clearMediaSession()
-    
+
     CastSDK->>Receiver: QueueLoadRequest with tracks
-    
+
     loop For each track
         Receiver->>Server: GET /play/<path>?quality=medium
         Server-->>Receiver: 206/200 audio stream + CORS headers
@@ -227,7 +227,7 @@ sequenceDiagram
     Receiver->>CastSDK: Media state updates
     CastSDK->>ChromecastJS: Player state callbacks
     ChromecastJS->>Browser: Update UI state
-    
+
     Note over Browser,Receiver: User controls playback via phone/computer
     Note over Receiver: Audio plays on Chromecast device
 ```
@@ -275,7 +275,7 @@ function updateMediaSessionForCast(media) {
         album: metadata.albumName,
         artwork: metadata.images
     });
-    
+
     // Set action handlers
     navigator.mediaSession.setActionHandler('play', () => castPlay());
     navigator.mediaSession.setActionHandler('pause', () => castPause());
@@ -288,6 +288,7 @@ function updateMediaSessionForCast(media) {
 ```
 
 This allows users to control Chromecast playback from:
+
 - Lock screen media controls
 - Notification shade (Android)
 - Control Center (iOS)
@@ -466,6 +467,126 @@ setCastControlCallbacks({
 
 ---
 
+## Android Auto Integration
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant PlayerControls as playerControls.js
+    participant PlayerUtils as playerUtils.js
+    participant AndroidAuto as androidAuto.js
+    participant Audio as main_player
+
+    User->>PlayerControls: initPlayerControls()
+    PlayerControls->>PlayerUtils: detectiOS()
+    PlayerControls->>PlayerUtils: detectAndroid()
+    PlayerControls->>PlayerUtils: logDeviceInfo()
+    alt Android device
+        PlayerControls->>AndroidAuto: logAndroidAutoStatus()
+    end
+
+    User->>PlayerControls: tap track item
+    PlayerControls->>PlayerControls: playTrack(index)
+    alt Casting active
+        PlayerControls->>PlayerControls: castJumpToTrack(index)
+        PlayerControls->>PlayerControls: return (Chromecast handles Media Session)
+    else Local playback
+        PlayerControls->>Audio: set src and play()
+        PlayerControls->>PlayerUtils: extractMetadataFromDOM(trackElement)
+        PlayerUtils-->>PlayerControls: metadata (title, artist, album, artwork)
+        alt AndroidAuto connected
+            PlayerControls->>AndroidAuto: isAndroidAutoConnected()
+            AndroidAuto-->>PlayerControls: true
+            PlayerControls->>AndroidAuto: setupAndroidAutoMediaSession(metadata, playerControlsAPI, Audio)
+            AndroidAuto->>AndroidAuto: prepareArtwork(metadata.artwork)
+            AndroidAuto->>AndroidAuto: setupActionHandlers(playerControlsAPI, Audio)
+            AndroidAuto->>AndroidAuto: setupAudioEventListeners(Audio)
+        else Not AndroidAuto
+            PlayerControls->>AndroidAuto: isAndroidAutoConnected()
+            AndroidAuto-->>PlayerControls: false
+            PlayerControls->>PlayerUtils: setupLocalMediaSession(metadata, playerControlsAPI)
+        end
+    end
+
+    User->>PlayerControls: stop playback
+    alt AndroidAuto connected
+        PlayerControls->>AndroidAuto: clearAndroidAutoMediaSession()
+    else Not AndroidAuto
+        PlayerControls->>PlayerUtils: clearMediaSession()
+    end
+```
+
+```mermaid
+classDiagram
+    class PlayerUtils {
+        +detectiOS()
+        +detectAndroid()
+        +logDeviceInfo()
+        +setupLocalMediaSession(metadata, playerControls)
+        +clearMediaSession()
+        +updateMediaSessionPlaybackState(state)
+        +updateMediaSessionPosition(position, duration, playbackRate)
+        +getMimeTypeFromUrl(url)
+        +extractMetadataFromDOM(trackElement)
+    }
+
+    class PlayerControls {
+        +initPlayerControls()
+        -checkCastingState()
+        -playTrack(index)
+        -updatePositionState()
+        -syncPlayIcons()
+        -togglePlayPause()
+        -silenceLocalPlayer()
+        -enableLocalPlayer()
+        -updateLocalMediaSession(metadata)
+        -currentIndex
+        -isCurrentlyCasting
+        -playerControlsAPI
+    }
+
+    class AndroidAutoModule {
+        +isAndroidAutoConnected()
+        +setupAndroidAutoMediaSession(metadata, playerControls, audioElement)
+        +clearAndroidAutoMediaSession()
+        +logAndroidAutoStatus()
+        -prepareArtwork(originalArtwork)
+        -setupActionHandlers(playerControls, audioElement)
+        -updatePositionState(audioElement)
+        -setupAudioEventListeners(audioElement)
+        -ANDROID_AUTO_ARTWORK_SIZES
+    }
+
+    class ChromecastModule {
+        +loadQueue(session)
+        +updateMediaSessionForCast(media)
+        +updateMediaSessionPlaybackState(castState)
+        -attachMediaListener(media)
+        -castPlay()
+        -castPause()
+        -castPrevious()
+        -castNext()
+    }
+
+    PlayerControls ..> PlayerUtils : uses
+    PlayerControls ..> AndroidAutoModule : uses
+    PlayerControls ..> ChromecastModule : uses
+    ChromecastModule ..> PlayerUtils : uses extractMetadataFromDOM()
+
+    class MediaSessionAPI {
+        +metadata
+        +playbackState
+        +setActionHandler(action, handler)
+        +setPositionState(state)
+    }
+
+    AndroidAutoModule ..> MediaSessionAPI : configures
+    PlayerUtils ..> MediaSessionAPI : setupLocalMediaSession()
+    ChromecastModule ..> MediaSessionAPI : updateMediaSessionForCast()
+```
+
+---
+
 ## 📐 Class & Sequence Diagrams
 
 ### Chromecast Architecture
@@ -507,7 +628,7 @@ classDiagram
         - handlePlayPause()
         - updateAudioProgress()
     }
-    
+
     class PlayerUtilsJS {
         <<module>>
         + silenceLocalPlayer()
@@ -537,7 +658,7 @@ classDiagram
         - _handle_range_request()
         - _get_serving_path()
     }
-    
+
     class GoogleCastSDK {
         <<External SDK>>
         + chrome.cast.initialize()
