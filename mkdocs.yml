@@ -1,5 +1,5 @@
 site_name: Mixtape Society
-# site_url: https://mixtape-society.org/  # Update if you have a site
+# site_url: https://mixtape-society.org/
 repo_url: https://github.com/mark-me/mixtape-society
 use_directory_urls: false
 theme:
@@ -54,6 +54,10 @@ nav:
         - Introduction: development/musiclib/intro.md
         - Reader: development/musiclib/reading.md
         - Loader: development/musiclib/loading.md
+      - Cover Art System:
+        - Overview: development/cover-art/overview.md
+        - Size Optimization: development/cover-art/size-optimization.md
+        - API Reference: development/cover-art/api.md
       - Mixtape Manager: development/mixtape_manager.md
       - Audio Caching: development/audio_caching.md
       - QR Code creation: development/qr_generation.md
@@ -67,6 +71,7 @@ nav:
         - Browser: development/routes/browse_mixtapes.md
         - Editor: development/routes/editor.md
         - Playback: development/routes/playback.md
+        - Cover Art: development/routes/covers.md
         - Authentication: development/routes/authentication.md
         - OpenGraph: development/routes/opengraph_images.md
         - QR Codes: development/routes/qr_codes.md
@@ -76,7 +81,9 @@ nav:
     - Roadmap: project/roadmap.md
     - Ideas:
       - General: project/ideas/ideas.md
-      - Android Auto: project/ideas/android-auto/android-auto-integration.md
+      - Android Auto:
+        - Integration Guide: project/ideas/android-auto/integration-guide.md
+        - Testing Guide: project/ideas/android-auto/testing-guide.md
       - PWA Improvements: project/ideas/PWA/pwa-optimization.md
       - Design & Implementation Map: project/ideas/design_implementation_map.md
     - Contributing: project/contributing.md
@@ -99,10 +106,6 @@ plugins:
   - panzoom:
       full_screen: true
   - git-revision-date-localized
-  # - git-committers:
-  #     repository: mark-me/mixtape-society
-  #     branch: master
-  #     token: !!python/object/apply:os.getenv ["MKDOCS_GIT_COMMITTERS_APIKEY"]
 
 markdown_extensions:
   - attr_list
@@ -120,4 +123,3 @@ markdown_extensions:
         - name: mermaid
           class: mermaid
           format: !!python/name:pymdownx.superfences.fence_code_format
-
