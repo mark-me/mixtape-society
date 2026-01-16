@@ -26,7 +26,7 @@ After the optional `.env` load, the module defines a **`BASE_DIR`** (`src/`) and
 ## 🛤️ Core Paths & Their Defaults
 
 | Setting | Default (when no env var) | Meaning |
-|---------|---------------------------|---------|
+| ------- | ------------------------- | ------- |
 | `MUSIC_ROOT` | `/music` | Absolute path to the read-only music library that the collection scanner watches. |
 | `DATA_ROOT` | `../collection-data` (relative to the project root) | Root folder writable by the app. All generated data lives underneath this directory. |
 | `DB_PATH` | `<DATA_ROOT>/collection.db` | SQLite database file that stores the indexed music metadata. |
@@ -40,7 +40,7 @@ After the optional `.env` load, the module defines a **`BASE_DIR`** (`src/`) and
 ## 🌱 Environment Variables (full list)
 
 | Variable | Where it is read | Default (if not set) | Description |
-|----------|-----------------|---------------------|-------------|
+| -------- | --------------- | ------------------- | ----------- |
 | `APP_ENV` | `config.py` (top) | `development` | Determines which configuration class (`DevelopmentConfig`, `TestConfig`, `ProductionConfig`) is used. Accepted values: `development`, `test`, `production`. |
 | `MUSIC_ROOT` | `BaseConfig.MUSIC_ROOT` | `/music` | Absolute path to the music collection. Must be readable by the process. |
 | `DATA_ROOT` | `BaseConfig.DATA_ROOT` | `../collection-data` (project-root relative) | Writable directory for all app-generated files. |
@@ -53,8 +53,8 @@ After the optional `.env` load, the module defines a **`BASE_DIR`** (`src/`) and
 | `DEBUG` | Set by subclass (`DevelopmentConfig.DEBUG = True`) | `False` (prod) | Enables Flask’s debugger and auto-reload. |
 | `PYTHONPATH` / `PYTHON_VERSION` | Not read by the app, but documented for developers. | – | Pinning to Python 3.11+ via `.python-version` (used by `uv`). |
 
-
 All variables can be supplied via:
+
 * A `.env` file in the project root (development only).
 * Docker environment variables (`-e VAR=value` or `environment:` block in `docker-compose.yml`).
 * Direct export in the shell (`export VAR=value`).
@@ -89,7 +89,7 @@ It guarantees that all writable directories exist before any component tries to 
 ## 🏷️ Configuration Classes
 
 | Class | Inherits from | Overrides / Special behaviour |
-|-------|---------------|-------------------------------|
+| ----- | ------------- | ----------------------------- |
 | `BaseConfig` | – | Defines all defaults and `ensure_dirs`. |
 | `DevelopmentConfig` | `BaseConfig` | `DEBUG = True`; `PASSWORD` defaults to `"dev-password"` (or env var). |
 | `TestConfig` | `BaseConfig` | Uses a temporary `DATA_ROOT` (`/tmp/mixtape-test-data`) and a dummy `MUSIC_ROOT` (`/tmp/test-music`). Ideal for CI pipelines. |
@@ -109,12 +109,12 @@ else:
 
 ## 🐳 Docker Integration
 
-For more information look at the [Docker Deployment](docker.md) documentation.
+For more information look at the [Docker Deployment](docker-dev.md) documentation.
 
 ## 🖼️ Typical Scenarios (what you’ll see on disk)
 
 | Scenario | APP_ENV | MUSIC_ROOT | DATA_ROOT | Resulting layout (host side) |
-|----------|---------|------------|-----------|-------------------------------|
+| -------- | ------- | ---------- | --------- | ----------------------------- |
 | Local dev, no `.env` | development | /home/mark/Music (hard-coded default) | ../collection-data (next to the repo) | `collection-data/collection.db`, `collection-data/mixtapes/…`, `collection-data/cache/audio/…` |
 | Local dev + `.env` | development | Whatever you set in `.env` | Whatever you set in `.env` | Same as above, but paths reflect the values you placed in `.env`. |
 | Docker prod | production | /music (mounted read-only) | /app/collection-data (mounted read-write) | Inside the container the same layout as above; on the host you’ll see the folder you bound to `/app/collection-data`. |

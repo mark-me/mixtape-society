@@ -237,40 +237,91 @@ function attachAccordionListeners() {
             fetch(`/editor/artist_details?artist=${encodeURIComponent(artist)}`)
                 .then(r => r.json())
                 .then(details => {
-                    const cover = details.cover ? `
-                        <div class="mb-3 text-center">
-                            <img src="/${details.cover}" alt="${details.artist}" class="img-thumbnail" style="max-width: 200px;">
-                        </div>` : '';
+                    if (!details.albums || details.albums.length === 0) {
+                        body.innerHTML = '<p class="text-muted">No albums found.</p>';
+                        body.dataset.loading = 'false';
+                        return;
+                    }
 
-                    const html = `
-                        ${cover}
-                        <h6 class="mb-3">Albums by ${details.artist}</h6>
-                        <ul class="list-group">
-                            ${details.albums.map(album => `
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <div class="d-flex align-items-center flex-grow-1 min-w-0 gap-2">
-                                        ${album.cover ? `
-                                            <img src="/${album.cover}" alt="Album cover" class="rounded" style="width: 40px; height: 40px; object-fit: cover; flex-shrink: 0;">
-                                        ` : ''}
-                                        <div class="min-w-0 flex-grow-1">
-                                            <div class="text-truncate">${album.album}</div>
-                                            <small class="text-muted text-truncate d-block">${album.num_tracks} tracks</small>
+                    // CREATE NESTED ACCORDION STRUCTURE (restored from v0.5.6)
+                    let html = '<div class="accordion accordion-flush" id="artist-albums-accordion">';
+                    details.albums.forEach((album, index) => {
+                        const albumId = safeId(album.album + '-' + index);
+                        const coverThumb = album.cover ? `
+                            <div class="album-thumb me-2">
+                                <img src="/${album.cover}" alt="Album Cover" class="rounded">
+                            </div>` : '';
+                        
+                        // Show "Various Artists" subtitle for compilation albums
+                        const subtitle = album.is_compilation ? 
+                            '<div class="album-artist text-truncate small text-muted">Various Artists</div>' : '';
+
+                        html += `
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed bg-album" type="button"
+                                            data-bs-toggle="collapse"
+                                            data-bs-target="#collapse-album-${albumId}">
+                                        ${coverThumb}
+                                        <div class="flex-grow-1 min-w-0">
+                                            <strong class="text-truncate d-block">${escapeHtml(album.album)}</strong>
+                                            ${subtitle}
                                         </div>
-                                    </div>
-                                    <button class="btn btn-success btn-sm flex-shrink-0 ms-2 add-album-btn"
-                                            data-tracks="${escapeHtml(JSON.stringify(album.tracks))}">
-                                        <i class="bi bi-plus-circle"></i> Add All
+                                        <span class="ms-auto small">
+                                            <i class="bi bi-music-note-beamed me-1"></i>${album.tracks.length}
+                                        </span>
                                     </button>
-                                </li>
-                            `).join('')}
-                        </ul>`;
+                                </h2>
+                                <div id="collapse-album-${albumId}"
+                                    class="accordion-collapse collapse">
+                                    <div class="accordion-body">
+                                        ${album.cover ? `
+                                            <div class="album-detail-cover mb-3">
+                                                <img src="/${album.cover}" alt="Album Cover" class="rounded shadow-sm">
+                                            </div>` : ''}
+                                        <button class="btn btn-success btn-sm mb-3 add-album-btn"
+                                                data-tracks="${escapeHtml(JSON.stringify(album.tracks))}">
+                                            <i class="bi bi-plus-circle me-2"></i>Add whole album
+                                        </button>
+                                        <ul class="list-group">
+                                            ${album.tracks.map(track => `
+                                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                    <div class="flex-grow-1 min-w-0">
+                                                        <span class="text-truncate d-block">${escapeHtml(track.track)}</span>
+                                                        <small class="text-muted">${formatDuration(track.duration || "?:??")}</small>
+                                                    </div>
+                                                    <div class="track-actions d-flex align-items-center gap-2 flex-shrink-0 ms-2">
+                                                        <button class="btn btn-track btn-sm preview-btn"
+                                                                data-path="${escapeHtml(track.path)}"
+                                                                data-title="${escapeHtml(track.track)}"
+                                                                data-artist="${escapeHtml(track.artist)}"
+                                                                data-album="${escapeHtml(track.album)}"
+                                                                data-cover="${escapeHtml(album.cover || '')}">
+                                                            <i class="bi bi-play-fill"></i>
+                                                        </button>
+                                                        <button class="btn btn-success btn-sm add-btn"
+                                                                data-item="${escapeHtml(JSON.stringify(track))}">
+                                                            <i class="bi bi-plus-circle"></i>
+                                                        </button>
+                                                    </div>
+                                                </li>
+                                            `).join('')}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+
                     body.innerHTML = html;
                     body.dataset.loading = 'false';
 
                     attachAddButtons();
+                    attachPreviewButtons();
                 })
                 .catch(err => {
-                    body.innerHTML = '<p class="text-danger">Loading failed.</p>';
+                    body.innerHTML = '<p class="text-danger">Failed to load albums.</p>';
                     console.error(err);
                 });
         });

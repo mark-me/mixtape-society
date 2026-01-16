@@ -66,14 +66,14 @@ flowchart LR
 
 ## 🧱 Core data structures
 
-| Name                 | Type                                             | Purpose                                                                                                                                                     |
-|----------------------|--------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `IndexEvent`         | `@dataclass` with fields `type: EventType` and `path: Optional[Path]` | Represents a single action for the writer thread (index a file, delete a file, clear DB, signal rebuild/resync completion).                                   |
-| `EventType`          | `Literal["INDEX_FILE", "DELETE_FILE", "CLEAR_DB", "REBUILD_DONE", "RESYNC_DONE"]` | Enumerates the possible actions.                                                                                                                            |
-| `_write_queue`       | `queue.Queue[IndexEvent]`                        | Thread‑safe hand‑off from the watcher / public methods to the writer thread.                                                                               |
-| `_writer_stop`       | `threading.Event`                               | Signals the writer thread to shut down cleanly.                                                                                                              |
-| `tracks` table       | SQLite table with columns `path, filename, artist, album, title, albumartist, genre, year, duration, mtime` | Stores the canonical metadata for each audio file.                                                                                                          |
-| `tracks_fts`         | SQLite FTS5 virtual table mirroring most columns of `tracks` | Enables fast full‑text search across artist, album, title, etc.
+| Name | Type | Purpose |
+| ---- | ---- | ------- |
+| `IndexEvent` | `@dataclass` with fields `type: EventType` and `path: Optional[Path]` | Represents a single action for the writer thread (index a file, delete a file, clear DB, signal rebuild/resync completion). |
+| `EventType` | `Literal["INDEX_FILE", "DELETE_FILE", "CLEAR_DB", "REBUILD_DONE", "RESYNC_DONE"]` | Enumerates the possible actions. |
+| `_write_queue` | `queue.Queue[IndexEvent]` | Thread‑safe hand‑off from the watcher / public methods to the writer thread. |
+| `_writer_stop` | `threading.Event` | Signals the writer thread to shut down cleanly. |
+| `tracks` table | SQLite table with columns `path, filename, artist, album, title, albumartist, genre, year, duration, mtime` | Stores the canonical metadata for each audio file. |
+| `tracks_fts` | SQLite FTS5 virtual table mirroring most columns of `tracks` | Enables fast full‑text search across artist, album, title, etc. |
 
 ## 🗄️ Database initialization
 
@@ -117,12 +117,12 @@ Function `_db_writer_loop`
 * Pulls an IndexEvent from _write_queue with a 1.0 s timeout (so it can notice the stop flag).
 * Handles each event type:
 
-    | Event type      | Action performed                                                                                                                   |
-    |-----------------|------------------------------------------------------------------------------------------------------------------------------------|
-    | `CLEAR_DB`      | `DELETE FROM tracks` (removes all rows).                                                                                          |
-    | `INDEX_FILE`    | Calls `_index_file(conn, path)` – extracts metadata and `INSERT OR REPLACE` into `tracks`.                                          |
-    | `DELETE_FILE`   | `DELETE FROM tracks WHERE path = ?`.                                                                                               |
-    | `REBUILD_DONE` / `RESYNC_DONE` | `conn.commit()` – flushes any pending changes.                                                                          |
+    | Event type | Action performed |
+    | ---------- | ---------------- |
+    | `CLEAR_DB` | `DELETE FROM tracks` (removes all rows). |
+    | `INDEX_FILE` | Calls `_index_file(conn, path)` – extracts metadata and `INSERT OR REPLACE` into `tracks`. |
+    | `DELETE_FILE` | `DELETE FROM tracks WHERE path = ?`. |
+    | `REBUILD_DONE` / `RESYNC_DONE` | `conn.commit()` – flushes any pending changes. |
 
 * After every 50 processed events it forces a commit to keep the transaction size reasonable.
 * Errors are caught and logged via the injected Logger.
@@ -135,14 +135,14 @@ Function `_index_file`:
 1. Calls TinyTag.get(path, tags=True, duration=True).
 2. Safely extracts the following fields (fallbacks shown in parentheses):
 
-    | Field   | Source                              | Fallback |
-    |---------|-------------------------------------|----------|
-    | `artist`| `tag.artist` → `tag.albumartist`   | `"Unknown"` |
-    | `album` | `tag.album`                         | `"Unknown"` |
-    | `title` | `tag.title` → `path.stem`          | `"Unknown"` |
-    | `year`  | `int(str(tag.year)[:4])` (if parsable) | `None` |
-    | `duration`| `tag.duration`                     | `None` |
-    | `mtime` | `path.stat().st_mtime`              | – |
+    | Field | Source | Fallback |
+    | ----- | ------ | -------- |
+    | `artist` | `tag.artist` → `tag.albumartist` | `"Unknown"` |
+    | `album` | `tag.album` | `"Unknown"` |
+    | `title` | `tag.title` → `path.stem` | `"Unknown"` |
+    | `year` | `int(str(tag.year)[:4])` (if parsable) | `None` |
+    | `duration` | `tag.duration` | `None` |
+    | `mtime` | `path.stat().st_mtime` | – |
 
 3. Executes a single INSERT OR REPLACE INTO tracks (…) VALUES (…) with the gathered values.
 4. Because of the triggers defined in _init_db, the same row is automatically mirrored into tracks_fts.
@@ -190,7 +190,7 @@ Function: `resync`
 
 * **`start_monitoring`** creates a `watchdog.observers.Observer` (if none exists), registers a `EnhancedWatcher` instance for the `music_root`, and starts the observer thread.
 
-* **`EnhancedWatcher `** inherits from `FileSystemEventHandler`. Its `on_any_event` method:
+* **`EnhancedWatcher`** inherits from `FileSystemEventHandler`. Its `on_any_event` method:
     1. Ignores directory events.
     1. Filters out files whose extensions are not in `SUPPORTED_EXTS`.
     1. For `created` or `modified` events → enqueues `INDEX_FILE`.
@@ -214,15 +214,15 @@ Function `stop`
 
 File `indexing_status.py`:
 
-| Function                                   | Role                                                                                                                                                                                                 |
-|--------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Function | Role |
+| -------- | ---- |
 | `set_indexing_status(data_root, status, total, current)` | Computes progress (`current/total`), preserves the original `started_at` timestamp (or creates a new one), builds a dictionary with `status, started_at, updated_at, total, current, progress`, and writes it atomically to `indexing_status.json`. |
-| `_atomic_write_json(status_file, data)`   | Writes JSON to a temporary file in the same directory, flushes, `fsync`s, then atomically renames the temp file onto the target. Guarantees that a partially‑written file never appears.                     |
-| `_calculate_progress(total, current)`      | Returns a float in `[0.0, 1.0]`; guards against division by zero or negative totals.                                                                                                                  |
-| `_get_started_at(status_file)`             | Reads the existing JSON (if any) and returns the original `started_at` value, allowing a rebuild/resync to keep the same start‑time across restarts.                                                    |
-| `_build_status_data(...)`                  | Packages all fields into a plain dict ready for JSON serialization.                                                                                                                                 |
-| `clear_indexing_status(data_root)`         | Deletes the JSON file if it exists.                                                                                                                                                                      |
-| `get_indexing_status(data_root, logger=None)` | Reads and parses the JSON file, returning the dict or `None` on missing/corrupt files. Logs JSON decode errors via the supplied logger (defaults to `NullLogger`).                                        |
+| `_atomic_write_json(status_file, data)` | Writes JSON to a temporary file in the same directory, flushes, `fsync`s, then atomically renames the temp file onto the target. Guarantees that a partially‑written file never appears. |
+| `_calculate_progress(total, current)` | Returns a float in `[0.0, 1.0]`; guards against division by zero or negative totals. |
+| `_get_started_at(status_file)` | Reads the existing JSON (if any) and returns the original `started_at` value, allowing a rebuild/resync to keep the same start‑time across restarts. |
+| `_build_status_data(...)` | Packages all fields into a plain dict ready for JSON serialization. |
+| `clear_indexing_status(data_root)` | Deletes the JSON file if it exists. |
+| `get_indexing_status(data_root, logger=None)` | Reads and parses the JSON file, returning the dict or `None` on missing/corrupt files. Logs JSON decode errors via the supplied logger (defaults to `NullLogger`). |
 
 These utilities are deliberately lightweight: they operate purely on the filesystem and do not depend on the SQLite connection, making them safe to call from any thread (including the writer thread).
 

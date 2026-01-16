@@ -1,4 +1,4 @@
-![PWA Features](../images/mobile.png){ align=right width="90" }
+![PWA Features](../../images/mobile.png){ align=right width="90" }
 
 **Purpose** — This document describes the **Progressive Web App (PWA) capabilities** of Mixtape Society's public sharing feature.
 It explains how the service worker enables offline playback, how audio caching works with range requests, the installation flow, and how the manifest scopes the PWA to public routes only.
@@ -464,9 +464,9 @@ The `/play/` scope ensures authenticated routes cannot be hijacked or cached ina
 
 ## 📚 Related Documentation
 
-- [Audio Streaming & Range Requests](routes/playback.md) - How audio streaming works
-- [Mixtape Manager](mixtape_manager.md) - Mixtape data persistence
-- [Configuration](configuration.md) - Environment setup
+- [Audio Streaming & Range Requests](../routes/play/index.md) - How audio streaming works
+- [Mixtape Manager](../mixtape_manager.md) - Mixtape data persistence
+- [Configuration](../configuration.md) - Environment setup
 
 ## 🔗 External Resources
 

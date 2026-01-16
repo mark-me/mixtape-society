@@ -6,6 +6,25 @@ All notable changes to Mixtape Society are documented here. We follow [Semantic 
 
 Each release rewinds and fast-forwards your mixtape experience—just like a real cassette! 🎧
 
+## 📦 v0.5.8
+
+<span class="md-tag">Release</span>
+
+**🗓️** 2026-01-16
+
+### ✨ Added
+
+- Added Android Auto support
+- Size-optimized cover generation
+- Mechanical click sound effect for cassette mode
+- Lots of extra and restructured documentation
+
+### 🐛 Fixed
+
+- The artist's album accordions in the search results went missing since v0.5.7
+
+---
+
 ## 📦 v0.5.7
 
 <span class="md-tag">Release</span>

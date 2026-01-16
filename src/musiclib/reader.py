@@ -204,10 +204,10 @@ class MusicCollection:
 
     def _fts_escape(self, txt: str) -> str:
         """Escapes special characters in a string for use in full-text search queries.
-        
+
         SQLite FTS5 treats certain characters as token separators (including periods).
         For search terms like "R.E.M.", we need to quote them to search as a phrase.
-        
+
         Args:
             txt: The input string to escape.
 
@@ -217,14 +217,14 @@ class MusicCollection:
         # If the text contains FTS special characters (like periods), quote it
         # to search it as a phrase
         has_special = any(c in txt for c in '.,-()[]{}!@#$%^&*+=|\\/<>?;:')
-        
+
         # Escape any double quotes in the text
         escaped = txt.replace('"', '""')
-        
+
         # If it has special characters, wrap in quotes to search as phrase
         if has_special:
             return f'"{escaped}"'
-        
+
         return escaped
 
     def _search_album_tracks(
@@ -634,7 +634,7 @@ class MusicCollection:
                         fts_parts.append(escaped)
                     else:
                         fts_parts.append(f"{escaped}*")
-                
+
                 fts_query = " OR ".join(fts_parts) if fts_parts else "1=0"
 
                 sql = """
@@ -1283,6 +1283,48 @@ class MusicCollection:
 
         return "covers/_fallback.jpg"
 
+    def get_cover_sizes(self, release_dir: str) -> dict[str, str]:
+        """Returns URLs for multiple size variants of a cover image.
+        Generates size variants on-demand if not already cached.
+
+        Args:
+            release_dir: The release directory identifier for which to retrieve cover variants.
+
+        Returns:
+            dict[str, str]: Dictionary mapping size strings (e.g., "96x96") to relative URL paths.
+        """
+        if not release_dir:
+            sizes = [96, 128, 192, 256, 384, 512]
+            return {f"{s}x{s}": "covers/_fallback.jpg" for s in sizes}
+
+        slug = self._sanitize_release_dir(release_dir)
+        sizes = [96, 128, 192, 256, 384, 512]
+
+        # Ensure main cover exists first
+        main_path = self.covers_dir / f"{slug}.jpg"
+        if not main_path.exists() and not self._extract_cover(release_dir, main_path):
+            return {f"{s}x{s}": "covers/_fallback.jpg" for s in sizes}
+
+        # Check if variants exist, generate if needed
+        variants_exist = all(
+            (self.covers_dir / f"{slug}_{s}x{s}.jpg").exists() for s in sizes
+        )
+
+        if not variants_exist:
+            self._generate_cover_variants(release_dir, slug)
+
+        # Build URL dictionary
+        result = {}
+        for size in sizes:
+            variant_path = self.covers_dir / f"{slug}_{size}x{size}.jpg"
+            if variant_path.exists():
+                result[f"{size}x{size}"] = f"covers/{slug}_{size}x{size}.jpg"
+            else:
+                # Fallback to main cover if variant doesn't exist
+                result[f"{size}x{size}"] = f"covers/{slug}.jpg"
+
+        return result
+
     def _setup_fallback_cover(self) -> None:
         """Ensures the fallback cover image exists in the covers directory.
         Copies the fallback image from static directory if it doesn't already exist.
@@ -1332,6 +1374,52 @@ class MusicCollection:
         if len(clean) > 200:  # Truncate long paths
             clean = f"{clean[:100]}_{hashlib.md5(release_dir.encode()).hexdigest()[:8]}"
         return clean
+
+    def _generate_cover_variants(self, release_dir: str, slug: str) -> bool:
+        """Generates multiple size variants of a cover image for responsive serving.
+        Creates optimized versions at standard sizes for efficient bandwidth usage.
+
+        Args:
+            release_dir: The release directory relative to the music root.
+            slug: The sanitized slug identifier for the cover files.
+
+        Returns:
+            bool: True if at least one size variant was successfully generated, otherwise False.
+        """
+        # Standard sizes for responsive cover art (Android Auto, web, etc.)
+        sizes = [96, 128, 192, 256, 384, 512]
+
+        # First generate the main cover at 800px (existing behavior)
+        main_path = self.covers_dir / f"{slug}.jpg"
+        if not self._extract_cover(release_dir, main_path):
+            return False
+
+        # Now generate size variants from the main cover
+        try:
+            with Image.open(main_path) as main_img:
+                for size in sizes:
+                    variant_path = self.covers_dir / f"{slug}_{size}x{size}.jpg"
+
+                    # Skip if variant already exists
+                    if variant_path.exists():
+                        continue
+
+                    # Create a copy for this size
+                    img_copy = main_img.copy()
+
+                    # Resize maintaining aspect ratio
+                    img_copy.thumbnail((size, size), Image.Resampling.LANCZOS)
+
+                    # Save with appropriate quality
+                    quality = 85 if size >= 256 else 80
+                    img_copy.save(variant_path, 'JPEG', quality=quality, optimize=True)
+
+                    self._logger.debug(f"Generated {size}x{size} variant for {slug}")
+
+            return True
+        except Exception as e:
+            self._logger.warning(f"Failed to generate cover variants for {release_dir}: {e}")
+            return False
 
     def _extract_cover(self, release_dir: str, target_path: Path) -> bool:
         """Attempts to locate or extract a cover image for a given release directory.

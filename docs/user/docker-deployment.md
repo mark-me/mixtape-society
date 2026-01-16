@@ -7,7 +7,7 @@ Deploying Mixtape Society with Docker is the easiest and most reliable way to ge
 ## 🐋 Why Docker?
 
 | Benefit | Explanation |
-|---------|------------|
+| ------- | ---------- |
 | Zero-setup | No manual Python, `uv`, or system-package installation. The container bundles the interpreter, dependencies, and the Flask app. |
 | Portability | Works on Linux, macOS, Windows (Docker Desktop) and ARM devices (Raspberry Pi) without code changes. |
 | Isolation | The app runs as an unprivileged user inside the container; the host file system is only accessed through explicit volume mounts. |
@@ -39,10 +39,10 @@ docker run -d \
   ghcr.io/mark-me/mixtape-society:latest
 ```
 
-**What this does**
+**What this does:**
 
 | Flag | Effect |
-|------|-------|
+| ---- | ----- |
 | `-p 5000:5000` | Exposes the Flask dev server on host port 5000. |
 | `-v /path/to/your/music:/music:ro` | Mounts your music library read-only (required by `MUSIC_ROOT`). |
 | `-v /path/for/data:/app/collection-data` | Persists the SQLite DB, mixtapes, covers, and audio cache. |
@@ -112,7 +112,7 @@ docker compose up -d --no-deps --force-recreate mixtape   # restart only the app
 ## 🔄 Configuration Mapping (Env ↔ Filesystem)
 
 | Config variable (Python) | Docker-Compose / docker run mapping | Default (if omitted) | Where it ends up on the host |
-|--------------------------|-----------------------------------|--------------------|------------------------------|
+| ------------------------ | --------------------------------- | ------------------ | ---------------------------- |
 | APP_ENV | `-e APP_ENV=production` (or in `.env`) | `development` | Controls which subclass (`ProductionConfig`) is used. |
 | MUSIC_ROOT | Volume mount `-v /host/music:/music:ro` | `/music` | The container sees the music library at `/music`. |
 | DATA_ROOT | Volume mount `-v mixtape_data:/app/collection-data` (named volume) | `../collection-data` (relative to repo) | Holds `collection.db`, `mixtapes/`, `cache/audio/`. |
@@ -138,7 +138,7 @@ Inside the container (`/app/collection-data`):
         └─ <artist>/<album>/<track>.mp3   # Cached/transcoded audio files
 ```
 
-On the **host**, the named volume `mixtape_data` maps to a directory managed by Docker (usually under` /var/lib/docker/volumes/...`). You can inspect it with:
+On the **host**, the named volume `mixtape_data` maps to a directory managed by Docker (usually under`/var/lib/docker/volumes/...`). You can inspect it with:
 
 ```bash
 docker volume inspect mixtape_data
@@ -172,14 +172,12 @@ services:
 ```
 
 | Label | Meaning |
-|-------|---------|
+| ----- | ------- |
 | `traefik.enable=true` | Expose this container to Traefik. |
 | `rule=Host(...)` | Route requests for your domain to this service. |
 | `entrypoints=websecure` | Use the TLS entrypoint (usually port 443). |
 | `tls.certresolver=myresolver` | Let Traefik obtain a Let's Encrypt certificate automatically. |
 | `loadbalancer.server.port=5000` | Traefik forwards to the Flask container’s internal port 5000. |
-
-*Explanation*
 
 #### Minimal docker-compose.yml Snippet
 
@@ -246,7 +244,7 @@ services:
 What each variable does
 
 | Variable / Label | Meaning |
-|------------------|---------|
+| ---------------- | ------- |
 | `TSDPROXY_ENABLE=true` | Marks the container as a candidate for proxying. |
 | `TSDPROXY_HOST=mixtape.yourdomain.com` | The DNS name that will resolve to your server’s public IP. |
 | `TSDPROXY_HTTP_PORT=5000` | The internal port on which the Flask app listens (the port you expose above). |
@@ -280,7 +278,7 @@ volumes:
   tsdproxy_data:
 ```
 
-**Key points**
+**Key points:**
 
 * TSDProxy automatically discovers containers on the same Docker network that have `TSDPROXY_ENABLE=true` (or the matching label).
 * It will request a Let’s Encrypt certificate for the hostname you supplied (`mixtape.yourdomain.com`).
@@ -289,14 +287,14 @@ volumes:
 ## ⚠️ Common Gotchas & Troubleshooting
 
 | Symptom | Likely Cause | Fix |
-|---------|--------------|-----|
+| ------- | ------------ | --- |
 | First indexing hangs forever | The music library is huge or the container lacks permission to read it. | Verify the `/music` mount is read-only and the UID inside the container (default 1000) can traverse the host directory. Check logs: `docker logs -f mixtape-society`. |
 | Permission denied when writing covers | DATA_ROOT volume owned by root. | Ensure the named volume or bind-mount is owned by UID 1000 (or set `PUID`/`PGID` env vars and adjust the Dockerfile accordingly). |
 | Cannot reach the app on port 5000 | Port not published or firewall blocks it. | Confirm `-p 5000:5000` (or the `ports:` entry in compose) and that your host firewall allows inbound traffic. |
 | Database corruption after abrupt shutdown | Container killed with SIGKILL while SQLite was writing. | Use Docker’s graceful stop (`docker stop`) or configure `restart: unless-stopped`. SQLite is robust, but a clean shutdown is safest. |
 | Audio cache not being created | `AUDIO_CACHE_ENABLED` set to False or `AUDIO_CACHE_PRECACHE_ON_UPLOAD` disabled. | Verify those env vars (defaults are True). |
 | Cover images not showing | Wrong `COVER_DIR` mount or missing `covers/` sub-folder. | The container automatically creates `covers/` under `MIXTAPE_DIR`. Ensure the volume is persistent and not overwritten on each `docker compose up`. |
-| SSL handshake errors behind proxy | Proxy terminates TLS but forwards HTTP to Flask on the wrong port. | Make sure the proxy forwards to port 5000 (the Flask server) and that the `X-Forwarded-Proto` header is respected (Flask handles it automatically).
+| SSL handshake errors behind proxy | Proxy terminates TLS but forwards HTTP to Flask on the wrong port. | Make sure the proxy forwards to port 5000 (the Flask server) and that the `X-Forwarded-Proto` header is respected (Flask handles it automatically). |
 
 ## 🛠️ Building a Custom Image (Optional)
 
