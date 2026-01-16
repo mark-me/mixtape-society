@@ -943,7 +943,7 @@ setupLocalMediaSession(newMetadata, controls);
 - **[Player Controls](playerControls.md)** - Main orchestration layer
 - **[Chromecast Integration](../chromecast/integration.md)** - Uses player control utilities
 - **[Android Auto](../android-auto/integration-overview.md)** - Enhanced Media Session setup
-- **[Playback Routes](../routes/playback.md)** - Backend audio streaming
+- **[Playback Routes](../routes/play/index.md)** - Backend audio streaming
 
 ---
 

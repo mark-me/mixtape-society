@@ -358,7 +358,7 @@ def serve_cover_by_size(release_dir):
 **Integrated with:**
 
 - [Cover Art Routes](../routes/covers.md) - HTTP endpoint documentation
-- [Playback Routes](../routes/playback.md) - Audio streaming context
+- [Playback Routes](../routes/play/index.md) - Audio streaming context
 - [Android Auto](../android-auto/backend-implementation.md)
 
 ---

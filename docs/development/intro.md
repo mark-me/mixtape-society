@@ -139,7 +139,7 @@ Each blueprint has its own Markdown file that details the routes, request flow, 
 
 * [Browser UI & mixtape management](routes/browse_mixtapes.md)
 * [Editor UI, save logic, and progress modal.](routes/editor.md)
-* [Streaming, MIME detection, and range handling.](routes/playback.md)
+* [Streaming, MIME detection, and range handling.](routes/play/index.md)
 * [Session‑based login flow.](routes/authentication.md)
 * [OG image generation.](routes/opengraph_images.md)
 

@@ -464,7 +464,7 @@ The `/play/` scope ensures authenticated routes cannot be hijacked or cached ina
 
 ## 📚 Related Documentation
 
-- [Audio Streaming & Range Requests](../routes/playback.md) - How audio streaming works
+- [Audio Streaming & Range Requests](../routes/play/index.md) - How audio streaming works
 - [Mixtape Manager](../mixtape_manager.md) - Mixtape data persistence
 - [Configuration](../configuration.md) - Environment setup
 

@@ -388,7 +388,7 @@ const url = `/covers/slug_256x256.jpg?t=${Date.now()}`;
 **Integration:**
 
 - [Android Auto Integration](../android-auto/backend-implementation.md) - Android Auto context
-- [Playback Routes](playback.md) - Audio streaming context
+- [Playback Routes](play/index.md) - Audio streaming context
 
 ---
 

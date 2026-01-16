@@ -81,7 +81,12 @@ nav:
       - Routes:
         - Browser: development/routes/browse_mixtapes.md
         - Editor: development/routes/editor.md
-        - Playback: development/routes/playback.md
+        - Playback:
+          - Overview: development/routes/play/index.md
+          - Media Integration: development/routes/play/media-integration.md
+          - Audio Streaming: development/routes/play/audio-streaming.md
+          - Range Requests: development/routes/play/range-requests.md
+          - Quality Caching: development/routes/play/quality-caching.md
         - Cover Art: development/routes/covers.md
         - Authentication: development/routes/authentication.md
         - OpenGraph: development/routes/opengraph_images.md

@@ -802,7 +802,7 @@ return {
 - **[Chromecast Integration](../chromecast/integration.md)** - Casting coordination
 - **[Android Auto](../android-auto/integration-overview.md)** - Enhanced Media Session
 - **[Player Utils](playerUtils.md)** - Shared utilities
-- **[Playback Routes](../routes/playback.md)** - Audio streaming backend
+- **[Playback Routes](../routes/play/index.md)** - Audio streaming backend
 
 ---
 
