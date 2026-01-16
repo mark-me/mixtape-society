@@ -1,4 +1,4 @@
-![PWA](../../../images/app.png){ align=right width="90" }
+![PWA](../../images/app.png){ align=right width="90" }
 
 # Progressive Web App (PWA) Optimization
 

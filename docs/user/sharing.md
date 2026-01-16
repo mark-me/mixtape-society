@@ -16,7 +16,7 @@ Sharing a mixtape with friends or family with Mixtape Society recreates the joy 
 
 2. **Share it**
 
-    After saving, a shareable URL or QR code appears (e.g., https://yourdomain.com/share/my-favorite-songs_20251217_abcd1234). You can copy the link or QR code or download the QR code with cover image and title.
+    After saving, a shareable URL or QR code appears (e.g., <https://yourdomain.com/share/my-favorite-songs_20251217_abcd1234>). You can copy the link or QR code or download the QR code with cover image and title.
 
 3. **Send It Anywhere**
 
@@ -63,6 +63,7 @@ Perfect for Android users and anyone with a Chromecast device:
 4. **Enjoy on TV** – The mixtape plays on your selected device
 
 **Requirements:**
+
 - ✅ Chromecast device (Chromecast, Chromecast Audio, or Chromecast built-in TV/speaker)
 - ✅ Phone/computer on same WiFi network
 - ✅ Modern web browser (Chrome, Edge, or Opera recommended)
@@ -80,11 +81,13 @@ Apple users get native AirPlay support automatically—no extra setup needed!
 5. **Stream seamlessly** – High-quality audio to your selected device
 
 **Where to Find AirPlay:**
+
 - 🎵 **Control Center** – Swipe down from top-right (iPhone X+) or swipe up (older iPhones)
 - 🔒 **Lock screen** – Control playback without unlocking
 - 💻 **Mac** – Menu bar audio icon or system controls
 
 **AirPlay Devices:**
+
 - Apple TV (3rd gen or later)
 - HomePod & HomePod mini
 - AirPort Express
@@ -98,12 +101,14 @@ Apple users get native AirPlay support automatically—no extra setup needed!
 When streaming (Chromecast or AirPlay), recipients can control playback from:
 
 **Chromecast:**
+
 - 🎮 **The mixtape player** – Standard play/pause/next/previous buttons
 - 📱 **Lock screen controls** – Control playback without opening the app
 - ⚠️ **Notification controls** – Quick access from notification shade (Android)
 - ⌨️ **Media keys** – Use hardware media keys on keyboards/headphones
 
 **AirPlay:**
+
 - 🎵 **Audio player controls** – Built into Safari's audio player
 - 🔒 **Lock screen** – Full media controls on iOS lock screen
 - 🎛️ **Control Center** – Quick access to playback and AirPlay selection
@@ -128,6 +133,7 @@ Combine digital convenience with physical charm:
 ### Mixtape Booklet
 
 Create a printed booklet with:
+
 - Cover art on the front
 - QR code on the back
 - Liner notes inside explaining why you chose each song
@@ -136,6 +142,7 @@ Create a printed booklet with:
 ### Party Playlist Cards
 
 For events:
+
 - Print table tent cards with QR codes
 - Guests scan to access the party playlist
 - They can cast to available Chromecast devices
@@ -166,6 +173,16 @@ Recipients can adjust audio quality to match their connection:
 - **Low (128k)** – Acceptable quality, minimal bandwidth
 
 When casting to Chromecast, the device automatically handles quality based on network conditions.
+
+---
+
+## 📡 Streaming Options
+
+Recipients can stream shared mixtapes using:
+
+- **Chromecast** - Cast to TVs and speakers ([technical details](../development/chromecast/integration.md))
+- **Android Auto** - In-car playback ([technical details](../development/android-auto/integration-overview.md))
+- **AirPlay** - Native iOS casting
 
 ---
 

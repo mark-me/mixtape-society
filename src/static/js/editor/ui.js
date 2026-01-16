@@ -120,7 +120,7 @@ export function initUI() {
     titleInput.addEventListener("input", markUnsaved);
 
     // Auto-grow textarea as user types
-    function autoGrowTextarea(element) {
+    const autoGrowTextarea = (element) => {
         element.style.height = 'auto';
         element.style.height = element.scrollHeight + 'px';
     }
@@ -328,7 +328,7 @@ export function initUI() {
     /**
      * Removes any orphaned modal backdrops that might be stuck on the page
      */
-    function cleanupModalBackdrops() {
+    const cleanupModalBackdrops = () => {
         const backdrops = document.querySelectorAll('.modal-backdrop');
         backdrops.forEach(backdrop => backdrop.remove());
         document.body.classList.remove('modal-open');
@@ -369,7 +369,7 @@ export function initUI() {
     /**
      * Generates a composite cover from playlist track covers
      */
-    function generateCompositeCover() {
+    const generateCompositeCover = () => {
         const allCovers = playlist
             .map(item => item.cover)
             .filter(Boolean);

@@ -110,7 +110,7 @@ This section dives into the inner workings of **Mixtape Society**. Each page foc
 | **[Music Library (`musiclib`)](musiclib/intro.md)** | Handles scanning, indexing, and full‑text search of the audio collection (TinyTag + SQLite FTS5). |
 | **[Mixtape Manager](mixtape_manager.md)** | Persists mixtape JSON files, manages cover images, and provides CRUD operations. |
 | **[Audio Caching](audio_caching.md)** | Transcodes FLAC files to MP3/OGG on‑demand, stores them in a cache, and streams via HTTP range requests. |
-| **[Progressive Web App (PWA)](pwa.md)** | Enables offline playback for public shared mixtapes via service workers, smart caching, and installable app features. |
+| **[Progressive Web App (PWA)](pwa/pwa.md)** | Enables offline playback for public shared mixtapes via service workers, smart caching, and installable app features. |
 | **[Configuration](configuration.md)** | Centralised environment‑variable handling, directory layout, and defaults. |
 | **[Utilities](utilities.md)** | Helper functions (logging, image processing, misc tools). |
 
@@ -139,7 +139,7 @@ Each blueprint has its own Markdown file that details the routes, request flow, 
 
 * [Browser UI & mixtape management](routes/browse_mixtapes.md)
 * [Editor UI, save logic, and progress modal.](routes/editor.md)
-* [Streaming, MIME detection, and range handling.](routes/playback.md)
+* [Streaming, MIME detection, and range handling.](routes/play/index.md)
 * [Session‑based login flow.](routes/authentication.md)
 * [OG image generation.](routes/opengraph_images.md)
 

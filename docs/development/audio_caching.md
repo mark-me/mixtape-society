@@ -6,7 +6,6 @@ The audio‑caching subsystem automatically converts large lossless audio files 
 
 > **TL;DR** – The cache turns a 40 MB FLAC track into a ~5 MB MP3 (≈ 87 % bandwidth saving) and serves the MP3 via HTTP range requests.
 
-
 ## 📖 Overview
 
 When streaming lossless audio over the web, bandwidth quickly becomes a bottleneck:
@@ -49,16 +48,16 @@ graph TD
 
 ## ✨ Key Features
 
-| Feature                      | Description                                                                 |
-| ---------------------------- | --------------------------------------------------------------------------- |
-| **Automatic transcoding**         | FLAC, WAV, AIFF, APE, ALAC → MP3 (high/medium/low).                         |
-| **Multiple quality levels**       | `high` (256 kbps), `medium` (192 kbps), `low` (128 kbps).                         |
-| **Smart caching**                 | Only creates a cached file when the source is lossless and the cache is missing/out-of-date. |
-| **Pre-caching on upload**         | When a mixtape is saved, the system can generate caches automatically.      |
-| **Parallel batch processing**     | Thread-pool (configurable workers) for fast bulk transcoding.               |
-| **Progress tracking**             | Real-time SSE updates displayed in a Bootstrap modal.                       |
-| **Cache management utilities**    | Size calculation, age-based cleanup, full purge.                            |
-| **Config-driven**                 | All knobs live in `src/config/config.py` (`AUDIO_CACHE_*`).                   |
+| Feature | Description |
+| ------- | ----------- |
+| **Automatic transcoding** | FLAC, WAV, AIFF, APE, ALAC → MP3 (high/medium/low). |
+| **Multiple quality levels** | `high` (256 kbps), `medium` (192 kbps), `low` (128 kbps). |
+| **Smart caching** | Only creates a cached file when the source is lossless and the cache is missing/out-of-date. |
+| **Pre-caching on upload** | When a mixtape is saved, the system can generate caches automatically. |
+| **Parallel batch processing** | Thread-pool (configurable workers) for fast bulk transcoding. |
+| **Progress tracking** | Real-time SSE updates displayed in a Bootstrap modal. |
+| **Cache management utilities** | Size calculation, age-based cleanup, full purge. |
+| **Config-driven** | All knobs live in `src/config/config.py` (`AUDIO_CACHE_*`). |
 
 ## 📋 How It Works (Step‑by‑Step)
 
@@ -143,14 +142,14 @@ graph LR
 
 ## 🛠️ Configuration Options
 
-| Option                         | Default                    | Description                                                         |
-| ------------------------------- | -------------------------- | ------------------------------------------------------------------- |
-| `AUDIO_CACHE_DIR`                 | `"cache/audio"`              | Directory where MP3 caches are stored (relative to DATA_ROOT).      |
-| `AUDIO_CACHE_ENABLED`             | `True`                       | Master switch – set to `False` to bypass the entire subsystem.        |
-| `AUDIO_CACHE_DEFAULT_QUALITY`     | `"medium"`                   | Quality used when a client does not specify one.                     |
-| `AUDIO_CACHE_MAX_WORKERS`         | `4`                          | Number of parallel threads for batch transcoding.                    |
-| `AUDIO_CACHE_PRECACHE_ON_UPLOAD`  | `True`                       | Auto-cache mixtape tracks when a mixtape is saved.                   |
-| `AUDIO_CACHE_PRECACHE_QUALITIES`  | `["medium"]`                 | List of qualities to pre-generate (e.g., `["low", "medium", "high"]`). |
+| Option | Default | Description |
+| ------ | ------- | ----------- |
+| `AUDIO_CACHE_DIR` | `"cache/audio"` | Directory where MP3 caches are stored (relative to DATA_ROOT). |
+| `AUDIO_CACHE_ENABLED` | `True` | Master switch – set to `False` to bypass the entire subsystem. |
+| `AUDIO_CACHE_DEFAULT_QUALITY` | `"medium"` | Quality used when a client does not specify one. |
+| `AUDIO_CACHE_MAX_WORKERS` | `4` | Number of parallel threads for batch transcoding. |
+| `AUDIO_CACHE_PRECACHE_ON_UPLOAD` | `True` | Auto-cache mixtape tracks when a mixtape is saved. |
+| `AUDIO_CACHE_PRECACHE_QUALITIES` | `["medium"]` | List of qualities to pre-generate (e.g., `["low", "medium", "high"]`). |
 
 > These values are defined in `src/config/config.py` and can be overridden with environment variables (e.g., `AUDIO_CACHE_MAX_WORKERS=8`).
 
@@ -160,7 +159,7 @@ graph LR
 
 The progress modal in the editor UI subscribes to the endpoint:
 
-```
+```text
 GET /editor/progress/<slug>
 ```
 
@@ -180,24 +179,23 @@ The server returns a **Server‑Sent Events** stream. Each event looks like:
 
 The modal updates the progress bar, logs messages, and shows a final summary when the `status` becomes `completed` or `failed`.
 
-> Implementation note:` ProgressCallback.track_cached()`, `track_skipped()`, and `track_failed()` are called from `CacheWorker` to emit the above events.
+> Implementation note:`ProgressCallback.track_cached()`, `track_skipped()`, and `track_failed()` are called from `CacheWorker` to emit the above events.
 
 ## 🔧 Troubleshooting FAQ
 
 ### Cache Misses – “Why isn’t my file being cached?”
 
-| Symptom                            | Check                                                      | Fix                                                                 |
-| ---------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------- |
-| Cache miss warning in logs         | `grep -i "cache miss" app.log`                             | Verify `AUDIO_CACHE_ENABLED=True` and that the file’s suffix is in `should_transcode` (FLAC, WAV, AIFF, APE, ALAC). |
-| Cache file exists but not found    | `ls collection-data/cache/audio/`                          | Ensure the hash matches the current absolute path. If you moved the music folder, run `python debug_cache.py <MUSIC_ROOT> <REL_PATH> <CACHE_DIR>` (see debug_cache.py). |
-| Cache never generated              | `AUDIO_CACHE_PRECACHE_ON_UPLOAD=False`                     | Enable pre-caching or trigger it manually via `schedule_mixtape_caching`. |
-| ffmpeg not found                   | `ffmpeg -version`                                          | Install ffmpeg on the host (Ubuntu: `apt install ffmpeg`; Alpine: `apk add ffmpeg`). |
-| Permission denied on cache dir     | `ls -ld collection-data/cache/audio`                       | The Flask process must have write permission (owner UID = the container user). |
-| High CPU usage during batch caching| `top while caching`                                        | Reduce `AUDIO_CACHE_MAX_WORKERS` (e.g., `export AUDIO_CACHE_MAX_WORKERS=2`). |
-| Stale cache after source file change| Compare timestamps (`stat -c %Y file`)                      | Run `cache.clear_cache()` or set `overwrite=True` in `transcode_file`. |
+| Symptom | Check | Fix |
+| ------- | ----- | --- |
+| Cache miss warning in logs | `grep -i "cache miss" app.log` | Verify `AUDIO_CACHE_ENABLED=True` and that the file’s suffix is in `should_transcode` (FLAC, WAV, AIFF, APE, ALAC). |
+| Cache file exists but not found | `ls collection-data/cache/audio/` | Ensure the hash matches the current absolute path. If you moved the music folder, run `python debug_cache.py <MUSIC_ROOT> <REL_PATH> <CACHE_DIR>` (see debug_cache.py). |
+| Cache never generated | `AUDIO_CACHE_PRECACHE_ON_UPLOAD=False` | Enable pre-caching or trigger it manually via `schedule_mixtape_caching`. |
+| ffmpeg not found | `ffmpeg -version` | Install ffmpeg on the host (Ubuntu: `apt install ffmpeg`; Alpine: `apk add ffmpeg`). |
+| Permission denied on cache dir | `ls -ld collection-data/cache/audio` | The Flask process must have write permission (owner UID = the container user). |
+| High CPU usage during batch caching | `top while caching` | Reduce `AUDIO_CACHE_MAX_WORKERS` (e.g., `export AUDIO_CACHE_MAX_WORKERS=2`). |
+| Stale cache after source file change | Compare timestamps (`stat -c %Y file`) | Run `cache.clear_cache()` or set `overwrite=True` in `transcode_file`. |
 
-
-### Transcoding Failures – “ffmpeg exited with error code 1”"
+###  Transcoding Failures – “ffmpeg exited with error code 1”"
 
 1. **Inspect the ffmpeg stderr** – it is logged by `AudioCache.transcode_file`.
 2. Common culprits:

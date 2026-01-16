@@ -53,16 +53,16 @@ classDiagram
 
 ### Minimal JSON structure (all fields are optional unless noted)
 
-| Field         | Type             | Description |
-| ------------- | ---------------- |-------------|
-| `title`         | `str`              | Human-readable title (used for slug generation). |
-| `client_id`     | `str`              | Optional identifier that ties a mixtape to a specific client/device. |
-| `created_at`    | ISO-8601 `str`     | Set on first save; auto-filled if missing. |
-| `updated_at`    | ISO-8601 `str`     | Refreshed on every save or update. |
-| `cover`         | `str`              | Relative path to the JPEG cover (`covers/<slug>.jpg`) or a data-URI (`data:image/...`). |
-| `liner_notes`   | `str`              | Free-form notes; defaults to `""`. |
-| `tracks`        | `list[dict]`       | Each entry must contain at least `path` (relative to the music root). Other keys (`artist`, `album`, `track`, `duration`, `filename`, `cover`) are filled/validated on read. |
-| `slug`          | `str` (added on output) | Filesystem-safe identifier derived from `title`, added by the manager on output. |
+| Field | Type | Description |
+| ----- | ---- | ----------- |
+| `title` | `str` | Human-readable title (used for slug generation). |
+| `client_id` | `str` | Optional identifier that ties a mixtape to a specific client/device. |
+| `created_at` | ISO-8601 `str` | Set on first save; auto-filled if missing. |
+| `updated_at` | ISO-8601 `str` | Refreshed on every save or update. |
+| `cover` | `str` | Relative path to the JPEG cover (`covers/<slug>.jpg`) or a data-URI (`data:image/...`). |
+| `liner_notes` | `str` | Free-form notes; defaults to `""`. |
+| `tracks` | `list[dict]` | Each entry must contain at least `path` (relative to the music root). Other keys (`artist`, `album`, `track`, `duration`, `filename`, `cover`) are filled/validated on read. |
+| `slug` | `str` (added on output) | Filesystem-safe identifier derived from `title`, added by the manager on output. |
 
 ## ⚙️ Behavior Details
 
@@ -87,7 +87,7 @@ classDiagram
 ### Cover image handling
 
 | Helper | What it does | Important details |
-|-------|--------------|-------------------|
+| ----- | ------------ | ----------------- |
 | `_process_cover(cover_data: str, slug: str) → str \| None` | Decodes a `data:image/...;base64,…` string, resizes the image, saves it as a JPEG under `covers/<slug>.jpg`, and returns the relative path (`covers/<slug>.jpg`). | Returns `None` on any error; the calling code keeps the original `cover` value. |
 | `_cover_resize(image: Image, new_width: int = 1200) → Image` | Resizes the Pillow `Image` to a maximum width of `new_width` while preserving aspect ratio. | Uses `Image.LANCZOS` for high-quality down-sampling. |
 | `_save_with_slug` | Handles cover persistence during save operations. | If `cover` starts with `data:image`, delegates to `_process_cover`. If it is a plain string (already a relative path), it is stored unchanged. Errors during cover processing are logged but do not abort the mixtape save. |

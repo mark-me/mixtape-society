@@ -24,7 +24,7 @@ docker run -d \
 
 ## 🏗️ Prefer Docker Compose or More Options?
 
-See the full [Docker Deployment](docker.md) guide for:
+See the full [Docker Deployment](docker-deployment.md) guide for:
 
 - Docker Compose examples (with .env secrets)
 - Persistent volumes setup

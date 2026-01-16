@@ -17,7 +17,7 @@ Both functions return **raw `bytes`** (PNG data) ready to be sent as a Flask `Re
 ## 🔧 Installation & Dependencies
 
 | Setting | Where it lives | Default | Remarks |
-|--------|---------------|---------|---------|
+| ------ | ------------- | ------- | ------- |
 | **`qrcode`** (Python library) | `project.toml` / `uv.lock` | `>=7.4` | Required for both endpoints. |
 | **`Pillow`** (image handling) | `project.toml` | `>=10.0` | Needed for compositing the logo/cover. |
 | **Static logo files** | `static/logo.svg` or `static/logo.png` | — | The blueprint prefers SVG; falls back to PNG. |
@@ -27,7 +27,7 @@ Both functions return **raw `bytes`** (PNG data) ready to be sent as a Flask `Re
 ## ⚠️ Error Handling
 
 | Situation | Raised Exception | Message (visible to caller) |
-|-----------|-----------------|-----------------------------|
+| --------- | --------------- | --------------------------- |
 | `qrcode` library missing | `ImportError` (raised at the top of each public function) | `"qrcode library not installed. Install with: uv add qrcode pillow"` |
 | Logo or cover path does not exist | Silently ignored — the function falls back to a plain QR or a QR without cover. Errors are printed to stdout (`print`) but not propagated. | — |
 | `Pillow` fails to open an image (corrupt file) | Caught inside the helper; continues processing | Prints `"Failed to load cover: …"` or `"Failed to add logo to QR code: …"` and continues with the rest of the image. |

@@ -87,25 +87,25 @@ classDiagram
 
 ## 🧩 What the module does
 
-| Goal                         | How it’s achieved                                                                                                                                                     |
-|------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Goal | How it’s achieved |
+| ---- | ----------------- |
 | Detect every supported audio file | A **watchdog observer** (implemented as `EnhancedWatcher`) monitors the `music_root` directory in real time. It includes a 2 second debounce to coalesce rapid edits and avoid duplicate indexing. |
-| Extract reliable metadata    | `tinytag.TinyTag` reads ID3/metadata tags (artist, album, title, year, duration, etc.).                                                                            |
+| Extract reliable metadata | `tinytag.TinyTag` reads ID3/metadata tags (artist, album, title, year, duration, etc.). |
 | Persist metadata efficiently | A **SQLite** database stores the canonical rows (`tracks` table) and an **FTS5** virtual table (`tracks_fts`) that mirrors the same columns for lightning‑fast full‑text search. |
-| Keep the DB in sync          | A **single writer thread** serialises all write operations (adds, deletes, clears) via a thread‑safe `Queue[IndexEvent]`.                                             |
-| Expose progress to the UI    | A tiny JSON file (`indexing_status.json`) is updated atomically during long‑running operations (rebuild, resync) so the front‑end can render progress bars.            |
+| Keep the DB in sync | A **single writer thread** serialises all write operations (adds, deletes, clears) via a thread‑safe `Queue[IndexEvent]`. |
+| Expose progress to the UI | A tiny JSON file (`indexing_status.json`) is updated atomically during long‑running operations (rebuild, resync) so the front‑end can render progress bars. |
 | Provide a clean API for the UI | `MusicCollection` (in `reader.py`) builds the search expression, runs the query, groups results by release directory, and returns a ready‑to‑render structure (artists, albums, tracks) together with the list of terms that need highlighting. |
 
 ---
 
 ## 🧱 Core building blocks
 
-| Module / Class          | Primary responsibility                                                                                                                                                                                                 |
-|--------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **`_extractor.py`**      | • Low‑level DB schema creation (`_init_db`). <br>• Full‑text table bootstrap (`_populate_fts_if_needed`). <br>• **`CollectionExtractor`** – orchestrates indexing, resync, rebuild, and live monitoring. <br>• **`IndexEvent` / `EventType`** – typed messages that drive the writer thread. <br>• **`_Watcher`** – translates filesystem events into `IndexEvent`s. |
-| **`indexing_status.py`**| Helper functions that write/read the `indexing_status.json` file in an atomic, crash‑safe way (e.g., `set_indexing_status`, `clear_indexing_status`, `get_indexing_status`).                                                     |
-| **`reader.py`**          | High‑level façade (**`MusicCollection`**) used by the UI. It parses user queries, builds the FTS/LIKE expression, runs the query, groups rows, and formats the result payload (artists, albums, tracks, and highlight terms).          |
-| **`ui.py`**              | Extends `MusicCollection` with UI‑specific helpers: <br>• `_highlight_text` (term highlighting) <br>• `_safe_filename` (sanitising filenames) <br>• `_escape_for_query` (building click‑query strings) <br>• result shaping for the front‑end. |
+| Module / Class | Primary responsibility |
+| -------------- | ---------------------- |
+| **`_extractor.py`** | • Low‑level DB schema creation (`_init_db`). <br>• Full‑text table bootstrap (`_populate_fts_if_needed`). <br>• **`CollectionExtractor`** – orchestrates indexing, resync, rebuild, and live monitoring. <br>• **`IndexEvent` / `EventType`** – typed messages that drive the writer thread. <br>• **`_Watcher`** – translates filesystem events into `IndexEvent`s. |
+| **`indexing_status.py`**| Helper functions that write/read the `indexing_status.json` file in an atomic, crash‑safe way (e.g., `set_indexing_status`, `clear_indexing_status`, `get_indexing_status`). |
+| **`reader.py`** | High‑level façade (**`MusicCollection`**) used by the UI. It parses user queries, builds the FTS/LIKE expression, runs the query, groups rows, and formats the result payload (artists, albums, tracks, and highlight terms). |
+| **`ui.py`** | Extends `MusicCollection` with UI‑specific helpers: <br>• `_highlight_text` (term highlighting) <br>• `_safe_filename` (sanitising filenames) <br>• `_escape_for_query` (building click‑query strings) <br>• result shaping for the front‑end. |
 
 ---
 
@@ -121,14 +121,14 @@ classDiagram
 
 ## 💡 Why the design choices matter
 
-| Design decision                                 | Benefit                                                                                                                                                              |
-|-------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Single writer thread + queue**                | Guarantees deterministic ordering of DB writes, avoids SQLite lock contention, and lets the UI stay responsive while heavy indexing runs in the background.            |
-| **FTS5 virtual table with triggers**            | Provides sub‑millisecond full‑text look‑ups without having to maintain a separate index manually.                                                                    |
-| **Atomic JSON status file**                     | Prevents corrupted progress information even if the process crashes mid‑write; the UI never sees a half‑written file.                                                  |
-| **Watchdog‑driven live sync**                   | Users see newly added songs appear instantly; deletions are reflected without a full rescan.                                                                         |
-| **Separation of concerns** (`_extractor` vs. `reader` vs. `ui`) | Keeps low‑level DB handling isolated from query parsing and UI formatting, making the code easier to test and extend.                                                |
-| **Typed `IndexEvent` dataclass**                | Improves readability, reduces bugs caused by mismatched queue payloads, and makes future event types straightforward to add.                                          |
+| Design decision | Benefit |
+| --------------- | ------- |
+| **Single writer thread + queue** | Guarantees deterministic ordering of DB writes, avoids SQLite lock contention, and lets the UI stay responsive while heavy indexing runs in the background. |
+| **FTS5 virtual table with triggers** | Provides sub‑millisecond full‑text look‑ups without having to maintain a separate index manually. |
+| **Atomic JSON status file** | Prevents corrupted progress information even if the process crashes mid‑write; the UI never sees a half‑written file. |
+| **Watchdog‑driven live sync** | Users see newly added songs appear instantly; deletions are reflected without a full rescan. |
+| **Separation of concerns** (`_extractor` vs. `reader` vs. `ui`) | Keeps low‑level DB handling isolated from query parsing and UI formatting, making the code easier to test and extend. |
+| **Typed `IndexEvent` dataclass** | Improves readability, reduces bugs caused by mismatched queue payloads, and makes future event types straightforward to add. |
 | **Debouncing in the watcher** (`EnhancedWatcher`) | Prevents a flood of `INDEX_FILE` events when a user edits a file repeatedly (e.g., retagging). Guarantees only the final state is indexed, reducing DB churn and corruption risk. |
 
 ---

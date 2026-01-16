@@ -1,5 +1,5 @@
 site_name: Mixtape Society
-# site_url: https://mixtape-society.org/  # Update if you have a site
+# site_url: https://mixtape-society.org/
 repo_url: https://github.com/mark-me/mixtape-society
 use_directory_urls: false
 theme:
@@ -41,8 +41,8 @@ nav:
   - Getting Started:
     - Overview: user/getting-started.md
     - Installation:
-      - Local Development (Docker): development/docker.md
-      - Production Deployment: user/docker.md
+      - Local Development (Docker): development/docker-dev.md
+      - Production Deployment: user/docker-deployment.md
     - Using Mixtape Society:
       - Editor Guide: user/editor.md
       - Collection Management: user/collection-management.md
@@ -51,22 +51,46 @@ nav:
     - Project Overview: development/intro.md
     - Core Components:
       - Music Library (musiclib):
-        - Introduction: development/musiclib/intro.md
+        - Overview: development/musiclib/intro.md
         - Reader: development/musiclib/reading.md
         - Loader: development/musiclib/loading.md
+      - Cover Art System:
+        - Overview: development/cover-art/overview.md
+        - Size Optimization: development/cover-art/size-optimization.md
+        - API Reference: development/cover-art/api.md
+      - Android Auto:
+        - Overview: development/android-auto/integration-overview.md
+        - Front end: development/android-auto/frontend-integration.md
+        - Back-end: development/android-auto/backend-implementation.md
+        - Testing Guide: development/android-auto/testing-guide.md
+      - Chromecast: development/chromecast/integration.md
       - Mixtape Manager: development/mixtape_manager.md
-      - Audio Caching: development/audio_caching.md
+      - Server Audio Caching: development/audio_caching.md
       - QR Code creation: development/qr_generation.md
       - Configuration: development/configuration.md
       - Utilities: development/utilities.md
     - Flask app:
       - Main App: development/app.md
-      - Progressive Web App (PWA): development/pwa.md
+      - Progressive Web App (PWA):
+        - Introduction PWA: development/pwa/pwa.md
+        - PWA Improvements: development/pwa/pwa-optimization.md
       - Common: development/common.md
+      - Player Modules:
+        - Player Controls: development/player/playerControls.md
+        - Player Utilities: development/player/playerUtils.md
       - Routes:
         - Browser: development/routes/browse_mixtapes.md
-        - Editor: development/routes/editor.md
-        - Playback: development/routes/playback.md
+        - Editor:
+          - Overview: development/routes/editor/index.md
+          - Backend API: development/routes/editor/backend-api.md
+          - Frontend Modules: development/routes/editor/frontend-modules.md
+        - Playback:
+          - Overview: development/routes/play/index.md
+          - Media Integration: development/routes/play/media-integration.md
+          - Audio Streaming: development/routes/play/audio-streaming.md
+          - Range Requests: development/routes/play/range-requests.md
+          - Quality Caching: development/routes/play/quality-caching.md
+        - Cover Art: development/routes/covers.md
         - Authentication: development/routes/authentication.md
         - OpenGraph: development/routes/opengraph_images.md
         - QR Codes: development/routes/qr_codes.md
@@ -76,8 +100,6 @@ nav:
     - Roadmap: project/roadmap.md
     - Ideas:
       - General: project/ideas/ideas.md
-      - Android Auto: project/ideas/android-auto-integration.md
-      - PWA Improvements: project/ideas/PWA/pwa-optimization.md
       - Design & Implementation Map: project/ideas/design_implementation_map.md
     - Contributing: project/contributing.md
     - About: project/about.md
@@ -99,10 +121,6 @@ plugins:
   - panzoom:
       full_screen: true
   - git-revision-date-localized
-  # - git-committers:
-  #     repository: mark-me/mixtape-society
-  #     branch: master
-  #     token: !!python/object/apply:os.getenv ["MKDOCS_GIT_COMMITTERS_APIKEY"]
 
 markdown_extensions:
   - attr_list
@@ -120,4 +138,3 @@ markdown_extensions:
         - name: mermaid
           class: mermaid
           format: !!python/name:pymdownx.superfences.fence_code_format
-
