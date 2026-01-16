@@ -80,7 +80,10 @@ nav:
         - Player Utilities: development/player/playerUtils.md
       - Routes:
         - Browser: development/routes/browse_mixtapes.md
-        - Editor: development/routes/editor.md
+        - Editor:
+          - Overview: development/routes/editor/index.md
+          - Backend API: development/routes/editor/backend-api.md
+          - Frontend Modules: development/routes/editor/frontend-modules.md
         - Playback:
           - Overview: development/routes/play/index.md
           - Media Integration: development/routes/play/media-integration.md

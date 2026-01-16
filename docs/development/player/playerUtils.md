@@ -9,6 +9,7 @@ The `playerUtils.js` module provides cross-cutting utilities for platform detect
 ## 🎯 Purpose
 
 **Core Responsibilities:**
+
 - Detect iOS, Android, and Android Auto platforms
 - Manage Media Session API (standard and enhanced)
 - Control local player state (silence/enable)
@@ -122,18 +123,21 @@ export function detectiOS() {
 ```
 
 **Return value when not iOS:**
+
 ```javascript
 null
 ```
 
 **Key features:**
+
 - **User agent parsing:** Extracts iOS version from UA string
 - **Media Session support check:** iOS 15+ required
 - **PWA detection:** Multiple methods (standalone + display-mode)
 - **Excludes Windows Phone:** `!window.MSStream` check
 
 **User agent patterns matched:**
-```
+
+```text
 Mozilla/5.0 (iPhone; CPU iPhone OS 17_2 like Mac OS X)...
 Mozilla/5.0 (iPad; CPU OS 16_5 like Mac OS X)...
 Mozilla/5.0 (iPod touch; CPU iPhone OS 15_0 like Mac OS X)...
@@ -188,11 +192,13 @@ export function detectAndroid() {
 **Android Auto detection:**
 
 User agent contains "vehicle" or "automotive":
-```
+
+```text
 Mozilla/5.0 (Linux; Android 13; automotive) AppleWebKit/537.36...
 ```
 
 **Key features:**
+
 - **Version extraction:** Parses major and minor version
 - **Media Session check:** Android 5.0+ (Lollipop) required
 - **Android Auto detection:** User agent keywords
@@ -207,7 +213,8 @@ Mozilla/5.0 (Linux; Android 13; automotive) AppleWebKit/537.36...
 **Console output examples:**
 
 **iOS Device:**
-```
+
+```text
 📱 iOS Device Detected
    Version: iOS 17.2
    PWA Mode: Yes
@@ -217,7 +224,8 @@ Mozilla/5.0 (Linux; Android 13; automotive) AppleWebKit/537.36...
 ```
 
 **Android Device (Android Auto):**
-```
+
+```text
 🤖 Android Device Detected
    Version: Android 13.0
    PWA Mode: No
@@ -228,7 +236,8 @@ Mozilla/5.0 (Linux; Android 13; automotive) AppleWebKit/537.36...
 ```
 
 **Desktop:**
-```
+
+```text
 💻 Desktop/Other Device
    Media Session API: Available ✅
    Cast API: Available ✅
@@ -242,6 +251,7 @@ logDeviceInfo();
 ```
 
 **Checks:**
+
 - Platform type (iOS, Android, Desktop)
 - OS version
 - PWA status
@@ -258,7 +268,9 @@ logDeviceInfo();
 **Purpose:** Configure standard Media Session for iOS and Desktop
 
 **Parameters:**
+
 - `metadata` (object) - Track metadata
+
   ```javascript
   {
       title: "Song Title",
@@ -270,6 +282,7 @@ logDeviceInfo();
       ]
   }
   ```
+
 - `playerControls` (object) - Control API with `play()`, `pause()`, `next()`, `previous()`
 
 **Implementation:**
@@ -318,12 +331,14 @@ export function setupLocalMediaSession(metadata, playerControls) {
 ```
 
 **Features:**
+
 - Sets track metadata (title, artist, album, artwork)
 - Configures 5 action handlers (play, pause, previous, next, seekto)
 - Routes all actions to playerControls API
 - Graceful error handling
 
 **Difference from Android Auto:**
+
 - Simpler setup (no position state)
 - Fewer artwork sizes (2 vs 5)
 - No position update interval
@@ -377,11 +392,13 @@ export function clearMediaSession() {
 ```
 
 **Why set playbackState to 'none' first?**
+
 - Prevents brief flash of stale metadata in lock screen
 - Signals to OS that media is truly stopped
 - Required before clearing metadata
 
 **When called:**
+
 - User stops playback
 - Chromecast session starts (local session must clear)
 - Switching between playback modes
@@ -391,6 +408,7 @@ export function clearMediaSession() {
 **Purpose:** Update only the playback state without changing metadata
 
 **Parameters:**
+
 - `state` (string) - One of: `'none'`, `'paused'`, `'playing'`
 
 **Implementation:**
@@ -425,6 +443,7 @@ player.addEventListener('pause', () => {
 **Purpose:** Update position state for seeking and progress display
 
 **Parameters:**
+
 - `currentTime` (number) - Current playback position in seconds
 - `duration` (number) - Total track duration in seconds
 - `playbackRate` (number) - Playback speed (default: 1.0)
@@ -451,11 +470,13 @@ export function updateMediaSessionPosition(currentTime, duration, playbackRate =
 ```
 
 **Validation:**
+
 - Checks `duration` is valid number
 - Ensures `position` doesn't exceed `duration`
 - Silently fails if API not available
 
 **Called by:**
+
 - `playerControls.js` on audio events (loadedmetadata, timeupdate, seeked)
 - `androidAuto.js` for enhanced position tracking
 
@@ -497,12 +518,14 @@ export function silenceLocalPlayer() {
 **Why so aggressive?**
 
 When Chromecast is active, the local player must be completely silenced to prevent:
+
 - Duplicate audio playback
 - Conflicting Media Session controls
 - Battery drain from background audio processing
 - UI confusion (two sets of media controls)
 
 **What gets disabled:**
+
 1. **Playback:** Pause and clear source
 2. **UI controls:** Remove `controls` attribute
 3. **Auto-play:** Remove `autoplay` attribute
@@ -535,6 +558,7 @@ export function enableLocalPlayer() {
 ```
 
 **Restoration:**
+
 1. **UI controls:** Add back `controls` attribute
 2. **Audio:** Full volume and unmute
 3. **Keyboard navigation:** Back in tab order
@@ -550,6 +574,7 @@ export function enableLocalPlayer() {
 **Purpose:** Extract track metadata with platform-optimized artwork
 
 **Parameters:**
+
 - `trackElement` (HTMLElement) - Track list item containing data attributes and cover image
 
 **Returns:** Metadata object
@@ -651,7 +676,7 @@ export function extractMetadataFromDOM(trackElement) {
 **Platform-specific artwork optimization:**
 
 | Platform | Sizes | Reasoning |
-|----------|-------|-----------|
+| -------- | ----- | --------- |
 | **iOS** | 512, 256, 192 | Lock screen prefers high resolution |
 | **Android Auto** | 96, 128, 192, 256, 512 | Dashboard requires full spectrum |
 | **Desktop** | 192, 512 | Simple set for browser controls |
@@ -682,6 +707,7 @@ const slug = "artist_album_192x192"
 **Purpose:** Determine MIME type from file extension
 
 **Parameters:**
+
 - `url` (string) - Image URL
 
 **Returns:** MIME type string
@@ -708,6 +734,7 @@ export function getMimeTypeFromUrl(url) {
 ```
 
 **Handles:**
+
 - Query parameters (e.g., `/covers/image.jpg?v=123`)
 - Case insensitivity
 - Fallback to `image/jpeg`
@@ -860,6 +887,7 @@ export function getMimeTypeFromUrl(url)
 ### Type Definitions
 
 **iOS Detection Result:**
+
 ```typescript
 {
     isIOS: true,
@@ -871,6 +899,7 @@ export function getMimeTypeFromUrl(url)
 ```
 
 **Android Detection Result:**
+
 ```typescript
 {
     isAndroid: true,
@@ -883,6 +912,7 @@ export function getMimeTypeFromUrl(url)
 ```
 
 **Metadata Object:**
+
 ```typescript
 {
     title: string,

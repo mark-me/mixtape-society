@@ -62,7 +62,7 @@ Any term **not** prefixed by a tag is treated as free-text and matched against:
 
 Example:
 
-```
+```text
 love
 ```
 
@@ -70,10 +70,11 @@ love
 
 * Single or double quotes allow multi-word values
 
-  ```
+  ```yaml
   artist:"The Beatles"
   album:'Purple Rain'
   ```
+
 * Backslashes can escape special characters inside quoted values
 
 ---
@@ -166,7 +167,7 @@ Each object has a `type` field and a shape appropriate for rendering.
 }
 ```
 
-**Characteristics**
+**Characteristics:**
 
 * Summary only (no albums or tracks included)
 * Always lazy-loaded
@@ -192,7 +193,7 @@ Each object has a `type` field and a shape appropriate for rendering.
 }
 ```
 
-**Characteristics**
+**Characteristics:**
 
 * Summary only
 * Tracks are loaded on demand
@@ -217,7 +218,7 @@ Each object has a `type` field and a shape appropriate for rendering.
 }
 ```
 
-**Characteristics**
+**Characteristics:**
 
 * Fully populated (no lazy loading)
 * Includes navigation queries for artist and album
@@ -238,6 +239,7 @@ cover_url = mc.get_cover("Artist/Album")
 ```
 
 **Behavior:**
+
 * Searches for common cover image files (`cover.jpg`, `folder.jpg`, etc.)
 * Extracts embedded artwork from audio files if no standalone image found
 * Optimizes images to max 800×800px, 85% quality, ≤500KB
@@ -263,14 +265,16 @@ cover_sizes = mc.get_cover_sizes("Artist/Album")
 ```
 
 **Behavior:**
+
 * Generates size variants on-demand (lazy generation)
 * Caches variants permanently for future requests
 * Falls back to main cover if variant generation fails
 * Returns fallback URLs for all sizes if no cover found
 
 **Standard sizes:**
+
 | Size | Use case | Typical file size |
-|------|----------|------------------|
+| ---- | -------- | ----------------- |
 | 96×96 | Thumbnails, lists | 5-8 KB |
 | 128×128 | Small tiles | 8-12 KB |
 | 192×192 | Medium tiles | 15-20 KB |
@@ -283,18 +287,23 @@ cover_sizes = mc.get_cover_sizes("Artist/Album")
 Two routes are available for serving cover images:
 
 **Direct file serving (existing):**
-```
+
+```text
 GET /covers/<filename>
 ```
+
 Serves cached cover files directly. Used by existing UI code.
 
 **Size-parameterized API (new):**
-```
+
+```text
 GET /api/covers/<release_dir>?size=256x256
 ```
+
 Serves size-specific cover variants. Generates on-demand if needed.
 
 **Example usage:**
+
 ```python
 # Android Auto - request optimal size
 GET /api/covers/Artist%2FAlbum?size=256x256
@@ -312,40 +321,43 @@ GET /api/covers/Artist%2FAlbum?size=999x999
 The extraction process follows this priority:
 
 1. **Common image files** in release directory:
-   - `cover.jpg`, `folder.jpg`, `album.jpg`, `front.jpg`
-   - `cover.png`, `folder.png`
+   * `cover.jpg`, `folder.jpg`, `album.jpg`, `front.jpg`
+   * `cover.png`, `folder.png`
 
 2. **Embedded artwork** from audio files:
-   - Extracted from first audio file with embedded art
-   - Supports all formats handled by TinyTag
+   * Extracted from first audio file with embedded art
+   * Supports all formats handled by TinyTag
 
 3. **Optimization:**
-   - Converts all images to RGB JPEG
-   - Resizes to max 800×800px (maintains aspect ratio)
-   - Compresses to 85% quality initially
-   - Reduces quality iteratively if file >500KB
-   - Handles transparency by compositing on white background
+   * Converts all images to RGB JPEG
+   * Resizes to max 800×800px (maintains aspect ratio)
+   * Compresses to 85% quality initially
+   * Reduces quality iteratively if file >500KB
+   * Handles transparency by compositing on white background
 
 4. **Caching:**
-   - Sanitizes release directory to safe filename slug
-   - Stores in `DATA_ROOT/cache/covers/{slug}.jpg`
-   - Size variants stored as `{slug}_{size}x{size}.jpg`
+   * Sanitizes release directory to safe filename slug
+   * Stores in `DATA_ROOT/cache/covers/{slug}.jpg`
+   * Size variants stored as `{slug}_{size}x{size}.jpg`
 
 ### Performance characteristics
 
 **Storage impact:**
+
 * Main cover: 300-500 KB per album
 * All 6 size variants: 50-150 KB total per album
 * Lazy generation: variants only created when requested
 
 **Bandwidth savings:**
+
 | Client | Original (800px) | Optimized | Savings |
-|--------|------------------|-----------|---------|
+| ------ | ---------------- | --------- | ------- |
 | Android Auto | 300-500 KB | 30-50 KB (256×256) | ~90% |
 | Mobile web | 300-500 KB | 15-25 KB (128×128) | ~95% |
 | List thumbnails | 300-500 KB | 5-8 KB (96×96) | ~98% |
 
 **Generation performance:**
+
 * First request with variants: +100-200ms (one-time cost)
 * Subsequent requests: 0ms (served from cache)
 * Main cover extraction: typically <100ms
@@ -403,7 +415,7 @@ These are intended for UI hints, badges, or tooltips.
 The enhanced watcher adds two important behaviours that differ from a naïve `FileSystemEventHandler`:
 
 | Feature | What it does | Why it matters |
-|---------|--------------|----------------|
+| ------- | ------------ | -------------- |
 | **Debounce delay** (`DEBOUNCE_DELAY = 2.0 s`) | After the last change to a given file, the watcher waits 2 seconds before queuing an `INDEX_FILE` or `DELETE_FILE` event. | Prevents a burst of rapid edits (e.g., a tag‑editing batch) from generating many separate index operations, which could corrupt the DB. |
 | **Coalescing** | Multiple `created`/`modified` events for the same path are merged into a single `INDEX_FILE` event; a later `deleted` event overrides any pending `modified` events. | Guarantees that the final state of the file is what gets indexed. |
 | **Graceful shutdown** (`shutdown()` method) | Cancels all pending timers and flushes any remaining events to the write queue before the observer is stopped. | Ensures no file‑system changes are lost when the application exits. |

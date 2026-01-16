@@ -33,12 +33,13 @@ Host: localhost:5000
 #### Parameters
 
 | Parameter | Type | Location | Required | Description |
-|-----------|------|----------|----------|-------------|
+| --------- | ---- | -------- | -------- | ----------- |
 | `filename` | string | path | Yes | Cover filename (must end with `.jpg`, `.jpeg`, or `.png`) |
 
 #### Response
 
 **Success (200 OK):**
+
 ```http
 HTTP/1.1 200 OK
 Content-Type: image/jpeg
@@ -49,6 +50,7 @@ Content-Length: 42134
 ```
 
 **Not Found (404):**
+
 ```http
 HTTP/1.1 404 Not Found
 ```
@@ -111,14 +113,14 @@ Host: localhost:5000
 #### Parameters
 
 | Parameter | Type | Location | Required | Description |
-|-----------|------|----------|----------|-------------|
+| --------- | ---- | -------- | -------- | ----------- |
 | `release_dir` | string | path | Yes | Release directory path (URL-encoded) |
 | `size` | string | query | No | Desired size in `WxH` format |
 
 #### Valid Sizes
 
 | Value | Dimensions | Use Case |
-|-------|-----------|----------|
+| ----- | --------- | -------- |
 | `96x96` | 96×96 | Thumbnails |
 | `128x128` | 128×128 | Small tiles |
 | `192x192` | 192×192 | Medium tiles |
@@ -129,6 +131,7 @@ Host: localhost:5000
 #### Response
 
 **Success (200 OK):**
+
 ```http
 HTTP/1.1 200 OK
 Content-Type: image/jpeg
@@ -140,6 +143,7 @@ Access-Control-Allow-Origin: *
 ```
 
 **Invalid Size (400 Bad Request):**
+
 ```json
 {
   "error": "Invalid size parameter",
@@ -148,6 +152,7 @@ Access-Control-Allow-Origin: *
 ```
 
 **Not Found (404):**
+
 ```http
 HTTP/1.1 404 Not Found
 ```
@@ -155,12 +160,14 @@ HTTP/1.1 404 Not Found
 #### Behavior
 
 **With `size` parameter:**
+
 1. Check if size variant exists in cache
 2. If not, generate variant from main cover
 3. If main cover missing, extract from audio files
 4. Return requested size or fallback
 
 **Without `size` parameter:**
+
 1. Return main cover (800px max dimension)
 2. If not cached, extract from audio files
 3. Return fallback if extraction fails
@@ -223,6 +230,7 @@ def serve_cover_by_size(release_dir_encoded):
 #### Usage
 
 **Python (Flask endpoint):**
+
 ```python
 @app.route('/api/mixtape/<mixtape_id>/metadata')
 def get_metadata(mixtape_id):
@@ -242,6 +250,7 @@ def get_metadata(mixtape_id):
 ```
 
 **JavaScript (client-side):**
+
 ```javascript
 // Request specific size
 const coverUrl = `/api/covers/${encodeURIComponent(releaseDir)}?size=256x256`;
@@ -257,6 +266,7 @@ fetch(coverUrl)
 ```
 
 **cURL (testing):**
+
 ```bash
 # Request 256×256 variant
 curl "http://localhost:5000/api/covers/Artist%2FAlbum?size=256x256" -o cover_256.jpg
@@ -274,7 +284,7 @@ curl "http://localhost:5000/api/covers/Artist%2FAlbum?size=999x999"
 
 ### First Request (Cold Cache)
 
-```
+```text
 GET /api/covers/Artist%2FAlbum?size=256x256
 
 Timeline:
@@ -288,7 +298,7 @@ Total: ~200ms (one-time cost)
 
 ### Subsequent Requests (Warm Cache)
 
-```
+```text
 GET /api/covers/Artist%2FAlbum?size=256x256
 
 Timeline:
@@ -302,7 +312,7 @@ Total: ~5ms (cached)
 ### Bandwidth Comparison
 
 | Client | Route | Size | Bandwidth |
-|--------|-------|------|-----------|
+| ------ | ----- | ---- | --------- |
 | Desktop | `/covers/slug.jpg` | 400 KB | 400 KB |
 | Desktop | `/api/covers/path?size=512x512` | 120 KB | 120 KB (70% savings) |
 | Android Auto | `/covers/slug.jpg` | 400 KB | 400 KB |
@@ -319,6 +329,7 @@ Total: ~5ms (cached)
 **Scenario:** Release directory has no cover art
 
 **Fallback chain:**
+
 1. Try `/covers/{slug}.jpg` → Not found
 2. Extract from audio files → No embedded art
 3. Return `/covers/_fallback.jpg` → Always exists
@@ -328,11 +339,13 @@ Total: ~5ms (cached)
 ### Invalid Size Parameter
 
 **Request:**
+
 ```http
 GET /api/covers/Artist%2FAlbum?size=999x999
 ```
 
 **Response:**
+
 ```json
 HTTP/1.1 400 Bad Request
 
@@ -347,6 +360,7 @@ HTTP/1.1 400 Bad Request
 **Scenario:** Cannot generate variant (disk full, PIL error, etc.)
 
 **Behavior:**
+
 1. Log warning message
 2. Return main cover instead of variant
 3. Retry generation on next request
@@ -364,12 +378,14 @@ Cache-Control: public, max-age=3600
 ```
 
 **Implications:**
+
 - Browsers cache for 1 hour
 - CDNs can cache responses
 - Reduces server load
 - Faster repeat visits
 
 **To bypass cache:**
+
 ```javascript
 // Add timestamp parameter
 const url = `/covers/slug_256x256.jpg?t=${Date.now()}`;
