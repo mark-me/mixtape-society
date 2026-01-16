@@ -184,7 +184,7 @@ The modal updates the progress bar, logs messages, and shows a final summary whe
 
 ## 🔧 Troubleshooting FAQ
 
-??? note "⚡ Cache Misses – “Why isn’t my file being cached?”"
+!!! note "⚡ Cache Misses – “Why isn’t my file being cached?”"
 
     | Symptom                            | Check                                                      | Fix                                                                 |
     | ---------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------- |
@@ -197,7 +197,7 @@ The modal updates the progress bar, logs messages, and shows a final summary whe
     | Stale cache after source file change| Compare timestamps (`stat -c %Y file`)                      | Run `cache.clear_cache()` or set `overwrite=True` in `transcode_file`. |
 
 
-??? note "🛑 Transcoding Failures – “ffmpeg exited with error code 1”"
+!!! note "🛑 Transcoding Failures – “ffmpeg exited with error code 1”"
 
     1. **Inspect the ffmpeg stderr** – it is logged by `AudioCache.transcode_file`.
     2. Common culprits:
