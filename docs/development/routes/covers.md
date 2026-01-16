@@ -66,11 +66,11 @@ HTTP/1.1 404 Not Found
 def serve_album_cover(filename):
     """Serves extracted album cover images from cache directory."""
     covers_dir = app.config["DATA_ROOT"] / "cache" / "covers"
-    
+
     # Security: restrict to image extensions
     if not filename.lower().endswith((".jpg", ".jpeg", ".png")):
         abort(404)
-    
+
     return send_from_directory(covers_dir, filename)
 ```
 
@@ -172,13 +172,13 @@ HTTP/1.1 404 Not Found
 def serve_cover_by_size(release_dir_encoded):
     """Serves cover art with optional size parameter."""
     from urllib.parse import unquote
-    
+
     release_dir = unquote(release_dir_encoded)
     requested_size = request.args.get('size', '').lower()
-    
+
     valid_sizes = ['96x96', '128x128', '192x192', '256x256', '384x384', '512x512']
     covers_dir = app.config["DATA_ROOT"] / "cache" / "covers"
-    
+
     # No size - return main cover
     if not requested_size:
         cover_url = collection.get_cover(release_dir)
@@ -186,36 +186,36 @@ def serve_cover_by_size(release_dir_encoded):
             filename = cover_url.split('/')[-1]
             return send_from_directory(covers_dir, filename)
         abort(404)
-    
+
     # Validate size
     if requested_size not in valid_sizes:
         return jsonify({
             "error": "Invalid size parameter",
             "valid_sizes": valid_sizes
         }), 400
-    
+
     # Get or generate size-specific cover
     slug = collection._sanitize_release_dir(release_dir)
     size_filename = f"{slug}_{requested_size}.jpg"
     size_path = covers_dir / size_filename
-    
+
     # Generate if needed
     if not size_path.exists():
         main_path = covers_dir / f"{slug}.jpg"
         if not main_path.exists():
             collection._extract_cover(release_dir, main_path)
-        
+
         if main_path.exists():
             collection._generate_cover_variants(release_dir, slug)
-    
+
     # Serve or fallback
     if size_path.exists():
         return send_from_directory(covers_dir, size_filename)
-    
+
     # Try main cover
     if (covers_dir / f"{slug}.jpg").exists():
         return send_from_directory(covers_dir, f"{slug}.jpg")
-    
+
     # Final fallback
     return send_from_directory(covers_dir, "_fallback.jpg")
 ```
@@ -227,17 +227,17 @@ def serve_cover_by_size(release_dir_encoded):
 @app.route('/api/mixtape/<mixtape_id>/metadata')
 def get_metadata(mixtape_id):
     release_dir = get_release_dir(mixtape_id)
-    
+
     # Get size variants
     cover_sizes = collection.get_cover_sizes(release_dir)
-    
+
     # Build URLs
     base_url = request.host_url.rstrip('/')
     artwork = [
         {"src": f"{base_url}/{cover_sizes['256x256']}", "sizes": "256x256"},
         {"src": f"{base_url}/{cover_sizes['512x512']}", "sizes": "512x512"}
     ]
-    
+
     return jsonify({"artwork": artwork})
 ```
 
@@ -380,12 +380,14 @@ const url = `/covers/slug_256x256.jpg?t=${Date.now()}`;
 ## Related Documentation
 
 **Architecture:**
+
 - [Cover Art System Overview](../cover-art/overview.md) - System architecture
 - [Size Optimization](../cover-art/size-optimization.md) - Implementation details
 - [API Reference](../cover-art/api.md) - Python/JavaScript API
 
 **Integration:**
-- [Android Auto Integration](../../project/ideas/android-auto/integration-guide.md) - How to use
+
+- [Android Auto Integration](../android-auto/backend-implementation.md) - Android Auto context
 - [Playback Routes](playback.md) - Audio streaming context
 
 ---

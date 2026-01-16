@@ -1,4 +1,4 @@
-w---
+---
 title: Mixtape Society
 description: Private, self‑hosted web app to create and share beautiful music mixtapes from your own library.
 author: Mark Zwart

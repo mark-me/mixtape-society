@@ -380,7 +380,7 @@ adb devices
    ```bash
    # On Android device browser, test:
    http://YOUR_COMPUTER_IP:5000
-   
+
    # Should load mixtape player
    ```
 
@@ -408,7 +408,7 @@ adb devices
    ```bash
    # Check covers directory
    ls -la data/cache/covers/
-   
+
    # Should have variants
    ```
 
@@ -473,22 +473,22 @@ const { test, expect } = require('@playwright/test');
 test('Android Auto cover art optimization', async ({ page }) => {
     // Navigate to mixtape
     await page.goto('http://localhost:5000/share/test-mixtape');
-    
+
     // Play track
     await page.click('#big-play-btn');
-    
+
     // Wait for cover art request
     const coverRequest = await page.waitForRequest(
         request => request.url().includes('_256x256.jpg')
     );
-    
+
     // Verify correct size requested
     expect(coverRequest.url()).toContain('_256x256.jpg');
-    
+
     // Verify response
     const response = await coverRequest.response();
     expect(response.status()).toBe(200);
-    
+
     // Check file size
     const contentLength = parseInt(response.headers()['content-length']);
     expect(contentLength).toBeLessThan(100 * 1024); // <100KB
@@ -513,5 +513,4 @@ After successful DHU testing:
 
 - [Backend Implementation](backend-implementation.md) - Server-side setup
 - [Frontend Integration](frontend-integration.md) - Client-side code
-- [API Reference](api-reference.md) - Complete API docs
 - [Android Auto Developer Docs](https://developer.android.com/training/cars/testing) - Official Google docs

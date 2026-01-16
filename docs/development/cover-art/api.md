@@ -403,21 +403,3 @@ Total: ~5-10ms
 | Mobile Web | 400 KB | 15 KB | 96% |
 | 10 tracks × Android Auto | 4 MB | 400 KB | 90% |
 | 50 tracks × Mobile | 20 MB | 750 KB | 96% |
-
----
-
-## Related Documentation
-
-- [Backend Implementation](backend-implementation.md) - Server implementation details
-- [Frontend Integration](frontend-integration.md) - Client-side usage
-- [Testing Guide](testing-guide.md) - How to test the API
-
----
-
-## Support
-
-For issues or questions:
-
-1. Check [Testing Guide](testing-guide.md) for common problems
-2. Review [Frontend Integration](frontend-integration.md) for usage examples
-3. See [Contributing Guide](../../project/contributing.md) for bug reports

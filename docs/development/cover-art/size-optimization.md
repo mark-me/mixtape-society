@@ -314,9 +314,3 @@ quality = 90 if size >= 256 else 85  # Increase quality
 
 **Expected:** 100-200ms delay on first size request
 **Solution:** Pre-generate for popular albums with background job
-
----
-
-## Next Steps
-
-👉 **Continue to [Frontend Integration](frontend-integration.md)** to update the client-side code.

@@ -355,15 +355,11 @@ def serve_cover_by_size(release_dir):
 - [Size Optimization Implementation](size-optimization.md) - Code-level details
 - [API Reference](api.md) - Complete API documentation
 
-**Flask Routes:**
+**Integrated with:**
 
 - [Cover Art Routes](../routes/covers.md) - HTTP endpoint documentation
 - [Playback Routes](../routes/playback.md) - Audio streaming context
-
-**Integration Guides:**
-
-- [Android Auto Integration](../../project/ideas/android-auto/integration-guide.md) - How to use in Android Auto
-- [Testing Guide](../../project/ideas/android-auto/testing-guide.md) - Testing procedures
+- [Android Auto](../android-auto/backend-implementation.md)
 
 ---
 

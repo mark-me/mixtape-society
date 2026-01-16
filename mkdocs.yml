@@ -41,8 +41,8 @@ nav:
   - Getting Started:
     - Overview: user/getting-started.md
     - Installation:
-      - Local Development (Docker): development/docker.md
-      - Production Deployment: user/docker.md
+      - Local Development (Docker): development/docker-dev.md
+      - Production Deployment: user/docker-deployment.md
     - Using Mixtape Society:
       - Editor Guide: user/editor.md
       - Collection Management: user/collection-management.md
@@ -58,6 +58,10 @@ nav:
         - Overview: development/cover-art/overview.md
         - Size Optimization: development/cover-art/size-optimization.md
         - API Reference: development/cover-art/api.md
+      - Android Auto:
+        - Front end: development/android-auto/frontend-integration.md
+        - Back-end: development/android-auto/backend-implementation.md
+        - Testing Guide: development/android-auto/testing-guide.md
       - Mixtape Manager: development/mixtape_manager.md
       - Audio Caching: development/audio_caching.md
       - QR Code creation: development/qr_generation.md
@@ -65,7 +69,9 @@ nav:
       - Utilities: development/utilities.md
     - Flask app:
       - Main App: development/app.md
-      - Progressive Web App (PWA): development/pwa.md
+      - Progressive Web App (PWA):
+        - Introduction PWA: development/pwa/pwa.md
+        - PWA Improvements: development/pwa/pwa-optimization.md
       - Common: development/common.md
       - Routes:
         - Browser: development/routes/browse_mixtapes.md
@@ -81,10 +87,6 @@ nav:
     - Roadmap: project/roadmap.md
     - Ideas:
       - General: project/ideas/ideas.md
-      - Android Auto:
-        - Integration Guide: project/ideas/android-auto/integration-guide.md
-        - Testing Guide: project/ideas/android-auto/testing-guide.md
-      - PWA Improvements: project/ideas/PWA/pwa-optimization.md
       - Design & Implementation Map: project/ideas/design_implementation_map.md
     - Contributing: project/contributing.md
     - About: project/about.md
