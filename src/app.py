@@ -373,7 +373,13 @@ def create_app() -> Flask:
     @app.route("/reset-database", methods=["POST"])
     @require_auth
     def reset_database():
-        """Resets the corrupted database and triggers rebuild."""
+        """
+        Resets the music library database and triggers a rebuild in the background.
+        Deletes existing database files, reinitializes the collection, and returns JSON with the operation result.
+
+        Returns:
+            Response: A JSON response indicating success, failure, or conflict if indexing is already in progress.
+        """
         try:
             # Check if indexing already in progress
             status = get_indexing_status(config_cls.DATA_ROOT, logger=app.logger)
@@ -443,7 +449,14 @@ def create_app() -> Flask:
     @app.route("/check-database-health")
     @require_auth
     def check_database_health():
-        """Checks database health proactively."""
+        """
+        Checks the health of the music library database and returns the result as JSON.
+
+        Uses a quick integrity check and track count to determine if the database is healthy or requires a reset.
+
+        Returns:
+            Response: A JSON response containing health status, track count, and check result or error details.
+        """
         try:
             count = collection.count()
 
