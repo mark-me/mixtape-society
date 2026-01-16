@@ -65,7 +65,7 @@ nav:
         - Testing Guide: development/android-auto/testing-guide.md
       - Chromecast: development/chromecast/integration.md
       - Mixtape Manager: development/mixtape_manager.md
-      - Audio Caching: development/audio_caching.md
+      - Server Audio Caching: development/audio_caching.md
       - QR Code creation: development/qr_generation.md
       - Configuration: development/configuration.md
       - Utilities: development/utilities.md
