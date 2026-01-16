@@ -17,6 +17,11 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 - Added Android Auto support
 - Size-optimized cover generation
 - Mechanical click sound effect for cassette mode
+- Lots of extra and restructured documentation
+
+### 🐛 Fixed
+
+- The artist's album accordions in the search results went missing since v0.5.7
 
 ---
 
