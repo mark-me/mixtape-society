@@ -169,4 +169,14 @@ When casting to Chromecast, the device automatically handles quality based on ne
 
 ---
 
+## 📡 Streaming Options
+
+Recipients can stream shared mixtapes using:
+
+- **Chromecast** - Cast to TVs and speakers ([technical details](../development/chromecast/integration.md))
+- **Android Auto** - In-car playback ([technical details](../development/android-auto/integration-guide.md))
+- **AirPlay** - Native iOS casting
+
+---
+
 Sharing is the heart of Mixtape Society. Go make someone's day with your perfect playlist! 🚀

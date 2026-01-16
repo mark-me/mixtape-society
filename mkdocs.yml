@@ -51,7 +51,7 @@ nav:
     - Project Overview: development/intro.md
     - Core Components:
       - Music Library (musiclib):
-        - Introduction: development/musiclib/intro.md
+        - Overview: development/musiclib/intro.md
         - Reader: development/musiclib/reading.md
         - Loader: development/musiclib/loading.md
       - Cover Art System:
@@ -59,9 +59,11 @@ nav:
         - Size Optimization: development/cover-art/size-optimization.md
         - API Reference: development/cover-art/api.md
       - Android Auto:
+        - Overview: development/android-auto/integration-overview.md
         - Front end: development/android-auto/frontend-integration.md
         - Back-end: development/android-auto/backend-implementation.md
         - Testing Guide: development/android-auto/testing-guide.md
+      - Chromecast: development/chromecast/integration.md
       - Mixtape Manager: development/mixtape_manager.md
       - Audio Caching: development/audio_caching.md
       - QR Code creation: development/qr_generation.md
@@ -73,6 +75,9 @@ nav:
         - Introduction PWA: development/pwa/pwa.md
         - PWA Improvements: development/pwa/pwa-optimization.md
       - Common: development/common.md
+      - Player Modules:
+        - Player Controls: development/player/playerControls.md
+        - Player Utilities: development/player/playerUtils.md
       - Routes:
         - Browser: development/routes/browse_mixtapes.md
         - Editor: development/routes/editor.md

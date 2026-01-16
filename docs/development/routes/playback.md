@@ -187,419 +187,434 @@ All logs include the request path and the selected serving path, making troubles
 
 ---
 
-## 📡 Chromecast Integration
+## 🎵 Media Playback Technologies
 
-The Mixtape Society player supports casting entire mixtapes to Chromecast devices, allowing users to play their mixtapes on TVs and speakers throughout their home.
+The Mixtape Society player supports multiple playback methods to enable flexible listening experiences across different devices and contexts.
 
-### Architecture Overview
+### Overview
+
+| Technology | Type | Use Case | Server Requirements | Complexity |
+| ---------- | ---- | -------- | ------------------- | ---------- |
+| **Local Playback** | Standard HTML5 | Desktop, mobile browsers | Audio streaming | Low |
+| **Chromecast** | Network casting | TVs, speakers | CORS + Range requests | High |
+| **Android Auto** | Enhanced local | In-car dashboard | Cover optimization | Medium |
+| **AirPlay** | Native iOS | Apple devices | Standard streaming | Low |
+
+### When Each is Used
 
 ```mermaid
-sequenceDiagram
-    actor User
-    participant Browser as Browser Player
-    participant ChromecastJS as chromecast.js
-    participant CastSDK as Google Cast SDK
-    participant Receiver as Chromecast Device
-    participant Server as Flask Server
+graph TD
+    User[User Starts Playback]
+    CheckMode{Check Playback Mode}
+    Casting{Casting Active?}
+    AndroidAuto{Android Auto?}
 
-    User->>Browser: Click cast button
-    Browser->>ChromecastJS: castMixtapePlaylist()
+    User --> CheckMode
+    CheckMode --> Casting
+    Casting -->|Yes| Chromecast[Use Chromecast SDK]
+    Casting -->|No| AndroidAuto
+    AndroidAuto -->|Yes| AASession[Enhanced Media Session]
+    AndroidAuto -->|No| Standard[Standard Media Session]
 
-    alt Existing cast session
-        ChromecastJS->>CastSDK: loadQueue(currentSession)
-    else No active session
-        ChromecastJS->>CastSDK: requestSession()
-        CastSDK-->>ChromecastJS: new session
-        ChromecastJS->>CastSDK: loadQueue(session)
-    end
+    Chromecast --> CastDevice[Chromecast Device]
+    AASession --> CarDashboard[Car Dashboard]
+    Standard --> Browser[Browser Controls]
 
-    ChromecastJS->>ChromecastJS: silenceLocalPlayer()
-    ChromecastJS->>ChromecastJS: clearMediaSession()
-
-    CastSDK->>Receiver: QueueLoadRequest with tracks
-
-    loop For each track
-        Receiver->>Server: GET /play/<path>?quality=medium
-        Server-->>Receiver: 206/200 audio stream + CORS headers
-        Receiver->>Receiver: Buffer & decode
-    end
-
-    Receiver->>CastSDK: Media state updates
-    CastSDK->>ChromecastJS: Player state callbacks
-    ChromecastJS->>Browser: Update UI state
-
-    Note over Browser,Receiver: User controls playback via phone/computer
-    Note over Receiver: Audio plays on Chromecast device
+    style Chromecast fill:#4a6fa5
+    style AASession fill:#c65d5d
+    style Standard fill:#4a8c5f
 ```
 
-### Key Components
+---
 
-#### 1. chromecast.js Module
+## 📡 Chromecast Integration
 
-Located at `static/js/player/chromecast.js`, this module handles all Chromecast interactions:
+### Overview
 
-**Initialization:**
+Chromecast enables **network-based casting** of entire mixtapes to TVs and speakers. The browser acts as a remote control while audio streams directly from the server to the Chromecast device.
 
-- `initChromecast()` - Loads Google Cast SDK and sets up API
-- `initializeCastApi()` - Configures Cast API with app ID and session policies
-- Dispatches `cast:ready` event when SDK is initialized
+### Quick Summary
 
-**Session Management:**
+**Key Features:**
+- Full queue management
+- Unified controls (lock screen, notifications, browser)
+- Quality-aware streaming
+- Multi-device support
 
-- `sessionListener()` - Handles new cast sessions
-- `onCastSessionStart()` - Fires when casting begins
-- `onCastSessionEnd()` - Cleans up when casting stops
-- Sets `globalCastingState` flag for UI coordination
+**Server Requirements:**
+- ✅ CORS headers (`Access-Control-Allow-Origin: *`)
+- ✅ Range request support (HTTP 206)
+- ✅ Quality parameter handling
 
-**Media Control:**
+**Frontend Components:**
+- `chromecast.js` - Cast SDK integration
+- `playerControls.js` - UI coordination
+- `playerUtils.js` - Local player management
 
-- `castPlay()` / `castPause()` - Playback control
-- `castNext()` / `castPrevious()` - Track navigation
-- `castSeek()` - Seek to specific time
-- `castJumpToTrack()` - Jump to track by index
-- `castTogglePlayPause()` - Toggle play/pause state
+### Architecture
 
-**Queue Management:**
+```mermaid
+graph LR
+    Browser[Browser]
+    CastSDK[Cast SDK]
+    Server[Flask Server]
+    Chromecast[Chromecast Device]
 
-- `castMixtapePlaylist()` - Loads entire mixtape as a queue
-- `loadQueue()` - Builds queue from `window.__mixtapeData.tracks`
-- Constructs proper audio URLs with quality parameter
-- Includes metadata (title, artist, album, cover art)
+    Browser -->|Control commands| CastSDK
+    CastSDK -->|Media queue| Chromecast
+    Chromecast -->|Audio requests| Server
+    Server -->|Audio stream| Chromecast
 
-#### 2. Media Session Integration
-
-When casting is active, `chromecast.js` manages the browser's Media Session API:
-
-```javascript
-// Update Media Session to mirror Chromecast state
-function updateMediaSessionForCast(media) {
-    navigator.mediaSession.metadata = new MediaMetadata({
-        title: metadata.title,
-        artist: metadata.artist,
-        album: metadata.albumName,
-        artwork: metadata.images
-    });
-
-    // Set action handlers
-    navigator.mediaSession.setActionHandler('play', () => castPlay());
-    navigator.mediaSession.setActionHandler('pause', () => castPause());
-    navigator.mediaSession.setActionHandler('previoustrack', () => castPrevious());
-    navigator.mediaSession.setActionHandler('nexttrack', () => castNext());
-    navigator.mediaSession.setActionHandler('seekto', (details) => {
-        castSeek(details.seekTime);
-    });
-}
+    style CastSDK fill:#4a6fa5
+    style Chromecast fill:#c65d5d
 ```
 
-This allows users to control Chromecast playback from:
+### Complete Documentation
 
-- Lock screen media controls
-- Notification shade (Android)
-- Control Center (iOS)
-- Hardware media keys
+For full implementation details, see:
 
-#### 3. Player Controls Integration
+**📘 [Chromecast Integration Guide](../chromecast/integration.md)**
 
-The `playerControls.js` module checks `globalCastingState` to coordinate between local and cast playback:
+Covers:
+- Complete Cast SDK setup
+- Media Session synchronization
+- Queue management
+- CORS and range request implementation
+- Platform-specific guidance (iOS, Android, Desktop)
+- Comprehensive troubleshooting
+- Testing procedures
+
+---
+
+## 🚗 Android Auto Integration
+
+### Overview
+
+Android Auto enables **enhanced local playback** with in-car dashboard integration. Unlike Chromecast, there's no network casting—audio plays on the phone while controls and metadata display on the car dashboard.
+
+### Quick Summary
+
+**Key Features:**
+
+- Dashboard integration
+- Steering wheel controls
+- Voice command support
+- Position state and seeking
+- Platform-optimized cover art
+
+**Server Requirements:**
+
+- ✅ Cover art optimization endpoints (`/covers/{slug}_{size}.jpg`)
+- ❌ No CORS headers needed (local playback)
+- ❌ No range requests needed (standard streaming)
+
+**Frontend Components:**
+
+- `androidAuto.js` - Detection and Media Session setup
+- `playerUtils.js` - Platform detection and metadata
+- `playerControls.js` - Control routing
+
+### Architecture
+
+```mermaid
+graph LR
+    Phone[Phone Browser]
+    MediaSession[Media Session API]
+    Car[Car Dashboard]
+    Audio[Audio Element]
+
+    Phone -->|Enhanced metadata| MediaSession
+    MediaSession -->|Display & controls| Car
+    Audio -->|Plays on phone| Audio
+    Car -->|User actions| MediaSession
+    MediaSession -->|Events| Phone
+
+    style MediaSession fill:#4a6fa5
+    style Car fill:#c65d5d
+```
+
+### Complete Documentation
+
+For full implementation details, see:
+
+**📘 [Android Auto Integration Overview](../android-auto/integration-overview.md)**
+
+Covers:
+- Detection logic
+- Enhanced Media Session setup
+- Artwork optimization (5 sizes)
+- Action handler configuration
+- Position state management
+- Testing in Android Auto environment
+
+**Additional Guides:**
+
+- **[Frontend Integration](../android-auto/frontend-integration.md)** - JavaScript implementation
+- **[Backend Implementation](../android-auto/backend-implementation.md)** - Cover optimization
+- **[Testing Guide](../android-auto/testing-guide.md)** - Validation procedures
+
+---
+
+## 🔄 Playback Mode Coordination
+
+The player coordinates between different playback modes to prevent conflicts.
+
+### State Management
 
 ```javascript
-import { globalCastingState, isCasting, castPlay, castPause } from './chromecast.js';
-
+// From playerControls.js
 function playTrack(index) {
+    // 1. Check if currently casting
     if (globalCastingState) {
         // Route to Chromecast
         castJumpToTrack(index);
         return;
     }
-    // Local playback
-    player.src = trackUrl;
-    player.play();
-}
-```
 
-#### 4. Local Player Management
-
-When casting starts, `playerUtils.js` silences the local player:
-
-```javascript
-export function silenceLocalPlayer() {
+    // 2. Local playback
+    const track = window.__mixtapeData.tracks[index];
     const player = document.getElementById('main-player');
-    player.pause();
-    player.src = '';
-    player.load();
-    player.removeAttribute('controls');
-    player.volume = 0;
-    player.muted = true;
-}
+    player.src = `/play/${track.file_path}?quality=medium`;
+    player.play();
 
-export function clearMediaSession() {
-    navigator.mediaSession.playbackState = 'none';
-    navigator.mediaSession.metadata = null;
-    // Remove all action handlers
+    // 3. Detect platform for Media Session setup
+    if (isAndroidAutoConnected()) {
+        // Enhanced Media Session for Android Auto
+        setupAndroidAutoMediaSession(metadata, playerControls, player);
+    } else {
+        // Standard Media Session (iOS, Desktop)
+        setupLocalMediaSession(metadata, playerControls);
+    }
 }
 ```
 
-This ensures:
+### Priority Order
 
-- No duplicate media controls
-- Only Chromecast controls are active
-- Battery-efficient operation
+1. **Chromecast** (highest priority)
+   - If casting is active, all commands route to Cast SDK
+   - Local player is silenced
+   - Media Session mirrors Chromecast state
 
-### Server Requirements
+2. **Android Auto** (medium priority)
+   - If detected and not casting
+   - Enhanced Media Session with position state
+   - Multiple artwork sizes
 
-For Chromecast to work properly, the Flask server must:
+3. **Standard Playback** (fallback)
+   - Default for iOS, Desktop
+   - Basic Media Session
+   - Single artwork size
 
-1. **CORS Headers** - Already implemented in `stream_audio()`:
+### Mode Switching
 
-   ```python
-   response.headers["Access-Control-Allow-Origin"] = "*"
-   response.headers["Access-Control-Expose-Headers"] = "Content-Type, Accept-Encoding, Range"
-   ```
-
-2. **Range Requests** - Chromecast uses range requests for seeking
-   - Handled by `_handle_range_request()`
-   - Returns 206 Partial Content responses
-
-3. **Quality Support** - Chromecast respects quality parameter:
-
-   ```text
-   GET /play/artist/album/track.flac?quality=medium
-   ```
-
-   - Returns transcoded MP3 if cached
-   - Falls back to original if cache miss
-
-### User Flow
-
-1. **Cast Button Appears** - When Cast SDK loads successfully
-2. **User Clicks Cast** - Opens Cast device picker
-3. **Select Device** - User chooses Chromecast
-4. **Queue Loads** - Entire mixtape loads to Chromecast
-5. **Local Player Silenced** - Browser player pauses and hides controls
-6. **Playback Begins** - Audio plays on Chromecast device
-7. **Controls Unified** - Phone/computer controls Chromecast
-8. **Stop Casting** - Restores local player when user stops
-
-### iOS Support
-
-Special considerations for iOS devices:
+**Chromecast Start:**
 
 ```javascript
-function showiOSCastHelp() {
-    const helpHtml = `
-        <div class="alert alert-info">
-            <h6>📱 Casting from iPhone</h6>
-            <small>
-                <strong>To cast to Chromecast:</strong><br>
-                1. Install Google Home app<br>
-                2. Use Chrome browser (not Safari)<br>
-                3. Connect to same WiFi network<br>
-                <br>
-                <strong>For best experience:</strong><br>
-                Add this page to your Home Screen (PWA mode)
-            </small>
-        </div>
-    `;
+function onCastSessionStart() {
+    silenceLocalPlayer();          // Pause and mute local <audio>
+    clearMediaSession();           // Remove local handlers
+    updateMediaSessionForCast();   // Set Cast handlers
+    globalCastingState = true;
 }
 ```
 
-iOS has limitations:
-
-- Safari doesn't support Cast SDK (use Chrome)
-- Requires Google Home app installed
-- PWA mode recommended for better integration
-
-### Technical Details
-
-**Cast Application ID:** `CC1AD845` (Default Media Receiver)
-
-**Queue Configuration:**
-
-- `RepeatMode.OFF` - No repeat
-- `startIndex` - Begins from current track (`window.currentTrackIndex`)
-- `autoplay: true` - Tracks play sequentially
-- `preloadTime: 5` - Preload 5 seconds of next track
-
-**State Management:**
-
-- `globalCastingState` - Boolean flag for casting status
-- `currentCastSession` - Active Cast session object
-- `currentMedia` - Current media controller
-- `castPlayState` - Player state ('IDLE', 'PLAYING', 'PAUSED', 'BUFFERING')
-
-**Callbacks:**
+**Chromecast Stop:**
 
 ```javascript
-setCastControlCallbacks({
-    onTrackChange: (index) => { /* Update UI */ },
-    onPlayStateChange: (state) => { /* Update buttons */ },
-    onTimeUpdate: (time) => { /* Update progress */ }
-});
+function onCastSessionEnd() {
+    enableLocalPlayer();           // Restore local <audio>
+    globalCastingState = false;
+
+    // Restore appropriate Media Session
+    if (isAndroidAutoConnected()) {
+        setupAndroidAutoMediaSession(...);
+    } else {
+        setupLocalMediaSession(...);
+    }
+}
 ```
-
-### Testing Checklist
-
-- [ ] Cast button appears when SDK loads
-- [ ] Device picker opens on click
-- [ ] Mixtape loads to Chromecast
-- [ ] Local player silences when casting starts
-- [ ] Play/pause controls work
-- [ ] Previous/next track navigation works
-- [ ] Seeking works via Media Session
-- [ ] Lock screen controls work (mobile)
-- [ ] Queue plays through entire mixtape
-- [ ] Stopping cast restores local player
-- [ ] Quality parameter respected
-- [ ] Cover art displays on Chromecast
-- [ ] Metadata shows correctly
-
-### Troubleshooting
-
-**Cast button not appearing:**
-
-- Check browser console for Cast SDK load errors
-- Verify `cast-framework.js` CDN is accessible
-- Ensure HTTPS (Cast requires secure context)
-
-**Audio not playing:**
-
-- Check CORS headers in network tab
-- Verify audio URLs are absolute (not relative)
-- Confirm MIME types are correct
-- Check server logs for 403/404 errors
-
-**Seeking not working:**
-
-- Verify Range header support in `_handle_range_request()`
-- Check `Access-Control-Expose-Headers` includes "Range"
-- Confirm 206 responses working correctly
-
-**iOS issues:**
-
-- User must use Chrome browser (not Safari)
-- Google Home app required
-- Both devices on same WiFi network
-- Consider showing help message automatically
 
 ---
 
-## Android Auto Integration
+## 🎯 Quality Parameter Support
 
-```mermaid
-sequenceDiagram
-    actor User
-    participant PlayerControls as playerControls.js
-    participant PlayerUtils as playerUtils.js
-    participant AndroidAuto as androidAuto.js
-    participant Audio as main_player
+All playback modes respect the `quality` query parameter for bandwidth management.
 
-    User->>PlayerControls: initPlayerControls()
-    PlayerControls->>PlayerUtils: detectiOS()
-    PlayerControls->>PlayerUtils: detectAndroid()
-    PlayerControls->>PlayerUtils: logDeviceInfo()
-    alt Android device
-        PlayerControls->>AndroidAuto: logAndroidAutoStatus()
-    end
+### Implementation
 
-    User->>PlayerControls: tap track item
-    PlayerControls->>PlayerControls: playTrack(index)
-    alt Casting active
-        PlayerControls->>PlayerControls: castJumpToTrack(index)
-        PlayerControls->>PlayerControls: return (Chromecast handles Media Session)
-    else Local playback
-        PlayerControls->>Audio: set src and play()
-        PlayerControls->>PlayerUtils: extractMetadataFromDOM(trackElement)
-        PlayerUtils-->>PlayerControls: metadata (title, artist, album, artwork)
-        alt AndroidAuto connected
-            PlayerControls->>AndroidAuto: isAndroidAutoConnected()
-            AndroidAuto-->>PlayerControls: true
-            PlayerControls->>AndroidAuto: setupAndroidAutoMediaSession(metadata, playerControlsAPI, Audio)
-            AndroidAuto->>AndroidAuto: prepareArtwork(metadata.artwork)
-            AndroidAuto->>AndroidAuto: setupActionHandlers(playerControlsAPI, Audio)
-            AndroidAuto->>AndroidAuto: setupAudioEventListeners(Audio)
-        else Not AndroidAuto
-            PlayerControls->>AndroidAuto: isAndroidAutoConnected()
-            AndroidAuto-->>PlayerControls: false
-            PlayerControls->>PlayerUtils: setupLocalMediaSession(metadata, playerControlsAPI)
-        end
-    end
+**URL format:**
 
-    User->>PlayerControls: stop playback
-    alt AndroidAuto connected
-        PlayerControls->>AndroidAuto: clearAndroidAutoMediaSession()
-    else Not AndroidAuto
-        PlayerControls->>PlayerUtils: clearMediaSession()
-    end
+```text
+GET /play/artist/album/track.flac?quality=medium
 ```
 
-```mermaid
-classDiagram
-    class PlayerUtils {
-        +detectiOS()
-        +detectAndroid()
-        +logDeviceInfo()
-        +setupLocalMediaSession(metadata, playerControls)
-        +clearMediaSession()
-        +updateMediaSessionPlaybackState(state)
-        +updateMediaSessionPosition(position, duration, playbackRate)
-        +getMimeTypeFromUrl(url)
-        +extractMetadataFromDOM(trackElement)
-    }
+**Supported values:**
 
-    class PlayerControls {
-        +initPlayerControls()
-        -checkCastingState()
-        -playTrack(index)
-        -updatePositionState()
-        -syncPlayIcons()
-        -togglePlayPause()
-        -silenceLocalPlayer()
-        -enableLocalPlayer()
-        -updateLocalMediaSession(metadata)
-        -currentIndex
-        -isCurrentlyCasting
-        -playerControlsAPI
-    }
+- `original` - Original file (no transcoding)
+- `high` - 320kbps MP3
+- `medium` - 192kbps MP3 (default)
+- `low` - 128kbps MP3
 
-    class AndroidAutoModule {
-        +isAndroidAutoConnected()
-        +setupAndroidAutoMediaSession(metadata, playerControls, audioElement)
-        +clearAndroidAutoMediaSession()
-        +logAndroidAutoStatus()
-        -prepareArtwork(originalArtwork)
-        -setupActionHandlers(playerControls, audioElement)
-        -updatePositionState(audioElement)
-        -setupAudioEventListeners(audioElement)
-        -ANDROID_AUTO_ARTWORK_SIZES
-    }
+**Backend logic:**
 
-    class ChromecastModule {
-        +loadQueue(session)
-        +updateMediaSessionForCast(media)
-        +updateMediaSessionPlaybackState(castState)
-        -attachMediaListener(media)
-        -castPlay()
-        -castPause()
-        -castPrevious()
-        -castNext()
-    }
-
-    PlayerControls ..> PlayerUtils : uses
-    PlayerControls ..> AndroidAutoModule : uses
-    PlayerControls ..> ChromecastModule : uses
-    ChromecastModule ..> PlayerUtils : uses extractMetadataFromDOM()
-
-    class MediaSessionAPI {
-        +metadata
-        +playbackState
-        +setActionHandler(action, handler)
-        +setPositionState(state)
-    }
-
-    AndroidAutoModule ..> MediaSessionAPI : configures
-    PlayerUtils ..> MediaSessionAPI : setupLocalMediaSession()
-    ChromecastModule ..> MediaSessionAPI : updateMediaSessionForCast()
+```python
+def _get_serving_path(full_path, quality):
+    """Return cached file if available, otherwise original"""
+    if quality and quality != 'original':
+        cache_path = audio_cache.get_cache_path(full_path, quality)
+        if os.path.exists(cache_path):
+            return cache_path  # Serve transcoded
+    return full_path  # Serve original
 ```
+
+**How each mode uses it:**
+
+| Mode | Quality Usage | Reason |
+| ---- | ------------ | ------ |
+| **Chromecast** | Always uses quality param | Network bandwidth optimization |
+| **Android Auto** | Uses quality param | Car data connection limits |
+| **Desktop** | Uses quality param | User preference |
+| **Mobile (WiFi)** | Uses quality param | Battery and bandwidth |
+| **Mobile (Cellular)** | Defaults to `low` | Data usage minimization |
+
+---
+
+## 📊 Comparison Table
+
+### Technical Comparison
+
+| Aspect | Chromecast | Android Auto | Standard |
+| ------ | --------- | ------------ | -------- |
+| **Network** | WiFi to device | Phone local | Phone local |
+| **Audio source** | Server → Device | Server → Phone | Server → Phone |
+| **Server load** | Direct stream | Standard | Standard |
+| **CORS required** | Yes | No | No |
+| **Range requests** | Yes | No | No |
+| **Media Session** | Mirrored state | Enhanced | Basic |
+| **Artwork sizes** | 1 size | 5 sizes | 1-2 sizes |
+| **Seeking** | Range requests | Position state | Position state |
+| **Setup** | Manual selection | Automatic | None |
+
+### Use Case Comparison
+
+| Scenario | Recommended Method | Why |
+| -------- | ----------------- | --- |
+| Living room TV | Chromecast | Large screen, shared listening |
+| Car dashboard | Android Auto | Automatic, safe driving UI |
+| Personal listening | Standard | Simple, no setup |
+| Multi-room audio | Chromecast | Cast to multiple devices |
+| Offline/low bandwidth | Standard (cached) | No network needed |
+
+---
+
+## 🔧 Server Requirements Summary
+
+### Required for All Modes
+
+```python
+@play.route("/play/<path:file_path>")
+def stream_audio(file_path):
+    # ✅ Path validation
+    full_path = _resolve_and_validate_path(file_path)
+
+    # ✅ MIME type detection
+    mime_type = _guess_mime_type(full_path)
+
+    # ✅ Quality-aware caching
+    quality = request.args.get("quality", "medium")
+    serve_path = _get_serving_path(full_path, quality)
+```
+
+### Additional for Chromecast
+
+```python
+    # ✅ CORS headers
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Expose-Headers"] = "Content-Type, Accept-Encoding, Range"
+
+    # ✅ Range request handling
+    if request.headers.get("Range"):
+        return _handle_range_request(serve_path, mime_type)
+```
+
+### Additional for Android Auto
+
+```python
+# ✅ Cover art optimization (see cover-art documentation)
+@play.route("/covers/<slug>_<size>.jpg")
+def serve_sized_cover(slug, size):
+    # Returns optimized cover at requested size
+    # Sizes: 96x96, 128x128, 192x192, 256x256, 512x512
+```
+
+---
+
+## 📚 Related Documentation
+
+### Core Player Documentation
+
+- **[Player Controls](../player/playerControls.md)** - UI control implementation
+- **[Player Utils](../player/playerUtils.md)** - Shared utilities and device detection
+- **[Audio Caching](../audio_caching.md)** - Quality management and transcoding
+
+### Casting Technologies
+
+- **[Chromecast Integration](../chromecast/integration.md)** - Complete Cast SDK guide
+- **[Android Auto Overview](../android-auto/integration-overview.md)** - Enhanced Media Session guide
+- **[Android Auto Frontend](../android-auto/frontend-integration.md)** - JavaScript implementation
+- **[Android Auto Backend](../android-auto/backend-implementation.md)** - Cover optimization
+- **[Android Auto Testing](../android-auto/testing-guide.md)** - Testing procedures
+
+### Supporting Systems
+
+- **[Cover Art System](../cover-art/overview.md)** - Image optimization
+- **[QR Code Generation](../qr_generation.md)** - Sharing via QR codes
+- **[Configuration](../configuration.md)** - Server configuration
+
+---
+
+## 🎓 For Developers
+
+### Quick Start Checklist
+
+**To understand the playback system:**
+
+1. **Start here:** Read this overview
+2. **Local playback:** Review `stream_audio()` route implementation
+3. **Chromecast:** Read [Chromecast Integration Guide](../chromecast/integration.md)
+4. **Android Auto:** Read [Android Auto Overview](../android-auto/integration-overview.md)
+5. **Testing:** Follow platform-specific testing guides
+
+### Code Navigation
+
+**Backend (Flask):**
+
+- Audio streaming: `src/routes/play.py`
+- Cover serving: `src/routes/play.py` (covers)
+- Cache management: `src/audio_cache/`
+
+**Frontend (JavaScript):**
+
+- Player controls: `static/js/player/playerControls.js`
+- Chromecast: `static/js/player/chromecast.js`
+- Android Auto: `static/js/player/androidAuto.js`
+- Utilities: `static/js/player/playerUtils.js`
+
+### Debug Logging
+
+**Enable debug mode:**
+
+```javascript
+// In browser console:
+window.__CHROMECAST_DEBUG__ = true;
+window.__ANDROID_AUTO_DEBUG__ = true;
+```
+
+**Check logs:**
+
+- Chromecast: Cast SDK events, session state
+- Android Auto: Detection, Media Session setup
+- Quality: Cache hits/misses
 
 ---
 

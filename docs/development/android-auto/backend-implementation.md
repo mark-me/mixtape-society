@@ -414,3 +414,10 @@ def get_cover_sizes(self, release_dir: str) -> dict[str, str]:
 ## Next Steps
 
 👉 **Continue to [Frontend Integration](frontend-integration.md)** to update the client-side code.
+
+## 🔗 Related Technologies
+
+- [Chromecast Integration](../chromecast/integration.md) - Alternative casting method for TVs and speakers
+- [Player Controls](../player/playerControls.md) - UI control coordination
+- [Media Session API](../player/playerUtils.md) - Lock screen controls
+
