@@ -10,7 +10,7 @@ class PWAManager {
         this.swRegistration = null;
         this.deferredPrompt = null;
         this.isOnline = navigator.onLine;
-        
+
         this.init();
     }
 
@@ -61,7 +61,7 @@ class PWAManager {
             // Listen for updates
             registration.addEventListener('updatefound', () => {
                 const newWorker = registration.installing;
-                
+
                 newWorker.addEventListener('statechange', () => {
                     if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                         // New version available
@@ -88,13 +88,13 @@ class PWAManager {
         window.addEventListener('beforeinstallprompt', (e) => {
             // Prevent the mini-infobar from appearing on mobile
             e.preventDefault();
-            
+
             // Store the event for later use
             this.deferredPrompt = e;
-            
+
             // Show install button
             this.showInstallButton();
-            
+
             console.log('📱 Install prompt available');
         });
 
@@ -164,9 +164,9 @@ class PWAManager {
 
         // Wait for user choice
         const { outcome } = await this.deferredPrompt.userChoice;
-        
+
         console.log(`User ${outcome} the install prompt`);
-        
+
         // Clear the deferred prompt
         this.deferredPrompt = null;
         this.hideInstallButton();
@@ -191,28 +191,28 @@ class PWAManager {
     showUpdateNotification() {
         const updateBtn = document.createElement('div');
         updateBtn.className = 'update-notification';
-        
+
         // Create structure using DOM methods (XSS-safe)
         const updateContent = document.createElement('div');
         updateContent.className = 'update-content';
-        
+
         const icon = document.createElement('i');
         icon.className = 'bi bi-arrow-clockwise me-2';
-        
+
         const span = document.createElement('span');
         span.textContent = 'Update available';
-        
+
         updateContent.appendChild(icon);
         updateContent.appendChild(span);
-        
+
         const button = document.createElement('button');
         button.className = 'btn btn-sm btn-light';
         button.id = 'update-now-btn';
         button.textContent = 'Update';
-        
+
         updateBtn.appendChild(updateContent);
         updateBtn.appendChild(button);
-        
+
         document.body.appendChild(updateBtn);
 
         // Handle update button click
@@ -269,9 +269,9 @@ class PWAManager {
             return;
         }
 
-        const tracks = mixtapeData.tracks;
+        const {tracks} = mixtapeData;
         const quality = localStorage.getItem('audioQuality') || 'medium';
-        
+
         this.showToast(`Downloading ${tracks.length} tracks...`, 'info');
 
         const downloadBtn = document.getElementById('download-mixtape-btn');
@@ -293,7 +293,7 @@ class PWAManager {
         const limit = 3;
         for (let i = 0; i < tracks.length; i += limit) {
             const batch = tracks.slice(i, i + limit);
-            
+
             const results = await Promise.allSettled(
                 batch.map(track => this.cacheAudioFile(track.path, quality))
             );
@@ -328,7 +328,7 @@ class PWAManager {
             const text = document.createTextNode('Downloaded');
             downloadBtn.appendChild(icon);
             downloadBtn.appendChild(text);
-            
+
             // Reset after 3 seconds
             setTimeout(() => {
                 downloadBtn.innerHTML = ''; // Clear
@@ -357,7 +357,7 @@ class PWAManager {
 
         return new Promise((resolve, reject) => {
             const messageChannel = new MessageChannel();
-            
+
             messageChannel.port1.onmessage = (event) => {
                 if (event.data.success) {
                     resolve();
@@ -381,18 +381,18 @@ class PWAManager {
      */
     async showCacheManagement() {
         const cacheSize = await this.getCacheSize();
-        
+
         const modal = new bootstrap.Modal(document.getElementById('cacheManagementModal'));
-        
+
         // Update UI with cache info
         if (cacheSize) {
-            document.getElementById('cache-usage').textContent = 
+            document.getElementById('cache-usage').textContent =
                 this.formatBytes(cacheSize.usage);
-            document.getElementById('cache-quota').textContent = 
+            document.getElementById('cache-quota').textContent =
                 this.formatBytes(cacheSize.quota);
-            document.getElementById('cache-percentage').textContent = 
+            document.getElementById('cache-percentage').textContent =
                 `${cacheSize.percentage}%`;
-            
+
             // Update progress bar
             const progressBar = document.querySelector('#cache-progress .progress-bar');
             if (progressBar) {
@@ -400,7 +400,7 @@ class PWAManager {
                 progressBar.textContent = `${cacheSize.percentage}%`;
             }
         }
-        
+
         modal.show();
     }
 
@@ -414,7 +414,7 @@ class PWAManager {
 
         return new Promise((resolve, reject) => {
             const messageChannel = new MessageChannel();
-            
+
             messageChannel.port1.onmessage = (event) => {
                 if (event.data.success) {
                     resolve(event.data.size);
@@ -444,7 +444,7 @@ class PWAManager {
 
         return new Promise((resolve, reject) => {
             const messageChannel = new MessageChannel();
-            
+
             messageChannel.port1.onmessage = (event) => {
                 if (event.data.success) {
                     this.showToast('Cache cleared successfully', 'success');
@@ -473,19 +473,19 @@ class PWAManager {
         const toastEl = document.createElement('div');
         toastEl.className = `toast align-items-center text-bg-${type} border-0`;
         toastEl.setAttribute('role', 'alert');
-        
+
         const toastFlex = document.createElement('div');
         toastFlex.className = 'd-flex';
-        
+
         const toastBody = document.createElement('div');
         toastBody.className = 'toast-body';
         toastBody.textContent = message; // Use textContent (XSS-safe)
-        
+
         const closeButton = document.createElement('button');
         closeButton.type = 'button';
         closeButton.className = 'btn-close btn-close-white me-2 m-auto';
         closeButton.setAttribute('data-bs-dismiss', 'toast');
-        
+
         toastFlex.appendChild(toastBody);
         toastFlex.appendChild(closeButton);
         toastEl.appendChild(toastFlex);

@@ -67,7 +67,7 @@ export function initLinerNotes() {
     const tracks = window.__mixtapeData?.tracks ?? [];
 
     // Render function
-    function render() {
+    const render = () => {
         linerNotesEl.innerHTML = renderMarkdown(rawMarkdown, tracks);
     }
 

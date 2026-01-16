@@ -132,7 +132,7 @@ function attachMediaListener(media) {
         if (isAlive) {
             const status = media.playerState;
             const currentTime = media.getEstimatedTime();
-            const currentItemId = media.currentItemId;
+            const {currentItemId} = media;
 
             // Update cast play state
             castPlayState = status;
@@ -176,7 +176,7 @@ function updateMediaSessionForCast(media) {
     if (!('mediaSession' in navigator)) return;
     if (!media || !media.media || !media.media.metadata) return;
 
-    const metadata = media.media.metadata;
+    const {metadata} = media.media;
 
     try {
         // Update metadata (this changes with each track)
@@ -268,7 +268,7 @@ function getCurrentQueueIndex() {
         return -1;
     }
 
-    const currentItemId = currentMedia.currentItemId;
+    const {currentItemId} = currentMedia;
     return findCurrentQueueIndex(currentItemId, currentMedia.media.queueData.items);
 }
 
@@ -280,7 +280,7 @@ function getItemIdForIndex(index) {
         return null;
     }
 
-    const items = currentMedia.media.queueData.items;
+    const {items} = currentMedia.media.queueData;
     if (index < 0 || index >= items.length) {
         return null;
     }

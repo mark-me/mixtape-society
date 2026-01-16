@@ -28,7 +28,7 @@ export function initSearch() {
     /**
      * Client-side instant title filtering
      */
-    function filterByTitle(query) {
+    const filterByTitle = (query) => {
         // Don't do client-side filtering if we're showing deep search results
         if (isDeepSearchActive) {
             return;
@@ -66,9 +66,9 @@ export function initSearch() {
     /**
      * Update empty state message based on search results
      */
-    function updateEmptyState(count, isSearching, query = '') {
+    const updateEmptyState = (count, isSearching, query = '') => {
         let emptyState = document.querySelector('.no-mixtapes');
-        
+
         // Create empty state if it doesn't exist
         if (!emptyState) {
             const container = document.querySelector('.container.py-5');
@@ -102,10 +102,10 @@ export function initSearch() {
      */
     searchInput.addEventListener('input', (e) => {
         const query = e.target.value;
-        
+
         // Show/hide clear button
         clearSearchBtn.style.display = query ? 'block' : 'none';
-        
+
         // Enable/disable deep search button
         deepSearchBtn.disabled = !query;
 
@@ -122,20 +122,20 @@ export function initSearch() {
         searchInput.value = '';
         clearSearchBtn.style.display = 'none';
         deepSearchBtn.disabled = true;
-        
+
         // Reset to showing all mixtapes (only if not already on deep search page)
         if (!isDeepSearchActive) {
             filterByTitle('');
         }
-        
+
         // If we came from a server-side search, reload to clear it
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('search') || urlParams.has('deep')) {
             // Remove search params but keep sort params
             urlParams.delete('search');
             urlParams.delete('deep');
-            const newUrl = urlParams.toString() ? 
-                `${window.location.pathname}?${urlParams.toString()}` : 
+            const newUrl = urlParams.toString() ?
+                `${window.location.pathname}?${urlParams.toString()}` :
                 window.location.pathname;
             window.location.href = newUrl;
         }
@@ -152,7 +152,7 @@ export function initSearch() {
         const url = new URL(window.location.href);
         url.searchParams.set('search', query);
         url.searchParams.set('deep', 'true');
-        
+
         // Preserve existing sort parameters
         const sortBy = document.getElementById('sortBy')?.value;
         const sortOrder = document.getElementById('sortOrderBtn')?.dataset.order;
@@ -173,17 +173,15 @@ export function initSearch() {
 
     // Initial setup based on page state
     if (isDeepSearchActive) {
-        // We're showing deep search results - don't do any client-side filtering
-        if (searchInput.value) {
-            clearSearchBtn.style.display = 'block';
-            deepSearchBtn.disabled = false;
+            // We're showing deep search results - don't do any client-side filtering
+            if (searchInput.value) {
+                clearSearchBtn.style.display = 'block';
+                deepSearchBtn.disabled = false;
+            }
         }
-    } else {
-        // Normal page - enable instant filtering if there's already a value
-        if (searchInput.value) {
-            filterByTitle(searchInput.value);
-            clearSearchBtn.style.display = 'block';
-            deepSearchBtn.disabled = false;
-        }
-    }
+    else if (searchInput.value) {
+                filterByTitle(searchInput.value);
+                clearSearchBtn.style.display = 'block';
+                deepSearchBtn.disabled = false;
+            }
 }

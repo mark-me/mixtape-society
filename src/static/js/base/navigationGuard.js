@@ -1,9 +1,7 @@
 // static/js/base/navigationGuard.js
-import { showAlert } from "../editor/utils.js"; // optional – you can reuse existing helpers
 
 // Grab the modal elements once the DOM is ready
 let navigateModal, leaveBtn, stayBtn;
-let pendingNavigation = null; // will hold the URL we want to go to
 
 export function initNavigationGuard(hasUnsavedChangesGetter) {
     // `hasUnsavedChangesGetter` is a function that returns the current flag

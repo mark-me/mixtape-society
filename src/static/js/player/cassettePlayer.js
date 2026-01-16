@@ -21,7 +21,7 @@ export function initCassettePlayer() {
     /**
      * Play button click sound
      */
-    function playButtonSound(type = 'click') {
+    const playButtonSound = (type = 'click') => {
         const audio = new Audio(SOUNDS[type]);
         audio.volume = 0.3;
         audio.play().catch(() => {}); // Ignore autoplay errors
@@ -30,7 +30,7 @@ export function initCassettePlayer() {
     /**
      * Create cassette player HTML structure
      */
-    function createCassetteHTML() {
+    const createCassetteHTML = () => {
         return `
             <div id="cassette-player-container">
                 <div class="cassette-deck">
@@ -273,7 +273,7 @@ export function initCassettePlayer() {
     /**
      * Create view mode toggle button
      */
-    function createViewToggle() {
+    const createViewToggle = () =>{
         const toggle = document.createElement('div');
         toggle.className = 'view-mode-toggle';
         toggle.innerHTML = `
@@ -296,7 +296,7 @@ export function initCassettePlayer() {
      * Lock screen orientation to landscape (mobile only)
      * Must be called from a user gesture (button click)
      */
-    async function lockOrientationLandscape() {
+    const lockOrientationLandscape = async () => {
         // Only on mobile devices
         if (!isMobile()) return;
 
@@ -311,8 +311,8 @@ export function initCassettePlayer() {
             // Fallback: try deprecated method
             try {
                 const lockOrientation = screen.lockOrientation ||
-                                       screen.mozLockOrientation ||
-                                       screen.msLockOrientation;
+                                        screen.mozLockOrientation ||
+                                        screen.msLockOrientation;
                 if (lockOrientation) {
                     lockOrientation('landscape');
                     console.log('✓ Orientation locked (deprecated API)');
@@ -326,7 +326,7 @@ export function initCassettePlayer() {
     /**
      * Unlock screen orientation (restores user's auto-rotate preference)
      */
-    async function unlockOrientation() {
+    const unlockOrientation = async() => {
         try {
             if (screen.orientation && screen.orientation.unlock) {
                 screen.orientation.unlock();
@@ -351,7 +351,7 @@ export function initCassettePlayer() {
     /**
      * Enter fullscreen mode
      */
-    async function enterFullscreen() {
+    const enterFullscreen = async() => {
         if (!isMobile()) return;
 
         try {
@@ -365,7 +365,7 @@ export function initCassettePlayer() {
     /**
      * Exit fullscreen mode
      */
-    async function exitFullscreen() {
+    const exitFullscreen = async() => {
         try {
             if (isFullscreen()) {
                 await exitFullscreenMode();
@@ -382,7 +382,7 @@ export function initCassettePlayer() {
     /**
      * Helper: Check if currently in fullscreen
      */
-    function isFullscreen() {
+    const isFullscreen = () => {
         return !!(document.fullscreenElement ||
                  document.webkitFullscreenElement ||
                  document.mozFullScreenElement ||
@@ -392,7 +392,7 @@ export function initCassettePlayer() {
     /**
      * Helper: Request fullscreen on element
      */
-    async function requestFullscreenOn(element) {
+    const requestFullscreenOn = async(element) => {
         if (element.requestFullscreen) {
             return await element.requestFullscreen();
         } else if (element.webkitRequestFullscreen) {
@@ -407,7 +407,7 @@ export function initCassettePlayer() {
     /**
      * Helper: Exit fullscreen
      */
-    async function exitFullscreenMode() {
+    const exitFullscreenMode = async() => {
         if (document.exitFullscreen) {
             return await document.exitFullscreen();
         } else if (document.webkitExitFullscreen) {
@@ -422,7 +422,7 @@ export function initCassettePlayer() {
     /**
      * Check if device is mobile
      */
-    function isMobile() {
+    const isMobile = () => {
         return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
             || window.innerWidth <= 932;
     }
@@ -430,7 +430,7 @@ export function initCassettePlayer() {
     /**
      * Show brief notification to user about how to exit
      */
-    function showExitHint() {
+    const showExitHint = () => {
         // Create notification element
         const hint = document.createElement('div');
         hint.className = 'walkman-exit-hint';
@@ -455,7 +455,7 @@ export function initCassettePlayer() {
     /**
      * Switch between modern and cassette mode
      */
-    async function switchMode(mode) {
+    const switchMode = async(mode) => {
         currentMode = mode;
         localStorage.setItem('playerMode', mode);
 
@@ -499,7 +499,7 @@ export function initCassettePlayer() {
     /**
      * Update cassette display with current track info
      */
-    function updateCassetteInfo(title, artist, album, trackNum, totalTracks) {
+    const updateCassetteInfo = (title, artist, album, trackNum, totalTracks) => {
         document.getElementById('cassette-title').textContent = title || 'Mixtape';
         document.getElementById('cassette-track-info').textContent =
             `${artist}${album ? ' • ' + album : ''} • Track ${trackNum} / ${totalTracks}`;
@@ -520,7 +520,7 @@ export function initCassettePlayer() {
     /**
      * Update tape counter display
      */
-    function updateTapeCounter(currentTime, duration) {
+    const updateTapeCounter = (currentTime, duration) => {
         const minutes = Math.floor(currentTime / 60);
         const seconds = Math.floor(currentTime % 60);
         const counter = document.getElementById('tape-counter');
@@ -532,7 +532,7 @@ export function initCassettePlayer() {
     /**
      * Start/stop reel animation
      */
-    function toggleReels(playing) {
+    const toggleReels = (playing) => {
         const leftReel = document.getElementById('left-reel');
         const rightReel = document.getElementById('right-reel');
         const playLight = document.getElementById('status-play');
@@ -551,7 +551,7 @@ export function initCassettePlayer() {
     /**
      * Initialize audio visualization for VU meters
      */
-    function initAudioVisualization() {
+    const initAudioVisualization = () => {
         const player = document.getElementById('main-player');
         if (!player || audioContext) return;
 
@@ -586,10 +586,10 @@ export function initCassettePlayer() {
     /**
      * Fallback VU meters when Web Audio API is blocked by CORS
      */
-    function useFallbackVUMeters() {
+    const useFallbackVUMeters = () => {
         console.log('Using fallback VU meter animation');
 
-        function animateFallbackVUMeters() {
+        const animateFallbackVUMeters = () => {
             if (!isPlaying) return;
 
             // Simulate realistic VU meter movement
@@ -619,7 +619,7 @@ export function initCassettePlayer() {
     /**
      * Update VU meters based on audio levels
      */
-    function updateVUMeters() {
+    const updateVUMeters = () => {
         // If no analyser, we're using fallback
         if (!analyser || !dataArray) {
             useFallbackVUMeters();
@@ -656,7 +656,7 @@ export function initCassettePlayer() {
     /**
      * Wire up cassette controls to actual player
      */
-    function initCassetteControls() {
+    const initCassetteControls = () => {
         const player = document.getElementById('main-player');
         const playBtn = document.getElementById('cassette-play');
         const pauseBtn = document.getElementById('cassette-pause');
@@ -791,7 +791,7 @@ export function initCassettePlayer() {
     /**
      * Listen for track changes from main player
      */
-    function listenForTrackChanges() {
+    const listenForTrackChanges = () => {
         // Observe changes to track info in bottom player
         const observer = new MutationObserver(() => {
             const title = document.getElementById('bottom-now-title')?.textContent;
@@ -821,7 +821,7 @@ export function initCassettePlayer() {
     /**
      * Initialize global event listeners (singleton - only runs once)
      */
-    function initGlobalListeners() {
+    const initGlobalListeners = () => {
         if (listenersInitialized) {
             console.log('⚠️ Global listeners already initialized, skipping');
             return;
@@ -875,7 +875,7 @@ export function initCassettePlayer() {
     /**
      * Initialize everything
      */
-    function init() {
+    const init = () => {
         // Create cassette HTML
         const cassetteHTML = createCassetteHTML();
         document.body.insertAdjacentHTML('beforeend', cassetteHTML);

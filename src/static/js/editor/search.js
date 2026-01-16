@@ -233,7 +233,7 @@ function attachAccordionListeners() {
             const body = collapse.querySelector('.accordion-body');
             if (!body || body.dataset.loading !== 'true') return;
 
-            const artist = collapse.dataset.artist;
+            const { artist } = collapse.dataset;
             fetch(`/editor/artist_details?artist=${encodeURIComponent(artist)}`)
                 .then(r => r.json())
                 .then(details => {
@@ -375,7 +375,7 @@ function attachPreviewButtons() {
 
     document.querySelectorAll('.preview-btn').forEach(btn => {
         btn.addEventListener('click', function () {
-            const {path, title, artist, album, cover} = this.dataset;
+            const { path, title, artist, album, cover } = this.dataset;
             const trackName = title || 'Preview';
             const artistAlbum = (artist && album) ? `${artist} • ${album}` : (artist || album || 'Preview');
 
