@@ -12,7 +12,7 @@ The audio‑caching subsystem automatically converts large lossless audio files 
 When streaming lossless audio over the web, bandwidth quickly becomes a bottleneck:
 
 | Format | Approx. size (4‑min track) | Typical bitrate |
-|--------|---------------------------|-----------------|
+| ------ | ------------------------- | --------------- |
 | **FLAC (original)** | **40‑50 MB** | ~1 000 kbps |
 | **MP3 – High (256 kbps)** | **≈ 8 MB** | 256 kbps |
 | **MP3 – Medium (192 kbps)** | **≈ 5 MB** | 192 kbps |
@@ -50,7 +50,7 @@ graph TD
 ## ✨ Key Features
 
 | Feature                      | Description                                                                 |
-|------------------------------|-----------------------------------------------------------------------------|
+| ---------------------------- | --------------------------------------------------------------------------- |
 | **Automatic transcoding**         | FLAC, WAV, AIFF, APE, ALAC → MP3 (high/medium/low).                         |
 | **Multiple quality levels**       | `high` (256 kbps), `medium` (192 kbps), `low` (128 kbps).                         |
 | **Smart caching**                 | Only creates a cached file when the source is lossless and the cache is missing/out-of-date. |
@@ -144,7 +144,7 @@ graph LR
 ## 🛠️ Configuration Options
 
 | Option                         | Default                    | Description                                                         |
-|---------------------------------|----------------------------|---------------------------------------------------------------------|
+| ------------------------------- | -------------------------- | ------------------------------------------------------------------- |
 | `AUDIO_CACHE_DIR`                 | `"cache/audio"`              | Directory where MP3 caches are stored (relative to DATA_ROOT).      |
 | `AUDIO_CACHE_ENABLED`             | `True`                       | Master switch – set to `False` to bypass the entire subsystem.        |
 | `AUDIO_CACHE_DEFAULT_QUALITY`     | `"medium"`                   | Quality used when a client does not specify one.                     |
@@ -184,10 +184,10 @@ The modal updates the progress bar, logs messages, and shows a final summary whe
 
 ## 🔧 Troubleshooting FAQ
 
-<details> <summary>⚡ Cache Misses – “Why isn’t my file being cached?”</summary>
+### Cache Misses – “Why isn’t my file being cached?”
 
 | Symptom                            | Check                                                      | Fix                                                                 |
-|------------------------------------|------------------------------------------------------------|---------------------------------------------------------------------|
+| ---------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------- |
 | Cache miss warning in logs         | `grep -i "cache miss" app.log`                             | Verify `AUDIO_CACHE_ENABLED=True` and that the file’s suffix is in `should_transcode` (FLAC, WAV, AIFF, APE, ALAC). |
 | Cache file exists but not found    | `ls collection-data/cache/audio/`                          | Ensure the hash matches the current absolute path. If you moved the music folder, run `python debug_cache.py <MUSIC_ROOT> <REL_PATH> <CACHE_DIR>` (see debug_cache.py). |
 | Cache never generated              | `AUDIO_CACHE_PRECACHE_ON_UPLOAD=False`                     | Enable pre-caching or trigger it manually via `schedule_mixtape_caching`. |
@@ -196,7 +196,8 @@ The modal updates the progress bar, logs messages, and shows a final summary whe
 | High CPU usage during batch caching| `top while caching`                                        | Reduce `AUDIO_CACHE_MAX_WORKERS` (e.g., `export AUDIO_CACHE_MAX_WORKERS=2`). |
 | Stale cache after source file change| Compare timestamps (`stat -c %Y file`)                      | Run `cache.clear_cache()` or set `overwrite=True` in `transcode_file`. |
 
-</details> <details> <summary>🛑 Transcoding Failures – “ffmpeg exited with error code 1”</summary>
+
+### Transcoding Failures – “ffmpeg exited with error code 1”"
 
 1. **Inspect the ffmpeg stderr** – it is logged by `AudioCache.transcode_file`.
 2. Common culprits:
