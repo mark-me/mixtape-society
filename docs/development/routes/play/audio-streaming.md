@@ -292,7 +292,7 @@ This is safe because:
 - No authentication credentials in responses
 - Read-only operation (no state changes)
 
-See [Chromecast Integration](../../chromecast/integration.md#server-requirements) for details.
+See [Chromecast Integration](../../chromecast/integration.md#backend-requirements) for details.
 
 ### Why Accept-Ranges?
 

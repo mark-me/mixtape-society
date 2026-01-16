@@ -300,7 +300,7 @@ INFO: Range request: song.mp3 | Bytes 3000000-4000000 (1000001 bytes)
 | Gets 416 errors | Invalid range calculation | Check end <= file_size |
 | Seeking is slow | Not using ranges | Verify Range header is sent |
 
-See: [Chromecast Integration](../../chromecast/integration.md#server-requirements)
+See: [Chromecast Integration](../../chromecast/integration.md#backend-requirements)
 
 ---
 
@@ -569,7 +569,7 @@ curl -I \
 
 **Screenshot of successful range request:**
 
-```
+```http
 Request Headers:
   Range: bytes=1048576-2097151
 

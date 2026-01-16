@@ -124,6 +124,7 @@ Recipients can stream shared mixtapes to any device using Chromecast, AirPlay, o
 - **Apple Watch** – Control from your wrist
 
 **Android Auto (In-Car):**
+
 - **Dashboard integration** – Control from car touchscreen
 - **Voice commands** – "OK Google, pause", "next song"
 - **Steering wheel controls** – Use physical car buttons

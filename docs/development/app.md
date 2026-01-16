@@ -9,7 +9,7 @@ The file `app.py` defines the main Flask application for the "mixtape-society" p
 Flask App (`create_app() → Flask()`)
 
 Core Services           | Blueprints
-------------------------|----------------
+----------------------- | ---------------
 MusicCollectionUI       | auth
 MixtapeManager          | browser
 AudioCache              | play
@@ -22,12 +22,12 @@ All routes are mounted under the appropriate URL prefixes (`/auth`, `/mixtapes`,
 
 `app.py` determines the configuration class based on the `APP_ENV` environment variable:
 
-| `APP_ENV` value   | Config class used       | Typical purpose |
-|-----------------|------------------------|----------------|
-| development     | DevelopmentConfig      | Local dev with verbose logging, SQLite DB in `data/dev`. |
-| test            | TestConfig             | CI / automated tests (in-memory DB). |
-| production      | ProductionConfig       | Deployed instance (read-only DB, stricter limits). |
-| unset           | DevelopmentConfig      | Default fallback. |
+| `APP_ENV` value | Config class used | Typical purpose |
+| --------------- | ----------------- | --------------- |
+| development | DevelopmentConfig | Local dev with verbose logging, SQLite DB in `data/dev`. |
+| test | TestConfig | CI / automated tests (in-memory DB). |
+| production | ProductionConfig | Deployed instance (read-only DB, stricter limits). |
+| unset | DevelopmentConfig | Default fallback. |
 
 The selected class is instantiated, its `ensure_dirs()` method creates required directories (`MIXTAPE_DIR`, `CACHE_DIR`, `LOGS`, etc.), and the instance is returned from `get_configuration()`.
 
@@ -59,7 +59,7 @@ The selected class is instantiated, its `ensure_dirs()` method creates required 
 ## 🔌 Core Services & Dependency Wiring
 
 | Service | Construction | Primary responsibilities |
-|---------|-------------|-------------------------|
+| ------- | ------------ | ------------------------ |
 | MusicCollectionUI (`musiclib`) | `MusicCollectionUI(music_root=config_cls.MUSIC_ROOT, db_path=config_cls.DB_PATH, logger=logger)` | Scans the music folder, builds an SQLite DB with FTS5, provides `search_highlighting`, `get_artist_details`, `get_album_details`, `get_cover`, `count`, `get_collection_stats`. |
 | AudioCache (`audio_cache`) | `AudioCache(cache_dir=app.config["AUDIO_CACHE_DIR"], logger=logger)` | Stores transcoded audio files, provides progress tracking via `ProgressTracker`. |
 | MixtapeManager (`mixtape_manager`) | `MixtapeManager(path_mixtapes=config_cls.MIXTAPE_DIR, collection=collection)` | Persists mixtape JSON files, handles slug generation, cover processing, and deletion. |
@@ -110,7 +110,7 @@ def handle_database_corruption(e):
 ## 🌐 Public Routes
 
 | Route | Method | Description |
-|-------|--------|-------------|
+| ----- | ------ | ----------- |
 | `/` | GET | Landing page (`landing.html`). If indexing is active → `indexing.html`. If authenticated → redirect to `/mixtapes`. |
 | `/indexing-status` | GET (exempt from rate limiting) | Returns JSON with current indexing progress (used by the front-end polling). |
 | `/collection-stats` | GET (auth) | Returns JSON with `num_artists`, `num_albums`, `num_tracks`, `total_duration`, `last_added`. |
@@ -123,7 +123,7 @@ def handle_database_corruption(e):
 ## 🎨 Template Context Processors
 
 | Processor | Injected Variable | Use Cases |
-|-----------|-----------------|-----------|
+| --------- | --------------- | --------- |
 | `inject_version` | `app_version` (from `utils.get_version()`) | Displayed in the footer (`vX.Y.Z`). |
 | `inject_now` | `now` (UTC datetime) | Used for timestamps in templates (`{{ now }}`). |
 | `inject_auth_status` | `is_authenticated` (bool) | Conditional UI (login/logout links). |

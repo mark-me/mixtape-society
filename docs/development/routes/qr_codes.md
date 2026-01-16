@@ -7,7 +7,7 @@
 The QR blueprint (qr_blueprint.py) provides two public endpoints that generate QR‑code images for a mixtape’s share URL:
 
 | Feature | Description |
-|--------|-------------|
+| ------ | ----------- |
 | Simple QR (`/qr/<slug>.png`) | Returns a plain PNG QR code (optional logo overlay, configurable size). |
 | Enhanced QR (`/qr/<slug>/download`) | Returns a QR code that can embed the mixtape’s cover art and title banner, and is served as a downloadable attachment. |
 | Cache-Control | Both endpoints set `Cache-Control: public, max-age=3600` so browsers cache the image for one hour. |
@@ -19,7 +19,7 @@ The QR blueprint (qr_blueprint.py) provides two public endpoints that generate Q
 ### `/qr/<slug>.png`
 
 | Method | Description |
-|--------|-------------|
+| ------ | ----------- |
 | `GET` | Returns a simple QR code PNG that encodes the public share URL for the mixtape identified by `<slug>`. |
 
 Request flow (simplified)
@@ -47,7 +47,7 @@ sequenceDiagram
 ### `/qr/<slug>/download`
 
 | Method | Description |
-|--------|-------------|
+| ------ | ----------- |
 | `GET` | Returns an enhanced QR code PNG that can include the mixtape’s cover art and a title banner. The image is served as a downloadable attachment (`Content-Disposition: attachment`). |
 
 Request flow (simplified)
@@ -76,7 +76,7 @@ sequenceDiagram
 ## 🕵🏻‍♂️ Query Parameters
 
 | Parameter | Endpoint | Type | Default | Allowed range / values | Description |
-|----------|----------|------|---------|------------------------|-------------|
+| -------- | -------- | ---- | ------- | ---------------------- | ----------- |
 | `size` | both | integer | 400 (simple) / 800 (download) | 1–800 (simple), 1–1200 (download) | Pixel dimension of the generated QR code (square). |
 | `logo` | simple | boolean-like string | `"true"` | `"true"` / `"false"` (case-insensitive) | Whether to overlay the site logo (SVG or PNG) in the centre of the QR. |
 | `include_cover` | download | boolean-like string | `"true"` | `"true"` / `"false"` | Include the mixtape’s cover art in the QR (centered). |
@@ -198,7 +198,7 @@ Both modules share the same modal markup (see the bottom of `editor.html` and `p
 ### Architecture
 
 | Component | Location | Role |
-|-----------|----------|------|
+| --------- | -------- | ---- |
 | **QR Modal** | `base.html` | Global modal (`#qrShareModal`) available on all pages |
 | **Common Module** | `static/js/common/qrShare.js` | Shared logic for QR display, copying, and downloading |
 | **Browser Integration** | `static/js/browser/index.js` | Initializes QR for multiple mixtapes with `autoShow: true` |
@@ -210,6 +210,7 @@ Both modules share the same modal markup (see the bottom of `editor.html` and `p
 1. **Modal defined once** - `base.html` contains the QR modal markup, making it available globally
 2. **Common module handles logic** - `qrShare.js` manages modal display, QR loading, copy, and download
 3. **Page-specific config** - Each page calls `initQRShare()` with appropriate settings:
+
 ```javascript
 // Browser page - multiple share buttons
 initQRShare({
