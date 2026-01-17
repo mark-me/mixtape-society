@@ -12,6 +12,53 @@ function getCurrentQuery() {
     return searchInput.value.trim();
 }
 
+function attachAccordionLoader({
+    collapse,
+    body,
+    load,
+    emptyMessage = null
+}) {
+    if (!collapse || !body) return;
+
+    // Prevent duplicate listeners
+    if (collapse.dataset.loaderAttached === 'true') return;
+    collapse.dataset.loaderAttached = 'true';
+
+    body.dataset.loaded = 'false';
+    body.dataset.loading = 'false';
+
+    collapse.addEventListener('show.bs.collapse', async () => {
+        if (body.dataset.loaded === 'true' || body.dataset.loading === 'true') {
+            return;
+        }
+
+        body.dataset.loading = 'true';
+        body.innerHTML = '<p class="text-muted">Loading…</p>';
+
+        try {
+            const result = await load();
+
+            if (!result || (Array.isArray(result) && result.length === 0)) {
+                if (emptyMessage) {
+                    body.innerHTML = `<p class="text-muted">${emptyMessage}</p>`;
+                } else {
+                    body.innerHTML = '';
+                }
+                body.dataset.loaded = 'true';
+                return;
+            }
+
+            body.dataset.loaded = 'true';
+        } catch (err) {
+            console.error('Accordion load failed:', err);
+            body.innerHTML = '<p class="text-danger">Failed to load data</p>';
+        } finally {
+            body.dataset.loading = 'false';
+        }
+    });
+}
+
+
 /**
  * Performs a search query against the server and renders results
  */
@@ -217,54 +264,48 @@ function renderResults(data) {
 
     attachAddButtons();
     attachPreviewButtons();
-    attachAccordionListeners();
-}
-
-/**
- * Attach listeners to accordion buttons to lazy-load artist/album details on expand
- */
-function attachAccordionListeners() {
-    // Artist accordion
-    document.querySelectorAll('[data-bs-toggle="collapse"][data-raw-artist]').forEach(btn => {
-        btn.addEventListener('click', function () {
-            const collapse = document.querySelector(this.dataset.bsTarget);
-            if (!collapse) return;
-
+    // Attach artist accordion loaders
+    document
+        .querySelectorAll('.accordion-collapse[data-artist]')
+        .forEach(collapse => {
             const body = collapse.querySelector('.accordion-body');
-            if (!body || body.dataset.loading !== 'true') return;
-
             const artist = collapse.dataset.artist;
-            fetch(`/editor/artist_details?artist=${encodeURIComponent(artist)}`)
-                .then(r => r.json())
-                .then(details => {
+
+            attachAccordionLoader({
+                collapse,
+                body,
+                emptyMessage: 'No albums found.',
+                load: async () => {
+                    const res = await fetch(
+                        `/editor/artist_details?artist=${encodeURIComponent(artist)}`
+                    );
+                    const details = await res.json();
+
                     if (!details.albums || details.albums.length === 0) {
-                        body.innerHTML = '<p class="text-muted">No albums found.</p>';
-                        body.dataset.loading = 'false';
-                        return;
+                        return [];
                     }
 
-                    // CREATE NESTED ACCORDION STRUCTURE (restored from v0.5.6)
-                    let html = '<div class="accordion accordion-flush" id="artist-albums-accordion">';
+                    let html = '<div class="accordion accordion-flush">';
                     details.albums.forEach((album, index) => {
                         const albumId = safeId(album.album + '-' + index);
                         const coverThumb = album.cover ? `
                             <div class="album-thumb me-2">
-                                <img src="/${album.cover}" alt="Album Cover" class="rounded">
+                                <img src="/${album.cover}" class="rounded">
                             </div>` : '';
-                        
-                        // Show "Various Artists" subtitle for compilation albums
-                        const subtitle = album.is_compilation ? 
-                            '<div class="album-artist text-truncate small text-muted">Various Artists</div>' : '';
+
+                        const subtitle = album.is_compilation
+                            ? '<div class="album-artist small text-muted">Various Artists</div>'
+                            : '';
 
                         html += `
                             <div class="accordion-item">
                                 <h2 class="accordion-header">
-                                    <button class="accordion-button collapsed bg-album" type="button"
+                                    <button class="accordion-button collapsed bg-album"
                                             data-bs-toggle="collapse"
                                             data-bs-target="#collapse-album-${albumId}">
                                         ${coverThumb}
                                         <div class="flex-grow-1 min-w-0">
-                                            <strong class="text-truncate d-block">${escapeHtml(album.album)}</strong>
+                                            <strong class="d-block text-truncate">${escapeHtml(album.album)}</strong>
                                             ${subtitle}
                                         </div>
                                         <span class="ms-auto small">
@@ -272,25 +313,20 @@ function attachAccordionListeners() {
                                         </span>
                                     </button>
                                 </h2>
-                                <div id="collapse-album-${albumId}"
-                                    class="accordion-collapse collapse">
+                                <div id="collapse-album-${albumId}" class="accordion-collapse collapse">
                                     <div class="accordion-body">
                                         ${album.cover ? `
-                                            <div class="album-detail-cover mb-3">
-                                                <img src="/${album.cover}" alt="Album Cover" class="rounded shadow-sm">
-                                            </div>` : ''}
+                                            <img src="/${album.cover}" class="img-fluid rounded mb-3">
+                                        ` : ''}
                                         <button class="btn btn-success btn-sm mb-3 add-album-btn"
                                                 data-tracks="${escapeHtml(JSON.stringify(album.tracks))}">
                                             <i class="bi bi-plus-circle me-2"></i>Add whole album
                                         </button>
                                         <ul class="list-group">
                                             ${album.tracks.map(track => `
-                                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                                    <div class="flex-grow-1 min-w-0">
-                                                        <span class="text-truncate d-block">${escapeHtml(track.track)}</span>
-                                                        <small class="text-muted">${formatDuration(track.duration || "?:??")}</small>
-                                                    </div>
-                                                    <div class="track-actions d-flex align-items-center gap-2 flex-shrink-0 ms-2">
+                                                <li class="list-group-item d-flex justify-content-between">
+                                                    <span class="text-truncate">${escapeHtml(track.track)}</span>
+                                                    <div class="d-flex gap-2">
                                                         <button class="btn btn-track btn-sm preview-btn"
                                                                 data-path="${escapeHtml(track.path)}"
                                                                 data-title="${escapeHtml(track.track)}"
@@ -315,86 +351,79 @@ function attachAccordionListeners() {
                     html += '</div>';
 
                     body.innerHTML = html;
-                    body.dataset.loading = 'false';
-
                     attachAddButtons();
                     attachPreviewButtons();
-                })
-                .catch(err => {
-                    body.innerHTML = '<p class="text-danger">Failed to load albums.</p>';
-                    console.error(err);
-                });
+
+                    return details.albums;
+                }
+            });
         });
-    });
+        // Attach standalone album accordion loaders
+        document
+            .querySelectorAll('.accordion-collapse[data-release_dir]')
+            .forEach(collapse => {
+                const body = collapse.querySelector('.accordion-body');
+                const releaseDir = collapse.dataset.release_dir;
+                const coverPath = collapse.dataset.cover;
 
-    // Album accordion
-    document.querySelectorAll('[data-bs-toggle="collapse"][data-raw-album]').forEach(btn => {
-        btn.addEventListener('click', function () {
-            const collapse = document.querySelector(this.dataset.bsTarget);
-            if (!collapse) return;
+                attachAccordionLoader({
+                    collapse,
+                    body,
+                    load: async () => {
+                        const res = await fetch(
+                            `/editor/album_details?release_dir=${encodeURIComponent(releaseDir)}`
+                        );
+                        const details = await res.json();
 
-            const body = collapse.querySelector('.accordion-body');
-            if (!body || body.dataset.loading !== 'true') return;
+                        const cover = coverPath ? `
+                            <div class="mb-3 text-center">
+                                <img src="/${coverPath}" class="img-thumbnail" style="max-width: 200px;">
+                            </div>` : '';
 
-            const releaseDir = collapse.dataset.release_dir;
-            const coverPath = collapse.dataset.cover;
-
-            fetch(`/editor/album_details?release_dir=${encodeURIComponent(releaseDir)}`)
-                .then(r => r.json())
-                .then(details => {
-                    const cover = coverPath ? `
-                        <div class="mb-3 text-center">
-                            <img src="/${coverPath}" alt="${details.album}" class="img-thumbnail" style="max-width: 200px;">
-                        </div>` : '';
-
-                    const html = `
-                        ${cover}
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="mb-0">${details.num_tracks} tracks</h6>
-                            <button class="btn btn-success btn-sm add-album-btn"
-                                    data-tracks="${escapeHtml(JSON.stringify(details.tracks))}">
-                                <i class="bi bi-plus-circle"></i> Add All
-                            </button>
-                        </div>
-                        <ul class="list-group">
-                            ${details.tracks.map((track, idx) => `
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <div class="flex-grow-1 min-w-0 me-2">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <span class="text-muted" style="min-width: 25px;">${idx + 1}.</span>
-                                            <strong class="text-truncate">${track.track}</strong>
+                        body.innerHTML = `
+                            ${cover}
+                            <div class="d-flex justify-content-between mb-3">
+                                <h6>${details.num_tracks} tracks</h6>
+                                <button class="btn btn-success btn-sm add-album-btn"
+                                        data-tracks="${escapeHtml(JSON.stringify(details.tracks))}">
+                                    <i class="bi bi-plus-circle"></i> Add All
+                                </button>
+                            </div>
+                            <ul class="list-group">
+                                ${details.tracks.map((track, i) => `
+                                    <li class="list-group-item d-flex justify-content-between">
+                                        <span>${i + 1}. ${escapeHtml(track.track)}</span>
+                                        <div class="d-flex gap-2">
+                                            <span class="text-muted">${formatDuration(track.duration)}</span>
+                                            <button class="btn btn-track btn-sm preview-btn"
+                                                    data-path="${escapeHtml(track.path)}"
+                                                    data-title="${escapeHtml(track.track)}"
+                                                    data-artist="${escapeHtml(details.artist)}"
+                                                    data-album="${escapeHtml(details.album)}"
+                                                    data-cover="${escapeHtml(coverPath || '')}">
+                                                <i class="bi bi-play-fill"></i>
+                                            </button>
+                                            <button class="btn btn-success btn-sm add-btn"
+                                                    data-item="${escapeHtml(JSON.stringify(track))}">
+                                                <i class="bi bi-plus-circle"></i>
+                                            </button>
                                         </div>
-                                    </div>
-                                    <div class="d-flex align-items-center gap-2 flex-shrink-0">
-                                        <span class="text-muted" style="min-width: 45px; text-align: right;">${formatDuration(track.duration || "?:??")}</span>
-                                        <button class="btn btn-track btn-sm preview-btn"
-                                                data-path="${escapeHtml(track.path)}"
-                                                data-title="${escapeHtml(track.track)}"
-                                                data-artist="${escapeHtml(details.artist)}"
-                                                data-album="${escapeHtml(details.album)}"
-                                                data-cover="${escapeHtml(coverPath || '')}">
-                                            <i class="bi bi-play-fill"></i>
-                                        </button>
-                                        <button class="btn btn-success btn-sm add-btn" data-item="${escapeHtml(JSON.stringify(track))}">
-                                            <i class="bi bi-plus-circle"></i>
-                                        </button>
-                                    </div>
-                                </li>
-                            `).join('')}
-                        </ul>`;
-                    body.innerHTML = html;
-                    body.dataset.loading = 'false';
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        `;
 
-                    attachAddButtons();
-                    attachPreviewButtons();
-                })
-                .catch(err => {
-                    body.innerHTML = '<p class="text-danger">Loading failed.</p>';
-                    console.error(err);
+                        attachAddButtons();
+                        attachPreviewButtons();
+
+                        return details;
+                    }
                 });
-        });
-    });
+            });
+
 }
+
+
 
 /**
  * Attaches click handlers to add buttons (single tracks and entire albums)
