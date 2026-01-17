@@ -159,16 +159,26 @@ def create_play_blueprint(mixtape_manager: MixtapeManager, path_audio_cache: Pat
             str: The MIME type string for the file.
         """
         mime_type, _ = mimetypes.guess_type(str(full_path))
-        if mime_type is None:
-            suffix = full_path.suffix.lower()
-            mime_type = {
-                ".flac": "audio/flac",
-                ".m4a": "audio/mp4",
-                ".aac": "audio/aac",
-                ".ogg": "audio/ogg",
-                ".mp3": "audio/mpeg",
-            }.get(suffix, "application/octet-stream")
-        return mime_type
+        if mime_type:
+            return mime_type
+
+        suffix = full_path.suffix.lower()
+
+        return {
+            ".webp": "image/webp",
+            ".avif": "image/avif",
+            ".heic": "image/heic",
+            ".heif": "image/heif",
+            ".svg":  "image/svg+xml",
+            ".svgz": "image/svg+xml",
+            ".flac": "audio/flac",
+            ".m4a":  "audio/mp4",
+            ".aac":  "audio/aac",
+            ".ogg":  "audio/ogg",
+            ".oga":  "audio/ogg",
+            ".opus": "audio/ogg",
+            ".mp3":  "audio/mpeg",
+        }.get(suffix, "application/octet-stream")
 
     def _handle_range_request(
         full_path: Path, mime_type: str, range_header: str, file_size: int
@@ -247,7 +257,12 @@ def create_play_blueprint(mixtape_manager: MixtapeManager, path_audio_cache: Pat
             abort(404)
 
         # Get cover URL or use default icon
-        icon_url = f"/play/covers/{mixtape['cover'].split('/')[-1]}" if mixtape.get('cover') else "/static/icons/icon-512.png"
+        if mixtape.get('cover'):
+            mime_type = _guess_mime_type(Path(mixtape['cover']))
+            icon_url = f"/play/covers/{mixtape['cover'].split('/')[-1]}"
+        else:
+            mime_type = _guess_mime_type(Path("/static/icons/icon-512.png"))
+            icon_url = "/static/icons/icon-512.png"
 
         manifest = {
             "name": mixtape.get('title', 'Mixtape'),
@@ -263,7 +278,7 @@ def create_play_blueprint(mixtape_manager: MixtapeManager, path_audio_cache: Pat
                 {
                     "src": icon_url,
                     "sizes": "512x512",
-                    "type": "image/jpeg" if mixtape.get('cover') else "image/png",
+                    "type": mime_type,
                     "purpose": "any maskable"
                 },
                 {
