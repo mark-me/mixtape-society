@@ -8,16 +8,33 @@ No accounts, no telemetry, no Spotify – just your music, your server, your rul
 
 ## ✨ Features
 
-- Public shareable links and QR codes (no login needed to play)
-- Mixtape editor with:
-  - Live search with highlighting
-  - Coverart automatically added or adding your own creation
-  - Creating a personal message about the mixtape
-- Fully usable on mobile devices
-- Full seeking support for FLAC, MP3, M4A, etc.
-- Simple single-password protection for mixtape management
-- Music library always up-to-date with background filesystem monitoring
-- Transcoding song qualtity for lower bandwidths
+### 🎵 For Mixtape Creators
+
+- **Private music library** – Host your own collection (FLAC, MP3, M4A, AAC, OGG, WAV)
+- **Beautiful editor** – Live search, drag-and-drop track ordering
+- **Custom cover art** – Upload unique artwork for each mixtape
+- **Liner notes** – Add personal messages with Markdown formatting
+- **Smart caching** – Pre-transcode for faster mobile streaming for multiple audio quality options (original to 128k)
+- **Instant public links** – Share via URL, QR code or print-ready codes with cover art
+- **No accounts needed** – Recipients stream directly in browser
+- **Permanent or temporary** – Links persist until you delete them
+
+### 📱 Mixtape receivers
+
+- **No login required** – Just click and play
+- **Full media controls** – Play, pause, seek, skip
+- **Lock screen integration** – Control from phone notifications
+- **Background playback** – Keep playing with screen off
+- **Personalized PWA** – Each mixtape installs like an app with its own icon and name
+- **Cast anywhere** – Stream to Chromecast devices in your car or throughout your house
+
+Perfect for:
+
+- 🎉 **Parties** – Share the DJ duties via QR code
+- 🏠 **Home audio** – Stream to whole-home speaker systems
+- 🚗 **Road trips** – Perfect mixtapes for long drives
+- 🎁 **Gifts** – Create physical cards with QR codes that stream anywhere
+- 🎵 **Ambient listening** – Set the mood without managing your phone
 
 ## 🚀 Quick Start
 
