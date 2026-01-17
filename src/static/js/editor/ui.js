@@ -177,6 +177,7 @@ export function initUI() {
             client_id: clientId,
             creator_name: giftSettings.creator_name,
             gift_flow_enabled: giftSettings.gift_flow_enabled,
+            unwrap_style: giftSettings.unwrap_style,  // NEW: playful or elegant
             show_tracklist_after_completion: giftSettings.show_tracklist_after_completion
         };
 

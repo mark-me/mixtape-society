@@ -304,6 +304,32 @@
                         </small>
                     </div>
 
+                    <!-- Gift Flow Style (only visible when gift flow is enabled) -->
+                    <div class="mb-4" id="gift-style-container" style="display: none;">
+                        <label class="form-label">
+                            <i class="bi bi-palette me-1"></i>Unwrapping Style
+                        </label>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <input type="radio" class="btn-check" name="gift-style" id="style-playful" value="playful" checked>
+                                <label class="btn btn-outline-primary w-100" for="style-playful">
+                                    <i class="bi bi-emoji-smile me-1"></i>
+                                    <div class="small">Playful</div>
+                                </label>
+                            </div>
+                            <div class="col-6">
+                                <input type="radio" class="btn-check" name="gift-style" id="style-elegant" value="elegant">
+                                <label class="btn btn-outline-primary w-100" for="style-elegant">
+                                    <i class="bi bi-stars me-1"></i>
+                                    <div class="small">Elegant</div>
+                                </label>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-secondary w-100 mt-2" id="preview-gift-flow">
+                            <i class="bi bi-eye me-1"></i>Preview Unwrapping Experience
+                        </button>
+                    </div>
+
                     <!-- Show Tracklist Toggle (only visible when gift flow is enabled) -->
                     <div class="mb-3" id="tracklist-setting-container" style="display: none;">
                         <div class="form-check form-switch">
@@ -382,6 +408,7 @@
                 updated_at: {{ preload_mixtape.updated_at | default(null) | tojson | safe }},
                 creator_name: {{ preload_mixtape.creator_name | default('') | tojson | safe }},
                 gift_flow_enabled: {{ preload_mixtape.gift_flow_enabled | default(false) | tojson | safe }},
+                unwrap_style: {{ preload_mixtape.unwrap_style | default('playful') | tojson | safe }},
                 show_tracklist_after_completion: {{ preload_mixtape.show_tracklist_after_completion | default(true) | tojson | safe }}
             };
     </script>

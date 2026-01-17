@@ -122,6 +122,7 @@ class MixtapeManager:
         # Ensure gift flow fields have defaults if not provided
         mixtape_data.setdefault("creator_name", "")
         mixtape_data.setdefault("gift_flow_enabled", False)
+        mixtape_data.setdefault("unwrap_style", "playful")
         mixtape_data.setdefault("show_tracklist_after_completion", True)
 
         return self._save_with_slug(mixtape_data=mixtape_data, title=title, slug=slug)
@@ -188,6 +189,7 @@ class MixtapeManager:
         # Ensure gift flow fields exist (backward compatibility)
         existing_data.setdefault("creator_name", "")
         existing_data.setdefault("gift_flow_enabled", False)
+        existing_data.setdefault("unwrap_style", "playful")
         existing_data.setdefault("show_tracklist_after_completion", True)
 
         # Only update updated_at
@@ -442,6 +444,8 @@ class MixtapeManager:
             data["creator_name"] = ""
         if "gift_flow_enabled" not in data:
             data["gift_flow_enabled"] = False
+        if "unwrap_style" not in data:
+            data["unwrap_style"] = "playful"
         if "show_tracklist_after_completion" not in data:
             data["show_tracklist_after_completion"] = True
 
@@ -462,7 +466,7 @@ class MixtapeManager:
         """
         now = datetime.now().isoformat()
 
-        # Migrate legacy saved_at to updated_at
+        # Migrate legacy saved_at â†’ updated_at
         if "saved_at" in data and "updated_at" not in data:
             data["updated_at"] = data.pop("saved_at")
         if "created_at" not in data:

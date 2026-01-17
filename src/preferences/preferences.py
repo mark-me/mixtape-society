@@ -1,6 +1,8 @@
 # src/preferences.py
 import json
 from pathlib import Path
+from typing import Optional
+
 from common.logging import Logger, NullLogger
 
 
@@ -27,7 +29,8 @@ class PreferencesManager:
             default_preferences = {
                 "creator_name": "",
                 "default_gift_flow_enabled": False,
-                "default_show_tracklist": True,
+                "default_unwrap_style": "playful",  # NEW in Phase 2
+                "default_show_tracklist": True
             }
             self._save_preferences(default_preferences)
             self._logger.info(f"Created default preferences at {self.preferences_path}")
@@ -60,7 +63,8 @@ class PreferencesManager:
             return {
                 "creator_name": "",
                 "default_gift_flow_enabled": False,
-                "default_show_tracklist": True,
+                "default_unwrap_style": "playful",  # NEW in Phase 2
+                "default_show_tracklist": True
             }
 
     def get_creator_name(self) -> str:
@@ -103,6 +107,30 @@ class PreferencesManager:
         self._save_preferences(prefs)
         self._logger.info(f"Updated default gift flow enabled to: {enabled}")
 
+    def get_default_unwrap_style(self) -> str:
+        """Get the default unwrap style setting.
+
+        Returns:
+            Default unwrap style ('playful' or 'elegant')
+        """
+        prefs = self.get_preferences()
+        return prefs.get("default_unwrap_style", "playful")
+
+    def set_default_unwrap_style(self, style: str) -> None:
+        """Set the default unwrap style preference.
+
+        Args:
+            style: Unwrap style ('playful' or 'elegant')
+        """
+        if style not in ["playful", "elegant"]:
+            self._logger.warning(f"Invalid unwrap style: {style}, defaulting to 'playful'")
+            style = "playful"
+
+        prefs = self.get_preferences()
+        prefs["default_unwrap_style"] = style
+        self._save_preferences(prefs)
+        self._logger.info(f"Updated default unwrap style to: {style}")
+
     def get_default_show_tracklist(self) -> bool:
         """Get the default show tracklist setting.
 
@@ -138,7 +166,8 @@ class PreferencesManager:
         allowed_keys = {
             "creator_name",
             "default_gift_flow_enabled",
-            "default_show_tracklist",
+            "default_unwrap_style",  # NEW in Phase 2
+            "default_show_tracklist"
         }
 
         for key, value in updates.items():
