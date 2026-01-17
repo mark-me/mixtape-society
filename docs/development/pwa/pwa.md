@@ -87,28 +87,94 @@ class PWAManager {
 }
 ```
 
-### 3. Manifest (`manifest.json`)
+### 3. Manifest (Dynamic per Mixtape)
 
-PWA configuration file served from app root.
+Each mixtape generates its own PWA manifest dynamically at `/play/share/{slug}/manifest.json`.
+
+**Why Dynamic Manifests?**
+
+- ✅ Each mixtape can be installed as its own PWA
+- ✅ PWA icon shows the mixtape's cover art
+- ✅ PWA name is the mixtape's title
+- ✅ Opening the PWA goes directly to that specific mixtape
+- ✅ No 404 errors when launching from home screen
+
+**Example Dynamic Manifest:**
 
 ```json
 {
-  "name": "Mixtape Society",
-  "short_name": "Mixtape",
+  "name": "Summer Vibes 2024",
+  "short_name": "Summer Vibe",
+  "description": "A mixtape with 12 tracks",
+  "start_url": "/play/share/summer-vibes-2024",
   "scope": "/play/",
-  "start_url": "/play/",
   "display": "standalone",
+  "background_color": "#198754",
+  "theme_color": "#198754",
   "icons": [
-    // 72px through 512px
+    {
+      "src": "/play/covers/summer-cover.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
   ]
 }
 ```
 
-**Scope Restriction:** Only `/play/` routes are controlled by the PWA. This ensures:
+**Backend Implementation:**
 
+```python
+# play.py - Dynamic manifest endpoint
+@play.route("/share/<slug>/manifest.json")
+def mixtape_manifest(slug: str) -> Response:
+    """Generate dynamic PWA manifest for specific mixtape"""
+    mixtape = mixtape_manager.get(slug)
+    if not mixtape:
+        abort(404)
+    
+    # Use mixtape cover as PWA icon
+    icon_url = f"/play/covers/{mixtape['cover'].split('/')[-1]}" \
+               if mixtape.get('cover') \
+               else "/static/icons/icon-512.png"
+    
+    manifest = {
+        "name": mixtape.get('title', 'Mixtape'),
+        "short_name": mixtape.get('title', 'Mixtape')[:12],
+        "description": f"A mixtape with {len(mixtape.get('tracks', []))} tracks",
+        "start_url": f"/play/share/{slug}",
+        "scope": "/play/",
+        "display": "standalone",
+        "background_color": "#198754",
+        "theme_color": "#198754",
+        "icons": [{
+            "src": icon_url,
+            "sizes": "512x512",
+            "type": "image/jpeg" if mixtape.get('cover') else "image/png",
+            "purpose": "any maskable"
+        }]
+    }
+    
+    return Response(json.dumps(manifest, indent=2),
+                   mimetype='application/manifest+json',
+                   headers={'Cache-Control': 'public, max-age=3600'})
+```
+
+**Template Integration:**
+
+```html
+<!-- play_mixtape.html - Dynamic manifest per mixtape -->
+<link rel="manifest" href="/play/share/{{ mixtape.slug }}/manifest.json">
+<meta name="apple-mobile-web-app-title" content="{{ mixtape.title }}">
+```
+
+**Scope Restriction:** All mixtapes share the `/play/` scope, which means:
+
+- ✅ One service worker handles all mixtapes efficiently
 - ✅ Public mixtape receivers get offline capabilities
 - ✅ Authenticated creator tools always hit the database
 - ✅ No stale data in admin interfaces
+- ✅ Each mixtape still gets its own home screen icon and name
 
 ## 🔄 Request Flow (Offline-Capable)
 
@@ -333,31 +399,65 @@ When a mixtape changes (tracks added/removed/reordered), the service worker uses
 3. If offline, serve cached version
 4. Show "viewing cached version" indicator
 
-## 📱 Installation Flow
+## 📱 Installation Flow (Per-Mixtape PWAs)
+
+Each shared mixtape can be installed as its own standalone app with a unique icon and name.
 
 ### Desktop (Chrome/Edge)
 
-1. User visits `/play/share/mixtape-slug`
+1. User visits `/play/share/summer-vibes-2024`
 2. Browser shows install icon in address bar
-3. Or PWA shows custom install button
-4. Click → "Install Mixtape Society"
-5. App opens in standalone window
+3. Click → "Install **Summer Vibes 2024**" (uses mixtape title)
+4. App opens in standalone window
+5. **Icon on taskbar shows mixtape cover art**
 
 ### Mobile (Android)
 
 1. User visits shared mixtape link
-2. Chrome shows "Add to Home Screen" banner
+2. Chrome shows "Add **Summer Vibes 2024** to Home Screen" banner
 3. Or tap menu → "Install App"
-4. Icon appears on home screen
-5. Launches like native app
+4. **Icon appears on home screen with mixtape cover as icon**
+5. Launches directly to that mixtape (no navigation needed)
+6. **Can install multiple mixtapes** - each gets its own icon
 
 ### Mobile (iOS)
 
 1. User visits shared mixtape link
 2. Tap Share button
 3. Select "Add to Home Screen"
-4. Icon appears on home screen
-5. Opens in Safari (standalone mode)
+4. **Edit name if desired** (defaults to mixtape title)
+5. Icon appears on home screen
+6. Opens directly to the mixtape
+
+### Installation Benefits
+
+**Before (Static Manifest):**
+- ❌ 404 errors when launching from home screen
+- ❌ Generic "Mixtape Society" icon
+- ❌ Opens to main page, user has to navigate
+- ❌ Confusing if multiple mixtapes installed
+
+**After (Dynamic Manifests):**
+- ✅ Direct launch to specific mixtape
+- ✅ Unique cover art as icon
+- ✅ Clear mixtape title as app name
+- ✅ Can install many mixtapes without confusion
+- ✅ Perfect for gift mixtapes - truly personal
+
+### Multiple Installations
+
+Users can install as many mixtapes as they want:
+
+```
+Home Screen:
+┌────────────┬────────────┬────────────┐
+│ Summer     │ Road Trip  │ Chill      │
+│ Vibes 2024 │ Mix        │ Sundays    │
+│ [cover 1]  │ [cover 2]  │ [cover 3]  │
+└────────────┴────────────┴────────────┘
+```
+
+Each opens directly to its own mixtape - no confusion!
 
 ## 🧪 Testing & Debugging
 

@@ -99,6 +99,7 @@ Mixtape Society is a private, self‑hosted web app to create and share beautifu
 - **Lock screen integration** – Control from phone notifications
 - **Background playback** – Keep playing with screen off
 - **Progressive Web App** – Add to home screen for app-like experience
+- **Personalized PWA** – Each mixtape installs with its own icon and name
 - **Cast anywhere** – Stream to Chromecast devices throughout your home
 
 ### 📺 Stream Everywhere

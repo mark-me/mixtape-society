@@ -1,3 +1,4 @@
+import json
 import mimetypes
 from pathlib import Path
 
@@ -12,9 +13,9 @@ from flask import (
     send_from_directory,
 )
 
+from audio_cache import AudioCache, QualityLevel
 from common.logging import Logger, NullLogger
 from mixtape_manager import MixtapeManager
-from audio_cache import AudioCache, QualityLevel
 
 
 def create_play_blueprint(mixtape_manager: MixtapeManager, path_audio_cache: Path, logger: Logger | None = None) -> Blueprint:
@@ -113,22 +114,11 @@ def create_play_blueprint(mixtape_manager: MixtapeManager, path_audio_cache: Pat
             log.debug(f"Serving cached {quality} version: {cached_path.name}")
             return cached_path
 
-        # Cache doesn't exist - we have options:
-        # Option 1: Serve original (fast, but bandwidth-heavy)
-        # Option 2: Transcode on-the-fly (slower first load, but saves bandwidth)
-
         # Default behavior: serve original and log that cache should be generated
         log.warning(
             f"Cache miss for {original_path.name} at {quality} quality. "
             f"Consider pre-caching this file."
         )
-
-        # Optional: Uncomment to transcode on-demand (will cause delay on first play)
-        # try:
-        #     return cache.transcode_file(original_path, quality)
-        # except Exception as e:
-        #     log.error(f"On-demand transcoding failed: {e}")
-        #     return original_path
 
         return original_path
 
@@ -169,16 +159,26 @@ def create_play_blueprint(mixtape_manager: MixtapeManager, path_audio_cache: Pat
             str: The MIME type string for the file.
         """
         mime_type, _ = mimetypes.guess_type(str(full_path))
-        if mime_type is None:
-            suffix = full_path.suffix.lower()
-            mime_type = {
-                ".flac": "audio/flac",
-                ".m4a": "audio/mp4",
-                ".aac": "audio/aac",
-                ".ogg": "audio/ogg",
-                ".mp3": "audio/mpeg",
-            }.get(suffix, "application/octet-stream")
-        return mime_type
+        if mime_type:
+            return mime_type
+
+        suffix = full_path.suffix.lower()
+
+        return {
+            ".webp": "image/webp",
+            ".avif": "image/avif",
+            ".heic": "image/heic",
+            ".heif": "image/heif",
+            ".svg":  "image/svg+xml",
+            ".svgz": "image/svg+xml",
+            ".flac": "audio/flac",
+            ".m4a":  "audio/mp4",
+            ".aac":  "audio/aac",
+            ".ogg":  "audio/ogg",
+            ".oga":  "audio/ogg",
+            ".opus": "audio/ogg",
+            ".mp3":  "audio/mpeg",
+        }.get(suffix, "application/octet-stream")
 
     def _handle_range_request(
         full_path: Path, mime_type: str, range_header: str, file_size: int
@@ -243,6 +243,64 @@ def create_play_blueprint(mixtape_manager: MixtapeManager, path_audio_cache: Pat
         if not mixtape:
             abort(404)
         return render_template("play_mixtape.html", mixtape=mixtape, public=True)
+
+    @play.route("/share/<slug>/manifest.json")
+    def mixtape_manifest(slug: str) -> Response:
+        """
+        Generates a dynamic PWA manifest for a specific mixtape.
+
+        This allows each mixtape to be installed as its own PWA with
+        the correct title, icon, and start URL.
+        """
+        mixtape = mixtape_manager.get(slug)
+        if not mixtape:
+            abort(404)
+
+        # Get cover URL or use default icon
+        if mixtape.get('cover'):
+            mime_type = _guess_mime_type(Path(mixtape['cover']))
+            icon_url = f"/play/covers/{mixtape['cover'].split('/')[-1]}"
+        else:
+            mime_type = _guess_mime_type(Path("/static/icons/icon-512.png"))
+            icon_url = "/static/icons/icon-512.png"
+
+        manifest = {
+            "name": mixtape.get('title', 'Mixtape'),
+            "short_name": mixtape.get('title', 'Mixtape')[:12],
+            "description": f"A mixtape with {len(mixtape.get('tracks', []))} tracks",
+            "start_url": f"/play/share/{slug}",
+            "scope": "/play/",
+            "display": "standalone",
+            "background_color": "#198754",
+            "theme_color": "#198754",
+            "orientation": "portrait-primary",
+            "icons": [
+                {
+                    "src": icon_url,
+                    "sizes": "512x512",
+                    "type": mime_type,
+                    "purpose": "any maskable"
+                },
+                {
+                    "src": "/static/icons/icon-192.png",
+                    "sizes": "192x192",
+                    "type": "image/png",
+                    "purpose": "any maskable"
+                },
+                {
+                    "src": "/static/icons/icon-512.png",
+                    "sizes": "512x512",
+                    "type": "image/png",
+                    "purpose": "any maskable"
+                }
+            ]
+        }
+
+        return Response(
+            json.dumps(manifest, indent=2),
+            mimetype='application/manifest+json',
+            headers={'Cache-Control': 'public, max-age=3600'}
+    )
 
     @play.route("/covers/<filename>")
     def serve_cover(filename: str) -> Response:
