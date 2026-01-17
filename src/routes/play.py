@@ -244,6 +244,36 @@ def create_play_blueprint(mixtape_manager: MixtapeManager, path_audio_cache: Pat
             abort(404)
         return render_template("play_mixtape.html", mixtape=mixtape, public=True)
 
+    @play.route("/gift/<slug>")
+    def gift_play(slug: str) -> Response:
+        """
+        Renders the gift mixtape reveal page for a given slug.
+        
+        Shows interactive gift reveal experience before playback,
+        or returns a 404 error if mixtape not found.
+        
+        Args:
+            slug: The unique identifier for the mixtape.
+            
+        Returns:
+            Response: The Flask response object containing the rendered gift page.
+        """
+        mixtape = mixtape_manager.get(slug)
+        if not mixtape:
+            abort(404)
+        
+        # Extract gift message from mixtape metadata (if present)
+        gift_message = mixtape.get('gift_message', 'A mixtape made just for you')
+        recipient_name = mixtape.get('recipient_name', 'you')
+        
+        return render_template(
+            "gift.html", 
+            mixtape=mixtape, 
+            gift_message=gift_message,
+            recipient_name=recipient_name,
+            is_gift=True
+        )
+
     @play.route("/covers/<filename>")
     def serve_cover(filename: str) -> Response:
         """

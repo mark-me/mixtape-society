@@ -1,0 +1,613 @@
+/* static/css/gift.css */
+
+/**
+ * Gift Reveal Experience Styles
+ * 3D gift box, cassette reveal, and polaroid message card
+ */
+
+/* === 1. GIFT CONTAINER LAYOUT === */
+
+.gift-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    position: relative;
+    overflow: hidden;
+    perspective: 1000px;
+}
+
+/* Animated background particles (optional) */
+.gift-container::before {
+    content: '';
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    background-image: 
+        radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px),
+        radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+    background-size: 50px 50px, 80px 80px;
+    background-position: 0 0, 40px 40px;
+    animation: sparkle 20s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes sparkle {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(50px, 50px); }
+}
+
+.gift-scene {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    height: 500px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* === 2. GIFT BOX (3D) === */
+
+.gift-box {
+    position: relative;
+    width: 300px;
+    height: 300px;
+    transform-style: preserve-3d;
+    transform: rotateX(-10deg) rotateY(15deg);
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+
+.gift-box:hover {
+    transform: rotateX(-5deg) rotateY(20deg) scale(1.05);
+}
+
+/* Box faces */
+.box-face {
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    box-shadow: inset 0 0 50px rgba(0,0,0,0.1);
+}
+
+.box-top {
+    transform: translateZ(150px);
+    background: linear-gradient(135deg, #ff8787 0%, #ff6b6b 100%);
+}
+
+.box-front {
+    transform: rotateY(0deg) translateZ(150px);
+}
+
+.box-left {
+    transform: rotateY(-90deg) translateZ(150px);
+}
+
+.box-right {
+    transform: rotateY(90deg) translateZ(150px);
+}
+
+/* Shimmer effect on box */
+.box-shimmer {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        45deg,
+        transparent 30%,
+        rgba(255,255,255,0.3) 50%,
+        transparent 70%
+    );
+    animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* === 3. RIBBON === */
+
+.ribbon {
+    position: absolute;
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+    box-shadow: 
+        inset 0 0 10px rgba(0,0,0,0.2),
+        0 2px 10px rgba(0,0,0,0.3);
+    z-index: 10;
+}
+
+.ribbon-vertical {
+    width: 60px;
+    height: 120%;
+    left: 50%;
+    top: -10%;
+    transform: translateX(-50%) translateZ(151px);
+    border-left: 2px solid rgba(255, 215, 0, 0.5);
+    border-right: 2px solid rgba(255, 215, 0, 0.5);
+}
+
+.ribbon-horizontal {
+    width: 120%;
+    height: 60px;
+    top: 50%;
+    left: -10%;
+    transform: translateY(-50%) translateZ(151px);
+    border-top: 2px solid rgba(255, 215, 0, 0.5);
+    border-bottom: 2px solid rgba(255, 215, 0, 0.5);
+}
+
+.ribbon-bow {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) translateZ(152px);
+    background: radial-gradient(circle, #ffd700 0%, #ffed4e 100%);
+    border-radius: 50%;
+    box-shadow: 
+        0 0 20px rgba(255, 215, 0, 0.6),
+        inset 0 0 20px rgba(0,0,0,0.2);
+    z-index: 11;
+}
+
+.ribbon-bow::before,
+.ribbon-bow::after {
+    content: '';
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+    border-radius: 50% 0;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.ribbon-bow::before {
+    top: -20px;
+    left: -30px;
+    transform: rotate(-45deg);
+}
+
+.ribbon-bow::after {
+    top: -20px;
+    right: -30px;
+    transform: rotate(45deg);
+}
+
+/* === 4. UNWRAPPING ANIMATION === */
+
+.gift-box.opening {
+    animation: unwrap 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+}
+
+@keyframes unwrap {
+    0% {
+        transform: rotateX(-10deg) rotateY(15deg) scale(1);
+    }
+    50% {
+        transform: rotateX(0deg) rotateY(0deg) scale(1.2);
+    }
+    100% {
+        transform: rotateX(0deg) rotateY(360deg) scale(0);
+        opacity: 0;
+    }
+}
+
+/* === 5. CASSETTE REVEAL === */
+
+.gift-cassette {
+    position: absolute;
+    width: 350px;
+    opacity: 0;
+    transform: scale(0.3) translateY(50px);
+    transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.gift-cassette.revealed {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+}
+
+.gift-cassette.interactive {
+    cursor: pointer;
+}
+
+.gift-cassette.interactive:hover {
+    transform: scale(1.05) translateY(-10px);
+}
+
+.gift-cassette.inserting {
+    animation: insertCassette 0.8s ease-out forwards;
+}
+
+@keyframes insertCassette {
+    0% {
+        transform: scale(1) translateY(0) rotateX(0deg);
+    }
+    50% {
+        transform: scale(0.8) translateY(-30px) rotateX(-15deg);
+    }
+    100% {
+        transform: scale(0.5) translateY(-100px) rotateX(-30deg);
+        opacity: 0;
+    }
+}
+
+/* Cassette body */
+.cassette-body-gift {
+    background: linear-gradient(145deg, #9a9a9a 0%, #7a7a7a 50%, #6a6a6a 100%);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.4),
+        inset 0 2px 4px rgba(255, 255, 255, 0.2);
+    border: 3px solid #5a5a5a;
+    aspect-ratio: 1.6 / 1;
+}
+
+/* Cassette label */
+.cassette-label-gift {
+    background: #fff;
+    border-radius: 6px;
+    padding: 15px;
+    margin-bottom: 15px;
+    border: 2px solid #999;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.label-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.label-line {
+    height: 2px;
+    background: #e0e0e0;
+    border-radius: 1px;
+}
+
+.cassette-title-text {
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: #333;
+    text-align: center;
+    font-family: 'Courier New', monospace;
+}
+
+/* Cassette window */
+.cassette-window-gift {
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 8px;
+    border: 2px solid #504f4f;
+    padding: 20px;
+    position: relative;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.reel-left,
+.reel-right {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #4a4a4a 0%, #2a2a2a 100%);
+    border: 3px solid #333;
+    position: relative;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+}
+
+/* Spinning animation when interactive */
+.gift-cassette.interactive .reel-left,
+.gift-cassette.interactive .reel-right {
+    animation: reelSpin 4s linear infinite;
+}
+
+@keyframes reelSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.tape-strip {
+    flex: 1;
+    height: 8px;
+    background: linear-gradient(180deg, #3a2a1a 0%, #2a1a0a 50%, #1a0a00 100%);
+    margin: 0 10px;
+    border-radius: 2px;
+}
+
+/* === 6. POLAROID MESSAGE CARD === */
+
+.gift-message {
+    position: absolute;
+    bottom: 50px;
+    opacity: 0;
+    transform: translateY(30px) rotate(-3deg);
+}
+
+.gift-message.fade-in {
+    animation: fadeInMessage 0.6s ease-out forwards;
+}
+
+@keyframes fadeInMessage {
+    to {
+        opacity: 1;
+        transform: translateY(0) rotate(-3deg);
+    }
+}
+
+.polaroid-card {
+    background: #fff;
+    padding: 15px;
+    padding-bottom: 40px;
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.3),
+        0 1px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    max-width: 300px;
+    transition: transform 0.3s ease;
+}
+
+.polaroid-card:hover {
+    transform: rotate(0deg) scale(1.05);
+}
+
+.polaroid-photo {
+    background: #f9f9f9;
+    padding: 30px 20px;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border: 1px solid #e0e0e0;
+}
+
+.handwritten-text {
+    font-family: 'Brush Script MT', cursive;
+    font-size: 1.3rem;
+    line-height: 1.6;
+    color: #2c3e50;
+}
+
+.message-to {
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.message-body {
+    margin-bottom: 1.5rem;
+    font-style: italic;
+}
+
+.message-from {
+    text-align: right;
+    font-size: 1.1rem;
+}
+
+.polaroid-caption {
+    text-align: center;
+    margin-top: 15px;
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 0.9rem;
+    color: #555;
+    font-style: italic;
+}
+
+/* === 7. INSTRUCTION TEXT === */
+
+.gift-instruction {
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    transition: opacity 0.3s ease;
+}
+
+.gift-instruction.fade-out {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.instruction-text {
+    color: #fff;
+    font-size: 1.3rem;
+    font-weight: 600;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    margin: 0;
+    padding: 15px 30px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 50px;
+    backdrop-filter: blur(10px);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.instruction-text:hover {
+    background: rgba(0, 0, 0, 0.5);
+    transform: scale(1.05);
+}
+
+.gift-emoji {
+    font-size: 1.8rem;
+    display: inline-block;
+    animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+/* === 8. PLAYER CONTAINER === */
+
+.player-container {
+    opacity: 0;
+    transition: opacity 0.6s ease;
+}
+
+.player-container.fade-in {
+    opacity: 1;
+}
+
+/* === 9. UTILITY CLASSES === */
+
+.hidden {
+    display: none !important;
+}
+
+.fade-out {
+    opacity: 0 !important;
+    pointer-events: none;
+}
+
+/* === 10. MOBILE RESPONSIVE === */
+
+@media (max-width: 768px) {
+    .gift-scene {
+        max-width: 90vw;
+        height: 80vh;
+    }
+    
+    .gift-box {
+        width: 250px;
+        height: 250px;
+    }
+    
+    .box-face {
+        width: 250px;
+        height: 250px;
+    }
+    
+    .gift-cassette {
+        width: 280px;
+    }
+    
+    .polaroid-card {
+        max-width: 250px;
+    }
+    
+    .handwritten-text {
+        font-size: 1.1rem;
+    }
+    
+    .instruction-text {
+        font-size: 1.1rem;
+        padding: 12px 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    .gift-box {
+        width: 200px;
+        height: 200px;
+    }
+    
+    .box-face {
+        width: 200px;
+        height: 200px;
+    }
+    
+    .ribbon-vertical {
+        width: 40px;
+    }
+    
+    .ribbon-horizontal {
+        height: 40px;
+    }
+    
+    .ribbon-bow {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .gift-cassette {
+        width: 240px;
+    }
+    
+    .cassette-body-gift {
+        padding: 15px;
+    }
+    
+    .cassette-title-text {
+        font-size: 1rem;
+    }
+    
+    .polaroid-card {
+        max-width: 220px;
+    }
+    
+    .handwritten-text {
+        font-size: 1rem;
+    }
+    
+    .gift-message {
+        bottom: 30px;
+    }
+}
+
+/* === 11. DARK MODE SUPPORT === */
+
+[data-bs-theme="dark"] .polaroid-card {
+    background: #2c2c2c;
+}
+
+[data-bs-theme="dark"] .polaroid-photo {
+    background: #1a1a1a;
+    border-color: #3a3a3a;
+}
+
+[data-bs-theme="dark"] .handwritten-text {
+    color: #e0e0e0;
+}
+
+[data-bs-theme="dark"] .polaroid-caption {
+    color: #b0b0b0;
+}
+
+[data-bs-theme="dark"] .cassette-label-gift {
+    background: #2c2c2c;
+    border-color: #3a3a3a;
+}
+
+[data-bs-theme="dark"] .cassette-title-text {
+    color: #e0e0e0;
+}
+
+[data-bs-theme="dark"] .label-line {
+    background: #3a3a3a;
+}
+
+/* === 12. ACCESSIBILITY === */
+
+/* Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .gift-cassette.interactive:hover {
+        transform: scale(1.02) translateY(-5px);
+    }
+}
+
+/* Focus styles for keyboard navigation */
+.gift-box:focus-visible,
+.gift-cassette.interactive:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 5px;
+}
