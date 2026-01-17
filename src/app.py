@@ -73,8 +73,7 @@ def create_app() -> Flask:
     )
 
     limiter = Limiter(
-        get_remote_address,
-        default_limits=["1000 per day", "300 per hour"],
+        get_remote_address
     )
     limiter.init_app(app=app)
 
