@@ -24,7 +24,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 ## 📦 v0.5.9
 
-<span class="md-tag">Development</span>
+<span class="md-tag">Release</span>
 
 **🗓️** 2026-01-17
 
