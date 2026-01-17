@@ -55,9 +55,9 @@
                                 data-bs-placement="bottom"
                                 data-bs-html="true"
                                 data-bs-title="<strong>Tagged search:</strong><br>
-                                    <code>artist:beatles</code> – artists only<br>
-                                    <code>album:abbey</code> – albums only<br>
-                                    <code>track:hey</code> – tracks only<br>
+                                    <code>artist:beatles</code> â€“ artists only<br>
+                                    <code>album:abbey</code> â€“ albums only<br>
+                                    <code>track:hey</code> â€“ tracks only<br>
                                     Combine: <code>artist:Radiohead album:OK</code>">
                             <i class="bi bi-info-circle"></i>
                         </button>
@@ -79,7 +79,7 @@
                         <h2 class="h5 mb-0">Library</h2>
                     </div>
                     <div class="card-body" id="results">
-                        <p class="text-muted text-center my-5">Type at least 2 characters to search…</p>
+                        <p class="text-muted text-center my-5">Type at least 2 characters to searchâ€¦</p>
                     </div>
                 </div>
             </div>
@@ -92,6 +92,10 @@
                             My Mixtape <span id="playlist-count">(0)</span>
                         </h2>
                         <div class="d-flex gap-2">
+                            <button id="gift-settings-btn" class="btn btn-outline-light btn-sm" title="Gift settings">
+                                <i class="bi bi-gift me-1"></i>
+                                <span class="d-none d-sm-inline">Gift</span>
+                            </button>
                             <button id="share-playlist" class="btn btn-outline-light btn-sm" title="Share mixtape" style="display: none;">
                                 <i class="bi bi-qr-code me-1"></i>
                                 <span class="d-none d-sm-inline">Share</span>
@@ -252,6 +256,77 @@
         </div>
     </div>
 
+    <!-- Gift Settings Modal -->
+    <div class="modal fade" id="giftSettingsModal" tabindex="-1" aria-labelledby="giftSettingsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="giftSettingsModalLabel">
+                        <i class="bi bi-gift me-2"></i>Gift Settings
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Creator Name -->
+                    <div class="mb-4">
+                        <label for="gift-creator-name" class="form-label">
+                            <i class="bi bi-person-fill me-1"></i>Creator Name
+                        </label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="gift-creator-name" 
+                               placeholder="Your name (optional)"
+                               maxlength="100">
+                        <div class="form-check mt-2">
+                            <input class="form-check-input" 
+                                   type="checkbox" 
+                                   id="save-creator-name-default">
+                            <label class="form-check-label small text-muted" for="save-creator-name-default">
+                                Save as my default name
+                            </label>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Gift Flow Toggle -->
+                    <div class="mb-4">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" 
+                                   type="checkbox" 
+                                   id="gift-flow-enabled">
+                            <label class="form-check-label" for="gift-flow-enabled">
+                                <strong>Enable gift unwrapping experience</strong>
+                            </label>
+                        </div>
+                        <small class="text-muted d-block mt-1">
+                            When enabled, the receiver will see an interactive unwrapping experience before listening
+                        </small>
+                    </div>
+
+                    <!-- Show Tracklist Toggle (only visible when gift flow is enabled) -->
+                    <div class="mb-3" id="tracklist-setting-container" style="display: none;">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" 
+                                   type="checkbox" 
+                                   id="show-tracklist-after-completion"
+                                   checked>
+                            <label class="form-check-label" for="show-tracklist-after-completion">
+                                Show tracklist after completion
+                            </label>
+                        </div>
+                        <small class="text-muted d-block mt-1">
+                            Reveal the full tracklist as a reward after they've listened to the whole mixtape
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Audio player on bottom -->
     <div class="fixed-bottom" id="audio-player-container" style="display:none; z-index: 1000;">
         <div class="bg-dark text-white shadow-lg border-top border-secondary" style="backdrop-filter: blur(10px);">
@@ -261,8 +336,8 @@
                         <img id="now-playing-cover" src="" alt="Cover" class="me-2 rounded" style="width: 50px; height: 50px; object-fit: cover; display: none;">
                         <button id="close-player" class="btn btn-sm btn-outline-light me-2"><i class="bi bi-x-lg"></i></button>
                         <div class="me-2" style="max-width: 140px;">
-                            <div class="fw-bold text-truncate" id="now-playing-title">—</div>
-                            <div class="small opacity-75 text-truncate" id="now-playing-artist">—</div>
+                            <div class="fw-bold text-truncate" id="now-playing-title">â€”</div>
+                            <div class="small opacity-75 text-truncate" id="now-playing-artist">â€”</div>
                         </div>
                     </div>
 
@@ -304,7 +379,10 @@
                 tracks: {{ preload_mixtape.tracks | default([]) | tojson | safe }},
                 slug: {{ preload_mixtape.slug | default(null) | tojson | safe }},
                 created_at: {{ preload_mixtape.created_at | default(null) | tojson | safe }},
-                updated_at: {{ preload_mixtape.updated_at | default(null) | tojson | safe }}
+                updated_at: {{ preload_mixtape.updated_at | default(null) | tojson | safe }},
+                creator_name: {{ preload_mixtape.creator_name | default('') | tojson | safe }},
+                gift_flow_enabled: {{ preload_mixtape.gift_flow_enabled | default(false) | tojson | safe }},
+                show_tracklist_after_completion: {{ preload_mixtape.show_tracklist_after_completion | default(true) | tojson | safe }}
             };
     </script>
 

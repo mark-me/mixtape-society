@@ -4,6 +4,7 @@ import { initEditorNotes } from "./editorNotes.js";
 import { initUI, activateInitialNotesTab } from "./ui.js";
 import { initPlaylist, setPlaylist } from "./playlist.js";
 import { initQRShare } from '../common/qrShare.js';
+import { initGiftSettings } from './giftSettings.js';
 
 const preloadMixtape = window.PRELOADED_MIXTAPE;
 
@@ -49,6 +50,11 @@ document.addEventListener("DOMContentLoaded", () => {
     initSearch();
     initPlaylist();
     initUI();
+
+    // ---------------------------------------------------------------
+    // 3.5️⃣  Initialize gift settings
+    // ---------------------------------------------------------------
+    initGiftSettings();
 
     // ---------------------------------------------------------------
     // 4️⃣  Initialize QR share functionality
