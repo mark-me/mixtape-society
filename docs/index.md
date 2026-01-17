@@ -77,20 +77,12 @@ Mixtape Society is a private, self‑hosted web app to create and share beautifu
 ### 🎵 For Mixtape Creators
 
 - **Private music library** – Host your own collection (FLAC, MP3, M4A, AAC, OGG, WAV)
-- **Beautiful editor** – Live search, drag-and-drop track ordering
 - **Custom cover art** – Upload unique artwork for each mixtape
 - **Liner notes** – Add personal messages with Markdown formatting
-- **Quality control** – Multiple audio quality options (original to 128k)
 - **Smart caching** – Pre-transcode for faster mobile streaming
-
-### 🔗 For Sharing
-
-- **Instant public links** – Share via URL or QR code
+- **Instant public links** – Share via URL, QR code or print-ready codes with cover art
 - **No accounts needed** – Recipients stream directly in browser
 - **Permanent or temporary** – Links persist until you delete them
-- **QR code generation** – Print-ready codes with cover art
-- **Mobile responsive** – Perfect playback on any device
-- **Chromecast support** – Cast to TVs and speakers with one tap
 
 ### 📱 For Listeners
 
@@ -98,8 +90,7 @@ Mixtape Society is a private, self‑hosted web app to create and share beautifu
 - **Full media controls** – Play, pause, seek, skip
 - **Lock screen integration** – Control from phone notifications
 - **Background playback** – Keep playing with screen off
-- **Progressive Web App** – Add to home screen for app-like experience
-- **Personalized PWA** – Each mixtape installs with its own icon and name
+- **Personalized PWA** – Each mixtape installs like an app with its own icon and name
 - **Cast anywhere** – Stream to Chromecast devices throughout your home
 
 ### 📺 Stream Everywhere
