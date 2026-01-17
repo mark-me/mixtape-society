@@ -8,7 +8,7 @@ No accounts, no telemetry, no Spotify – just your music, your server, your rul
 
 ## ✨ Features
 
-### 🎵 For Mixtape Creators
+### 🎶🧑‍🎨 For Mixtape Creators
 
 - **Private music library** – Host your own collection (FLAC, MP3, M4A, AAC, OGG, WAV)
 - **Beautiful editor** – Live search, drag-and-drop track ordering
@@ -19,14 +19,14 @@ No accounts, no telemetry, no Spotify – just your music, your server, your rul
 - **No accounts needed** – Recipients stream directly in browser
 - **Permanent or temporary** – Links persist until you delete them
 
-### 📱 Mixtape receivers
+### 🎶👂 Mixtape receivers
 
 - **No login required** – Just click and play
 - **Full media controls** – Play, pause, seek, skip
 - **Lock screen integration** – Control from phone notifications
 - **Background playback** – Keep playing with screen off
 - **Personalized PWA** – Each mixtape installs like an app with its own icon and name
-- **Cast anywhere** – Stream to Chromecast devices in your car or throughout your house
+- **Cast anywhere** – Stream in your car or throughout your house
 
 Perfect for:
 
