@@ -40,7 +40,7 @@ const CDN_ASSETS = [
 
 self.addEventListener('install', (event) => {
     console.log('[SW] Installing service worker...');
-    
+
     event.waitUntil(
         Promise.all([
             // Cache static app shell
@@ -73,7 +73,7 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
     console.log('[SW] Activating service worker...');
-    
+
     event.waitUntil(
         Promise.all([
             // Clean up old caches
@@ -116,14 +116,18 @@ self.addEventListener('fetch', (event) => {
 
     // ONLY handle /play/ routes - ignore everything else
     if (!url.pathname.startsWith('/play/')) {
-        // Let authenticated routes (/mixtapes, /editor, etc.) always hit network
-        // They need fresh data from database
+        return;
+    }
+
+    if (url.pathname === '/play/' || url.pathname === '/play') {
+        // Redirect to last visited mixtape or show message
+        event.respondWith(handleRootPlay(request));
         return;
     }
 
     // Route to appropriate strategy for /play/ routes only
     // FIXED: Check for specific patterns in correct order
-    
+
     // 1. Mixtape share pages (HTML pages)
     if (url.pathname.startsWith('/play/share/')) {
         event.respondWith(handleMixtapePage(request));
@@ -156,52 +160,108 @@ function isAudioFile(pathname) {
     return audioExtensions.some(ext => lowerPath.endsWith(ext));
 }
 
+// Add this new handler:
+async function handleRootPlay(request) {
+    // Try to get last visited mixtape from IndexedDB or localStorage
+    // For now, return a helpful page
+    const html = `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Mixtape Society</title>
+            <style>
+                body {
+                    font-family: system-ui, sans-serif;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    min-height: 100vh;
+                    margin: 0;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    text-align: center;
+                    padding: 20px;
+                }
+                .container { max-width: 500px; }
+                h1 { font-size: 2.5rem; margin: 0 0 1rem; }
+                p { font-size: 1.1rem; opacity: 0.9; line-height: 1.6; }
+                a {
+                    display: inline-block;
+                    background: white;
+                    color: #667eea;
+                    padding: 12px 24px;
+                    border-radius: 8px;
+                    text-decoration: none;
+                    font-weight: 600;
+                    margin-top: 1rem;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>🎵 Mixtape Society</h1>
+                <p>This app needs a specific mixtape link to play.</p>
+                <p>Open your mixtape share link to start listening!</p>
+                <a href="/" onclick="if(navigator.serviceWorker.controller){navigator.serviceWorker.controller.postMessage({action:'SKIP_WAITING'});}">Go to Main Site</a>
+            </div>
+        </body>
+        </html>
+    `;
+
+    return new Response(html, {
+        status: 200,
+        headers: { 'Content-Type': 'text/html' }
+    });
+}
+
 // ======================
 // Strategy Implementations
 // ======================
 
 /**
  * Handles audio file requests with proper Range request support
- * 
+ *
  * Strategy:
  * 1. For Range requests: Fetch from cache if available, otherwise network
  * 2. For full requests: Cache-first with network fallback
  * 3. Always cache full (200) responses for offline support
- * 
+ *
  * Range requests are critical for audio seeking and must be handled correctly.
  */
 async function handleAudioRequest(request) {
     const url = new URL(request.url);
     const cacheKey = url.toString(); // Full URL including query params
     const isRangeRequest = request.headers.has('Range');
-    
+
     console.log('[SW] Audio request:', {
         path: url.pathname.split('/').pop(),
         quality: url.searchParams.get('quality'),
         isRange: isRangeRequest
     });
-    
+
     try {
         const cache = await caches.open(CACHE_NAMES.audio);
-        
+
         // Try to get full file from cache (we only cache 200 responses, not 206)
         const cachedResponse = await cache.match(cacheKey);
-        
+
         if (cachedResponse) {
             console.log('[SW] Found cached audio file');
-            
+
             // If this is a range request, we need to slice the cached response
             if (isRangeRequest) {
                 return createRangeResponse(cachedResponse, request.headers.get('Range'));
             }
-            
+
             // For non-range requests, return the full cached file
             return cachedResponse;
         }
-        
+
         // Not in cache - fetch from network
         console.log('[SW] Fetching from network...');
-        
+
         // If it's a range request, we need to fetch the full file first to cache it
         // Then serve the range from that full file
         if (isRangeRequest) {
@@ -209,43 +269,43 @@ async function handleAudioRequest(request) {
             // This preserves all auth, cookies, and custom headers
             const headers = new Headers(request.headers);
             headers.delete('Range');
-            
+
             const fullRequest = new Request(request, {
                 headers: headers
             });
-            
+
             try {
                 const fullResponse = await fetch(fullRequest);
-                
+
                 if (fullResponse.ok && fullResponse.status === 200) {
                     // Cache the full file for future use
                     cache.put(cacheKey, fullResponse.clone());
                     console.log('[SW] Cached full audio file');
-                    
+
                     // Create range response from the full file
                     return createRangeResponse(fullResponse, request.headers.get('Range'));
                 }
             } catch (fullFetchError) {
                 console.log('[SW] Could not fetch full file, falling back to range request');
             }
-            
+
             // If full file fetch failed, fall back to original range request
             return fetch(request);
         }
-        
+
         // For non-range requests, just fetch and cache
         const response = await fetch(request);
-        
+
         if (response.ok && response.status === 200) {
             cache.put(cacheKey, response.clone());
             console.log('[SW] Cached audio file');
         }
-        
+
         return response;
-        
+
     } catch (error) {
         console.error('[SW] Audio request error:', error.message);
-        
+
         // Final fallback: try direct network request
         try {
             return await fetch(request);
@@ -266,17 +326,17 @@ async function createRangeResponse(fullResponse, rangeHeader) {
     const fullResponseClone = fullResponse.clone();
     const arrayBuffer = await fullResponseClone.arrayBuffer();
     const fullLength = arrayBuffer.byteLength;
-    
+
     // Parse range header: "bytes=0-1023" or "bytes=1024-"
     const rangeMatch = rangeHeader.match(/bytes=(\d+)-(\d*)/);
     if (!rangeMatch) {
         // Invalid range header, return full response
         return fullResponse;
     }
-    
+
     const start = parseInt(rangeMatch[1], 10);
     const end = rangeMatch[2] ? parseInt(rangeMatch[2], 10) : fullLength - 1;
-    
+
     // Validate range
     if (start >= fullLength || end >= fullLength || start > end) {
         return new Response('Range Not Satisfiable', {
@@ -286,17 +346,17 @@ async function createRangeResponse(fullResponse, rangeHeader) {
             }
         });
     }
-    
+
     // Slice the requested range
     const rangeBuffer = arrayBuffer.slice(start, end + 1);
     const rangeLength = rangeBuffer.byteLength;
-    
+
     // Create 206 Partial Content response
     const headers = new Headers(fullResponse.headers);
     headers.set('Content-Length', rangeLength.toString());
     headers.set('Content-Range', `bytes ${start}-${end}/${fullLength}`);
     headers.set('Accept-Ranges', 'bytes');
-    
+
     return new Response(rangeBuffer, {
         status: 206,
         statusText: 'Partial Content',
@@ -312,29 +372,29 @@ async function handleStaticAsset(request) {
     try {
         const cache = await caches.open(CACHE_NAMES.images);
         const cachedResponse = await cache.match(request);
-        
+
         if (cachedResponse) {
             return cachedResponse;
         }
-        
+
         // Not in cache - fetch from network
         const response = await fetch(request);
-        
+
         if (response.ok) {
             // Cache for next time
             cache.put(request, response.clone());
         }
-        
+
         return response;
     } catch (error) {
         console.error('[SW] Static asset fetch failed:', error);
-        
+
         // Try to find in any cache as last resort
         const response = await caches.match(request);
         if (response) {
             return response;
         }
-        
+
         // Return placeholder for images
         if (request.destination === 'image') {
             return new Response(
@@ -342,7 +402,7 @@ async function handleStaticAsset(request) {
                 { headers: { 'Content-Type': 'image/svg+xml' } }
             );
         }
-        
+
         return new Response('Offline', { status: 503 });
     }
 }
@@ -355,31 +415,31 @@ async function handleMixtapePage(request) {
     try {
         // Try network first
         const response = await fetch(request);
-        
+
         if (response.ok) {
             // Cache successful response
             const cache = await caches.open(CACHE_NAMES.metadata);
             cache.put(request, response.clone());
         }
-        
+
         return response;
     } catch (error) {
         console.log('[SW] Network failed, trying cache:', request.url);
-        
+
         // Network failed - try cache
         const cachedResponse = await caches.match(request);
         if (cachedResponse) {
             // Add offline indicator header
             const headers = new Headers(cachedResponse.headers);
             headers.set('X-Offline-Mode', 'true');
-            
+
             return new Response(cachedResponse.body, {
                 status: cachedResponse.status,
                 statusText: cachedResponse.statusText,
                 headers
             });
         }
-        
+
         // No cache available - return offline page
         return getOfflinePage();
     }
@@ -392,18 +452,18 @@ async function handleMixtapePage(request) {
 async function handleCDNResource(request) {
     const cache = await caches.open(CACHE_NAMES.static);
     const cachedResponse = await cache.match(request);
-    
+
     if (cachedResponse) {
         return cachedResponse;
     }
-    
+
     try {
         const response = await fetch(request);
-        
+
         if (response.ok) {
             cache.put(request, response.clone());
         }
-        
+
         return response;
     } catch (error) {
         console.error('[SW] CDN fetch failed:', error);
@@ -464,7 +524,7 @@ function getOfflinePage() {
         </body>
         </html>
     `;
-    
+
     return new Response(html, {
         status: 503,
         headers: { 'Content-Type': 'text/html' }
@@ -492,12 +552,12 @@ async function syncMixtapes() {
 
 self.addEventListener('message', (event) => {
     const { action, data } = event.data;
-    
+
     switch (action) {
         case 'SKIP_WAITING':
             self.skipWaiting();
             break;
-            
+
         case 'CACHE_AUDIO':
             cacheAudioFile(data.url, data.quality)
                 .then(() => {
@@ -507,7 +567,7 @@ self.addEventListener('message', (event) => {
                     event.ports[0].postMessage({ success: false, error: err.message });
                 });
             break;
-            
+
         case 'CLEAR_CACHE':
             clearCaches(data.type)
                 .then(() => {
@@ -517,7 +577,7 @@ self.addEventListener('message', (event) => {
                     event.ports[0].postMessage({ success: false, error: err.message });
                 });
             break;
-            
+
         case 'GET_CACHE_SIZE':
             getCacheSize()
                 .then(size => {
@@ -538,7 +598,7 @@ async function cacheAudioFile(url, quality) {
     const fullUrl = `${url}?quality=${quality || 'medium'}`;
     const cacheKey = new Request(fullUrl);
     const response = await fetch(fullUrl);
-    
+
     if (response.ok && response.status === 200) {
         await cache.put(cacheKey, response);
         console.log('[SW] Manually cached audio:', fullUrl);
@@ -566,7 +626,7 @@ async function getCacheSize() {
     if (!navigator.storage || !navigator.storage.estimate) {
         return null;
     }
-    
+
     const estimate = await navigator.storage.estimate();
     return {
         usage: estimate.usage,

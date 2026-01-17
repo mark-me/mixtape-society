@@ -1,9 +1,9 @@
 {
   "name": "Mixtape Society",
-  "short_name": "Mixtape",
+  "short_name": "Mixtapes",
   "description": "Your personal mixtape player",
-  "start_url": "/play/",
-  "scope": "/play/",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#198754",
   "theme_color": "#198754",
