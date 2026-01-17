@@ -6,7 +6,7 @@ All notable changes to Mixtape Society are documented here. We follow [Semantic 
 
 Each release rewinds and fast-forwards your mixtape experience—just like a real cassette! 🎧
 
-## 📦 v0.5.9
+## 📦 v0.6.0
 
 <span class="md-tag">Development</span>
 
@@ -14,11 +14,24 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 ### ✨ Added
 
-- Present mode
+- Gift mode
 
 ### 🐛 Fixed
 
 -
+
+---
+
+## 📦 v0.5.9
+
+<span class="md-tag">Release</span>
+
+**🗓️** 2026-01-17
+
+### 🐛 Fixed
+
+- Limiter only applied to login page
+- PWA manifest was not dynamic, so would not work for received shared mixtapes
 
 ---
 
