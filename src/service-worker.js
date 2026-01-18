@@ -2,7 +2,7 @@
 // Progressive Web App service worker for Mixtape Society
 // Provides offline support with smart caching strategies
 
-const CACHE_VERSION = 'v1.0.2';  // Added prefetch support and async caching
+const CACHE_VERSION = 'v1.0.3';  // Added prefetch support and async caching
 const CACHE_NAMES = {
     static: `mixtape-static-${CACHE_VERSION}`,
     audio: `mixtape-audio-${CACHE_VERSION}`,
@@ -104,8 +104,8 @@ self.addEventListener('fetch', (event) => {
     const { request } = event;
     const url = new URL(request.url);
 
-    // Skip non-GET/HEAD requests
-    if (request.method !== 'GET' && request.method !== 'HEAD') {
+    // Skip non-GET requests
+    if (request.method !== 'GET') {
         return;
     }
 
