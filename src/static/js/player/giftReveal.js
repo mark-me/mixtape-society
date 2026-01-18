@@ -1,270 +1,145 @@
 // static/js/player/giftReveal.js
 
-/**
- * Gift Reveal Module
- * Handles the interactive cassette unwrap experience for gift mixtapes
- */
+let currentStep = 0;
+let hasInitializedPlayer = false;
 
-import { initPlayerControls } from './playerControls.js';
-import { initLinerNotes } from './linerNotes.js';
-import { initChromecast, castMixtapePlaylist, stopCasting } from './chromecast.js';
+const elements = {
+    wrappedGift:    document.getElementById('wrapped-gift'),
+    giftImage:      document.getElementById('gift-image'),
+    coverReveal:    document.getElementById('cover-reveal'),
+    messageScreen:  document.getElementById('message-screen'),
+    coverImage:     document.getElementById('cover-image'),
+    playBtn:        document.getElementById('play-btn'),
+    giftContainer:  document.getElementById('gift-container'),
+    playerContainer: document.getElementById('player-container'),
+    backToGift:     document.getElementById('back-to-gift')
+};
 
-// State management
-let isRevealed = false;
-let revealStage = 'wrapped'; // wrapped -> unwrapping -> cassette-shown -> message-shown -> playing
+function initGiftReveal() {
+    if (!elements.wrappedGift) return;
 
-/**
- * Initialize the gift reveal experience
- */
-export function initGiftReveal() {
-    console.log('🎁 Initializing gift reveal experience');
-    
-    // Get DOM elements
-    const giftBox = document.getElementById('gift-box');
-    const giftCassette = document.getElementById('gift-cassette');
-    const giftMessage = document.getElementById('gift-message');
-    const giftInstruction = document.getElementById('gift-instruction');
-    const giftContainer = document.getElementById('gift-container');
-    const playerContainer = document.getElementById('player-container');
-    const backToGiftBtn = document.getElementById('back-to-gift');
-    
-    if (!giftBox || !giftContainer) {
-        console.error('Gift elements not found');
-        return;
-    }
-    
-    // Check if user has already seen the reveal (session storage)
-    const hasSeenReveal = sessionStorage.getItem('gift-revealed-' + getCurrentSlug());
-    
-    if (hasSeenReveal) {
-        // Skip directly to player
+    const slug = getCurrentSlug();
+    if (sessionStorage.getItem(`gift-revealed-${slug}`)) {
         skipToPlayer();
         return;
     }
-    
-    // Add click handler to unwrap
-    giftBox.addEventListener('click', handleUnwrap);
-    giftInstruction.addEventListener('click', handleUnwrap);
-    
-    // Add click handler to cassette (plays mixtape)
-    giftCassette.addEventListener('click', handleCassetteClick);
-    
-    // Back to gift button
-    if (backToGiftBtn) {
-        backToGiftBtn.addEventListener('click', () => {
-            showGiftView();
-        });
+
+    elements.wrappedGift.addEventListener('click', handleUnwrap);
+    if (elements.coverImage) {
+        elements.coverImage.addEventListener('click', handleCoverClick);
     }
-    
-    // Add keyboard support
-    document.addEventListener('keydown', (e) => {
+    if (elements.playBtn) {
+        elements.playBtn.addEventListener('click', handlePlayClick);
+    }
+    if (elements.backToGift) {
+        elements.backToGift.addEventListener('click', showGiftView);
+    }
+
+    document.addEventListener('keydown', e => {
         if (e.key === 'Enter' || e.key === ' ') {
-            if (revealStage === 'wrapped') {
-                e.preventDefault();
-                handleUnwrap();
-            } else if (revealStage === 'message-shown') {
-                e.preventDefault();
-                handleCassetteClick();
-            }
+            e.preventDefault();
+            if (currentStep === 0) handleUnwrap();
+            else if (currentStep === 1) handleCoverClick();
+            else if (currentStep === 2) handlePlayClick();
         }
     });
-    
-    console.log('✅ Gift reveal initialized');
 }
 
-/**
- * Handle unwrapping the gift
- */
 function handleUnwrap() {
-    if (revealStage !== 'wrapped') return;
-    
-    console.log('🎀 Unwrapping gift...');
-    revealStage = 'unwrapping';
-    
-    const giftBox = document.getElementById('gift-box');
-    const giftCassette = document.getElementById('gift-cassette');
-    const giftMessage = document.getElementById('gift-message');
-    const giftInstruction = document.getElementById('gift-instruction');
-    
-    // Play unwrap sound (if we add audio)
-    // playSound('unwrap');
-    
-    // Animate box opening
-    giftBox.classList.add('opening');
-    giftInstruction.classList.add('fade-out');
-    
-    // After box animation completes
+    if (currentStep !== 0) return;
+    currentStep = 1;
+
+    elements.wrappedGift.classList.add('unwrapping');
+    createConfetti();
+
     setTimeout(() => {
-        giftBox.classList.add('hidden');
-        giftCassette.classList.remove('hidden');
-        giftCassette.classList.add('revealed');
-        revealStage = 'cassette-shown';
-        
-        // Show message after cassette is visible
-        setTimeout(() => {
-            giftMessage.classList.remove('hidden');
-            giftMessage.classList.add('fade-in');
-            revealStage = 'message-shown';
-            
-            // Make cassette interactive
-            giftCassette.classList.add('interactive');
-        }, 800);
-        
-    }, 1000);
+        elements.wrappedGift.classList.add('hidden');
+        elements.coverReveal.classList.add('active');
+    }, 1400);
 }
 
-/**
- * Handle clicking the revealed cassette
- */
-function handleCassetteClick() {
-    if (revealStage !== 'message-shown') return;
-    
-    console.log('▶ Playing mixtape...');
-    revealStage = 'playing';
-    
-    const giftCassette = document.getElementById('gift-cassette');
-    
-    // Animate cassette "inserting" into player
-    giftCassette.classList.add('inserting');
-    
-    // Mark as revealed in session
-    sessionStorage.setItem('gift-revealed-' + getCurrentSlug(), 'true');
-    
-    // Transition to player after animation
+function handleCoverClick() {
+    if (currentStep !== 1) return;
+    currentStep = 2;
+
+    elements.coverReveal.classList.remove('active');
     setTimeout(() => {
-        showPlayer();
-    }, 800);
+        elements.messageScreen.classList.add('active');
+    }, 350);
 }
 
-/**
- * Show the regular player interface
- */
+function handlePlayClick() {
+    if (currentStep !== 2) return;
+    currentStep = 3;
+
+    sessionStorage.setItem(`gift-revealed-${getCurrentSlug()}`, 'true');
+
+    elements.messageScreen.classList.remove('active');
+    setTimeout(showPlayer, 350);
+}
+
 function showPlayer() {
-    const giftContainer = document.getElementById('gift-container');
-    const playerContainer = document.getElementById('player-container');
-    
-    // Fade out gift, fade in player
-    giftContainer.classList.add('fade-out');
-    
-    setTimeout(() => {
-        giftContainer.style.display = 'none';
-        playerContainer.classList.remove('hidden');
-        playerContainer.classList.add('fade-in');
-        
-        // Initialize player controls
-        initPlayerControls();
-        initLinerNotes();
-        initChromecast();
-        
-        // Set up Chromecast
-        document.addEventListener('cast:ready', () => {
-            const castBtn = document.getElementById('cast-button');
-            if (castBtn) {
-                castBtn.hidden = false;
-                castBtn.addEventListener('click', () => {
-                    if (castBtn.classList.contains('connected')) {
-                        stopCasting();
-                    } else {
-                        castMixtapePlaylist();
-                    }
-                });
-            }
-        });
-        
-        // Auto-play first track
-        setTimeout(() => {
-            const bigPlayBtn = document.getElementById('big-play-btn');
-            if (bigPlayBtn) {
-                bigPlayBtn.click();
-            }
-        }, 500);
-        
-    }, 600);
-}
+    elements.giftContainer.classList.add('fade-out');
 
-/**
- * Skip directly to player (for returning users)
- */
-function skipToPlayer() {
-    console.log('⏩ Skipping to player (already revealed)');
-    
-    const giftContainer = document.getElementById('gift-container');
-    const playerContainer = document.getElementById('player-container');
-    
-    giftContainer.style.display = 'none';
-    playerContainer.classList.remove('hidden');
-    
-    // Initialize player
-    initPlayerControls();
-    initLinerNotes();
-    initChromecast();
-    
-    document.addEventListener('cast:ready', () => {
-        const castBtn = document.getElementById('cast-button');
-        if (castBtn) {
-            castBtn.hidden = false;
-            castBtn.addEventListener('click', () => {
-                if (castBtn.classList.contains('connected')) {
-                    stopCasting();
-                } else {
-                    castMixtapePlaylist();
-                }
-            });
+    setTimeout(() => {
+        elements.giftContainer.style.display = 'none';
+        elements.playerContainer.classList.remove('hidden');
+        elements.playerContainer.classList.add('fade-in');
+
+        if (!hasInitializedPlayer) {
+            // Add calls to your player initialization functions here
+            // e.g. initPlayerControls();
+            // initLinerNotes();
+            // initChromecast?.();
+            hasInitializedPlayer = true;
+
+            setTimeout(() => {
+                document.getElementById('big-play-btn')?.click();
+            }, 500);
         }
-    });
-    
-    revealStage = 'playing';
+    }, 700);
 }
 
-/**
- * Show gift view again (back button)
- */
+function skipToPlayer() {
+    elements.giftContainer.style.display = 'none';
+    elements.playerContainer.classList.remove('hidden');
+    currentStep = 3;
+}
+
 function showGiftView() {
-    const giftContainer = document.getElementById('gift-container');
-    const playerContainer = document.getElementById('player-container');
-    const giftMessage = document.getElementById('gift-message');
-    const giftCassette = document.getElementById('gift-cassette');
-    
-    // Pause any playing audio
-    const player = document.getElementById('main-player');
-    if (player) {
-        player.pause();
-    }
-    
-    // Reset to message-shown state
-    playerContainer.classList.add('fade-out');
-    
+    document.querySelector('audio')?.pause();
+
+    elements.playerContainer.classList.add('fade-out');
+
     setTimeout(() => {
-        playerContainer.classList.add('hidden');
-        playerContainer.classList.remove('fade-out');
-        
-        giftContainer.style.display = 'flex';
-        giftMessage.classList.remove('hidden');
-        giftCassette.classList.remove('hidden');
-        giftCassette.classList.add('revealed', 'interactive');
-        
-        revealStage = 'message-shown';
-    }, 400);
+        elements.playerContainer.classList.add('hidden');
+        elements.playerContainer.classList.remove('fade-out');
+
+        elements.giftContainer.style.display = 'flex';
+        elements.messageScreen.classList.add('active');
+        elements.coverReveal.classList.remove('active');
+        currentStep = 2;
+    }, 450);
 }
 
-/**
- * Get current mixtape slug from URL
- */
+function createConfetti() {
+    const colors = ['#ffd700', '#ff6b9d', '#667eea', '#764ba2', '#ffffff', '#ffcc00'];
+    for (let i = 0; i < 70; i++) {
+        setTimeout(() => {
+            const c = document.createElement('div');
+            c.className = 'confetti';
+            c.style.left = Math.random() * 100 + 'vw';
+            c.style.background = colors[Math.floor(Math.random() * colors.length)];
+            c.style.animationDelay = Math.random() * 0.7 + 's';
+            document.body.appendChild(c);
+            setTimeout(() => c.remove(), 3800);
+        }, i * 22);
+    }
+}
+
 function getCurrentSlug() {
-    const match = window.location.pathname.match(/\/gift\/([^\/]+)/);
-    return match ? match[1] : 'unknown';
+    const match = location.pathname.match(/\/gift\/([^\/]+)/);
+    return match ? match[1] : 'default';
 }
 
-/**
- * Play sound effect (optional enhancement)
- */
-function playSound(soundName) {
-    // Could implement sound effects for unwrapping, etc.
-    // For now, just a placeholder
-    console.log(`🔊 Playing sound: ${soundName}`);
-}
-
-// Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    initGiftReveal();
-});
+document.addEventListener('DOMContentLoaded', initGiftReveal);

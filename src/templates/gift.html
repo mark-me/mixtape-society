@@ -3,20 +3,14 @@
 {% block title %}🎁 {{ mixtape.title }} - A Gift for You{% endblock %}
 
 {% block extra_meta %}
-    <!-- Gift-specific meta tags -->
     <meta name="description" content="A special mixtape gift: {{ mixtape.title }}">
-    
-    <!-- Open Graph -->
     <meta property="og:title" content="🎁 You've received a mixtape gift!"/>
     <meta property="og:type" content="music.playlist"/>
     <meta property="og:url" content="{{ url_for('play.gift_play', slug=mixtape.slug, _external=True) }}"/>
     <meta property="og:description" content="Someone made you a special mixtape. Click to unwrap it!"/>
-    
     {% if mixtape.cover %}
         <meta property="og:image" content="{{ url_for('play.serve_cover', filename=mixtape.cover.split('/')[-1], _external=True) }}"/>
     {% endif %}
-    
-    <!-- Prevent indexing of gift pages -->
     <meta name="robots" content="noindex, nofollow">
 {% endblock %}
 
@@ -26,91 +20,78 @@
 {% endblock %}
 
 {% block content %}
-    <!-- Gift Reveal Container (shown first) -->
+
+    <!-- Gift Reveal Flow -->
     <div id="gift-container" class="gift-container">
-        <div class="gift-scene">
-            <!-- Gift Box with Cassette -->
-            <div class="gift-box" id="gift-box">
-                <!-- Ribbon -->
-                <div class="ribbon ribbon-vertical"></div>
-                <div class="ribbon ribbon-horizontal"></div>
-                <div class="ribbon-bow"></div>
-                
-                <!-- Box faces -->
-                <div class="box-face box-top">
-                    <div class="box-shimmer"></div>
-                </div>
-                <div class="box-face box-front"></div>
-                <div class="box-face box-left"></div>
-                <div class="box-face box-right"></div>
+
+        <!-- Step 1: Wrapped gift (PNG image) -->
+        <div class="wrapped-gift" id="wrapped-gift">
+            <img src="{{ url_for('static', filename='gift.png') }}"
+                 alt="Gift box to unwrap"
+                 class="gift-image"
+                 id="gift-image">
+            <div class="tap-instruction">
+                <i class="bi bi-hand-index-thumb"></i> Tap to unwrap your gift
             </div>
-            
-            <!-- Cassette inside (revealed when unwrapped) -->
-            <div class="gift-cassette hidden" id="gift-cassette">
-                <div class="cassette-body-gift">
-                    <!-- Cassette label -->
-                    <div class="cassette-label-gift">
-                        <div class="label-lines">
-                            <div class="label-line"></div>
-                            <div class="label-line"></div>
-                            <div class="label-line"></div>
-                        </div>
-                        <div class="cassette-title-text">{{ mixtape.title }}</div>
-                    </div>
-                    
-                    <!-- Cassette window with reels -->
-                    <div class="cassette-window-gift">
-                        <div class="reel-left"></div>
-                        <div class="reel-right"></div>
-                        <div class="tape-strip"></div>
-                    </div>
-                </div>
+        </div>
+
+        <!-- Step 2: Cover reveal -->
+        <div class="cover-reveal" id="cover-reveal">
+            {% if mixtape.cover %}
+            <img src="{{ url_for('play.serve_cover', filename=mixtape.cover.split('/')[-1]) }}"
+                 alt="Cover for {{ mixtape.title }}"
+                 class="cover-image"
+                 id="cover-image">
+            {% else %}
+            <div class="cover-image placeholder-cover">
+                <div class="placeholder-text">{{ mixtape.title }}</div>
             </div>
-            
-            <!-- Gift Message Card (polaroid style) -->
-            <div class="gift-message hidden" id="gift-message">
-                <div class="polaroid-card">
-                    <div class="polaroid-photo">
-                        <!-- Handwritten message as image would go here -->
-                        <div class="handwritten-text">
-                            <p class="message-to">For {{ recipient_name }},</p>
-                            <p class="message-body">{{ gift_message }}</p>
-                            <p class="message-from">— A friend</p>
-                        </div>
-                    </div>
-                    <div class="polaroid-caption">
-                        Click the cassette to play ▶
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Instruction text -->
-            <div class="gift-instruction" id="gift-instruction">
-                <p class="instruction-text">
-                    <span class="gift-emoji">🎁</span>
-                    Click to unwrap your gift
-                </p>
+            {% endif %}
+        </div>
+
+        <!-- Step 3: Message / liner notes card -->
+        <div class="message-screen" id="message-screen">
+            <div class="liner-notes">
+                <h2>{{ mixtape.title }}</h2>
+
+                {% if gift_sender %}
+                <p class="creator">From {{ gift_sender }}</p>
+                {% else %}
+                <p class="creator">From a friend</p>
+                {% endif %}
+
+                {% if gift_message and gift_message.strip() %}
+                <p class="gift-message-body">{{ gift_message | safe }}</p>
+                {% else %}
+                <p>Hope these songs bring a smile — made this one just for you 🎶</p>
+                {% endif %}
+
+                <button class="play-btn" id="play-btn">
+                    <i class="bi bi-play-fill me-2"></i>Start Listening
+                </button>
             </div>
         </div>
     </div>
-    
-    <!-- Regular Player Container (hidden until revealed) -->
+
+    <!-- Step 4: Full player interface (hidden until revealed) -->
     <div id="player-container" class="player-container hidden">
         <div class="container py-5">
-            <!-- Back button to gift view -->
+
+            <!-- Back to gift view -->
             <button id="back-to-gift" class="btn btn-outline-secondary btn-sm mb-4">
                 ← Back to gift
             </button>
-            
+
             <div class="container-fluid overflow-hidden">
                 <div class="row g-5">
-                    <!-- Cover + title -->
+
+                    <!-- Left column: Cover + title + metadata + liner notes -->
                     <div class="col-lg-4 text-center">
                         {% if mixtape.cover %}
                         <img src="{{ url_for('play.serve_cover', filename=mixtape.cover.split('/')[-1]) }}"
-                            class="img-fluid rounded shadow mb-4"
-                            style="max-height: 400px; object-fit: cover;"
-                            alt="Cover for {{ mixtape.title }}">
+                             class="img-fluid rounded shadow mb-4"
+                             style="max-height: 400px; object-fit: cover;"
+                             alt="Cover for {{ mixtape.title }}">
                         {% endif %}
 
                         <h1 class="display-6 mb-2">{{ mixtape.title }}</h1>
@@ -121,23 +102,18 @@
                             <div><i class="bi bi-calendar-plus"></i> Created: {{ mixtape.created_at[:10] }}</div>
                             {% endif %}
                         </div>
-                        
-                        <!-- Liner Notes Section -->
+
                         {% if mixtape.liner_notes and mixtape.liner_notes.strip() %}
                         <div class="mt-5">
                             <h4 class="mb-3">
                                 <button class="btn btn-link text-decoration-none p-0 border-0 fw-bold collapsed"
-                                        type="button"
-                                        data-bs-toggle="collapse"
+                                        type="button" data-bs-toggle="collapse"
                                         data-bs-target="#linerNotesCollapse"
-                                        aria-expanded="false"
-                                        aria-controls="linerNotesCollapse"
-                                        style="font-size: inherit;">
+                                        aria-expanded="false" aria-controls="linerNotesCollapse">
                                     Tape Talk
                                     <i class="bi bi-chevron-down ms-2 transition-chevron"></i>
                                 </button>
                             </h4>
-
                             <div class="collapse" id="linerNotesCollapse">
                                 <div class="card card-body bg-body-tertiary border-0">
                                     <div id="rendered-liner-notes" class="markdown-body"></div>
@@ -147,9 +123,9 @@
                         {% endif %}
                     </div>
 
-                    <!-- Player + tracklist -->
+                    <!-- Right column: Player controls + tracklist -->
                     <div class="col-lg-8">
-                        <!-- Music player -->
+                        <!-- Bottom player bar -->
                         <div class="fixed-bottom" id="bottom-player-container" style="display:none; z-index: 1000;">
                             <div class="bg-dark text-white shadow-lg border-top border-secondary" style="backdrop-filter: blur(10px);">
                                 <div class="container py-2">
@@ -165,37 +141,21 @@
                                         <div class="mb-2 mb-md-0">
                                             <button id="prev-btn-bottom" class="btn btn-sm btn-outline-light"><i class="bi bi-skip-backward-fill"></i></button>
                                             <button id="next-btn-bottom" class="btn btn-sm btn-outline-light ms-1"><i class="bi bi-skip-forward-fill"></i></button>
-                                            <button
-                                                id="cast-button"
-                                                class="btn btn-sm btn-outline-secondary rounded-circle cast-btn"
-                                                title="Cast to device"
-                                                style="width: 38px; height: 38px; padding: 0;"
-                                                hidden>
+
+                                            <button id="cast-button" class="btn btn-sm btn-outline-secondary rounded-circle cast-btn"
+                                                    title="Cast to device" style="width: 38px; height: 38px; padding: 0;" hidden>
                                                 <i class="bi bi-cast"></i>
                                             </button>
 
-                                            <!-- Quality selector -->
                                             <div class="quality-selector d-inline-block ms-2">
                                                 <button id="quality-btn-bottom" class="btn btn-sm btn-outline-light">
                                                     <i class="bi bi-gear-fill me-1"></i>Medium
                                                 </button>
                                                 <div id="quality-menu" class="quality-menu">
-                                                    <a href="#" class="quality-option" data-quality="high">
-                                                        <span>High (256k)<span class="quality-badge">~2MB/min</span></span>
-                                                        <i class="bi bi-check2" style="display:none;"></i>
-                                                    </a>
-                                                    <a href="#" class="quality-option active" data-quality="medium">
-                                                        <span>Medium (192k)<span class="quality-badge">~1.4MB/min</span></span>
-                                                        <i class="bi bi-check2"></i>
-                                                    </a>
-                                                    <a href="#" class="quality-option" data-quality="low">
-                                                        <span>Low (128k)<span class="quality-badge">~1MB/min</span></span>
-                                                        <i class="bi bi-check2" style="display:none;"></i>
-                                                    </a>
-                                                    <a href="#" class="quality-option" data-quality="original">
-                                                        <span>Original<span class="quality-badge">~8-10MB/min</span></span>
-                                                        <i class="bi bi-check2" style="display:none;"></i>
-                                                    </a>
+                                                    <a href="#" class="quality-option" data-quality="high"><span>High (256k)<span class="quality-badge">~2MB/min</span></span><i class="bi bi-check2" style="display:none;"></i></a>
+                                                    <a href="#" class="quality-option active" data-quality="medium"><span>Medium (192k)<span class="quality-badge">~1.4MB/min</span></span><i class="bi bi-check2"></i></a>
+                                                    <a href="#" class="quality-option" data-quality="low"><span>Low (128k)<span class="quality-badge">~1MB/min</span></span><i class="bi bi-check2" style="display:none;"></i></a>
+                                                    <a href="#" class="quality-option" data-quality="original"><span>Original<span class="quality-badge">~8-10MB/min</span></span><i class="bi bi-check2" style="display:none;"></i></a>
                                                 </div>
                                             </div>
                                         </div>
@@ -208,8 +168,7 @@
 
                         <!-- Big play button -->
                         <div class="text-center my-5">
-                            <button id="big-play-btn"
-                                    class="btn btn-lg rounded-pill px-5 py-3 shadow theme-outline-btn"
+                            <button id="big-play-btn" class="btn btn-lg rounded-pill px-5 py-3 shadow theme-outline-btn"
                                     style="border-width: 2px; font-weight: 600;">
                                 <i class="bi bi-play-fill me-2" style="font-size: 1.6rem; position:relative; top:2px;"></i>
                                 <span class="btn-text">Play mixtape</span>
@@ -220,51 +179,34 @@
                         <h4 class="mb-3 text-white">Tracklist</h4>
                         <div class="list-group">
                             {% for t in mixtape.tracks %}
-                                <li class="list-group-item track-item py-3 d-flex align-items-center gap-3 gap-md-4"
-                                    data-path="{{ url_for('play.stream_audio', file_path=t.path) }}"
-                                    data-title="{{ t.track }}"
-                                    data-artist="{{ t.artist }}"
-                                    data-album="{{ t.album|default('') }}">
-
-                                    <!-- Play button on the left -->
-                                    <div class="track-cover-wrapper me-3 flex-shrink-0">
-                                        {% if t.cover %}
-                                            <img src="{{ url_for('serve_album_cover', filename=t.cover.split('/')[-1]) }}" alt="Cover" class="track-cover rounded">
-                                        {% else %}
-                                            <div class="track-cover-placeholder rounded"></div>
-                                        {% endif %}
-                                        <button class="btn play-overlay-btn" data-path="{{ t.path | urlencode }}">
-                                            <i class="bi bi-play-fill"></i>
-                                        </button>
+                            <li class="list-group-item track-item py-3 d-flex align-items-center gap-3 gap-md-4"
+                                data-path="{{ url_for('play.stream_audio', file_path=t.path) }}"
+                                data-title="{{ t.track }}"
+                                data-artist="{{ t.artist }}"
+                                data-album="{{ t.album|default('') }}">
+                                <div class="track-cover-wrapper me-3 flex-shrink-0">
+                                    {% if t.cover %}
+                                    <img src="{{ url_for('serve_album_cover', filename=t.cover.split('/')[-1]) }}" alt="Cover" class="track-cover rounded">
+                                    {% else %}
+                                    <div class="track-cover-placeholder rounded"></div>
+                                    {% endif %}
+                                    <button class="btn play-overlay-btn" data-path="{{ t.path | urlencode }}">
+                                        <i class="bi bi-play-fill"></i>
+                                    </button>
+                                </div>
+                                <div class="flex-grow-1 min-width-0">
+                                    <div class="fw-bold text-truncate" style="font-size: 1.15rem; line-height: 1.35;">
+                                        {{ t.track }}
                                     </div>
-
-                                    <!-- Text block (takes remaining space) -->
-                                    <div class="flex-grow-1 min-width-0">
-                                        <div class="fw-bold text-truncate" style="font-size: 1.15rem; line-height: 1.35;">
-                                            {{ t.track }}
-                                        </div>
-                                        <div class="small text-muted text-truncate opacity-85">
-                                            {{ t.artist }}{% if t.album %} • {{ t.album }}{% endif %}
-                                        </div>
+                                    <div class="small text-muted text-truncate opacity-85">
+                                        {{ t.artist }}{% if t.album %} • {{ t.album }}{% endif %}
                                     </div>
-                                </li>
+                                </div>
+                            </li>
                             {% endfor %}
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Quality change toast -->
-    <div class="position-fixed bottom-0 start-50 translate-middle-x p-3" style="z-index: 1080">
-        <div id="qualityToast" class="toast align-items-center text-bg-info border-0 shadow" role="alert">
-            <div class="d-flex">
-                <div class="toast-body">
-                    <i class="bi bi-music-note-beamed me-2"></i>
-                    Quality changed
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
             </div>
         </div>
     </div>
