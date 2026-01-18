@@ -73,7 +73,7 @@ def create_app() -> Flask:
     )
 
     limiter = Limiter(
-        get_remote_address
+        get_remote_address,
     )
     limiter.init_app(app=app)
 
@@ -156,12 +156,7 @@ def create_app() -> Flask:
     def check_indexing_before_request():
         """Check if indexing is in progress and redirect authenticated users."""
 
-        logger.debug(f"🔍 CHECK: {request.path}")
-        # Skip these paths
-        # bypass_paths = [
-        #      '/indexing-status', '/',
-        #     '/reset-database', '/check-database-health'
-        # ]
+        logger.debug(f"🔍 CHECK: {request.path}")
         bypass_paths = [
             "/static",
             "/play",
@@ -213,7 +208,7 @@ def create_app() -> Flask:
         """
         status = get_indexing_status(config_cls.DATA_ROOT, logger=app.logger)
         if not status:
-            # No indexing in progress → redirect to landing behavior
+            # No indexing in progress - redirect to landing behavior
             return {"done": True}
 
         return {
@@ -288,12 +283,23 @@ def create_app() -> Flask:
     def serve_album_cover(filename):
         """
         Serves extracted album cover images from the cached covers directory.
+        Includes explicit CORS and caching headers for car system compatibility.
         """
         covers_dir = app.config["DATA_ROOT"] / "cache" / "covers"
         # Security: restrict to .jpg (or .jpeg/.png if you extend extraction)
         if not filename.lower().endswith((".jpg", ".jpeg", ".png")):
             abort(404)
-        return send_from_directory(covers_dir, filename)
+
+        response = send_from_directory(covers_dir, filename)
+
+        # Add explicit headers for car systems (Android Auto, CarPlay, etc.)
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        response.headers['Access-Control-Allow-Methods'] = 'GET, OPTIONS'
+        response.headers['Access-Control-Max-Age'] = '3600'
+        response.headers['Cache-Control'] = 'public, max-age=86400'  # Cache for 24 hours
+        response.headers['Cross-Origin-Resource-Policy'] = 'cross-origin'
+
+        return response
 
     @app.route("/api/covers/<path:release_dir_encoded>")
     def serve_cover_by_size(release_dir_encoded):
