@@ -103,6 +103,7 @@ export function initPlayerControls() {
     window.currentTrackIndex = currentIndex;
     let currentQuality = localStorage.getItem('audioQuality') || DEFAULT_QUALITY;
     let isCurrentlyCasting = false;
+    let wakeLock = null;  // Wake lock to prevent phone sleep during playback
 
     // Log device capabilities
     logDeviceInfo();
@@ -117,7 +118,53 @@ export function initPlayerControls() {
         showiOSCastHelp();
     }
 
-    console.log('🎮 PlayerControls initialized');
+    console.log('ðŸŽ® PlayerControls initialized');
+
+    // Wake Lock API for preventing phone sleep during playback
+    const requestWakeLock = async () => {
+        if (!('wakeLock' in navigator)) {
+            console.log('⚠️ Wake Lock API not supported');
+            return;
+        }
+
+        // Guard: Don't request if already active
+        if (wakeLock !== null && !wakeLock.released) {
+            console.log('ℹ️ Wake lock already active, skipping request');
+            return;
+        }
+
+        try {
+            wakeLock = await navigator.wakeLock.request('screen');
+            console.log('✅ Wake lock acquired');
+
+            wakeLock.addEventListener('release', () => {
+                console.log('🔓 Wake lock released');
+                // Clear the reference so our state reflects reality
+                wakeLock = null;
+            });
+        } catch (err) {
+            console.warn('Wake lock request failed:', err);
+        }
+    };
+
+    const releaseWakeLock = async () => {
+        if (wakeLock) {
+            try {
+                await wakeLock.release();
+                wakeLock = null;
+                console.log('âœ… Wake lock released manually');
+            } catch (err) {
+                console.warn('Wake lock release failed:', err);
+            }
+        }
+    };
+
+    // Re-acquire wake lock when page becomes visible again (user unlocks phone)
+    document.addEventListener('visibilitychange', async () => {
+        if (wakeLock !== null && document.visibilityState === 'visible') {
+            await requestWakeLock();
+        }
+    });
 
     // Player control API for external modules
     const playerControlsAPI = {
@@ -282,17 +329,17 @@ export function initPlayerControls() {
     const updateLocalMediaSession = (metadata) => {
         if (checkCastingState()) {
             // CRITICAL: Do NOT create Media Session when casting
-            console.log('⏭️ Skipping Media Session - Chromecast handles it');
+            console.log('â­ï¸ Skipping Media Session - Chromecast handles it');
             return;
         }
 
         // Use Android Auto optimized Media Session if connected to car
         if (isAndroidAutoConnected()) {
-            console.log('🚗 Using Android Auto Media Session');
+            console.log('ðŸš— Using Android Auto Media Session');
             setupAndroidAutoMediaSession(metadata, playerControlsAPI, player);
         } else {
             // Standard Media Session for iOS/desktop
-            console.log('📱 Using standard Media Session');
+            console.log('ðŸ“± Using standard Media Session');
             setupLocalMediaSession(metadata, playerControlsAPI);
         }
     }
@@ -308,18 +355,72 @@ export function initPlayerControls() {
         return `${basePath}?${urlParams.toString()}`;
     }
 
+    /**
+     * Prefetch the next track to ensure smooth playback transitions
+     * This will cache the audio file in the browser/service worker
+     *
+     * Prefetch strategy:
+     * - First check if already cached to avoid redundant network traffic
+     * - Use a single low-priority GET request (HEAD + GET was redundant)
+     * - The service worker will handle caching asynchronously
+     */
+    const prefetchNextTrack = async (currentIdx) => {
+        const nextIdx = currentIdx + 1;
+
+        // Don't prefetch if we're at the last track
+        if (nextIdx >= trackItems.length) {
+            console.log('🚫 No next track to prefetch (end of playlist)');
+            return;
+        }
+
+        const nextTrack = trackItems[nextIdx];
+        if (!nextTrack) return;
+
+        const audioUrl = buildAudioUrl(nextTrack.dataset.path, currentQuality);
+
+        console.log(`🔥 Prefetching next track (${nextIdx + 1}/${trackItems.length}):`, nextTrack.dataset.title);
+
+        try {
+            // Check if already cached (avoid redundant network request)
+            if ('caches' in window) {
+                try {
+                    const cached = await caches.match(audioUrl);
+                    if (cached) {
+                        console.log('✅ Next track already cached, skipping prefetch');
+                        return;
+                    }
+                } catch (cacheError) {
+                    // Non-fatal: fall through to network prefetch
+                    console.debug('Cache lookup failed during prefetch:', cacheError);
+                }
+            }
+
+            // Single low-priority GET request to warm the service worker cache
+            // The service worker will cache it asynchronously
+            await fetch(audioUrl, {
+                method: 'GET',
+                credentials: 'include',
+                priority: 'low'
+            });
+
+            console.log('✅ Next track prefetch initiated');
+        } catch (error) {
+            console.warn('⚠️ Prefetch failed (not critical):', error.message);
+        }
+    };
+
     const playTrack = (index) => {
-        console.log(`🎵 playTrack(${index}), casting: ${checkCastingState()}`);
+        console.log(`ðŸŽµ playTrack(${index}), casting: ${checkCastingState()}`);
 
         if (checkCastingState()) {
-            console.log(`📡 Routing to Chromecast`);
+            console.log(`ðŸ“¡ Routing to Chromecast`);
             castJumpToTrack(index);
             updateUIForTrack(index);
             // NO Media Session setup - Chromecast handles it
             return;
         }
 
-        console.log(`🔊 Playing locally`);
+        console.log(`ðŸ”Š Playing locally`);
 
         if (index === currentIndex && player.src !== '') {
             player.play().catch(e => console.log('Autoplay prevented:', e));
@@ -346,6 +447,12 @@ export function initPlayerControls() {
         updateLocalMediaSession(metadata);
 
         player.play().catch(e => console.log('Autoplay prevented:', e));
+
+        // Prefetch next track for smooth transitions
+        prefetchNextTrack(index);
+
+        // Request wake lock to keep screen alive during playback (prevents random stops)
+        requestWakeLock();
     }
 
     const updateUIForTrack = (index) => {
@@ -354,7 +461,7 @@ export function initPlayerControls() {
         const track = trackItems[index];
 
         bottomTitle.textContent = track.dataset.title;
-        bottomArtistAlbum.textContent = `${track.dataset.artist} • ${track.dataset.album}`;
+        bottomArtistAlbum.textContent = `${track.dataset.artist} â€¢ ${track.dataset.album}`;
         container.style.display = 'block';
 
         trackItems.forEach(t => t.classList.remove('active-track'));
@@ -371,6 +478,9 @@ export function initPlayerControls() {
         container.style.display = 'none';
         trackItems.forEach(t => t.classList.remove('active-track'));
         currentIndex = -1;
+
+        // Release wake lock when playback stops
+        releaseWakeLock();
 
         // Clear appropriate Media Session
         if (isAndroidAutoConnected()) {
@@ -482,16 +592,33 @@ export function initPlayerControls() {
 
         player?.addEventListener('play', onlyWhenNotCasting(() => {
             syncPlayIcons();
+            // Request wake lock when playback starts
+            requestWakeLock();
         }));
 
         player?.addEventListener('pause', onlyWhenNotCasting(() => {
             syncPlayIcons();
         }));
 
+        // Prefetch next track when current track can play (has buffered enough)
+        player?.addEventListener('canplay', onlyWhenNotCasting(() => {
+            if (currentIndex >= 0) {
+                prefetchNextTrack(currentIndex);
+            }
+        }));
+
         player?.addEventListener('ended', () => {
             syncPlayIcons();
             if (!checkCastingState()) {
-                playTrack(currentIndex + 1);
+                // Immediately play next track without delay
+                const nextIndex = currentIndex + 1;
+                if (nextIndex < trackItems.length) {
+                    console.log('ðŸŽµ Auto-advancing to next track');
+                    playTrack(nextIndex);
+                } else {
+                    console.log('ðŸ Reached end of playlist');
+                    releaseWakeLock();
+                }
             }
         });
 
