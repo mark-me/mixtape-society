@@ -2,7 +2,7 @@
 // Progressive Web App service worker for Mixtape Society
 // Provides offline support with smart caching strategies
 
-const CACHE_VERSION = 'v1.0.1';  // Bumped version for fix
+const CACHE_VERSION = 'v1.0.3';  // Added prefetch support and async caching
 const CACHE_NAMES = {
     static: `mixtape-static-${CACHE_VERSION}`,
     audio: `mixtape-audio-${CACHE_VERSION}`,
@@ -234,8 +234,10 @@ async function handleAudioRequest(request) {
     const url = new URL(request.url);
     const cacheKey = url.toString(); // Full URL including query params
     const isRangeRequest = request.headers.has('Range');
+    const isHeadRequest = request.method === 'HEAD';
 
     console.log('[SW] Audio request:', {
+        method: request.method,
         path: url.pathname.split('/').pop(),
         quality: url.searchParams.get('quality'),
         isRange: isRangeRequest
@@ -248,7 +250,15 @@ async function handleAudioRequest(request) {
         const cachedResponse = await cache.match(cacheKey);
 
         if (cachedResponse) {
-            console.log('[SW] Found cached audio file');
+            console.log('[SW] 📦 Found cached audio file');
+
+            // For HEAD requests, just return headers
+            if (isHeadRequest) {
+                return new Response(null, {
+                    status: 200,
+                    headers: cachedResponse.headers
+                });
+            }
 
             // If this is a range request, we need to slice the cached response
             if (isRangeRequest) {
@@ -260,7 +270,13 @@ async function handleAudioRequest(request) {
         }
 
         // Not in cache - fetch from network
-        console.log('[SW] Fetching from network...');
+        console.log('[SW] 🌐 Fetching from network...');
+
+        // For HEAD requests, just check if file exists
+        if (isHeadRequest) {
+            const headResponse = await fetch(request);
+            return headResponse;
+        }
 
         // If it's a range request, we need to fetch the full file first to cache it
         // Then serve the range from that full file
@@ -278,9 +294,11 @@ async function handleAudioRequest(request) {
                 const fullResponse = await fetch(fullRequest);
 
                 if (fullResponse.ok && fullResponse.status === 200) {
-                    // Cache the full file for future use
-                    cache.put(cacheKey, fullResponse.clone());
-                    console.log('[SW] Cached full audio file');
+                    // Cache asynchronously (don't block response)
+                    cache.put(cacheKey, fullResponse.clone()).catch(err => {
+                        console.warn('[SW] ⚠️ Failed to cache audio:', err);
+                    });
+                    console.log('[SW] ✅ Caching full audio file (async)');
 
                     // Create range response from the full file
                     return createRangeResponse(fullResponse, request.headers.get('Range'));
@@ -297,8 +315,11 @@ async function handleAudioRequest(request) {
         const response = await fetch(request);
 
         if (response.ok && response.status === 200) {
-            cache.put(cacheKey, response.clone());
-            console.log('[SW] Cached audio file');
+            // Cache asynchronously (don't block response)
+            cache.put(cacheKey, response.clone()).catch(err => {
+                console.warn('[SW] ⚠️ Failed to cache audio:', err);
+            });
+            console.log('[SW] ✅ Cached audio file (async)');
         }
 
         return response;
