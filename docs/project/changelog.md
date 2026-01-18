@@ -28,11 +28,11 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 ### ✨ Added
 
-- Prefetching next song data for improved song switching
+- Prefetching next song data for improved song switching.
 
 ### 🐛 Fixed
 
-- Playback stops on end of track when phone locked
+- Android car not showing.
 
 ---
 
