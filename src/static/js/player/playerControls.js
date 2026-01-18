@@ -103,7 +103,6 @@ export function initPlayerControls() {
     window.currentTrackIndex = currentIndex;
     let currentQuality = localStorage.getItem('audioQuality') || DEFAULT_QUALITY;
     let isCurrentlyCasting = false;
-    let wakeLock = null;  // Wake lock to prevent phone sleep during playback
 
     // Log device capabilities
     logDeviceInfo();
@@ -119,52 +118,6 @@ export function initPlayerControls() {
     }
 
     console.log('ðŸŽ® PlayerControls initialized');
-
-    // Wake Lock API for preventing phone sleep during playback
-    const requestWakeLock = async () => {
-        if (!('wakeLock' in navigator)) {
-            console.log('⚠️ Wake Lock API not supported');
-            return;
-        }
-
-        // Guard: Don't request if already active
-        if (wakeLock !== null && !wakeLock.released) {
-            console.log('ℹ️ Wake lock already active, skipping request');
-            return;
-        }
-
-        try {
-            wakeLock = await navigator.wakeLock.request('screen');
-            console.log('✅ Wake lock acquired');
-
-            wakeLock.addEventListener('release', () => {
-                console.log('🔓 Wake lock released');
-                // Clear the reference so our state reflects reality
-                wakeLock = null;
-            });
-        } catch (err) {
-            console.warn('Wake lock request failed:', err);
-        }
-    };
-
-    const releaseWakeLock = async () => {
-        if (wakeLock) {
-            try {
-                await wakeLock.release();
-                wakeLock = null;
-                console.log('âœ… Wake lock released manually');
-            } catch (err) {
-                console.warn('Wake lock release failed:', err);
-            }
-        }
-    };
-
-    // Re-acquire wake lock when page becomes visible again (user unlocks phone)
-    document.addEventListener('visibilitychange', async () => {
-        if (wakeLock !== null && document.visibilityState === 'visible') {
-            await requestWakeLock();
-        }
-    });
 
     // Player control API for external modules
     const playerControlsAPI = {
@@ -450,9 +403,6 @@ export function initPlayerControls() {
 
         // Prefetch next track for smooth transitions
         prefetchNextTrack(index);
-
-        // Request wake lock to keep screen alive during playback (prevents random stops)
-        requestWakeLock();
     }
 
     const updateUIForTrack = (index) => {
@@ -478,9 +428,6 @@ export function initPlayerControls() {
         container.style.display = 'none';
         trackItems.forEach(t => t.classList.remove('active-track'));
         currentIndex = -1;
-
-        // Release wake lock when playback stops
-        releaseWakeLock();
 
         // Clear appropriate Media Session
         if (isAndroidAutoConnected()) {
@@ -592,8 +539,6 @@ export function initPlayerControls() {
 
         player?.addEventListener('play', onlyWhenNotCasting(() => {
             syncPlayIcons();
-            // Request wake lock when playback starts
-            requestWakeLock();
         }));
 
         player?.addEventListener('pause', onlyWhenNotCasting(() => {
@@ -617,7 +562,6 @@ export function initPlayerControls() {
                     playTrack(nextIndex);
                 } else {
                     console.log('ðŸ Reached end of playlist');
-                    releaseWakeLock();
                 }
             }
         });
