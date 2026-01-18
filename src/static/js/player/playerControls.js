@@ -403,8 +403,6 @@ export function initPlayerControls() {
 
         // Prefetch next track for smooth transitions
         prefetchNextTrack(index);
-
-        // Request wake lock to keep screen alive during playback (prevents random stops)
     }
 
     const updateUIForTrack = (index) => {
