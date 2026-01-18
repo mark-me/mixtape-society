@@ -33,6 +33,7 @@ def create_qr_blueprint(
         Query parameters:
             size: QR code size in pixels (default 400, max 800)
             logo: Include logo in center (default true)
+            type: URL type - 'share' for public player or 'gift' for gift experience (default 'share')
 
         Args:
             slug: The mixtape slug identifier (URL-encoded)
@@ -51,15 +52,20 @@ def create_qr_blueprint(
         # Get parameters
         size = min(int(request.args.get('size', 400)), 800)
         include_logo = request.args.get('logo', 'true').lower() != 'false'
+        url_type = request.args.get('type', 'share')  # 'share' or 'gift'
 
-        # Build the full share URL
-        from flask import url_for
-        share_url = url_for('play.public_play', slug=slug, _external=True)
+        # Validate url_type
+        if url_type not in ['share', 'gift']:
+            url_type = 'share'
+
+        # Build the appropriate URL based on type
+        if url_type == 'gift':
+            share_url = url_for('play.gift_play', slug=slug, _external=True)
+        else:
+            share_url = url_for('play.public_play', slug=slug, _external=True)
 
         # Generate QR code
         try:
-
-
             # Get logo path if requested
             logo_path = None
             if include_logo:
@@ -76,9 +82,13 @@ def create_qr_blueprint(
                 size=size
             )
 
+            # Create filename based on type
+            filename_type = 'gift' if url_type == 'gift' else 'qr'
+            filename = f"{slug}-{filename_type}.png"
+
             response = Response(qr_bytes, mimetype='image/png')
             response.headers['Cache-Control'] = 'public, max-age=3600'
-            response.headers['Content-Disposition'] = f'inline; filename="{slug}-qr.png"'
+            response.headers['Content-Disposition'] = f'inline; filename="{filename}"'
 
             return response
 
@@ -101,6 +111,7 @@ def create_qr_blueprint(
             size: QR code size in pixels (default 800, max 1200)
             include_cover: Include mixtape cover art (default true)
             include_title: Include mixtape title banner (default true)
+            type: URL type - 'share' for public player or 'gift' for gift experience (default 'share')
 
         Args:
             slug: The mixtape slug identifier (URL-encoded)
@@ -120,9 +131,17 @@ def create_qr_blueprint(
         qr_size = min(int(request.args.get('size', 800)), 1200)
         include_cover = request.args.get('include_cover', 'true').lower() != 'false'
         include_title = request.args.get('include_title', 'true').lower() != 'false'
+        url_type = request.args.get('type', 'share')  # 'share' or 'gift'
 
-        # Build the full share URL
-        share_url = url_for('play.public_play', slug=slug, _external=True)
+        # Validate url_type
+        if url_type not in ['share', 'gift']:
+            url_type = 'share'
+
+        # Build the appropriate URL based on type
+        if url_type == 'gift':
+            share_url = url_for('play.gift_play', slug=slug, _external=True)
+        else:
+            share_url = url_for('play.public_play', slug=slug, _external=True)
 
         try:
             # Get logo path
@@ -153,7 +172,10 @@ def create_qr_blueprint(
             # Sanitize title for filename
             title = mixtape.get('title', 'mixtape')
             safe_title = "".join(c if c.isalnum() or c in " -_" else "_" for c in title)
-            filename = f"{safe_title}-qr-code.png"
+            
+            # Create filename based on type
+            type_suffix = 'gift' if url_type == 'gift' else 'mixtape'
+            filename = f"{safe_title}-{type_suffix}-qr-code.png"
 
             response = Response(qr_bytes, mimetype='image/png')
             response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'

@@ -4,7 +4,7 @@ import { initEditorNotes } from "./editorNotes.js";
 import { initUI, activateInitialNotesTab } from "./ui.js";
 import { initPlaylist, setPlaylist } from "./playlist.js";
 import { initQRShare } from '../common/qrShare.js';
-import { initGiftSettings } from './giftSettings.js';
+import { initGiftSettings, getGiftSettings } from './giftSettings.js';
 
 const preloadMixtape = window.PRELOADED_MIXTAPE;
 
@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ---------------------------------------------------------------
-    // 2️⃣  Initialise EasyMDE (the editor) — the tabs are already rendered,
+    // 2️⃣  Initialise EasyMDE (the editor) – the tabs are already rendered,
     //     so the editor will be visible and will receive the correct
     //     initial value.
     // ---------------------------------------------------------------
@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initGiftSettings();
 
     // ---------------------------------------------------------------
-    // 4️⃣  Initialize QR share functionality
+    // 4️⃣  Initialize QR share functionality with gift flow support
     // ---------------------------------------------------------------
     // Check if this is an existing mixtape (has slug)
     const isExistingMixtape = Boolean(
@@ -82,11 +82,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
             return null;
         },
+        isGiftFlow: () => {
+            // Get current gift settings
+            return getGiftSettings().gift_flow_enabled;
+        },
         autoShow: isExistingMixtape  // Show immediately for existing, hide for new
     });
 
     // ---------------------------------------------------------------
-    // 5️⃣  Activate the appropriate sub‑tab (Write vs Preview)
+    // 5️⃣  Activate the appropriate sub-tab (Write vs Preview)
     // ---------------------------------------------------------------
     // If there are liner notes, we want the *Preview* tab to be visible
     // right away. Otherwise we fall back to the *Write* tab.

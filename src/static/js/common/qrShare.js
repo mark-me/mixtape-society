@@ -3,10 +3,12 @@
 /**
  * Common QR code sharing functionality
  * Works across browser, editor, and player pages
+ * NOW WITH GIFT URL SUPPORT!
  */
 
 // Store current slug when modal is opened
 let currentModalSlug = null;
+let currentGiftFlowEnabled = false;
 
 /**
  * Initialize QR sharing for a specific context
@@ -15,6 +17,7 @@ let currentModalSlug = null;
  * @param {string} options.shareButtonSelector - CSS selector for share button(s)
  * @param {string} options.modalId - ID of the QR modal
  * @param {Function} options.getSlug - Function to get the current mixtape slug
+ * @param {Function} options.isGiftFlow - Function to check if gift flow is enabled
  * @param {boolean} options.autoShow - Whether button should always be visible (default: false)
  */
 export function initQRShare(options = {}) {
@@ -22,6 +25,7 @@ export function initQRShare(options = {}) {
         shareButtonSelector = '.qr-share-btn',
         modalId = 'qrShareModal',
         getSlug = null,
+        isGiftFlow = null,
         autoShow = false
     } = options;
 
@@ -34,11 +38,11 @@ export function initQRShare(options = {}) {
     // Initialize all share buttons
     const shareButtons = document.querySelectorAll(shareButtonSelector);
     shareButtons.forEach(btn => {
-        initShareButton(btn, modal, getSlug, autoShow);
+        initShareButton(btn, modal, getSlug, isGiftFlow, autoShow);
     });
 
     // Setup modal buttons
-    setupModalButtons(modal, getSlug);
+    setupModalButtons(modal, getSlug, isGiftFlow);
 
     // Listen for dynamic updates (e.g., after save in editor)
     document.addEventListener('mixtape-saved', (e) => {
@@ -59,7 +63,7 @@ function initModal(modalId) {
 /**
  * Initialize a single share button
  */
-function initShareButton(button, modal, getSlugFn, autoShow) {
+function initShareButton(button, modal, getSlugFn, isGiftFlowFn, autoShow) {
     // Show button if autoShow or if slug exists
     if (autoShow) {
         button.style.display = '';
@@ -77,11 +81,40 @@ function initShareButton(button, modal, getSlugFn, autoShow) {
         
         const slug = getSlugFromButton(button, getSlugFn);
         if (slug) {
-            showQRModal(modal, slug);
+            // Check if gift flow is enabled
+            const giftFlowEnabled = isGiftFlowFn ? isGiftFlowFn() : checkGiftFlowEnabled();
+            showQRModal(modal, slug, giftFlowEnabled);
         } else {
             showError('Please save your mixtape first');
         }
     });
+}
+
+/**
+ * Check if gift flow is enabled from various sources
+ */
+function checkGiftFlowEnabled() {
+    // Try to get from window.getGiftSettings if available (editor page)
+    if (typeof window.getGiftSettings === 'function') {
+        try {
+            const settings = window.getGiftSettings();
+            return settings.gift_flow_enabled || false;
+        } catch (e) {
+            console.warn('Error getting gift settings:', e);
+        }
+    }
+    
+    // Try to get from PRELOADED_MIXTAPE (editor or player page)
+    if (window.PRELOADED_MIXTAPE && window.PRELOADED_MIXTAPE.gift_flow_enabled) {
+        return true;
+    }
+    
+    // Try to check if we're on a gift page (player page)
+    if (window.location.pathname.includes('/play/gift/')) {
+        return true;
+    }
+    
+    return false;
 }
 
 /**
@@ -110,9 +143,14 @@ function getSlugFromButton(button, getSlugFn) {
     }
     
     // Try getting from URL (player page)
-    const match = window.location.pathname.match(/\/play\/share\/([^\/]+)/);
-    if (match) {
-        return decodeURIComponent(match[1]);
+    const shareMatch = window.location.pathname.match(/\/play\/share\/([^\/]+)/);
+    if (shareMatch) {
+        return decodeURIComponent(shareMatch[1]);
+    }
+    
+    const giftMatch = window.location.pathname.match(/\/play\/gift\/([^\/]+)/);
+    if (giftMatch) {
+        return decodeURIComponent(giftMatch[1]);
     }
     
     // Try from preloaded data (editor page)
@@ -140,16 +178,48 @@ function updateShareButtons(selector, autoShow) {
 
 /**
  * Show QR modal with loading state
+ * @param {Object} modal - Bootstrap modal instance
+ * @param {string} slug - Mixtape slug
+ * @param {boolean} isGiftFlow - Whether gift flow is enabled
  */
-function showQRModal(modal, slug) {
+function showQRModal(modal, slug, isGiftFlow = false) {
     const qrImg = document.getElementById('qr-code-img');
     const qrLoading = document.getElementById('qr-loading');
     const qrError = document.getElementById('qr-error');
+    const modalTitle = document.querySelector('#qrShareModal .modal-title');
+    const modalBody = document.querySelector('#qrShareModal .modal-body');
     
     if (!qrImg) return;
     
-    // Store current slug for modal buttons
+    // Store current slug and gift flow status for modal buttons
     currentModalSlug = slug;
+    currentGiftFlowEnabled = isGiftFlow;
+    
+    // Update modal title and messaging based on gift flow
+    if (modalTitle) {
+        if (isGiftFlow) {
+            modalTitle.innerHTML = '<i class="bi bi-gift me-2"></i>Share Gift Link';
+        } else {
+            modalTitle.innerHTML = '<i class="bi bi-share me-2"></i>Share Mixtape';
+        }
+    }
+    
+    // Add/update gift flow indicator
+    let giftIndicator = document.getElementById('qr-gift-indicator');
+    if (isGiftFlow) {
+        if (!giftIndicator && modalBody) {
+            giftIndicator = document.createElement('div');
+            giftIndicator.id = 'qr-gift-indicator';
+            giftIndicator.className = 'alert alert-info d-flex align-items-center mb-3';
+            giftIndicator.innerHTML = `
+                <i class="bi bi-gift-fill me-2"></i>
+                <small>This will share the gift unwrap experience</small>
+            `;
+            modalBody.insertBefore(giftIndicator, modalBody.firstChild);
+        }
+    } else if (giftIndicator) {
+        giftIndicator.remove();
+    }
     
     // Show modal
     modal.show();
@@ -159,8 +229,9 @@ function showQRModal(modal, slug) {
     if (qrLoading) qrLoading.style.display = 'block';
     if (qrError) qrError.style.display = 'none';
     
-    // Build QR URL
-    const qrUrl = `/qr/${encodeURIComponent(slug)}.png?size=400&logo=true`;
+    // Build QR URL - use gift endpoint if gift flow is enabled
+    const urlType = isGiftFlow ? 'gift' : 'share';
+    const qrUrl = `/qr/${encodeURIComponent(slug)}.png?size=400&logo=true&type=${urlType}`;
     
     // Load QR code image
     const img = new Image();
@@ -188,14 +259,14 @@ function showQRModal(modal, slug) {
 /**
  * Setup modal action buttons (download, copy link)
  */
-function setupModalButtons(modal, getSlugFn) {
+function setupModalButtons(modal, getSlugFn, isGiftFlowFn) {
     // Download button
     const downloadBtn = document.getElementById('qr-download-btn');
     if (downloadBtn) {
         downloadBtn.addEventListener('click', async () => {
             const slug = getCurrentSlug(getSlugFn);
             if (slug) {
-                await downloadQRCode(slug);
+                await downloadQRCode(slug, currentGiftFlowEnabled);
             }
         });
     }
@@ -206,7 +277,7 @@ function setupModalButtons(modal, getSlugFn) {
         copyLinkBtn.addEventListener('click', async () => {
             const slug = getCurrentSlug(getSlugFn);
             if (slug) {
-                await copyShareLink(slug);
+                await copyShareLink(slug, currentGiftFlowEnabled);
             }
         });
     }
@@ -237,9 +308,14 @@ function getCurrentSlug(getSlugFn) {
         return editingInput.value;
     }
     
-    const match = window.location.pathname.match(/\/play\/share\/([^\/]+)/);
-    if (match) {
-        return decodeURIComponent(match[1]);
+    const shareMatch = window.location.pathname.match(/\/play\/share\/([^\/]+)/);
+    if (shareMatch) {
+        return decodeURIComponent(shareMatch[1]);
+    }
+    
+    const giftMatch = window.location.pathname.match(/\/play\/gift\/([^\/]+)/);
+    if (giftMatch) {
+        return decodeURIComponent(giftMatch[1]);
     }
     
     if (window.PRELOADED_MIXTAPE && window.PRELOADED_MIXTAPE.slug) {
@@ -251,8 +327,10 @@ function getCurrentSlug(getSlugFn) {
 
 /**
  * Download enhanced QR code with cover art
+ * @param {string} slug - Mixtape slug
+ * @param {boolean} isGiftFlow - Whether gift flow is enabled
  */
-async function downloadQRCode(slug) {
+async function downloadQRCode(slug, isGiftFlow = false) {
     const downloadBtn = document.getElementById('qr-download-btn');
     
     if (!downloadBtn) return;
@@ -263,7 +341,10 @@ async function downloadQRCode(slug) {
     downloadBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Generating...';
     
     try {
-        const response = await fetch(`/qr/${encodeURIComponent(slug)}/download?size=800&include_cover=true&include_title=true`);
+        const urlType = isGiftFlow ? 'gift' : 'share';
+        const response = await fetch(
+            `/qr/${encodeURIComponent(slug)}/download?size=800&include_cover=true&include_title=true&type=${urlType}`
+        );
         
         if (!response.ok) {
             throw new Error('Download failed');
@@ -271,7 +352,8 @@ async function downloadQRCode(slug) {
         
         // Get filename from Content-Disposition header
         const contentDisposition = response.headers.get('Content-Disposition');
-        let filename = `${slug}-qr-code.png`;
+        const prefix = isGiftFlow ? 'gift' : 'mixtape';
+        let filename = `${slug}-${prefix}-qr-code.png`;
         
         if (contentDisposition) {
             const match = contentDisposition.match(/filename="?(.+)"?/);
@@ -290,7 +372,8 @@ async function downloadQRCode(slug) {
         document.body.removeChild(a);
         
         // Show success message
-        showToast('QR code downloaded successfully!', 'success');
+        const message = isGiftFlow ? 'Gift QR code downloaded!' : 'QR code downloaded successfully!';
+        showToast(message, 'success');
         
     } catch (error) {
         console.error('QR download failed:', error);
@@ -304,15 +387,19 @@ async function downloadQRCode(slug) {
 
 /**
  * Copy share link to clipboard
+ * @param {string} slug - Mixtape slug
+ * @param {boolean} isGiftFlow - Whether gift flow is enabled
  */
-async function copyShareLink(slug) {
+async function copyShareLink(slug, isGiftFlow = false) {
     // URL-encode the slug to handle spaces and special characters
     const encodedSlug = encodeURIComponent(slug);
-    const shareUrl = `${window.location.origin}/play/share/${encodedSlug}`;
+    const urlPath = isGiftFlow ? 'gift' : 'share';
+    const shareUrl = `${window.location.origin}/play/${urlPath}/${encodedSlug}`;
     
     try {
         await navigator.clipboard.writeText(shareUrl);
-        showToast('Link copied to clipboard!', 'success');
+        const message = isGiftFlow ? 'Gift link copied to clipboard!' : 'Link copied to clipboard!';
+        showToast(message, 'success');
     } catch (error) {
         // Fallback for older browsers
         const textarea = document.createElement('textarea');
@@ -324,7 +411,8 @@ async function copyShareLink(slug) {
         
         try {
             document.execCommand('copy');
-            showToast('Link copied to clipboard!', 'success');
+            const message = isGiftFlow ? 'Gift link copied to clipboard!' : 'Link copied to clipboard!';
+            showToast(message, 'success');
         } catch (e) {
             showToast('Failed to copy link', 'danger');
         }
@@ -383,10 +471,13 @@ function showError(message) {
 
 /**
  * Helper function to preload QR code (optional optimization)
+ * @param {string} slug - Mixtape slug
+ * @param {boolean} isGiftFlow - Whether gift flow is enabled
  */
-export function preloadQRCode(slug) {
+export function preloadQRCode(slug, isGiftFlow = false) {
     if (!slug) return;
     
+    const urlType = isGiftFlow ? 'gift' : 'share';
     const img = new Image();
-    img.src = `/qr/${encodeURIComponent(slug)}.png?size=400&logo=true`;
+    img.src = `/qr/${encodeURIComponent(slug)}.png?size=400&logo=true&type=${urlType}`;
 }

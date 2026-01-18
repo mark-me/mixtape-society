@@ -239,3 +239,6 @@ export function updateGiftSettings(settings) {
         if (toggle) toggle.checked = settings.show_tracklist_after_completion;
     }
 }
+
+// Export to window for access from qrShare module
+window.getGiftSettings = getGiftSettings;
