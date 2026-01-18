@@ -461,7 +461,7 @@ export function initPlayerControls() {
         const track = trackItems[index];
 
         bottomTitle.textContent = track.dataset.title;
-        bottomArtistAlbum.textContent = `${track.dataset.artist} â€¢ ${track.dataset.album}`;
+        bottomArtistAlbum.textContent = `${track.dataset.artist} • ${track.dataset.album}`;
         container.style.display = 'block';
 
         trackItems.forEach(t => t.classList.remove('active-track'));
