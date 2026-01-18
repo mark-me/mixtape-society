@@ -281,50 +281,53 @@ export function extractMetadataFromDOM(trackElement) {
         const slug = coverPath.split('/').pop().replace('.jpg', '').replace(/_\d+x\d+$/, '');
 
         // Build size-optimized artwork URLs using the new backend
+        // CRITICAL: Car systems require absolute HTTPS URLs
+        const baseUrl = window.location.origin;
+
         if (iOS) {
             // iOS optimization - prefers larger sizes for lock screen
             artwork = [
                 {
-                    src: `/covers/${slug}_512x512.jpg`,
+                    src: `${baseUrl}/covers/${slug}_512x512.jpg`,
                     sizes: '512x512',
                     type: mimeType
                 },
                 {
-                    src: `/covers/${slug}_256x256.jpg`,
+                    src: `${baseUrl}/covers/${slug}_256x256.jpg`,
                     sizes: '256x256',
                     type: mimeType
                 },
                 {
-                    src: `/covers/${slug}_192x192.jpg`,
+                    src: `${baseUrl}/covers/${slug}_192x192.jpg`,
                     sizes: '192x192',
                     type: mimeType
                 }
             ];
         } else if (android && android.isAndroidAuto) {
-            // Android Auto - requires full size spectrum
+            // Android Auto - requires full size spectrum with absolute URLs
             artwork = [
                 {
-                    src: `/covers/${slug}_96x96.jpg`,
+                    src: `${baseUrl}/covers/${slug}_96x96.jpg`,
                     sizes: '96x96',
                     type: mimeType
                 },
                 {
-                    src: `/covers/${slug}_128x128.jpg`,
+                    src: `${baseUrl}/covers/${slug}_128x128.jpg`,
                     sizes: '128x128',
                     type: mimeType
                 },
                 {
-                    src: `/covers/${slug}_192x192.jpg`,
+                    src: `${baseUrl}/covers/${slug}_192x192.jpg`,
                     sizes: '192x192',
                     type: mimeType
                 },
                 {
-                    src: `/covers/${slug}_256x256.jpg`,
+                    src: `${baseUrl}/covers/${slug}_256x256.jpg`,
                     sizes: '256x256',
                     type: mimeType
                 },
                 {
-                    src: `/covers/${slug}_512x512.jpg`,
+                    src: `${baseUrl}/covers/${slug}_512x512.jpg`,
                     sizes: '512x512',
                     type: mimeType
                 }
@@ -333,12 +336,12 @@ export function extractMetadataFromDOM(trackElement) {
             // Desktop/other - simpler set
             artwork = [
                 {
-                    src: `/covers/${slug}_192x192.jpg`,
+                    src: `${baseUrl}/covers/${slug}_192x192.jpg`,
                     sizes: '192x192',
                     type: mimeType
                 },
                 {
-                    src: `/covers/${slug}_512x512.jpg`,
+                    src: `${baseUrl}/covers/${slug}_512x512.jpg`,
                     sizes: '512x512',
                     type: mimeType
                 }

@@ -6,11 +6,11 @@ All notable changes to Mixtape Society are documented here. We follow [Semantic 
 
 Each release rewinds and fast-forwards your mixtape experience—just like a real cassette! 🎧
 
-## 📦 v0.6.0
+## 📦 v0.7.0
 
 <span class="md-tag">Development</span>
 
-**🗓️** 2026-01-16
+**🗓️** 2026-01-xx
 
 ### ✨ Added
 
@@ -18,7 +18,21 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 ### 🐛 Fixed
 
--
+---
+
+## 📦 v0.6.0
+
+<span class="md-tag">Release</span>
+
+**🗓️** 2026-01-18
+
+### ✨ Added
+
+- Prefetching next song data for improved song switching.
+
+### 🐛 Fixed
+
+- Android car not showing.
 
 ---
 
