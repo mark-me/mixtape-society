@@ -1,0 +1,3885 @@
+<!DOCTYPE html><html lang="en" class="no-js"><head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="pwa.html">
+      
+      
+        <link rel="next" href="../common.html">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../images/favicon.svg">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+    
+    
+      
+        <title>PWA Improvements - Mixtape Society</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.618322db.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+        <script src="https://unpkg.com/iframe-worker/shim"></script>
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/panzoom.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  <link href="../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style><meta name="panzoom-theme" content="material">
+<meta name="panzoom-data" content='{"selectors": [".d2", ".mermaid"], "initial_zoom_level": 1.0}'> </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#progressive-web-app-pwa-optimization" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../index.html" title="Mixtape Society" class="md-header__button md-logo" aria-label="Mixtape Society" data-md-component="logo">
+      
+  <img src="../../images/logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Mixtape Society
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              PWA Improvements
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/mark-me/mixtape-society" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../index.html" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Introduction
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../user/getting-started.html" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../intro.html" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Architecture &amp; Development
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../project/index.html" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Project
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../index.html" title="Mixtape Society" class="md-nav__button md-logo" aria-label="Mixtape Society" data-md-component="logo">
+      
+  <img src="../../images/logo.svg" alt="logo">
+
+    </a>
+    Mixtape Society
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/mark-me/mixtape-society" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2">
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user/getting-started.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2">
+        
+          
+          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Installation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker-dev.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Local Development (Docker)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user/docker-deployment.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Production Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_3">
+        
+          
+          <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Using Mixtape Society
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Using Mixtape Society
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user/editor.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Editor Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user/collection-management.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Collection Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user/sharing.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sharing &amp; Public Links
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture &amp; Development
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture &amp; Development
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../intro.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2">
+        
+          
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core Components
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Core Components
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2_1">
+        
+          
+          <label class="md-nav__link" for="__nav_3_2_1" id="__nav_3_2_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Music Library (musiclib)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_2_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Music Library (musiclib)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../musiclib/intro.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../musiclib/reading.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reader
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../musiclib/loading.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Loader
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2_2">
+        
+          
+          <label class="md-nav__link" for="__nav_3_2_2" id="__nav_3_2_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cover Art System
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Cover Art System
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cover-art/overview.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cover-art/size-optimization.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Size Optimization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cover-art/api.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2_3">
+        
+          
+          <label class="md-nav__link" for="__nav_3_2_3" id="__nav_3_2_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Android Auto
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Android Auto
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../android-auto/integration-overview.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../android-auto/frontend-integration.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Front end
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../android-auto/backend-implementation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Back-end
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../android-auto/testing-guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../chromecast/integration.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chromecast
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mixtape_manager.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mixtape Manager
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../audio_caching.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Server Audio Caching
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qr_generation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    QR Code creation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../utilities.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Flask app
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Flask app
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../app.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Main App
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3_3_2" id="__nav_3_3_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Progressive Web App (PWA)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_3_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Progressive Web App (PWA)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="pwa.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction PWA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PWA Improvements
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="pwa-optimization.html" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PWA Improvements
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#why-pwa-matters-for-ios-users" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🍎 Why PWA Matters for iOS Users
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#native-airplay-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎵 Native AirPlay Support
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pwa-installation-guide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📱 PWA Installation Guide
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#media-session-api-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎮 Media Session API Integration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fullscreen-cassette-experience" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📺 Fullscreen Cassette Experience
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#service-worker-offline-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔄 Service Worker &amp; Offline Support
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pwa-manifest-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📊 PWA Manifest Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uiux-optimizations-for-mobile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎨 UI/UX Optimizations for Mobile
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#privacy-security" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔐 Privacy &amp; Security
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance-optimizations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📈 Performance Optimizations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#future-pwa-enhancements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 Future PWA Enhancements
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📱 Testing Checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🐛 Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📚 Resources
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../common.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Common
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3_4">
+        
+          
+          <label class="md-nav__link" for="__nav_3_3_4" id="__nav_3_3_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Player Modules
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_3_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Player Modules
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../player/playerControls.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Player Controls
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../player/playerUtils.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Player Utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3_5">
+        
+          
+          <label class="md-nav__link" for="__nav_3_3_5" id="__nav_3_3_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Routes
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_3_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Routes
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../routes/browse_mixtapes.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Browser
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3_5_2">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../routes/editor/index.html" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Editor
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_3_5_2" id="__nav_3_3_5_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_3_3_5_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3_5_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Editor
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../routes/editor/backend-api.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backend API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../routes/editor/frontend-modules.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Frontend Modules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3_5_3">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../routes/play/index.html" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Playback
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_3_5_3" id="__nav_3_3_5_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_3_3_5_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3_5_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Playback
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../routes/play/media-integration.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Media Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../routes/play/audio-streaming.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Audio Streaming
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../routes/play/range-requests.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Range Requests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../routes/play/quality-caching.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quality Caching
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../routes/covers.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cover Art
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../routes/authentication.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Authentication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../routes/opengraph_images.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OpenGraph
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../routes/qr_codes.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    QR Codes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../project/index.html" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Project
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../project/changelog.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../project/roadmap.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4">
+        
+          
+          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ideas
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Ideas
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../project/ideas/ideas.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    General
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../project/ideas/design_implementation_map.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design &amp; Implementation Map
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../project/contributing.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../project/about.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#why-pwa-matters-for-ios-users" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🍎 Why PWA Matters for iOS Users
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#native-airplay-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎵 Native AirPlay Support
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pwa-installation-guide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📱 PWA Installation Guide
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#media-session-api-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎮 Media Session API Integration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fullscreen-cassette-experience" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📺 Fullscreen Cassette Experience
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#service-worker-offline-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔄 Service Worker &amp; Offline Support
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pwa-manifest-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📊 PWA Manifest Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uiux-optimizations-for-mobile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎨 UI/UX Optimizations for Mobile
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#privacy-security" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔐 Privacy &amp; Security
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance-optimizations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📈 Performance Optimizations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#future-pwa-enhancements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 Future PWA Enhancements
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📱 Testing Checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🐛 Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📚 Resources
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/mark-me/mixtape-society/edit/master/docs/development/pwa/pwa-optimization.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"></path></svg>
+    </a>
+  
+  
+
+
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../images/app.png" data-title="PWA" data-desc-position="bottom"><img align="right" alt="PWA" src="../../images/app.png" width="90"></a></p>
+<h1 id="progressive-web-app-pwa-optimization">Progressive Web App (PWA) Optimization<a class="headerlink" href="#progressive-web-app-pwa-optimization" title="Permanent link">¶</a></h1>
+<p>Mixtape Society is designed as a Progressive Web App, providing an app-like experience without requiring installation from an app store. This is especially powerful on iOS devices, where PWA features unlock native capabilities like AirPlay streaming, background playback, and home screen installation.</p>
+<h2 id="why-pwa-matters-for-ios-users">🍎 Why PWA Matters for iOS Users<a class="headerlink" href="#why-pwa-matters-for-ios-users" title="Permanent link">¶</a></h2>
+<p>Apple devices have excellent built-in support for web audio streaming. By optimizing the PWA experience, iOS users get:</p>
+<ul>
+<li><strong>Native AirPlay integration</strong> – Stream directly to Apple TV, HomePod, AirPort Express</li>
+<li><strong>Lock screen controls</strong> – Full media controls without unlocking phone</li>
+<li><strong>Background playback</strong> – Keep playing with screen off or while using other apps</li>
+<li><strong>Home screen installation</strong> – Launch like a native app</li>
+<li><strong>Offline support</strong> – Continue playing cached mixtapes without internet</li>
+<li><strong>Immersive fullscreen</strong> – Cassette mode with landscape orientation lock</li>
+</ul>
+<h2 id="native-airplay-support">🎵 Native AirPlay Support<a class="headerlink" href="#native-airplay-support" title="Permanent link">¶</a></h2>
+<p><strong>Good news: AirPlay already works!</strong> No additional code needed.</p>
+<p>When iOS users play a mixtape in Safari, they automatically get native AirPlay support through the system audio player. This is actually superior to custom implementations because:</p>
+<h3 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>User opens mixtape</strong> in Safari (iOS 10+ or macOS)</li>
+<li><strong>Starts playing a track</strong> – System audio controls appear</li>
+<li><strong>Taps AirPlay icon</strong> – Built into the audio controls</li>
+<li><strong>Selects device</strong> – Apple TV, HomePod, or AirPlay speakers</li>
+<li><strong>Streams seamlessly</strong> – High-quality audio to selected device</li>
+</ol>
+<h3 id="advantages-over-custom-implementation">Advantages Over Custom Implementation<a class="headerlink" href="#advantages-over-custom-implementation" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Native AirPlay</th>
+<th>Custom Integration</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Development effort</strong></td>
+<td>✅ Zero (already works)</td>
+<td>❌ Significant (server-side streaming)</td>
+</tr>
+<tr>
+<td><strong>Device compatibility</strong></td>
+<td>✅ All AirPlay devices</td>
+<td>⚠️ Requires device discovery</td>
+</tr>
+<tr>
+<td><strong>Audio quality</strong></td>
+<td>✅ Lossless (if supported)</td>
+<td>⚠️ Depends on implementation</td>
+</tr>
+<tr>
+<td><strong>Battery efficiency</strong></td>
+<td>✅ System-optimized</td>
+<td>⚠️ Must manage manually</td>
+</tr>
+<tr>
+<td><strong>UI/UX</strong></td>
+<td>✅ Native iOS design</td>
+<td>❌ Custom UI needed</td>
+</tr>
+<tr>
+<td><strong>Maintenance</strong></td>
+<td>✅ Apple handles updates</td>
+<td>❌ Must maintain library</td>
+</tr>
+</tbody>
+</table>
+<h3 id="where-to-find-airplay-controls">Where to Find AirPlay Controls<a class="headerlink" href="#where-to-find-airplay-controls" title="Permanent link">¶</a></h3>
+<p><strong>Safari on iPhone/iPad:</strong>
+- Controls appear in the Now Playing widget
+- Available in Control Center
+- Lock screen media controls
+- Notification shade quick access</p>
+<p><strong>Safari on Mac:</strong>
+- Menu bar audio icon
+- System audio controls
+- Touch Bar (if available)</p>
+<h2 id="pwa-installation-guide">📱 PWA Installation Guide<a class="headerlink" href="#pwa-installation-guide" title="Permanent link">¶</a></h2>
+<p>Encourage users to install the mixtape player to their home screen for the best experience.</p>
+<h3 id="installation-instructions-ios">Installation Instructions (iOS)<a class="headerlink" href="#installation-instructions-ios" title="Permanent link">¶</a></h3>
+<p><strong>For Mixtape Recipients:</strong></p>
+<ol>
+<li><strong>Open the mixtape link</strong> in Safari (must be Safari, not Chrome)</li>
+<li><strong>Tap the Share button</strong> (square with arrow pointing up)</li>
+<li><strong>Scroll down and tap "Add to Home Screen"</strong></li>
+<li><strong>Customize the name</strong> if desired (defaults to "Mixtape Society")</li>
+<li><strong>Tap "Add"</strong> in the top-right corner</li>
+</ol>
+<p>The mixtape icon now appears on the home screen like a native app!</p>
+<h3 id="why-users-should-install">Why Users Should Install<a class="headerlink" href="#why-users-should-install" title="Permanent link">¶</a></h3>
+<p><strong>Enhanced Experience:</strong>
+- 🚀 Launches instantly (no Safari UI)
+- 📺 Fullscreen immersive player
+- 🎨 Custom app icon with mixtape branding
+- 🔄 Faster load times (cached resources)
+- ✈️ Works offline with cached tracks
+- 🎵 Better audio controls and AirPlay access</p>
+<p><strong>Perfect for:</strong>
+- Regular listeners of specific mixtapes
+- Party playlists used frequently
+- Gift mixtapes meant to be kept
+- Family music collections</p>
+<h2 id="media-session-api-integration">🎮 Media Session API Integration<a class="headerlink" href="#media-session-api-integration" title="Permanent link">¶</a></h2>
+<p>The app uses the Media Session API to provide native OS controls. This works on both iOS and Android.</p>
+<h3 id="features-provided">Features Provided<a class="headerlink" href="#features-provided" title="Permanent link">¶</a></h3>
+<p><strong>Lock Screen Controls:</strong>
+</p><div class="highlight"><pre><span></span><code><span class="c1">// Already implemented in playerUtils.js</span>
+<span class="k">export</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">setupLocalMediaSession</span><span class="p">(</span><span class="nx">metadata</span><span class="p">,</span><span class="w"> </span><span class="nx">playerControls</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">navigator</span><span class="p">.</span><span class="nx">mediaSession</span><span class="p">.</span><span class="nx">metadata</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">MediaMetadata</span><span class="p">({</span>
+<span class="w">        </span><span class="nx">title</span><span class="o">:</span><span class="w"> </span><span class="nx">metadata</span><span class="p">.</span><span class="nx">title</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">artist</span><span class="o">:</span><span class="w"> </span><span class="nx">metadata</span><span class="p">.</span><span class="nx">artist</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">album</span><span class="o">:</span><span class="w"> </span><span class="nx">metadata</span><span class="p">.</span><span class="nx">album</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">artwork</span><span class="o">:</span><span class="w"> </span><span class="nx">metadata</span><span class="p">.</span><span class="nx">artwork</span><span class="w">  </span><span class="c1">// Shows cover art on lock screen</span>
+<span class="w">    </span><span class="p">});</span>
+
+<span class="w">    </span><span class="c1">// Action handlers for hardware buttons</span>
+<span class="w">    </span><span class="nx">navigator</span><span class="p">.</span><span class="nx">mediaSession</span><span class="p">.</span><span class="nx">setActionHandler</span><span class="p">(</span><span class="s1">'play'</span><span class="p">,</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">playerControls</span><span class="p">.</span><span class="nx">play</span><span class="p">());</span>
+<span class="w">    </span><span class="nx">navigator</span><span class="p">.</span><span class="nx">mediaSession</span><span class="p">.</span><span class="nx">setActionHandler</span><span class="p">(</span><span class="s1">'pause'</span><span class="p">,</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">playerControls</span><span class="p">.</span><span class="nx">pause</span><span class="p">());</span>
+<span class="w">    </span><span class="nx">navigator</span><span class="p">.</span><span class="nx">mediaSession</span><span class="p">.</span><span class="nx">setActionHandler</span><span class="p">(</span><span class="s1">'previoustrack'</span><span class="p">,</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">playerControls</span><span class="p">.</span><span class="nx">previous</span><span class="p">());</span>
+<span class="w">    </span><span class="nx">navigator</span><span class="p">.</span><span class="nx">mediaSession</span><span class="p">.</span><span class="nx">setActionHandler</span><span class="p">(</span><span class="s1">'nexttrack'</span><span class="p">,</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">playerControls</span><span class="p">.</span><span class="nx">next</span><span class="p">());</span>
+<span class="p">}</span>
+</code></pre></div><p></p>
+<p><strong>What Users Get:</strong></p>
+<ul>
+<li><strong>Lock screen</strong> – Play, pause, skip tracks without unlocking</li>
+<li><strong>Control Center</strong> – Quick access to playback controls (swipe down from top-right)</li>
+<li><strong>CarPlay</strong> – Control mixtapes from car dashboard (iOS 14.5+)</li>
+<li><strong>Hardware buttons</strong> – Headphone/earphone controls work</li>
+<li><strong>Now Playing</strong> – See current track and album art</li>
+</ul>
+<h3 id="ios-specific-optimizations">iOS-Specific Optimizations<a class="headerlink" href="#ios-specific-optimizations" title="Permanent link">¶</a></h3>
+<p><strong>Artwork Optimization:</strong>
+</p><div class="highlight"><pre><span></span><code><span class="c1">// From playerUtils.js - iOS prefers specific sizes</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">iOS</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">artwork</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">{</span><span class="w"> </span><span class="nx">src</span><span class="o">:</span><span class="w"> </span><span class="nx">absoluteSrc</span><span class="p">,</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="s1">'512x512'</span><span class="p">,</span><span class="w"> </span><span class="nx">type</span><span class="o">:</span><span class="w"> </span><span class="nx">mimeType</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="c1">// Primary for iOS</span>
+<span class="w">        </span><span class="p">{</span><span class="w"> </span><span class="nx">src</span><span class="o">:</span><span class="w"> </span><span class="nx">absoluteSrc</span><span class="p">,</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="s1">'256x256'</span><span class="p">,</span><span class="w"> </span><span class="nx">type</span><span class="o">:</span><span class="w"> </span><span class="nx">mimeType</span><span class="w"> </span><span class="p">},</span>
+<span class="w">        </span><span class="p">{</span><span class="w"> </span><span class="nx">src</span><span class="o">:</span><span class="w"> </span><span class="nx">absoluteSrc</span><span class="p">,</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="s1">'128x128'</span><span class="p">,</span><span class="w"> </span><span class="nx">type</span><span class="o">:</span><span class="w"> </span><span class="nx">mimeType</span><span class="w"> </span><span class="p">}</span>
+<span class="w">    </span><span class="p">];</span>
+<span class="p">}</span>
+</code></pre></div><p></p>
+<p>iOS displays artwork most reliably at 512×512 pixels. The app automatically provides this optimization.</p>
+<p><strong>Version Detection:</strong>
+</p><div class="highlight"><pre><span></span><code><span class="c1">// Detect iOS version and capabilities</span>
+<span class="k">export</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">detectiOS</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">ua</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">navigator</span><span class="p">.</span><span class="nx">userAgent</span><span class="p">;</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">isIOS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sr">/iPad|iPhone|iPod/</span><span class="p">.</span><span class="nx">test</span><span class="p">(</span><span class="nx">ua</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">!</span><span class="nb">window</span><span class="p">.</span><span class="nx">MSStream</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nx">isIOS</span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="kc">null</span><span class="p">;</span>
+
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">match</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">ua</span><span class="p">.</span><span class="nx">match</span><span class="p">(</span><span class="sr">/OS (\d+)_(\d+)/</span><span class="p">);</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">major</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">match</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="nb">parseInt</span><span class="p">(</span><span class="nx">match</span><span class="p">[</span><span class="mf">1</span><span class="p">],</span><span class="w"> </span><span class="mf">10</span><span class="p">)</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">0</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">isIOS</span><span class="o">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">version</span><span class="o">:</span><span class="w"> </span><span class="nx">major</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">supportsMediaSession</span><span class="o">:</span><span class="w"> </span><span class="nx">major</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mf">15</span><span class="p">,</span><span class="w">  </span><span class="c1">// iOS 15+ required</span>
+<span class="w">        </span><span class="nx">isPWA</span><span class="o">:</span><span class="w"> </span><span class="nb">window</span><span class="p">.</span><span class="nx">navigator</span><span class="p">.</span><span class="nx">standalone</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="kc">true</span>
+<span class="w">    </span><span class="p">};</span>
+<span class="p">}</span>
+</code></pre></div><p></p>
+<h2 id="fullscreen-cassette-experience">📺 Fullscreen Cassette Experience<a class="headerlink" href="#fullscreen-cassette-experience" title="Permanent link">¶</a></h2>
+<p>The cassette player provides an immersive retro experience, especially on mobile devices.</p>
+<h3 id="mobile-behavior">Mobile Behavior<a class="headerlink" href="#mobile-behavior" title="Permanent link">¶</a></h3>
+<p><strong>Automatic Optimizations:</strong></p>
+<ol>
+<li><strong>Fullscreen mode</strong> – Removes browser chrome for immersion</li>
+<li><strong>Landscape lock</strong> – Forces horizontal orientation for cassette view</li>
+<li><strong>Keep awake</strong> – Screen stays on during playback</li>
+<li><strong>Restore on exit</strong> – Returns to normal orientation when stopping</li>
+</ol>
+<p><strong>Implementation:</strong>
+</p><div class="highlight"><pre><span></span><code><span class="c1">// From cassettePlayer.js</span>
+<span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">lockOrientationLandscape</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">screen</span><span class="p">.</span><span class="nx">orientation</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">screen</span><span class="p">.</span><span class="nx">orientation</span><span class="p">.</span><span class="nx">lock</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="k">await</span><span class="w"> </span><span class="nx">screen</span><span class="p">.</span><span class="nx">orientation</span><span class="p">.</span><span class="nx">lock</span><span class="p">(</span><span class="s1">'landscape'</span><span class="p">);</span>
+<span class="w">            </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'🔒 Orientation locked to landscape'</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">console</span><span class="p">.</span><span class="nx">warn</span><span class="p">(</span><span class="s1">'⚠️ Could not lock orientation:'</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">// Enters fullscreen and locks orientation when user taps play</span>
+<span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">enterFullscreenAndLock</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">container</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s1">'cassette-player-container'</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">container</span><span class="p">.</span><span class="nx">requestFullscreen</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">await</span><span class="w"> </span><span class="nx">container</span><span class="p">.</span><span class="nx">requestFullscreen</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">container</span><span class="p">.</span><span class="nx">webkitRequestFullscreen</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">  </span><span class="c1">// iOS Safari</span>
+<span class="w">        </span><span class="k">await</span><span class="w"> </span><span class="nx">container</span><span class="p">.</span><span class="nx">webkitRequestFullscreen</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">await</span><span class="w"> </span><span class="nx">lockOrientationLandscape</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre></div><p></p>
+<h3 id="user-experience-flow">User Experience Flow<a class="headerlink" href="#user-experience-flow" title="Permanent link">¶</a></h3>
+<p><strong>Starting Cassette Mode:</strong>
+1. User taps cassette mode toggle button
+2. Cassette player appears with spinning reels
+3. On first interaction (play/pause), device enters fullscreen
+4. Screen locks to landscape orientation
+5. Immersive walkman experience begins</p>
+<p><strong>During Playback:</strong>
+- Phone lock/unlock maintains playback
+- AirPlay controls available from lock screen
+- Physical buttons control playback
+- Screen stays awake (no sleep timeout)</p>
+<p><strong>Stopping:</strong>
+- Stop button unlocks orientation
+- User can exit fullscreen anytime
+- Orientation returns to user preference</p>
+<h2 id="service-worker-offline-support">🔄 Service Worker &amp; Offline Support<a class="headerlink" href="#service-worker-offline-support" title="Permanent link">¶</a></h2>
+<p>The PWA uses a service worker to enable offline playback and fast loading.</p>
+<h3 id="current-implementation">Current Implementation<a class="headerlink" href="#current-implementation" title="Permanent link">¶</a></h3>
+<p><strong>Service Worker Registration:</strong>
+</p><div class="highlight"><pre><span></span><code><span class="c1">// In base template</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="s1">'serviceWorker'</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="nx">navigator</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nb">window</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s1">'load'</span><span class="p">,</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">navigator</span><span class="p">.</span><span class="nx">serviceWorker</span><span class="p">.</span><span class="nx">register</span><span class="p">(</span><span class="s1">'/sw.js'</span><span class="p">)</span>
+<span class="w">            </span><span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">registration</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'Service Worker registered:'</span><span class="p">,</span><span class="w"> </span><span class="nx">registration</span><span class="p">);</span>
+<span class="w">            </span><span class="p">})</span>
+<span class="w">            </span><span class="p">.</span><span class="k">catch</span><span class="p">(</span><span class="nx">error</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'Service Worker registration failed:'</span><span class="p">,</span><span class="w"> </span><span class="nx">error</span><span class="p">);</span>
+<span class="w">            </span><span class="p">});</span>
+<span class="w">    </span><span class="p">});</span>
+<span class="p">}</span>
+</code></pre></div><p></p>
+<p><strong>What Gets Cached:</strong>
+- Core HTML, CSS, and JavaScript files
+- App icons and branding
+- Mixtape metadata and track listings
+- Previously played audio files
+- Cover art images</p>
+<h3 id="offline-indicator">Offline Indicator<a class="headerlink" href="#offline-indicator" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="cm">&lt;!-- Shows when offline in PWA mode --&gt;</span>
+<span class="p">&lt;</span><span class="nt">div</span> <span class="na">id</span><span class="o">=</span><span class="s">"offline-indicator"</span>
+     <span class="na">class</span><span class="o">=</span><span class="s">"alert alert-warning"</span>
+     <span class="na">style</span><span class="o">=</span><span class="s">"display: none;"</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">i</span> <span class="na">class</span><span class="o">=</span><span class="s">"bi bi-wifi-off"</span><span class="p">&gt;&lt;/</span><span class="nt">i</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">strong</span><span class="p">&gt;</span>Offline Mode<span class="p">&lt;/</span><span class="nt">strong</span><span class="p">&gt;</span> - Playing cached tracks only
+<span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+</code></pre></div>
+<p><strong>How It Works:</strong>
+1. User loses internet connection
+2. Yellow banner appears at top
+3. Previously played tracks remain available
+4. New tracks show as unavailable
+5. Banner disappears when connection restored</p>
+<h2 id="pwa-manifest-configuration">📊 PWA Manifest Configuration<a class="headerlink" href="#pwa-manifest-configuration" title="Permanent link">¶</a></h2>
+<p>The app's <code>manifest.json</code> defines PWA behavior:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Mixtape Society"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"short_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Mixtapes"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Create and share beautiful music mixtapes"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"start_url"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"display"</span><span class="p">:</span><span class="w"> </span><span class="s2">"standalone"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"background_color"</span><span class="p">:</span><span class="w"> </span><span class="s2">"#212529"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"theme_color"</span><span class="p">:</span><span class="w"> </span><span class="s2">"#198754"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"orientation"</span><span class="p">:</span><span class="w"> </span><span class="s2">"any"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"icons"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"src"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/static/icons/icon-72.png"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"sizes"</span><span class="p">:</span><span class="w"> </span><span class="s2">"72x72"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"image/png"</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"src"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/static/icons/icon-96.png"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"sizes"</span><span class="p">:</span><span class="w"> </span><span class="s2">"96x96"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"image/png"</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"src"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/static/icons/icon-128.png"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"sizes"</span><span class="p">:</span><span class="w"> </span><span class="s2">"128x128"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"image/png"</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"src"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/static/icons/icon-144.png"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"sizes"</span><span class="p">:</span><span class="w"> </span><span class="s2">"144x144"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"image/png"</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"src"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/static/icons/icon-152.png"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"sizes"</span><span class="p">:</span><span class="w"> </span><span class="s2">"152x152"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"image/png"</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"src"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/static/icons/icon-192.png"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"sizes"</span><span class="p">:</span><span class="w"> </span><span class="s2">"192x192"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"image/png"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"purpose"</span><span class="p">:</span><span class="w"> </span><span class="s2">"any maskable"</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"src"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/static/icons/icon-384.png"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"sizes"</span><span class="p">:</span><span class="w"> </span><span class="s2">"384x384"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"image/png"</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"src"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/static/icons/icon-512.png"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"sizes"</span><span class="p">:</span><span class="w"> </span><span class="s2">"512x512"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"image/png"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"purpose"</span><span class="p">:</span><span class="w"> </span><span class="s2">"any maskable"</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="key-properties-explained">Key Properties Explained<a class="headerlink" href="#key-properties-explained" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Value</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>display: "standalone"</code></td>
+<td>Full screen, no browser UI</td>
+<td>App-like experience</td>
+</tr>
+<tr>
+<td><code>theme_color: "#198754"</code></td>
+<td>Green accent</td>
+<td>Colors iOS status bar</td>
+</tr>
+<tr>
+<td><code>orientation: "any"</code></td>
+<td>User choice default</td>
+<td>Allows portrait and landscape</td>
+</tr>
+<tr>
+<td><code>purpose: "maskable"</code></td>
+<td>Adaptive icon</td>
+<td>Looks good on all Android launchers</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ios-specific-meta-tags">iOS-Specific Meta Tags<a class="headerlink" href="#ios-specific-meta-tags" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="cm">&lt;!-- From play_mixtape.html --&gt;</span>
+<span class="p">&lt;</span><span class="nt">meta</span> <span class="na">name</span><span class="o">=</span><span class="s">"apple-mobile-web-app-capable"</span> <span class="na">content</span><span class="o">=</span><span class="s">"yes"</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">meta</span> <span class="na">name</span><span class="o">=</span><span class="s">"apple-mobile-web-app-status-bar-style"</span> <span class="na">content</span><span class="o">=</span><span class="s">"default"</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">meta</span> <span class="na">name</span><span class="o">=</span><span class="s">"apple-mobile-web-app-title"</span> <span class="na">content</span><span class="o">=</span><span class="s">"Mixtape Society"</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">link</span> <span class="na">rel</span><span class="o">=</span><span class="s">"apple-touch-icon"</span> <span class="na">href</span><span class="o">=</span><span class="s">"/static/icons/icon-192.png"</span><span class="p">&gt;</span>
+</code></pre></div>
+<p>These tags ensure iOS treats the PWA like a native app when added to home screen.</p>
+<h2 id="uiux-optimizations-for-mobile">🎨 UI/UX Optimizations for Mobile<a class="headerlink" href="#uiux-optimizations-for-mobile" title="Permanent link">¶</a></h2>
+<h3 id="touch-friendly-controls">Touch-Friendly Controls<a class="headerlink" href="#touch-friendly-controls" title="Permanent link">¶</a></h3>
+<p><strong>Large tap targets:</strong>
+- All buttons minimum 44×44 pixels (Apple HIG recommendation)
+- Generous spacing between interactive elements
+- Visual feedback on tap (active states)</p>
+<p><strong>Responsive Design:</strong>
+- Player adapts to screen size
+- Cover art scales appropriately
+- Track list optimized for scrolling
+- Bottom player bar always accessible</p>
+<h3 id="gesture-support">Gesture Support<a class="headerlink" href="#gesture-support" title="Permanent link">¶</a></h3>
+<p><strong>Swipe Gestures:</strong>
+- Swipe left/right on track list to skip
+- Pull-to-refresh for mixtape updates (PWA mode)
+- Swipe down to dismiss modals</p>
+<p><strong>Haptic Feedback (iOS 10+):</strong>
+</p><div class="highlight"><pre><span></span><code><span class="c1">// Subtle vibration on button press</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">navigator</span><span class="p">.</span><span class="nx">vibrate</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">navigator</span><span class="p">.</span><span class="nx">vibrate</span><span class="p">(</span><span class="mf">10</span><span class="p">);</span><span class="w">  </span><span class="c1">// 10ms gentle tap</span>
+<span class="p">}</span>
+</code></pre></div><p></p>
+<h2 id="privacy-security">🔐 Privacy &amp; Security<a class="headerlink" href="#privacy-security" title="Permanent link">¶</a></h2>
+<h3 id="https-requirement">HTTPS Requirement<a class="headerlink" href="#https-requirement" title="Permanent link">¶</a></h3>
+<p>PWA features (service workers, media session, fullscreen) require HTTPS. Mixtape Society enforces this:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Flask app configuration</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">app</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
+    <span class="nd">@app</span><span class="o">.</span><span class="n">before_request</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">redirect_to_https</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'X-Forwarded-Proto'</span><span class="p">)</span> <span class="o">==</span> <span class="s1">'http'</span><span class="p">:</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">'http://'</span><span class="p">,</span> <span class="s1">'https://'</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">code</span><span class="o">=</span><span class="mi">301</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="data-privacy">Data Privacy<a class="headerlink" href="#data-privacy" title="Permanent link">¶</a></h3>
+<p><strong>What's Stored Locally:</strong>
+- User preferences (quality settings, theme)
+- Player mode (cassette vs. modern)
+- Cached audio files
+- Service worker cache</p>
+<p><strong>What's NOT Stored:</strong>
+- User identity or login info
+- Listening history or analytics
+- Location data
+- Personal information</p>
+<p><strong>Cache Management:</strong>
+</p><div class="highlight"><pre><span></span><code><span class="c1">// Users can clear cache in browser settings</span>
+<span class="c1">// Or use the built-in cache clear option (if implemented)</span>
+<span class="nx">localStorage</span><span class="p">.</span><span class="nx">clear</span><span class="p">();</span>
+<span class="nx">caches</span><span class="p">.</span><span class="nx">keys</span><span class="p">().</span><span class="nx">then</span><span class="p">(</span><span class="nx">names</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">names</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="nx">name</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">caches</span><span class="p">.</span><span class="ow">delete</span><span class="p">(</span><span class="nx">name</span><span class="p">));</span>
+<span class="p">});</span>
+</code></pre></div><p></p>
+<h2 id="performance-optimizations">📈 Performance Optimizations<a class="headerlink" href="#performance-optimizations" title="Permanent link">¶</a></h2>
+<h3 id="lazy-loading">Lazy Loading<a class="headerlink" href="#lazy-loading" title="Permanent link">¶</a></h3>
+<p><strong>Images:</strong>
+</p><div class="highlight"><pre><span></span><code><span class="p">&lt;</span><span class="nt">img</span> <span class="na">src</span><span class="o">=</span><span class="s">"cover.jpg"</span> <span class="na">loading</span><span class="o">=</span><span class="s">"lazy"</span> <span class="na">alt</span><span class="o">=</span><span class="s">"Cover art"</span><span class="p">&gt;</span>
+</code></pre></div><p></p>
+<p><strong>Audio:</strong>
+- Only loads when user hits play
+- Preloads next track in queue (5 seconds ahead)
+- Quality-based streaming (lower bitrate on slow connections)</p>
+<h3 id="resource-hints">Resource Hints<a class="headerlink" href="#resource-hints" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="cm">&lt;!-- Preconnect to CDN --&gt;</span>
+<span class="p">&lt;</span><span class="nt">link</span> <span class="na">rel</span><span class="o">=</span><span class="s">"preconnect"</span> <span class="na">href</span><span class="o">=</span><span class="s">"https://cdn.jsdelivr.net"</span><span class="p">&gt;</span>
+
+<span class="cm">&lt;!-- Prefetch critical assets --&gt;</span>
+<span class="p">&lt;</span><span class="nt">link</span> <span class="na">rel</span><span class="o">=</span><span class="s">"prefetch"</span> <span class="na">href</span><span class="o">=</span><span class="s">"/static/css/cassette.css"</span><span class="p">&gt;</span>
+</code></pre></div>
+<h3 id="adaptive-quality">Adaptive Quality<a class="headerlink" href="#adaptive-quality" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Automatically adjusts based on network conditions</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">quality</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">navigator</span><span class="p">.</span><span class="nx">connection</span><span class="o">?</span><span class="p">.</span><span class="nx">effectiveType</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">'4g'</span>
+<span class="w">    </span><span class="o">?</span><span class="w"> </span><span class="s1">'high'</span>
+<span class="w">    </span><span class="o">:</span><span class="w"> </span><span class="s1">'medium'</span><span class="p">;</span>
+</code></pre></div>
+<h2 id="future-pwa-enhancements">🚀 Future PWA Enhancements<a class="headerlink" href="#future-pwa-enhancements" title="Permanent link">¶</a></h2>
+<h3 id="planned-features">Planned Features<a class="headerlink" href="#planned-features" title="Permanent link">¶</a></h3>
+<p><strong>Background Sync:</strong>
+- Queue mixtapes for offline download
+- Sync listening progress across devices
+- Pre-cache entire mixtapes automatically</p>
+<p><strong>Web Share API:</strong>
+</p><div class="highlight"><pre><span></span><code><span class="c1">// Share mixtapes directly from PWA</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">navigator</span><span class="p">.</span><span class="nx">share</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">navigator</span><span class="p">.</span><span class="nx">share</span><span class="p">({</span>
+<span class="w">        </span><span class="nx">title</span><span class="o">:</span><span class="w"> </span><span class="nx">mixtape</span><span class="p">.</span><span class="nx">title</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">text</span><span class="o">:</span><span class="w"> </span><span class="s1">'Check out this mixtape!'</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">url</span><span class="o">:</span><span class="w"> </span><span class="nx">mixtape</span><span class="p">.</span><span class="nx">url</span>
+<span class="w">    </span><span class="p">});</span>
+<span class="p">}</span>
+</code></pre></div><p></p>
+<p><strong>Notification API:</strong>
+</p><div class="highlight"><pre><span></span><code><span class="c1">// Notify when new tracks added to followed mixtapes</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">Notification</span><span class="p">.</span><span class="nx">permission</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">'granted'</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="ow">new</span><span class="w"> </span><span class="nx">Notification</span><span class="p">(</span><span class="s1">'New track added to Summer Vibes!'</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div><p></p>
+<p><strong>Install Prompt:</strong>
+</p><div class="highlight"><pre><span></span><code><span class="c1">// Smart prompt to install PWA at optimal moment</span>
+<span class="kd">let</span><span class="w"> </span><span class="nx">deferredPrompt</span><span class="p">;</span>
+<span class="nb">window</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s1">'beforeinstallprompt'</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="nx">e</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">e</span><span class="p">.</span><span class="nx">preventDefault</span><span class="p">();</span>
+<span class="w">    </span><span class="nx">deferredPrompt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">e</span><span class="p">;</span>
+<span class="w">    </span><span class="c1">// Show custom install button</span>
+<span class="p">});</span>
+</code></pre></div><p></p>
+<h2 id="testing-checklist">📱 Testing Checklist<a class="headerlink" href="#testing-checklist" title="Permanent link">¶</a></h2>
+<h3 id="ios-testing">iOS Testing<a class="headerlink" href="#ios-testing" title="Permanent link">¶</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Install to home screen from Safari</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Launch from home screen (standalone mode)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Verify splash screen appears</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Check status bar color matches theme</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Test lock screen controls</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Verify AirPlay button appears</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Stream to AirPlay device successfully</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Test background playback (screen off)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Verify cassette fullscreen mode</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Check orientation lock in cassette mode</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Test offline playback (airplane mode)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Confirm service worker caching</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Verify proper icon display</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Test CarPlay integration (iOS 14.5+)</li>
+</ul>
+<h3 id="android-testing">Android Testing<a class="headerlink" href="#android-testing" title="Permanent link">¶</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Install prompt appears correctly</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Install to home screen</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Verify maskable icon adaptation</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Test lock screen controls</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Check notification controls</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Verify Chromecast button appears</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Cast to Chromecast device</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Test background playback</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Check offline indicator</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled><span class="task-list-indicator"></span></label> Verify service worker updates</li>
+</ul>
+<h2 id="troubleshooting">🐛 Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">¶</a></h2>
+<h3 id="airplay-not-appearing-ios">AirPlay Not Appearing (iOS)<a class="headerlink" href="#airplay-not-appearing-ios" title="Permanent link">¶</a></h3>
+<p><strong>Possible causes:</strong>
+- Using Chrome instead of Safari (must use Safari)
+- Device and AirPlay receiver on different WiFi networks
+- AirPlay device turned off or unavailable
+- Audio hasn't started playing yet</p>
+<p><strong>Solution:</strong>
+1. Confirm using Safari browser
+2. Check WiFi connection
+3. Start playing a track first
+4. Look for AirPlay icon in audio controls</p>
+<h3 id="pwa-wont-install">PWA Won't Install<a class="headerlink" href="#pwa-wont-install" title="Permanent link">¶</a></h3>
+<p><strong>iOS:</strong>
+- Must use Safari (not Chrome or Firefox)
+- Requires iOS 11.3 or later
+- Some enterprise MDM policies block PWA installation</p>
+<p><strong>Android:</strong>
+- Requires Chrome 72+ or Edge 79+
+- Service worker must be registered
+- Site must be served over HTTPS
+- Manifest must be valid</p>
+<h3 id="lock-screen-controls-not-working">Lock Screen Controls Not Working<a class="headerlink" href="#lock-screen-controls-not-working" title="Permanent link">¶</a></h3>
+<p><strong>Check these:</strong>
+</p><div class="highlight"><pre><span></span><code><span class="c1">// Verify Media Session API support</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'Media Session:'</span><span class="p">,</span><span class="w"> </span><span class="s1">'mediaSession'</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="nx">navigator</span><span class="p">);</span>
+
+<span class="c1">// Check if metadata is set</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'Metadata:'</span><span class="p">,</span><span class="w"> </span><span class="nx">navigator</span><span class="p">.</span><span class="nx">mediaSession</span><span class="p">.</span><span class="nx">metadata</span><span class="p">);</span>
+
+<span class="c1">// Verify action handlers</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'Actions:'</span><span class="p">,</span><span class="w"> </span><span class="nx">navigator</span><span class="p">.</span><span class="nx">mediaSession</span><span class="p">);</span>
+</code></pre></div><p></p>
+<p><strong>Common issues:</strong>
+- Audio element must have started playback
+- Metadata must include title, artist, artwork
+- Action handlers must be set before playback
+- iOS 15+ required for full support</p>
+<h3 id="offline-mode-not-working">Offline Mode Not Working<a class="headerlink" href="#offline-mode-not-working" title="Permanent link">¶</a></h3>
+<p><strong>Verify service worker:</strong>
+</p><div class="highlight"><pre><span></span><code><span class="c1">// Check registration</span>
+<span class="nx">navigator</span><span class="p">.</span><span class="nx">serviceWorker</span><span class="p">.</span><span class="nx">getRegistration</span><span class="p">()</span>
+<span class="w">    </span><span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">reg</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'SW registered:'</span><span class="p">,</span><span class="w"> </span><span class="nx">reg</span><span class="p">))</span>
+<span class="w">    </span><span class="p">.</span><span class="k">catch</span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="s1">'SW error:'</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="p">));</span>
+
+<span class="c1">// Check cache</span>
+<span class="nx">caches</span><span class="p">.</span><span class="nx">keys</span><span class="p">()</span>
+<span class="w">    </span><span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">names</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'Cached:'</span><span class="p">,</span><span class="w"> </span><span class="nx">names</span><span class="p">));</span>
+</code></pre></div><p></p>
+<p><strong>Common issues:</strong>
+- Service worker not registered
+- HTTPS required (doesn't work on http://)
+- Cache storage full or disabled
+- Private browsing mode (cache disabled)</p>
+<h2 id="resources">📚 Resources<a class="headerlink" href="#resources" title="Permanent link">¶</a></h2>
+<p><strong>Apple Developer Documentation:</strong>
+- <a href="https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariWebContent/ConfiguringWebApplications/ConfiguringWebApplications.html">Configuring Web Applications</a>
+- <a href="https://developer.apple.com/documentation/webkitjs/mediasession">Media Session API</a>
+- <a href="https://developer.apple.com/airplay/">AirPlay Overview</a></p>
+<p><strong>Web Standards:</strong>
+- <a href="https://www.pwabuilder.com/">PWA Builder</a>
+- <a href="https://w3c.github.io/mediasession/">Media Session API Spec</a>
+- <a href="https://w3c.github.io/ServiceWorker/">Service Worker Spec</a></p>
+<p><strong>Testing Tools:</strong>
+- <a href="https://developers.google.com/web/tools/lighthouse">Lighthouse PWA Audit</a>
+- <a href="https://web.dev/pwa-checklist/">Web.dev PWA Checklist</a>
+- <a href="https://developer.apple.com/safari/tools/">Safari Web Inspector</a></p>
+<hr>
+<p>By focusing on PWA optimization rather than custom AirPlay integration, Mixtape Society provides a superior user experience with less complexity and better long-term maintainability. The native capabilities of iOS combined with web standards deliver everything users need.</p>
+
+
+
+
+
+
+
+  
+    
+  
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"></path></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="January 18, 2026 19:21:30 UTC">January 18, 2026</span>
+  </span>
+
+    
+    
+    
+    
+  </aside>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.top", "navigation.indexes", "navigation.sections", "content.code.copy", "content.code.select", "content.action.edit", "content.tooltips"], "search": "../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      
+        <script src="../../assets/javascripts/panzoom.min.js"></script>
+      
+        <script src="../../assets/javascripts/zoompan.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>
