@@ -257,6 +257,11 @@ def create_play_blueprint(
         Shows interactive gift reveal experience before playback,
         or returns a 404 error if mixtape not found.
 
+        Query parameters:
+            to: Recipient name
+            from: Sender name
+            note: Personal gift message
+
         Args:
             slug: The unique identifier for the mixtape.
 
@@ -267,10 +272,18 @@ def create_play_blueprint(
         if not mixtape:
             abort(404)
 
+        # Get gift personalization from URL parameters
+        receiver_name = request.args.get('to', '')
+        gift_note = request.args.get('note', '')
+        from_name = request.args.get('from', '')
+
         return render_template(
             "gift-playful.html",
             mixtape=mixtape,
-            slug=slug,  # <-- Add this
+            slug=slug,
+            receiver_name=receiver_name,
+            gift_note=gift_note,
+            from_name=from_name,
             is_gift=True,
         )
 
@@ -282,6 +295,11 @@ def create_play_blueprint(
         Shows interactive gift reveal experience before playback,
         or returns a 404 error if mixtape not found.
 
+        Query parameters:
+            to: Recipient name
+            from: Sender name
+            note: Personal gift message
+
         Args:
             slug: The unique identifier for the mixtape.
 
@@ -292,10 +310,18 @@ def create_play_blueprint(
         if not mixtape:
             abort(404)
 
+        # Get gift personalization from URL parameters
+        receiver_name = request.args.get('to', '')
+        gift_note = request.args.get('note', '')
+        from_name = request.args.get('from', '')
+
         return render_template(
             "gift-elegant.html",
             mixtape=mixtape,
-            slug=slug,  # <-- Add this
+            slug=slug,
+            receiver_name=receiver_name,
+            gift_note=gift_note,
+            from_name=from_name,
             is_gift=True,
         )
 

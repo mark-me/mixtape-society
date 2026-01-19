@@ -53,13 +53,21 @@
             <div class="liner-notes">
                 <h2>{{ mixtape.title }}</h2>
 
-                {% if mixtape.creator_name %}
+                {% if receiver_name %}
+                <p class="receiver">For {{ receiver_name }}</p>
+                {% endif %}
+
+                {% if from_name %}
+                <p class="creator">From {{ from_name }}</p>
+                {% elif mixtape.creator_name %}
                 <p class="creator">From {{ mixtape.creator_name }}</p>
                 {% else %}
                 <p class="creator">From a friend</p>
                 {% endif %}
 
-                {% if mixtape.liner_notes and mixtape.liner_notes.strip() %}
+                {% if gift_note %}
+                <p class="gift-message-body">{{ gift_note | safe }}</p>
+                {% elif mixtape.liner_notes and mixtape.liner_notes.strip() %}
                 <p class="gift-message-body">{{ mixtape.liner_notes | safe }}</p>
                 {% else %}
                 <p>Hope these songs bring a smile – made this one just for you 🎶</p>

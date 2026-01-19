@@ -1,5 +1,5 @@
 from pathlib import Path
-from urllib.parse import unquote
+from urllib.parse import unquote, quote
 
 from flask import Blueprint, Response, abort, current_app, request, url_for
 
@@ -32,7 +32,10 @@ def create_qr_blueprint(
         Query parameters:
             size: QR code size in pixels (default 400, max 800)
             logo: Include logo in center (default true)
-            type: URL type - 'share' for public player or 'gift' for gift experience (default 'share')
+            type: URL type - 'share' for public player or 'gift-playful'/'gift-elegant' for gift experience (default 'share')
+            to: Gift recipient name (for gift URLs)
+            from: Gift sender name (for gift URLs)
+            note: Gift personal message (for gift URLs)
 
         Args:
             slug: The mixtape slug identifier (URL-encoded)
@@ -51,7 +54,12 @@ def create_qr_blueprint(
         # Get parameters
         size = min(int(request.args.get("size", 400)), 800)
         include_logo = request.args.get("logo", "true").lower() != "false"
-        url_type = request.args.get("type", "share")  # 'share' or 'gift'
+        url_type = request.args.get("type", "share")
+
+        # Get gift personalization parameters
+        gift_to = request.args.get("to", "")
+        gift_from = request.args.get("from", "")
+        gift_note = request.args.get("note", "")
 
         # Generate QR code
         try:
@@ -63,7 +71,23 @@ def create_qr_blueprint(
                     logo_path = Path(current_app.static_folder) / "images" / "logo.png"
                     if not logo_path.exists():
                         logo_path = None
+
+            # Build share URL with gift parameters if applicable
             share_url = _get_url(slug=slug, url_type=url_type)
+
+            # Add gift parameters to URL if present
+            if url_type in ["gift-playful", "gift-elegant"]:
+                params = []
+                if gift_to:
+                    params.append(f"to={quote(gift_to)}")
+                if gift_from:
+                    params.append(f"from={quote(gift_from)}")
+                if gift_note:
+                    params.append(f"note={quote(gift_note)}")
+
+                if params:
+                    share_url = f"{share_url}?{'&'.join(params)}"
+
             qr_bytes = generate_mixtape_qr(
                 url=share_url,
                 title=mixtape.get("title", "Mixtape"),
@@ -72,7 +96,7 @@ def create_qr_blueprint(
             )
 
             # Create filename based on type
-            filename_type = "gift" if url_type == "gift" else "qr"
+            filename_type = "gift" if url_type.startswith("gift") else "qr"
             filename = f"{slug}-{filename_type}.png"
 
             response = Response(qr_bytes, mimetype="image/png")
@@ -88,7 +112,7 @@ def create_qr_blueprint(
                 description="QR code generation not available. Install qrcode library.",
             )
         except Exception as e:
-            logger.exception("QR code generation failed")
+            logger.exception(f"QR code generation failed: {e}")
             abort(500, description="Failed to generate QR code")
 
     def _get_url(slug: str, url_type: str=""):
@@ -185,7 +209,7 @@ def create_qr_blueprint(
                 description="QR code generation not available. Install qrcode library.",
             )
         except Exception as e:
-            logger.exception("QR code download failed")
+            logger.exception(f"QR code download failed: {e}")
             abort(500, description="Failed to generate QR code")
 
     return qr

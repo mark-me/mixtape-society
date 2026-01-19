@@ -386,7 +386,30 @@
                     <input type="text" 
                            class="form-control" 
                            id="gift-creator-name-modal" 
-                           placeholder="Your name on the gift">
+                           placeholder="Your name">
+                  </div>
+
+                  <div class="mb-3">
+                    <label for="gift-receiver-name-modal" class="form-label">
+                      <i class="bi bi-person-heart me-1"></i> To:
+                    </label>
+                    <input type="text" 
+                           class="form-control" 
+                           id="gift-receiver-name-modal" 
+                           placeholder="Recipient's name">
+                  </div>
+
+                  <div class="mb-3">
+                    <label for="gift-note-modal" class="form-label">
+                      <i class="bi bi-chat-heart-fill me-1"></i> Gift Note:
+                    </label>
+                    <textarea class="form-control" 
+                              id="gift-note-modal" 
+                              rows="3"
+                              placeholder="Add a personal message for this gift..."></textarea>
+                    <small class="form-text text-muted">
+                      This will replace the mixtape description for this gift
+                    </small>
                   </div>
 
                   <div class="mb-3">
@@ -426,7 +449,7 @@
                       <input class="form-check-input" type="checkbox" 
                              id="save-gift-defaults-modal">
                       <label class="form-check-label" for="save-gift-defaults-modal">
-                        Save these as my defaults
+                        Save "From" name as default
                       </label>
                     </div>
                   </div>
@@ -462,8 +485,12 @@
                     <!-- Gift Info -->
                     <div id="gift-info" class="text-start mb-3" style="display: none;">
                       <p class="mb-1">
-                        <i class="bi bi-gift me-2"></i><strong>Gift from:</strong> 
+                        <i class="bi bi-person-fill me-2"></i><strong>From:</strong> 
                         <span id="gift-from-display"></span>
+                      </p>
+                      <p class="mb-1">
+                        <i class="bi bi-person-heart me-2"></i><strong>To:</strong> 
+                        <span id="gift-to-display"></span>
                       </p>
                       <p class="mb-2">
                         <i class="bi bi-palette me-2"></i><strong>Style:</strong> 

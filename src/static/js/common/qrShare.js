@@ -356,16 +356,20 @@ async function generateGiftQR() {
     
     // Get form values
     const nameInput = document.getElementById('gift-creator-name-modal');
+    const receiverInput = document.getElementById('gift-receiver-name-modal');
+    const noteInput = document.getElementById('gift-note-modal');
     const style = getSelectedGiftStyle();
     const tracklistCheckbox = document.getElementById('show-tracklist-modal');
     const saveDefaultsCheckbox = document.getElementById('save-gift-defaults-modal');
     
-    // Update settings
+    // Update settings (storing for QR generation and copy link)
     giftSettings.creator_name = nameInput ? nameInput.value.trim() : '';
+    giftSettings.receiver_name = receiverInput ? receiverInput.value.trim() : '';
+    giftSettings.gift_note = noteInput ? noteInput.value.trim() : '';
     giftSettings.unwrap_style = style;
     giftSettings.show_tracklist_after_completion = tracklistCheckbox ? tracklistCheckbox.checked : true;
     
-    // Save defaults if requested
+    // Save defaults if requested (only save creator name, not receiver/note)
     if (saveDefaultsCheckbox && saveDefaultsCheckbox.checked) {
         await saveGiftPreferences();
         saveDefaultsCheckbox.checked = false; // Reset checkbox
@@ -386,9 +390,17 @@ async function generateGiftQR() {
     if (giftInfo) giftInfo.style.display = 'none';
     if (giftEditLink) giftEditLink.style.display = 'none';
     
-    // Build gift URL based on style
+    // Build gift URL with query parameters for personalization
+    const params = new URLSearchParams();
+    if (giftSettings.receiver_name) params.append('to', giftSettings.receiver_name);
+    if (giftSettings.gift_note) params.append('note', giftSettings.gift_note);
+    if (giftSettings.creator_name) params.append('from', giftSettings.creator_name);
+    
     const urlType = style === 'elegant' ? 'gift-elegant' : 'gift-playful';
-    const qrUrl = `/qr/${encodeURIComponent(slug)}.png?size=400&logo=true&type=${urlType}`;
+    const baseQrUrl = `/qr/${encodeURIComponent(slug)}.png?size=400&logo=true&type=${urlType}`;
+    
+    // Add gift parameters to QR URL
+    const qrUrl = params.toString() ? `${baseQrUrl}&${params.toString()}` : baseQrUrl;
     
     // Load QR code image
     const img = new Image();
@@ -403,9 +415,11 @@ async function generateGiftQR() {
         // Show gift info
         if (giftInfo) {
             const fromDisplay = document.getElementById('gift-from-display');
+            const toDisplay = document.getElementById('gift-to-display');
             const styleDisplay = document.getElementById('gift-style-display');
             
             if (fromDisplay) fromDisplay.textContent = giftSettings.creator_name || 'Anonymous';
+            if (toDisplay) toDisplay.textContent = giftSettings.receiver_name || '(not specified)';
             if (styleDisplay) {
                 const emoji = style === 'elegant' ? '✨' : '🎉';
                 const label = style.charAt(0).toUpperCase() + style.slice(1);
@@ -514,7 +528,15 @@ async function copyShareLink(slug, mode) {
     if (mode === 'gift') {
         // Get current style from form (in case user changed it after generating QR)
         const currentStyle = getSelectedGiftStyle();
-        shareUrl = `${window.location.origin}/play/gift-${currentStyle}/${encodedSlug}`;
+        const baseUrl = `${window.location.origin}/play/gift-${currentStyle}/${encodedSlug}`;
+        
+        // Add personalization parameters
+        const params = new URLSearchParams();
+        if (giftSettings.receiver_name) params.append('to', giftSettings.receiver_name);
+        if (giftSettings.gift_note) params.append('note', giftSettings.gift_note);
+        if (giftSettings.creator_name) params.append('from', giftSettings.creator_name);
+        
+        shareUrl = params.toString() ? `${baseUrl}?${params.toString()}` : baseUrl;
     } else {
         shareUrl = `${window.location.origin}/play/share/${encodedSlug}`;
     }

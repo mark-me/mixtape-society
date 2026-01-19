@@ -49,8 +49,27 @@
         <div class="liner-notes-container" id="liner-notes-container">
             <div class="liner-notes-book">
                 <h2>{{ mixtape.title }}</h2>
-                <p class="creator">From {% if mixtape.creator_name %}{{ mixtape.creator_name }}{% else %}a friend{% endif %}</p>
-                <p class="message">{{ mixtape.liner_notes if mixtape.liner_notes else 'Hope this brings back memories. Enjoy!' }}</p>
+                
+                {% if receiver_name %}
+                <p class="receiver">For {{ receiver_name }}</p>
+                {% endif %}
+                
+                {% if from_name %}
+                <p class="creator">From {{ from_name }}</p>
+                {% elif mixtape.creator_name %}
+                <p class="creator">From {{ mixtape.creator_name }}</p>
+                {% else %}
+                <p class="creator">From a friend</p>
+                {% endif %}
+                
+                {% if gift_note %}
+                <p class="message">{{ gift_note | safe }}</p>
+                {% elif mixtape.liner_notes and mixtape.liner_notes.strip() %}
+                <p class="message">{{ mixtape.liner_notes }}</p>
+                {% else %}
+                <p class="message">Hope this brings back memories. Enjoy!</p>
+                {% endif %}
+                
                 <button class="play-button" id="play-button">
                     <i class="bi bi-play-fill me-2"></i>Start Listening
                 </button>
