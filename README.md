@@ -44,7 +44,6 @@ docker run -d \
   --restart unless-stopped \
   -p 5001:5000 \
   -v /path/to/your/music:/music:ro \
-  -v /data/mixtape-society:/app/mixtapes \
   -v /data/mixtape-society:/app/collection-data \
   -e APP_PASSWORD=YourStrongPassword123! \
   ghcr.io/mark-me/mixtape-society:latest
