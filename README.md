@@ -19,7 +19,7 @@ No accounts, no telemetry, no Spotify – just your music, your server, your rul
 - **No accounts needed** – Recipients stream directly in browser
 - **Permanent or temporary** – Links persist until you delete them
 
-### 📱 For Mixtape Receivers
+### 🎁 For Mixtape Receivers
 
 - **No login required** – Just click and play
 - **Full media controls** – Play, pause, seek, skip
