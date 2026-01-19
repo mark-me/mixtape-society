@@ -157,7 +157,7 @@
         }
 
         @keyframes develop {
-            0% { 
+            0% {
                 opacity: 0;
                 filter: brightness(0.3) contrast(0.8) saturate(0);
             }
@@ -169,7 +169,7 @@
                 opacity: 0.7;
                 filter: brightness(0.8) contrast(1) saturate(0.7);
             }
-            100% { 
+            100% {
                 opacity: 1;
                 filter: brightness(1) contrast(1.05) saturate(1);
             }
@@ -178,8 +178,8 @@
         .development-overlay {
             position: absolute;
             inset: 0;
-            background: linear-gradient(180deg, 
-                rgba(255,255,255,0.3) 0%, 
+            background: linear-gradient(180deg,
+                rgba(255,255,255,0.3) 0%,
                 transparent 100%);
             animation: overlay-fade 4s ease-out forwards;
         }
@@ -244,11 +244,11 @@
         }
 
         @keyframes book-open {
-            0% { 
+            0% {
                 transform: perspective(1000px) rotateY(-90deg);
                 opacity: 0;
             }
-            100% { 
+            100% {
                 transform: perspective(1000px) rotateY(0deg);
                 opacity: 1;
             }
@@ -368,8 +368,8 @@
         <div class="polaroid-container" id="polaroid-container">
             <div class="polaroid" id="polaroid">
                 <div class="polaroid-image-wrapper">
-                    <img src="https://via.placeholder.com/400/2a2a2a/d4af37?text=Mixtape+Cover" 
-                         alt="Mixtape Cover" 
+                    <img src="https://via.placeholder.com/400/2a2a2a/d4af37?text=Mixtape+Cover"
+                         alt="Mixtape Cover"
                          class="polaroid-image"
                          id="polaroid-image">
                     <div class="development-overlay"></div>
@@ -385,10 +385,10 @@
         <div class="liner-notes-container" id="liner-notes-container">
             <div class="liner-notes-book">
                 <h2>Summer Vibes</h2>
-                <p class="creator">For you, from DJ Claude</p>
+                <p class="creator">For you, from DJ Mark</p>
                 <p class="message">
-                    Hey! I spent some time putting together these tracks that remind me of our summer adventures. 
-                    Each song captures a different moment we shared. I hope this brings back all those good memories 
+                    Hey! I spent some time putting together these tracks that remind me of our summer adventures.
+                    Each song captures a different moment we shared. I hope this brings back all those good memories
                     and maybe makes some new ones too. Enjoy! 🎵
                 </p>
                 <button class="play-button" id="play-button">
@@ -449,7 +449,7 @@
                         polaroidContainer.classList.add('active');
                     }, 800);
                     break;
-                
+
                 case 2:
                     // Show liner notes
                     polaroidContainer.classList.remove('active');
@@ -457,7 +457,7 @@
                         linerNotesContainer.classList.add('active');
                     }, 400);
                     break;
-                
+
                 case 3:
                     // Would navigate to player
                     alert('🎵 Navigating to player...');
@@ -470,7 +470,7 @@
             initialPrompt.classList.remove('fade-out', 'hidden');
             polaroidContainer.classList.remove('active');
             linerNotesContainer.classList.remove('active');
-            
+
             // Reset polaroid image animation
             const polaroidImage = document.getElementById('polaroid-image');
             polaroidImage.style.animation = 'none';
