@@ -6,7 +6,7 @@
     <meta name="description" content="A special mixtape gift: {{ mixtape.title }}">
     <meta property="og:title" content="🎁 You've received a mixtape gift!"/>
     <meta property="og:type" content="music.playlist"/>
-    <meta property="og:url" content="{{ url_for('play.gift_playful', slug=mixtape.slug, _external=True) }}"/>
+    <meta property="og:url" content="{{ url_for('play.gift_elegant', slug=mixtape.slug, _external=True) }}"/>
     <meta property="og:description" content="Someone made you a special mixtape. Click to unwrap it!"/>
     {% if mixtape.cover %}
         <meta property="og:image" content="{{ url_for('play.serve_cover', filename=mixtape.cover.split('/')[-1], _external=True) }}"/>
@@ -200,5 +200,24 @@
 {% endblock %}
 
 {% block extra_js %}
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.3.1/dist/purify.min.js" defer></script>
+    <script type="text/javascript" src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
+
+    <div id="mixtape-data"
+         data-markdown='{{ mixtape.liner_notes | tojson | safe }}'
+         data-tracks='{{ mixtape.tracks | tojson | safe }}'
+         style="display:none;">
+    </div>
+
+    <script>
+        window.__mixtapeData = {
+            rawMarkdown: {{ mixtape.liner_notes | tojson | safe }},
+            tracks: {{ mixtape.tracks | tojson | safe }},
+            baseUrl: '{{ url_for('play.stream_audio', file_path='') }}',
+            isGift: true
+        };
+    </script>
+
     <script type="module" src="{{ url_for('static', filename='js/player/giftRevealElegant.js') }}"></script>
 {% endblock %}
