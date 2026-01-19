@@ -264,12 +264,13 @@ def create_play_blueprint(
             Response: The Flask response object containing the rendered gift page.
         """
         mixtape = mixtape_manager.get(slug)
-        recipient_name = mixtape.get("recipient_name", "you")
+        if not mixtape:
+            abort(404)
 
         return render_template(
             "gift-playful.html",
             mixtape=mixtape,
-            recipient_name=recipient_name,
+            slug=slug,  # <-- Add this
             is_gift=True,
         )
 
@@ -288,12 +289,13 @@ def create_play_blueprint(
             Response: The Flask response object containing the rendered gift page.
         """
         mixtape = mixtape_manager.get(slug)
-        recipient_name = mixtape.get("recipient_name", "you")
+        if not mixtape:
+            abort(404)
 
         return render_template(
             "gift-elegant.html",
             mixtape=mixtape,
-            recipient_name=recipient_name,
+            slug=slug,  # <-- Add this
             is_gift=True,
         )
 

@@ -1,116 +1,88 @@
-// static/js/player/giftReveal.js
+// static/js/player/giftRevealElegant.js
 
-let currentStep = 0;
-let hasInitializedPlayer = false;
+/**
+ * Elegant gift reveal flow
+ * Shows: Initial prompt → Polaroid development → Liner notes → Redirect to player
+ */
 
-const elements = {
-    initialPrompt:   document.getElementById('initial-prompt'),
-    polaroidContainer: document.getElementById('polaroid-container'),
-    polaroid:        document.getElementById('polaroid'),
-    linerNotesContainer: document.getElementById('liner-notes-container'),
-    revealBtn:       document.getElementById('reveal-btn'),
-    playButton:      document.getElementById('play-button'),
-    giftContainer:   document.getElementById('gift-container'),
-    playerContainer: document.getElementById('player-container'),
-    backToGift:      document.getElementById('back-to-gift')
-};
+console.log('Gift reveal elegant script loaded');
 
-function initGiftReveal() {
-    if (!elements.initialPrompt) return;
+// Get mixtape slug from window
+const mixtapeSlug = window.MIXTAPE_SLUG;
+console.log('Mixtape slug:', mixtapeSlug);
 
-    const slug = getCurrentSlug();
-    if (sessionStorage.getItem(`gift-revealed-${slug}`)) {
-        skipToPlayer();
-        return;
-    }
+// DOM elements
+const initialPrompt = document.getElementById('initial-prompt');
+const polaroidContainer = document.getElementById('polaroid-container');
+const polaroid = document.getElementById('polaroid');
+const linerNotesContainer = document.getElementById('liner-notes-container');
+const revealBtn = document.getElementById('reveal-btn');
+const playButton = document.getElementById('play-button');
 
-    elements.revealBtn.addEventListener('click', handleReveal);
-    elements.polaroid.addEventListener('click', handlePolaroidClick);
-    elements.playButton.addEventListener('click', handlePlayClick);
-    if (elements.backToGift) elements.backToGift.addEventListener('click', showGiftView);
+console.log('Elements found:', {
+    initialPrompt: !!initialPrompt,
+    polaroidContainer: !!polaroidContainer,
+    polaroid: !!polaroid,
+    linerNotesContainer: !!linerNotesContainer,
+    revealBtn: !!revealBtn,
+    playButton: !!playButton
+});
 
-    document.addEventListener('keydown', e => {
-        if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            if (currentStep === 0) handleReveal();
-            else if (currentStep === 1) handlePolaroidClick();
-            else if (currentStep === 2) handlePlayClick();
+// Step 1: Initial prompt → Polaroid
+if (revealBtn) {
+    revealBtn.addEventListener('click', () => {
+        console.log('Reveal button clicked');
+        
+        // Hide initial prompt with fade-out
+        if (initialPrompt) {
+            initialPrompt.classList.add('fade-out');
         }
+        
+        // After fade animation, hide and show next step
+        setTimeout(() => {
+            if (initialPrompt) initialPrompt.style.display = 'none';
+            
+            // Show polaroid container
+            if (polaroidContainer) {
+                polaroidContainer.classList.add('active');
+            }
+            
+            console.log('Showing polaroid container');
+        }, 800); // Match CSS transition duration
     });
 }
 
-function handleReveal() {
-    if (currentStep !== 0) return;
-    currentStep = 1;
-
-    elements.initialPrompt.classList.add('fade-out');
-    setTimeout(() => {
-        elements.initialPrompt.classList.add('hidden');
-        elements.polaroidContainer.classList.add('active');
-    }, 800);
-}
-
-function handlePolaroidClick() {
-    if (currentStep !== 1) return;
-    currentStep = 2;
-
-    elements.polaroidContainer.classList.remove('active');
-    setTimeout(() => {
-        elements.linerNotesContainer.classList.add('active');
-    }, 400);
-}
-
-function handlePlayClick() {
-    if (currentStep !== 2) return;
-    currentStep = 3;
-
-    sessionStorage.setItem(`gift-revealed-${getCurrentSlug()}`, 'true');
-
-    elements.linerNotesContainer.classList.remove('active');
-    setTimeout(showPlayer, 400);
-}
-
-function showPlayer() {
-    elements.giftContainer.classList.add('fade-out');
-
-    setTimeout(() => {
-        elements.giftContainer.style.display = 'none';
-        elements.playerContainer.classList.remove('hidden');
-        elements.playerContainer.classList.add('fade-in');
-
-        if (!hasInitializedPlayer) {
-            // Your player init calls
-            hasInitializedPlayer = true;
-            setTimeout(() => document.getElementById('big-play-btn')?.click(), 500);
+// Step 2: Polaroid → Liner notes
+if (polaroid) {
+    polaroid.addEventListener('click', () => {
+        console.log('Polaroid clicked');
+        
+        // Remove active class from polaroid
+        if (polaroidContainer) {
+            polaroidContainer.classList.remove('active');
+            polaroidContainer.classList.add('fade-out');
         }
-    }, 600);
+        
+        // After fade animation, show liner notes
+        setTimeout(() => {
+            if (polaroidContainer) polaroidContainer.style.display = 'none';
+            
+            // Show liner notes
+            if (linerNotesContainer) {
+                linerNotesContainer.classList.add('active');
+            }
+            
+            console.log('Showing liner notes');
+        }, 800); // Match CSS transition duration
+    });
 }
 
-function skipToPlayer() {
-    elements.giftContainer.style.display = 'none';
-    elements.playerContainer.classList.remove('hidden');
-    currentStep = 3;
+// Step 3: Liner notes → Redirect to player
+if (playButton) {
+    playButton.addEventListener('click', () => {
+        console.log('Play button clicked, redirecting to:', `/play/share/${encodeURIComponent(mixtapeSlug)}`);
+        
+        // Redirect to regular player
+        window.location.href = `/play/share/${encodeURIComponent(mixtapeSlug)}`;
+    });
 }
-
-function showGiftView() {
-    document.querySelector('audio')?.pause();
-
-    elements.playerContainer.classList.add('fade-out');
-
-    setTimeout(() => {
-        elements.playerContainer.classList.add('hidden');
-        elements.playerContainer.classList.remove('fade-out');
-
-        elements.giftContainer.style.display = 'flex';
-        elements.linerNotesContainer.classList.add('active');
-        elements.polaroidContainer.classList.remove('active');
-        currentStep = 2;
-    }, 400);
-}
-
-function getCurrentSlug() {
-    const match = location.pathname.match(/\/gift\/([^\/]+)/);
-    return match ? match[1] : 'default';
-}
-
-document.addEventListener('DOMContentLoaded', initGiftReveal);
