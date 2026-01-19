@@ -20,7 +20,7 @@ Both functions return **raw `bytes`** (PNG data) ready to be sent as a Flask `Re
 | ------ | ------------- | ------- | ------- |
 | **`qrcode`** (Python library) | `project.toml` / `uv.lock` | `>=7.4` | Required for both endpoints. |
 | **`Pillow`** (image handling) | `project.toml` | `>=10.0` | Needed for compositing the logo/cover. |
-| **Static logo files** | `static/logo.svg` or `static/logo.png` | — | The blueprint prefers SVG; falls back to PNG. |
+| **Static logo files** | `static/images/logo.svg` or `static/logo.png` | — | The blueprint prefers SVG; falls back to PNG. |
 | **Cover directory** | `app.config["COVER_DIR"]` (set in config.py) | `collection-data/mixtapes/covers` | Used only by the download endpoint. |
 | **Cache-Control** | Hard-coded in the view (`public, max-age=3600`). | — | Adjust in the source if you need a different TTL. |
 

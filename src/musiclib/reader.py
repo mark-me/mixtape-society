@@ -1341,7 +1341,8 @@ class MusicCollection:
         if (
             source_path := Path(__file__).parent.parent
             / "static"
-            / "cover-art-text.jpg"
+            / "images"
+            / "default_cover.jpg"
         ):
             try:
                 # Copy the fallback image to covers directory
@@ -1352,7 +1353,7 @@ class MusicCollection:
                 self._logger.warning(f"Failed to copy fallback cover: {e}")
         else:
             self._logger.warning(
-                "Fallback cover image 'cover-art-text.jpg' not found in static directory. "
+                "Fallback cover image 'default_cover.jpg' not found in static directory. "
                 "Tracks without covers will not display properly."
             )
 

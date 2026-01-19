@@ -112,7 +112,7 @@
                         <div class="text-center mb-4" id="cover-title">
                             <div class="position-relative d-inline-block">
                                 <img id="playlist-cover"
-                                    src="{{ url_for('static', filename='image.jpg') }}"
+                                    src="{{ url_for('static', filename='images/default_cover.jpg') }}"
                                     class="rounded shadow-sm img-fluid"
                                     style="max-width: 260px; aspect-ratio: 1; object-fit: cover; border: 3px solid rgba(255,255,255,0.1);">
 
@@ -272,14 +272,14 @@
                         <label for="gift-creator-name" class="form-label">
                             <i class="bi bi-person-fill me-1"></i>Creator Name
                         </label>
-                        <input type="text" 
-                               class="form-control" 
-                               id="gift-creator-name" 
+                        <input type="text"
+                               class="form-control"
+                               id="gift-creator-name"
                                placeholder="Your name (optional)"
                                maxlength="100">
                         <div class="form-check mt-2">
-                            <input class="form-check-input" 
-                                   type="checkbox" 
+                            <input class="form-check-input"
+                                   type="checkbox"
                                    id="save-creator-name-default">
                             <label class="form-check-label small text-muted" for="save-creator-name-default">
                                 Save as my default name
@@ -292,8 +292,8 @@
                     <!-- Gift Flow Toggle -->
                     <div class="mb-4">
                         <div class="form-check form-switch">
-                            <input class="form-check-input" 
-                                   type="checkbox" 
+                            <input class="form-check-input"
+                                   type="checkbox"
                                    id="gift-flow-enabled">
                             <label class="form-check-label" for="gift-flow-enabled">
                                 <strong>Enable gift unwrapping experience</strong>
@@ -333,8 +333,8 @@
                     <!-- Show Tracklist Toggle (only visible when gift flow is enabled) -->
                     <div class="mb-3" id="tracklist-setting-container" style="display: none;">
                         <div class="form-check form-switch">
-                            <input class="form-check-input" 
-                                   type="checkbox" 
+                            <input class="form-check-input"
+                                   type="checkbox"
                                    id="show-tracklist-after-completion"
                                    checked>
                             <label class="form-check-label" for="show-tracklist-after-completion">

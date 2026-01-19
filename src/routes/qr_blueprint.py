@@ -69,9 +69,9 @@ def create_qr_blueprint(
             # Get logo path if requested
             logo_path = None
             if include_logo:
-                logo_path = Path(current_app.static_folder) / 'logo.svg'
+                logo_path = Path(current_app.static_folder) / "images" / "logo.svg"
                 if not logo_path.exists():
-                    logo_path = Path(current_app.static_folder) / 'logo.png'
+                    logo_path = Path(current_app.static_folder) / "images" / "logo.png"
                     if not logo_path.exists():
                         logo_path = None
 
@@ -145,9 +145,9 @@ def create_qr_blueprint(
 
         try:
             # Get logo path
-            logo_path = Path(current_app.static_folder) / 'logo.svg'
+            logo_path = Path(current_app.static_folder) / "images" / "logo.svg"
             if not logo_path.exists():
-                logo_path = Path(current_app.static_folder) / 'logo.png'
+                logo_path = Path(current_app.static_folder) / "images" / "logo.png"
                 if not logo_path.exists():
                     logo_path = None
 
@@ -172,7 +172,7 @@ def create_qr_blueprint(
             # Sanitize title for filename
             title = mixtape.get('title', 'mixtape')
             safe_title = "".join(c if c.isalnum() or c in " -_" else "_" for c in title)
-            
+
             # Create filename based on type
             type_suffix = 'gift' if url_type == 'gift' else 'mixtape'
             filename = f"{safe_title}-{type_suffix}-qr-code.png"
