@@ -92,10 +92,6 @@
                             My Mixtape <span id="playlist-count">(0)</span>
                         </h2>
                         <div class="d-flex gap-2">
-                            <button id="gift-settings-btn" class="btn btn-outline-light btn-sm" title="Gift settings">
-                                <i class="bi bi-gift me-1"></i>
-                                <span class="d-none d-sm-inline">Gift</span>
-                            </button>
                             <button id="share-playlist" class="btn btn-outline-light btn-sm" title="Share mixtape" style="display: none;">
                                 <i class="bi bi-qr-code me-1"></i>
                                 <span class="d-none d-sm-inline">Share</span>
@@ -251,103 +247,6 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Gift Settings Modal -->
-    <div class="modal fade" id="giftSettingsModal" tabindex="-1" aria-labelledby="giftSettingsModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="giftSettingsModalLabel">
-                        <i class="bi bi-gift me-2"></i>Gift Settings
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <!-- Creator Name -->
-                    <div class="mb-4">
-                        <label for="gift-creator-name" class="form-label">
-                            <i class="bi bi-person-fill me-1"></i>Creator Name
-                        </label>
-                        <input type="text"
-                               class="form-control"
-                               id="gift-creator-name"
-                               placeholder="Your name (optional)"
-                               maxlength="100">
-                        <div class="form-check mt-2">
-                            <input class="form-check-input"
-                                   type="checkbox"
-                                   id="save-creator-name-default">
-                            <label class="form-check-label small text-muted" for="save-creator-name-default">
-                                Save as my default name
-                            </label>
-                        </div>
-                    </div>
-
-                    <hr>
-
-                    <!-- Gift Flow Toggle -->
-                    <div class="mb-4">
-                        <div class="form-check form-switch">
-                            <input class="form-check-input"
-                                   type="checkbox"
-                                   id="gift-flow-enabled">
-                            <label class="form-check-label" for="gift-flow-enabled">
-                                <strong>Enable gift unwrapping experience</strong>
-                            </label>
-                        </div>
-                        <small class="text-muted d-block mt-1">
-                            When enabled, the receiver will see an interactive unwrapping experience before listening
-                        </small>
-                    </div>
-
-                    <!-- Gift Flow Style (only visible when gift flow is enabled) -->
-                    <div class="mb-4" id="gift-style-container" style="display: none;">
-                        <label class="form-label">
-                            <i class="bi bi-palette me-1"></i>Unwrapping Style
-                        </label>
-                        <div class="row g-2">
-                            <div class="col-6">
-                                <input type="radio" class="btn-check" name="gift-style" id="style-playful" value="playful" checked>
-                                <label class="btn btn-outline-primary w-100" for="style-playful">
-                                    <i class="bi bi-emoji-smile me-1"></i>
-                                    <div class="small">Playful</div>
-                                </label>
-                            </div>
-                            <div class="col-6">
-                                <input type="radio" class="btn-check" name="gift-style" id="style-elegant" value="elegant">
-                                <label class="btn btn-outline-primary w-100" for="style-elegant">
-                                    <i class="bi bi-stars me-1"></i>
-                                    <div class="small">Elegant</div>
-                                </label>
-                            </div>
-                        </div>
-                        <button type="button" class="btn btn-sm btn-outline-secondary w-100 mt-2" id="preview-gift-flow">
-                            <i class="bi bi-eye me-1"></i>Preview Unwrapping Experience
-                        </button>
-                    </div>
-
-                    <!-- Show Tracklist Toggle (only visible when gift flow is enabled) -->
-                    <div class="mb-3" id="tracklist-setting-container" style="display: none;">
-                        <div class="form-check form-switch">
-                            <input class="form-check-input"
-                                   type="checkbox"
-                                   id="show-tracklist-after-completion"
-                                   checked>
-                            <label class="form-check-label" for="show-tracklist-after-completion">
-                                Show tracklist after completion
-                            </label>
-                        </div>
-                        <small class="text-muted d-block mt-1">
-                            Reveal the full tracklist as a reward after they've listened to the whole mixtape
-                        </small>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>

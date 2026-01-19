@@ -317,44 +317,181 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="qrShareModalLabel">
-              <i class="bi bi-qr-code me-2"></i>Share Mixtape
+              <i class="bi bi-share me-2"></i>Share Mixtape
             </h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
 
-          <div class="modal-body text-center">
-            <!-- Loading state -->
-            <div id="qr-loading" class="py-4">
-              <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Generating QR code...</span>
+          <div class="modal-body">
+            <!-- Share Mode Tabs -->
+            <ul class="nav nav-pills mb-3 justify-content-center" id="shareModeTabs" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="regular-share-tab" data-bs-toggle="pill" 
+                        data-bs-target="#regular-share-pane" type="button" role="tab">
+                  <i class="bi bi-share-fill me-1"></i> Share
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="gift-share-tab" data-bs-toggle="pill" 
+                        data-bs-target="#gift-share-pane" type="button" role="tab">
+                  <i class="bi bi-gift-fill me-1"></i> Gift
+                </button>
+              </li>
+            </ul>
+
+            <!-- Tab Content -->
+            <div class="tab-content" id="shareModeTabContent">
+              
+              <!-- Regular Share Tab -->
+              <div class="tab-pane fade show active" id="regular-share-pane" role="tabpanel">
+                <div class="text-center">
+                  <!-- Loading state -->
+                  <div id="qr-loading" class="py-4">
+                    <div class="spinner-border text-primary" role="status">
+                      <span class="visually-hidden">Generating QR code...</span>
+                    </div>
+                    <p class="mt-3 text-muted">Generating QR code...</p>
+                  </div>
+
+                  <!-- QR Code image -->
+                  <img id="qr-code-img"
+                       src=""
+                       alt="QR Code"
+                       class="img-fluid rounded shadow-lg mb-3"
+                       style="display: none; max-width: 100%; height: auto;">
+
+                  <!-- Error state -->
+                  <div id="qr-error" class="alert alert-danger" style="display: none;" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <span id="qr-error-message">Failed to generate QR code</span>
+                  </div>
+
+                  <!-- Instructions -->
+                  <div id="qr-instructions" class="mt-3 text-muted small" style="display: none;">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Scan this code with a phone camera to play the mixtape
+                  </div>
+                </div>
               </div>
-              <p class="mt-3 text-muted">Generating QR code...</p>
-            </div>
 
-            <!-- QR Code image -->
-            <img id="qr-code-img"
-                 src=""
-                 alt="QR Code"
-                 class="img-fluid rounded shadow-lg mb-3"
-                 style="display: none; max-width: 100%; height: auto;">
+              <!-- Gift Share Tab -->
+              <div class="tab-pane fade" id="gift-share-pane" role="tabpanel">
+                
+                <!-- Gift Configuration Form (shown when needed) -->
+                <div id="gift-config-form">
+                  <div class="mb-3">
+                    <label for="gift-creator-name-modal" class="form-label">
+                      <i class="bi bi-person-fill me-1"></i> From:
+                    </label>
+                    <input type="text" 
+                           class="form-control" 
+                           id="gift-creator-name-modal" 
+                           placeholder="Your name on the gift">
+                  </div>
 
-            <!-- Error state -->
-            <div id="qr-error" class="alert alert-danger" style="display: none;" role="alert">
-              <i class="bi bi-exclamation-triangle me-2"></i>
-              <span id="qr-error-message">Failed to generate QR code</span>
-            </div>
+                  <div class="mb-3">
+                    <label class="form-label">
+                      <i class="bi bi-palette-fill me-1"></i> Unwrap Style:
+                    </label>
+                    <div class="d-flex gap-3">
+                      <div class="form-check">
+                        <input class="form-check-input" type="radio" name="gift-style-modal" 
+                               id="style-playful-modal" value="playful" checked>
+                        <label class="form-check-label" for="style-playful-modal">
+                          🎉 Playful
+                        </label>
+                      </div>
+                      <div class="form-check">
+                        <input class="form-check-input" type="radio" name="gift-style-modal" 
+                               id="style-elegant-modal" value="elegant">
+                        <label class="form-check-label" for="style-elegant-modal">
+                          ✨ Elegant
+                        </label>
+                      </div>
+                    </div>
+                  </div>
 
-            <!-- Instructions -->
-            <div class="mt-3 text-muted small">
-              <i class="bi bi-info-circle me-1"></i>
-              Scan this code with a phone camera to open the mixtape
+                  <div class="mb-3">
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" 
+                             id="show-tracklist-modal" checked>
+                      <label class="form-check-label" for="show-tracklist-modal">
+                        Show full tracklist after unwrapping
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="mb-3">
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" 
+                             id="save-gift-defaults-modal">
+                      <label class="form-check-label" for="save-gift-defaults-modal">
+                        Save these as my defaults
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="preview-gift-style">
+                      <i class="bi bi-eye me-1"></i> Preview Style
+                    </button>
+                    <button type="button" class="btn btn-primary" id="generate-gift-qr">
+                      <i class="bi bi-gift me-1"></i> Generate Gift QR
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Gift QR Display (shown after generation) -->
+                <div id="gift-qr-display" style="display: none;">
+                  <div class="text-center">
+                    <!-- Loading state -->
+                    <div id="gift-qr-loading" class="py-4" style="display: none;">
+                      <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Generating gift QR code...</span>
+                      </div>
+                      <p class="mt-3 text-muted">Generating gift QR code...</p>
+                    </div>
+
+                    <!-- Gift QR Code image -->
+                    <img id="gift-qr-code-img"
+                         src=""
+                         alt="Gift QR Code"
+                         class="img-fluid rounded shadow-lg mb-3"
+                         style="display: none; max-width: 100%; height: auto;">
+
+                    <!-- Gift Info -->
+                    <div id="gift-info" class="text-start mb-3" style="display: none;">
+                      <p class="mb-1">
+                        <i class="bi bi-gift me-2"></i><strong>Gift from:</strong> 
+                        <span id="gift-from-display"></span>
+                      </p>
+                      <p class="mb-2">
+                        <i class="bi bi-palette me-2"></i><strong>Style:</strong> 
+                        <span id="gift-style-display"></span>
+                      </p>
+                      <div class="alert alert-info py-2 px-3 small">
+                        <i class="bi bi-printer me-1"></i>
+                        <strong>Want to print?</strong> Download includes cover art + title for gifting
+                      </div>
+                    </div>
+
+                    <!-- Edit link -->
+                    <div id="gift-edit-link" class="mb-3" style="display: none;">
+                      <button class="btn btn-link btn-sm p-0" id="edit-gift-settings">
+                        <i class="bi bi-gear me-1"></i> Edit gift settings
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
             </div>
           </div>
 
           <div class="modal-footer justify-content-between">
             <button type="button"
                     id="qr-copy-link-btn"
-                    class="btn btn-outline-secondary">
+                    class="btn btn-warning">
               <i class="bi bi-link-45deg me-1"></i>
               Copy Link
             </button>

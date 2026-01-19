@@ -6,7 +6,7 @@
     <meta name="description" content="A special mixtape gift: {{ mixtape.title }}">
     <meta property="og:title" content="🎁 You've received a mixtape gift!"/>
     <meta property="og:type" content="music.playlist"/>
-    <meta property="og:url" content="{{ url_for('play.gift_play', slug=mixtape.slug, _external=True) }}"/>
+    <meta property="og:url" content="{{ url_for('play.gift_elegant', slug=mixtape.slug, _external=True) }}"/>
     <meta property="og:description" content="Someone made you a special mixtape. Click to unwrap it!"/>
     {% if mixtape.cover %}
         <meta property="og:image" content="{{ url_for('play.serve_cover', filename=mixtape.cover.split('/')[-1], _external=True) }}"/>

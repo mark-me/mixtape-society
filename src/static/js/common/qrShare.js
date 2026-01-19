@@ -1,14 +1,18 @@
 // static/js/common/qrShare.js
 
 /**
- * Common QR code sharing functionality
+ * Unified QR code sharing with regular and gift modes
  * Works across browser, editor, and player pages
- * NOW WITH GIFT URL SUPPORT!
  */
 
-// Store current slug when modal is opened
+// Store current state
 let currentModalSlug = null;
-let currentGiftFlowEnabled = false;
+let currentShareMode = 'regular'; // 'regular' or 'gift'
+let giftSettings = {
+    creator_name: '',
+    unwrap_style: 'playful',
+    show_tracklist_after_completion: true
+};
 
 /**
  * Initialize QR sharing for a specific context
@@ -17,7 +21,6 @@ let currentGiftFlowEnabled = false;
  * @param {string} options.shareButtonSelector - CSS selector for share button(s)
  * @param {string} options.modalId - ID of the QR modal
  * @param {Function} options.getSlug - Function to get the current mixtape slug
- * @param {Function} options.isGiftFlow - Function to check if gift flow is enabled
  * @param {boolean} options.autoShow - Whether button should always be visible (default: false)
  */
 export function initQRShare(options = {}) {
@@ -25,7 +28,6 @@ export function initQRShare(options = {}) {
         shareButtonSelector = '.qr-share-btn',
         modalId = 'qrShareModal',
         getSlug = null,
-        isGiftFlow = null,
         autoShow = false
     } = options;
 
@@ -35,14 +37,17 @@ export function initQRShare(options = {}) {
         return;
     }
 
+    // Load saved gift preferences
+    loadGiftPreferences();
+
     // Initialize all share buttons
     const shareButtons = document.querySelectorAll(shareButtonSelector);
     shareButtons.forEach(btn => {
-        initShareButton(btn, modal, getSlug, isGiftFlow, autoShow);
+        initShareButton(btn, modal, getSlug, autoShow);
     });
 
-    // Setup modal buttons
-    setupModalButtons(modal, getSlug, isGiftFlow);
+    // Setup modal controls
+    setupModalControls(modal, getSlug);
 
     // Listen for dynamic updates (e.g., after save in editor)
     document.addEventListener('mixtape-saved', (e) => {
@@ -63,7 +68,7 @@ function initModal(modalId) {
 /**
  * Initialize a single share button
  */
-function initShareButton(button, modal, getSlugFn, isGiftFlowFn, autoShow) {
+function initShareButton(button, modal, getSlugFn, autoShow) {
     // Show button if autoShow or if slug exists
     if (autoShow) {
         button.style.display = '';
@@ -81,40 +86,11 @@ function initShareButton(button, modal, getSlugFn, isGiftFlowFn, autoShow) {
         
         const slug = getSlugFromButton(button, getSlugFn);
         if (slug) {
-            // Check if gift flow is enabled
-            const giftFlowEnabled = isGiftFlowFn ? isGiftFlowFn() : checkGiftFlowEnabled();
-            showQRModal(modal, slug, giftFlowEnabled);
+            showQRModal(modal, slug);
         } else {
             showError('Please save your mixtape first');
         }
     });
-}
-
-/**
- * Check if gift flow is enabled from various sources
- */
-function checkGiftFlowEnabled() {
-    // Try to get from window.getGiftSettings if available (editor page)
-    if (typeof window.getGiftSettings === 'function') {
-        try {
-            const settings = window.getGiftSettings();
-            return settings.gift_flow_enabled || false;
-        } catch (e) {
-            console.warn('Error getting gift settings:', e);
-        }
-    }
-    
-    // Try to get from PRELOADED_MIXTAPE (editor or player page)
-    if (window.PRELOADED_MIXTAPE && window.PRELOADED_MIXTAPE.gift_flow_enabled) {
-        return true;
-    }
-    
-    // Try to check if we're on a gift page (player page)
-    if (window.location.pathname.includes('/play/gift/')) {
-        return true;
-    }
-    
-    return false;
 }
 
 /**
@@ -153,7 +129,7 @@ function getSlugFromButton(button, getSlugFn) {
         return decodeURIComponent(giftMatch[1]);
     }
     
-    // Try from preloaded data (editor page)
+    // Try from preloaded data
     if (window.PRELOADED_MIXTAPE && window.PRELOADED_MIXTAPE.slug) {
         return window.PRELOADED_MIXTAPE.slug;
     }
@@ -177,61 +153,45 @@ function updateShareButtons(selector, autoShow) {
 }
 
 /**
- * Show QR modal with loading state
- * @param {Object} modal - Bootstrap modal instance
- * @param {string} slug - Mixtape slug
- * @param {boolean} isGiftFlow - Whether gift flow is enabled
+ * Show QR modal
  */
-function showQRModal(modal, slug, isGiftFlow = false) {
-    const qrImg = document.getElementById('qr-code-img');
-    const qrLoading = document.getElementById('qr-loading');
-    const qrError = document.getElementById('qr-error');
-    const modalTitle = document.querySelector('#qrShareModal .modal-title');
-    const modalBody = document.querySelector('#qrShareModal .modal-body');
-    
-    if (!qrImg) return;
-    
-    // Store current slug and gift flow status for modal buttons
+function showQRModal(modal, slug) {
     currentModalSlug = slug;
-    currentGiftFlowEnabled = isGiftFlow;
+    currentShareMode = 'regular';
     
-    // Update modal title and messaging based on gift flow
-    if (modalTitle) {
-        if (isGiftFlow) {
-            modalTitle.innerHTML = '<i class="bi bi-gift me-2"></i>Share Gift Link';
-        } else {
-            modalTitle.innerHTML = '<i class="bi bi-share me-2"></i>Share Mixtape';
-        }
-    }
-    
-    // Add/update gift flow indicator
-    let giftIndicator = document.getElementById('qr-gift-indicator');
-    if (isGiftFlow) {
-        if (!giftIndicator && modalBody) {
-            giftIndicator = document.createElement('div');
-            giftIndicator.id = 'qr-gift-indicator';
-            giftIndicator.className = 'alert alert-info d-flex align-items-center mb-3';
-            giftIndicator.innerHTML = `
-                <i class="bi bi-gift-fill me-2"></i>
-                <small>This will share the gift unwrap experience</small>
-            `;
-            modalBody.insertBefore(giftIndicator, modalBody.firstChild);
-        }
-    } else if (giftIndicator) {
-        giftIndicator.remove();
+    // Reset to regular share tab
+    const regularTab = document.getElementById('regular-share-tab');
+    if (regularTab) {
+        const tab = new bootstrap.Tab(regularTab);
+        tab.show();
     }
     
     // Show modal
     modal.show();
     
+    // Load regular QR code
+    loadRegularQR(slug);
+}
+
+/**
+ * Load regular share QR code
+ */
+function loadRegularQR(slug) {
+    const qrImg = document.getElementById('qr-code-img');
+    const qrLoading = document.getElementById('qr-loading');
+    const qrError = document.getElementById('qr-error');
+    const qrInstructions = document.getElementById('qr-instructions');
+    
+    if (!qrImg) return;
+    
     // Reset state
     qrImg.style.display = 'none';
     if (qrLoading) qrLoading.style.display = 'block';
     if (qrError) qrError.style.display = 'none';
+    if (qrInstructions) qrInstructions.style.display = 'none';
     
-    // Build QR URL - use gift endpoint if gift flow is enabled
-    const urlType = isGiftFlow ? 'gift' : 'share';
-    const qrUrl = `/qr/${encodeURIComponent(slug)}.png?size=400&logo=true&type=${urlType}`;
+    // Build QR URL
+    const qrUrl = `/qr/${encodeURIComponent(slug)}.png?size=400&logo=true&type=share`;
     
     // Load QR code image
     const img = new Image();
@@ -240,6 +200,7 @@ function showQRModal(modal, slug, isGiftFlow = false) {
         qrImg.src = qrUrl;
         qrImg.style.display = 'block';
         if (qrLoading) qrLoading.style.display = 'none';
+        if (qrInstructions) qrInstructions.style.display = 'block';
     };
     
     img.onerror = () => {
@@ -257,42 +218,222 @@ function showQRModal(modal, slug, isGiftFlow = false) {
 }
 
 /**
- * Setup modal action buttons (download, copy link)
+ * Setup modal controls (tabs, buttons, etc.)
  */
-function setupModalButtons(modal, getSlugFn, isGiftFlowFn) {
-    // Download button
+function setupModalControls(modal, getSlugFn) {
+    // Tab switching
+    const regularTab = document.getElementById('regular-share-tab');
+    const giftTab = document.getElementById('gift-share-tab');
+    
+    if (regularTab) {
+        regularTab.addEventListener('shown.bs.tab', () => {
+            currentShareMode = 'regular';
+            const slug = getCurrentSlug(getSlugFn);
+            if (slug) loadRegularQR(slug);
+        });
+    }
+    
+    if (giftTab) {
+        giftTab.addEventListener('shown.bs.tab', () => {
+            currentShareMode = 'gift';
+            showGiftConfigForm();
+        });
+    }
+    
+    // Gift form controls
+    setupGiftFormControls();
+    
+    // Action buttons
     const downloadBtn = document.getElementById('qr-download-btn');
     if (downloadBtn) {
         downloadBtn.addEventListener('click', async () => {
             const slug = getCurrentSlug(getSlugFn);
             if (slug) {
-                await downloadQRCode(slug, currentGiftFlowEnabled);
+                await downloadQRCode(slug, currentShareMode);
             }
         });
     }
     
-    // Copy link button
     const copyLinkBtn = document.getElementById('qr-copy-link-btn');
     if (copyLinkBtn) {
         copyLinkBtn.addEventListener('click', async () => {
             const slug = getCurrentSlug(getSlugFn);
             if (slug) {
-                await copyShareLink(slug, currentGiftFlowEnabled);
+                await copyShareLink(slug, currentShareMode);
             }
         });
     }
 }
 
 /**
+ * Setup gift form controls
+ */
+function setupGiftFormControls() {
+    // Preview button
+    const previewBtn = document.getElementById('preview-gift-style');
+    if (previewBtn) {
+        previewBtn.addEventListener('click', () => {
+            const style = getSelectedGiftStyle();
+            openGiftPreview(style);
+        });
+    }
+    
+    // Generate gift QR button
+    const generateBtn = document.getElementById('generate-gift-qr');
+    if (generateBtn) {
+        generateBtn.addEventListener('click', async () => {
+            await generateGiftQR();
+        });
+    }
+    
+    // Edit gift settings button
+    const editBtn = document.getElementById('edit-gift-settings');
+    if (editBtn) {
+        editBtn.addEventListener('click', () => {
+            showGiftConfigForm();
+        });
+    }
+}
+
+/**
+ * Show gift configuration form
+ */
+function showGiftConfigForm() {
+    const configForm = document.getElementById('gift-config-form');
+    const qrDisplay = document.getElementById('gift-qr-display');
+    
+    if (configForm) {
+        configForm.style.display = 'block';
+        
+        // Populate with saved settings
+        const nameInput = document.getElementById('gift-creator-name-modal');
+        if (nameInput) nameInput.value = giftSettings.creator_name;
+        
+        const styleRadio = document.getElementById(`style-${giftSettings.unwrap_style}-modal`);
+        if (styleRadio) styleRadio.checked = true;
+        
+        const tracklistCheckbox = document.getElementById('show-tracklist-modal');
+        if (tracklistCheckbox) tracklistCheckbox.checked = giftSettings.show_tracklist_after_completion;
+    }
+    
+    if (qrDisplay) {
+        qrDisplay.style.display = 'none';
+    }
+}
+
+/**
+ * Get selected gift style from form
+ */
+function getSelectedGiftStyle() {
+    const selected = document.querySelector('input[name="gift-style-modal"]:checked');
+    return selected ? selected.value : 'playful';
+}
+
+/**
+ * Open gift preview window
+ */
+function openGiftPreview(style) {
+    const previewUrl = `/static/mockups/mockup-${style}.html`;
+    
+    const width = 600;
+    const height = 700;
+    const left = (screen.width - width) / 2;
+    const top = (screen.height - height) / 2;
+    
+    window.open(
+        previewUrl,
+        'GiftFlowPreview',
+        `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
+    );
+}
+
+/**
+ * Generate gift QR code
+ */
+async function generateGiftQR() {
+    const slug = currentModalSlug;
+    if (!slug) return;
+    
+    // Get form values
+    const nameInput = document.getElementById('gift-creator-name-modal');
+    const style = getSelectedGiftStyle();
+    const tracklistCheckbox = document.getElementById('show-tracklist-modal');
+    const saveDefaultsCheckbox = document.getElementById('save-gift-defaults-modal');
+    
+    // Update settings
+    giftSettings.creator_name = nameInput ? nameInput.value.trim() : '';
+    giftSettings.unwrap_style = style;
+    giftSettings.show_tracklist_after_completion = tracklistCheckbox ? tracklistCheckbox.checked : true;
+    
+    // Save defaults if requested
+    if (saveDefaultsCheckbox && saveDefaultsCheckbox.checked) {
+        await saveGiftPreferences();
+        saveDefaultsCheckbox.checked = false; // Reset checkbox
+    }
+    
+    // Show QR display area
+    const configForm = document.getElementById('gift-config-form');
+    const qrDisplay = document.getElementById('gift-qr-display');
+    const giftQrLoading = document.getElementById('gift-qr-loading');
+    const giftQrImg = document.getElementById('gift-qr-code-img');
+    const giftInfo = document.getElementById('gift-info');
+    const giftEditLink = document.getElementById('gift-edit-link');
+    
+    if (configForm) configForm.style.display = 'none';
+    if (qrDisplay) qrDisplay.style.display = 'block';
+    if (giftQrLoading) giftQrLoading.style.display = 'block';
+    if (giftQrImg) giftQrImg.style.display = 'none';
+    if (giftInfo) giftInfo.style.display = 'none';
+    if (giftEditLink) giftEditLink.style.display = 'none';
+    
+    // Build gift URL based on style
+    const urlType = style === 'elegant' ? 'gift-elegant' : 'gift-playful';
+    const qrUrl = `/qr/${encodeURIComponent(slug)}.png?size=400&logo=true&type=${urlType}`;
+    
+    // Load QR code image
+    const img = new Image();
+    
+    img.onload = () => {
+        if (giftQrImg) {
+            giftQrImg.src = qrUrl;
+            giftQrImg.style.display = 'block';
+        }
+        if (giftQrLoading) giftQrLoading.style.display = 'none';
+        
+        // Show gift info
+        if (giftInfo) {
+            const fromDisplay = document.getElementById('gift-from-display');
+            const styleDisplay = document.getElementById('gift-style-display');
+            
+            if (fromDisplay) fromDisplay.textContent = giftSettings.creator_name || 'Anonymous';
+            if (styleDisplay) {
+                const emoji = style === 'elegant' ? '✨' : '🎉';
+                const label = style.charAt(0).toUpperCase() + style.slice(1);
+                styleDisplay.textContent = `${emoji} ${label}`;
+            }
+            
+            giftInfo.style.display = 'block';
+        }
+        
+        if (giftEditLink) giftEditLink.style.display = 'block';
+    };
+    
+    img.onerror = () => {
+        if (giftQrLoading) giftQrLoading.style.display = 'none';
+        showError('Failed to generate gift QR code');
+    };
+    
+    img.src = qrUrl;
+}
+
+/**
  * Get current slug from modal context
  */
 function getCurrentSlug(getSlugFn) {
-    // First, try the stored slug from when modal was opened
     if (currentModalSlug) {
         return currentModalSlug;
     }
     
-    // Then try custom function (without parameters)
     if (getSlugFn) {
         try {
             const slug = getSlugFn();
@@ -302,46 +443,27 @@ function getCurrentSlug(getSlugFn) {
         }
     }
     
-    // Try various sources
-    const editingInput = document.getElementById('editing-slug');
-    if (editingInput && editingInput.value) {
-        return editingInput.value;
-    }
-    
-    const shareMatch = window.location.pathname.match(/\/play\/share\/([^\/]+)/);
-    if (shareMatch) {
-        return decodeURIComponent(shareMatch[1]);
-    }
-    
-    const giftMatch = window.location.pathname.match(/\/play\/gift\/([^\/]+)/);
-    if (giftMatch) {
-        return decodeURIComponent(giftMatch[1]);
-    }
-    
-    if (window.PRELOADED_MIXTAPE && window.PRELOADED_MIXTAPE.slug) {
-        return window.PRELOADED_MIXTAPE.slug;
-    }
-    
-    return null;
+    return getSlugFromButton(null, null);
 }
 
 /**
- * Download enhanced QR code with cover art
- * @param {string} slug - Mixtape slug
- * @param {boolean} isGiftFlow - Whether gift flow is enabled
+ * Download QR code (regular or gift)
  */
-async function downloadQRCode(slug, isGiftFlow = false) {
+async function downloadQRCode(slug, mode) {
     const downloadBtn = document.getElementById('qr-download-btn');
     
     if (!downloadBtn) return;
     
-    // Disable button during download
     const originalHTML = downloadBtn.innerHTML;
     downloadBtn.disabled = true;
     downloadBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Generating...';
     
     try {
-        const urlType = isGiftFlow ? 'gift' : 'share';
+        let urlType = 'share';
+        if (mode === 'gift') {
+            urlType = giftSettings.unwrap_style === 'elegant' ? 'gift-elegant' : 'gift-playful';
+        }
+        
         const response = await fetch(
             `/qr/${encodeURIComponent(slug)}/download?size=800&include_cover=true&include_title=true&type=${urlType}`
         );
@@ -352,8 +474,7 @@ async function downloadQRCode(slug, isGiftFlow = false) {
         
         // Get filename from Content-Disposition header
         const contentDisposition = response.headers.get('Content-Disposition');
-        const prefix = isGiftFlow ? 'gift' : 'mixtape';
-        let filename = `${slug}-${prefix}-qr-code.png`;
+        let filename = `${slug}-qr-code.png`;
         
         if (contentDisposition) {
             const match = contentDisposition.match(/filename="?(.+)"?/);
@@ -371,15 +492,13 @@ async function downloadQRCode(slug, isGiftFlow = false) {
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
         
-        // Show success message
-        const message = isGiftFlow ? 'Gift QR code downloaded!' : 'QR code downloaded successfully!';
+        const message = mode === 'gift' ? 'Gift QR code downloaded!' : 'QR code downloaded successfully!';
         showToast(message, 'success');
         
     } catch (error) {
         console.error('QR download failed:', error);
         showToast('Failed to download QR code', 'danger');
     } finally {
-        // Re-enable button
         downloadBtn.disabled = false;
         downloadBtn.innerHTML = originalHTML;
     }
@@ -387,18 +506,22 @@ async function downloadQRCode(slug, isGiftFlow = false) {
 
 /**
  * Copy share link to clipboard
- * @param {string} slug - Mixtape slug
- * @param {boolean} isGiftFlow - Whether gift flow is enabled
  */
-async function copyShareLink(slug, isGiftFlow = false) {
-    // URL-encode the slug to handle spaces and special characters
+async function copyShareLink(slug, mode) {
     const encodedSlug = encodeURIComponent(slug);
-    const urlPath = isGiftFlow ? 'gift' : 'share';
-    const shareUrl = `${window.location.origin}/play/${urlPath}/${encodedSlug}`;
+    let shareUrl;
+    
+    if (mode === 'gift') {
+        // Get current style from form (in case user changed it after generating QR)
+        const currentStyle = getSelectedGiftStyle();
+        shareUrl = `${window.location.origin}/play/gift-${currentStyle}/${encodedSlug}`;
+    } else {
+        shareUrl = `${window.location.origin}/play/share/${encodedSlug}`;
+    }
     
     try {
         await navigator.clipboard.writeText(shareUrl);
-        const message = isGiftFlow ? 'Gift link copied to clipboard!' : 'Link copied to clipboard!';
+        const message = mode === 'gift' ? 'Gift link copied to clipboard!' : 'Link copied to clipboard!';
         showToast(message, 'success');
     } catch (error) {
         // Fallback for older browsers
@@ -411,7 +534,7 @@ async function copyShareLink(slug, isGiftFlow = false) {
         
         try {
             document.execCommand('copy');
-            const message = isGiftFlow ? 'Gift link copied to clipboard!' : 'Link copied to clipboard!';
+            const message = mode === 'gift' ? 'Gift link copied to clipboard!' : 'Link copied to clipboard!';
             showToast(message, 'success');
         } catch (e) {
             showToast('Failed to copy link', 'danger');
@@ -422,10 +545,56 @@ async function copyShareLink(slug, isGiftFlow = false) {
 }
 
 /**
+ * Load gift preferences from server
+ */
+async function loadGiftPreferences() {
+    try {
+        const response = await fetch('/editor/preferences');
+        if (response.ok) {
+            const prefs = await response.json();
+            
+            if (prefs.creator_name) {
+                giftSettings.creator_name = prefs.creator_name;
+            }
+            if (prefs.default_unwrap_style) {
+                giftSettings.unwrap_style = prefs.default_unwrap_style;
+            }
+            if (prefs.default_show_tracklist !== undefined) {
+                giftSettings.show_tracklist_after_completion = prefs.default_show_tracklist;
+            }
+        }
+    } catch (error) {
+        console.warn('Failed to load gift preferences:', error);
+    }
+}
+
+/**
+ * Save gift preferences to server
+ */
+async function saveGiftPreferences() {
+    try {
+        const response = await fetch('/editor/preferences', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                creator_name: giftSettings.creator_name,
+                default_unwrap_style: giftSettings.unwrap_style,
+                default_show_tracklist: giftSettings.show_tracklist_after_completion
+            })
+        });
+        
+        if (response.ok) {
+            showToast('Gift preferences saved!', 'success');
+        }
+    } catch (error) {
+        console.error('Failed to save gift preferences:', error);
+    }
+}
+
+/**
  * Show toast notification
  */
 function showToast(message, type = 'success') {
-    // Try to use existing toast container
     let container = document.querySelector('.toast-container');
     
     if (!container) {
@@ -435,7 +604,6 @@ function showToast(message, type = 'success') {
         document.body.appendChild(container);
     }
     
-    // Create toast element
     const toastEl = document.createElement('div');
     toastEl.className = `toast align-items-center text-bg-${type} border-0 shadow`;
     toastEl.setAttribute('role', 'alert');
@@ -452,11 +620,9 @@ function showToast(message, type = 'success') {
     
     container.appendChild(toastEl);
     
-    // Show toast
     const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
     toast.show();
     
-    // Remove from DOM after hidden
     toastEl.addEventListener('hidden.bs.toast', () => {
         toastEl.remove();
     });
@@ -471,13 +637,10 @@ function showError(message) {
 
 /**
  * Helper function to preload QR code (optional optimization)
- * @param {string} slug - Mixtape slug
- * @param {boolean} isGiftFlow - Whether gift flow is enabled
  */
-export function preloadQRCode(slug, isGiftFlow = false) {
+export function preloadQRCode(slug) {
     if (!slug) return;
     
-    const urlType = isGiftFlow ? 'gift' : 'share';
     const img = new Image();
-    img.src = `/qr/${encodeURIComponent(slug)}.png?size=400&logo=true&type=${urlType}`;
+    img.src = `/qr/${encodeURIComponent(slug)}.png?size=400&logo=true&type=share`;
 }

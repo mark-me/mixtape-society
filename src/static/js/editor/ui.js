@@ -3,7 +3,6 @@ import { showAlert, showConfirm } from "./utils.js";
 import { playlist, registerUnsavedCallback, registerTrackAddedCallback, registerTrackRemovedCallback } from "./playlist.js";
 import { easyMDE } from "./editorNotes.js";
 import { showProgressModal } from './progressModal.js';
-import { getGiftSettings } from './giftSettings.js';
 
 export let hasUnsavedChanges = false;
 let isSaving = false;
@@ -157,9 +156,6 @@ export function initUI() {
             }
         }
 
-        // Get gift settings
-        const giftSettings = getGiftSettings();
-
         const playlistData = {
             title: title,
             cover: coverDataUrl,
@@ -174,11 +170,7 @@ export function initUI() {
                 cover: t.cover
             })),
             slug: editingSlug || null,
-            client_id: clientId,
-            creator_name: giftSettings.creator_name,
-            gift_flow_enabled: giftSettings.gift_flow_enabled,
-            unwrap_style: giftSettings.unwrap_style,  // NEW: playful or elegant
-            show_tracklist_after_completion: giftSettings.show_tracklist_after_completion
+            client_id: clientId
         };
 
         isSaving = true;
