@@ -8,7 +8,23 @@ Sharing a mixtape with friends or family with Mixtape Society recreates the joy 
     ![Sharing a Mixtape](images/screenshot/share.png)
 </figure>
 
-## How Sharing Works
+---
+
+## ✨ Key Features
+
+- **No login required** – Recipients stream directly in their browser.
+- **Permanent links** – They never expire (unless you delete the mixtape).
+- **Privacy control** – Links are unguessable; only people you share with can access.
+- **Mobile-friendly** – Responsive design for easy listening on the go.
+- **QR codes** – For quick scanning at gatherings or including in physical gifts.
+- **Cast to TV** – Recipients can cast mixtapes to their Chromecast devices.
+
+!!! tip "Pro Tip"
+    Pair your link with a personal message: "Made this mixtape thinking of you—hope it brings back good memories! 🎧"
+
+---
+
+## 📘 How Sharing Works
 
 1. **Save Your Mixtape**
 
@@ -28,17 +44,21 @@ Sharing a mixtape with friends or family with Mixtape Society recreates the joy 
 
 ---
 
-## ✨ Key Features
+## 🎁 Gift options
 
-- **No login required** – Recipients stream directly in their browser.
-- **Permanent links** – They never expire (unless you delete the mixtape).
-- **Privacy control** – Links are unguessable; only people you share with can access.
-- **Mobile-friendly** – Responsive design for easy listening on the go.
-- **QR codes** – For quick scanning at gatherings or including in physical gifts.
-- **Cast to TV** – Recipients can cast mixtapes to their Chromecast devices.
+### Gift sharing options
 
-!!! tip "Pro Tip"
-    Pair your link with a personal message: "Made this mixtape thinking of you—hope it brings back good memories! 🎧"
+<figure markdown="span">
+    ![Gift options](images/screenshot/gift-options.png)
+</figure>
+
+### Playful gift experience
+
+![Playful gift](images/screenshot/gift-playful.jpg)
+
+### Elegant gift experience
+
+![Elegant gift](images/screenshot/gift-elegant.jpg)
 
 ---
 
