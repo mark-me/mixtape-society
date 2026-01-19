@@ -18,6 +18,7 @@ class MixtapeManager:
     """
 
     # Default values for gift flow fields
+    CURRENT_SCHEMA_VERSION = 2
     DEFAULT_CREATOR_NAME = ""
     DEFAULT_GIFT_FLOW_ENABLED = False
     DEFAULT_UNWRAP_STYLE = "playful"
@@ -125,6 +126,7 @@ class MixtapeManager:
             return self.update(slug, mixtape_data)
 
         # New creation
+        mixtape_data["schema_version"] = self.CURRENT_SCHEMA_VERSION
         title = mixtape_data.get("title", "Untitled Mixtape")
         base_slug = self._sanitize_title(title)
         slug = self._generate_unique_slug(base_slug)
