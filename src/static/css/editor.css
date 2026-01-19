@@ -1242,3 +1242,36 @@ body.reorder-mode .floating-buttons { display: none !important; }
         display: none !important;
     }
 }
+
+/* === GIFT MODAL - WARM CORAL & ROSE GOLD === */
+
+#giftSettingsModal .modal-header {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ff8787 100%);
+    color: white;
+    border-bottom: 3px solid #ffa07a;
+}
+
+#giftSettingsModal .btn-close {
+    filter: brightness(0) invert(1);
+}
+
+#giftSettingsModal .form-check-input:checked {
+    background-color: #ff6b6b;
+    border-color: #ff6b6b;
+}
+
+#giftSettingsModal .btn-outline-primary {
+    --bs-btn-color: #ff6b6b;
+    --bs-btn-border-color: #ff6b6b;
+    --bs-btn-hover-color: white;
+    --bs-btn-hover-bg: #ff6b6b;
+    --bs-btn-hover-border-color: #ff6b6b;
+    --bs-btn-active-color: white;
+    --bs-btn-active-bg: #ee5a5a;
+    --bs-btn-active-border-color: #ee5a5a;
+}
+
+#giftSettingsModal hr {
+    border-color: rgba(255, 107, 107, 0.2);
+    border-width: 2px;
+}
