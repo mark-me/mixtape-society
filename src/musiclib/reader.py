@@ -222,10 +222,7 @@ class MusicCollection:
         escaped = txt.replace('"', '""')
 
         # If it has special characters, wrap in quotes to search as phrase
-        if has_special:
-            return f'"{escaped}"'
-
-        return escaped
+        return f'"{escaped}"' if has_special else escaped
 
     def _search_album_tracks(
         self, conn: sqlite3.Connection, artist: str, album: str
@@ -526,7 +523,7 @@ class MusicCollection:
         has_album: bool,
         is_free_text: bool,
     ) -> tuple[dict[str, int], dict[str, dict], list[dict]]:
-        """Refines existing search session candidates by rescoring them with new terms.
+        """Refines existing search session candidates by re-scoring them with new terms.
         Avoids re-querying the database when the query is a refinement of a previous search.
 
         Args:
@@ -971,7 +968,6 @@ class MusicCollection:
         return self._terms_compatible(session.terms, terms)
 
     def _score_text(self, text: str, terms: list[str]) -> int:
-        # sourcery skip: assign-if-exp, reintroduce-else
         """Calculates a relevance score for text based on a list of search terms.
         Prioritizes exact, prefix, and substring matches to influence search ranking.
 
@@ -1007,10 +1003,7 @@ class MusicCollection:
                 matched_terms += 1
 
         # For multi-word queries, ALL terms must match
-        if len(terms) > 1 and matched_terms < len(terms):
-            return 0
-
-        return best
+        return 0 if len(terms) > 1 and matched_terms < len(terms) else best
 
     def _score_artist(
         self, artist: str, terms: dict, has_artist: bool, is_free_text: bool
