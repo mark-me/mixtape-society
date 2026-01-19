@@ -5,11 +5,13 @@
  * Shows: Wrapped gift → Cover reveal → Message → Redirect to player
  */
 
-console.log('Gift reveal playful script loaded');
+// Extract slug from current URL
+const urlMatch = window.location.pathname.match(/\/play\/gift-playful\/([^\/]+)/);
+const mixtapeSlug = urlMatch ? decodeURIComponent(urlMatch[1]) : null;
 
-// Get mixtape slug from window
-const mixtapeSlug = window.MIXTAPE_SLUG;
-console.log('Mixtape slug:', mixtapeSlug);
+if (!mixtapeSlug) {
+    console.error('Could not extract mixtape slug from URL');
+}
 
 // DOM elements
 const wrappedGift = document.getElementById('wrapped-gift');
@@ -18,25 +20,13 @@ const messageScreen = document.getElementById('message-screen');
 const giftImage = document.getElementById('gift-image');
 const playBtn = document.getElementById('play-btn');
 
-console.log('Elements found:', {
-    wrappedGift: !!wrappedGift,
-    coverReveal: !!coverReveal,
-    messageScreen: !!messageScreen,
-    giftImage: !!giftImage,
-    playBtn: !!playBtn
-});
-
 // Step 1: Wrapped gift → Cover reveal
 if (giftImage) {
     giftImage.addEventListener('click', () => {
-        console.log('Gift image clicked');
-        
-        // Add unwrapping animation
         if (wrappedGift) {
             wrappedGift.classList.add('unwrapping');
         }
         
-        // After unwrap animation completes, show cover
         setTimeout(() => {
             if (wrappedGift) {
                 wrappedGift.classList.add('fade-out');
@@ -44,49 +34,36 @@ if (giftImage) {
             
             setTimeout(() => {
                 if (wrappedGift) wrappedGift.style.display = 'none';
-                
-                // Show cover
                 if (coverReveal) {
                     coverReveal.classList.add('active');
                 }
-                
-                console.log('Showing cover');
-            }, 700); // Match CSS fade-out duration
-        }, 1400); // Match unwrapping animation duration
+            }, 700);
+        }, 1400);
     });
 }
 
 // Step 2: Cover → Message
 if (coverReveal) {
     coverReveal.addEventListener('click', () => {
-        console.log('Cover clicked');
-        
-        // Hide cover
         if (coverReveal) {
             coverReveal.classList.remove('active');
             coverReveal.classList.add('fade-out');
         }
         
-        // After fade animation, show message
         setTimeout(() => {
             if (coverReveal) coverReveal.style.display = 'none';
-            
-            // Show message
             if (messageScreen) {
                 messageScreen.classList.add('active');
             }
-            
-            console.log('Showing message');
-        }, 700); // Match CSS fade-out duration
+        }, 700);
     });
 }
 
 // Step 3: Message → Redirect to player
 if (playBtn) {
     playBtn.addEventListener('click', () => {
-        console.log('Play button clicked, redirecting to:', `/play/share/${encodeURIComponent(mixtapeSlug)}`);
-        
-        // Redirect to regular player
-        window.location.href = `/play/share/${encodeURIComponent(mixtapeSlug)}`;
+        if (mixtapeSlug) {
+            window.location.href = `/play/share/${encodeURIComponent(mixtapeSlug)}`;
+        }
     });
 }

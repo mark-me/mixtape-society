@@ -61,9 +61,5 @@
 {% endblock %}
 
 {% block extra_js %}
-    <!-- Pass mixtape slug to JavaScript -->
-    <script>
-        window.MIXTAPE_SLUG = '{{ slug }}';
-    </script>
     <script type="module" src="{{ url_for('static', filename='js/player/giftRevealElegant.js') }}"></script>
 {% endblock %}
