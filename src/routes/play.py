@@ -263,7 +263,7 @@ def create_play_blueprint(mixtape_manager: MixtapeManager, path_audio_cache: Pat
         recipient_name = mixtape.get('recipient_name', 'you')
 
         return render_template(
-            "gift.html",
+            "gift-playful.html",
             mixtape=mixtape,
             recipient_name=recipient_name,
             is_gift=True

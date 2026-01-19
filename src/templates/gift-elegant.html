@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}🎁 {{ mixtape.title }} - A Gift for You{% endblock %}
+
+{% block extra_meta %}
+    <meta name="description" content="A special mixtape gift: {{ mixtape.title }}">
+    <meta property="og:title" content="🎁 You've received a mixtape gift!"/>
+    <meta property="og:type" content="music.playlist"/>
+    <meta property="og:url" content="{{ url_for('play.gift_play', slug=mixtape.slug, _external=True) }}"/>
+    <meta property="og:description" content="Someone made you a special mixtape. Click to unwrap it!"/>
+    {% if mixtape.cover %}
+        <meta property="og:image" content="{{ url_for('play.serve_cover', filename=mixtape.cover.split('/')[-1], _external=True) }}"/>
+    {% endif %}
+    <meta name="robots" content="noindex, nofollow">
+{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/gift-elegant.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/play_mixtape.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+
+    <!-- Gift Reveal Flow -->
+    <div id="gift-container" class="gift-container">
+
+        <!-- Step 1: Initial Prompt -->
+        <div class="initial-prompt" id="initial-prompt">
+            <div class="gift-icon"><i class="bi bi-gift"></i></div>
+            <h1>A Special Delivery</h1>
+            <p>Someone has prepared a thoughtful mixtape just for you</p>
+            <button class="reveal-btn" id="reveal-btn">Reveal</button>
+        </div>
+
+        <!-- Step 2: Polaroid Development -->
+        <div class="polaroid-container" id="polaroid-container">
+            <div class="polaroid" id="polaroid">
+                <div class="polaroid-image" id="polaroid-image" style="background-image: url('{{ url_for('play.serve_cover', filename=mixtape.cover.split('/')[-1]) if mixtape.cover else 'https://via.placeholder.com/300' }}');"></div>
+                <div class="polaroid-caption">{{ mixtape.title }}</div>
+                <div class="tap-to-continue">
+                    <i class="bi bi-hand-index"></i> Tap to continue
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Liner Notes Book -->
+        <div class="liner-notes-container" id="liner-notes-container">
+            <div class="liner-notes-book">
+                <h2>{{ mixtape.title }}</h2>
+                <p class="creator">From {% if gift_sender %}{{ gift_sender }}{% else %}a friend{% endif %}</p>
+                <p class="message">{{ mixtape.liner_notes if mixtape.liner_notes else 'Hope this brings back memories. Enjoy!' }}</p>
+                <button class="play-button" id="play-button">
+                    <i class="bi bi-play-fill me-2"></i>Start Listening
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 4: Player (hidden until revealed) -->
+    <div id="player-container" class="player-container hidden">
+        <!-- Your original player content here (tracklist, controls, etc.) -->
+        <div class="container py-5">
+            <button id="back-to-gift" class="btn btn-outline-secondary btn-sm mb-4">
+                ← Back to gift
+            </button>
+            <!-- ... rest of player UI as in previous versions ... -->
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block extra_js %}
+    <script type="module" src="{{ url_for('static', filename='js/player/giftRevealElegant.js') }}"></script>
+{% endblock %}
