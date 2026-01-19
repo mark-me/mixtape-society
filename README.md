@@ -38,7 +38,7 @@ Perfect for:
 
 ## 🚀 Quick Start
 
-```bash
+```sh
 docker run -d \
   --name mixtape-society \
   --restart unless-stopped \
