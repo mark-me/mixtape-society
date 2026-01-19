@@ -32,7 +32,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 ### 🐛 Fixed
 
-- Android car not showing.
+- Android car not showing in car.
 
 ---
 
