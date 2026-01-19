@@ -124,6 +124,7 @@ def create_editor_blueprint(
             "updated_at": None,
             "creator_name": preferences.get("creator_name", ""),
             "gift_flow_enabled": preferences.get("default_gift_flow_enabled", False),
+            "unwrap_style": "playful",  # ADD THIS
             "show_tracklist_after_completion": preferences.get("default_show_tracklist", True),
         }
         return render_template("editor.html", preload_mixtape=empty_mixtape)
@@ -243,8 +244,32 @@ def create_editor_blueprint(
 
             # Get gift flow fields from request
             creator_name = data.get("creator_name", "").strip()
+            unwrap_style = data.get("unwrap_style", "playful")
             gift_flow_enabled = data.get("gift_flow_enabled", False)
             show_tracklist_after_completion = data.get("show_tracklist_after_completion", True)
+
+            # Validate unwrap_style
+            valid_unwrap_styles = ["playful", "elegant"]
+            if unwrap_style not in valid_unwrap_styles:
+                return jsonify({
+                    "error": f"Invalid unwrap_style '{unwrap_style}'. Must be one of: {', '.join(valid_unwrap_styles)}"
+                }), 400
+
+            # Validate gift_flow_enabled is boolean
+            if not isinstance(gift_flow_enabled, bool):
+                return jsonify({"error": "gift_flow_enabled must be a boolean"}), 400
+
+            # Validate show_tracklist_after_completion is boolean
+            if not isinstance(show_tracklist_after_completion, bool):
+                return jsonify({"error": "show_tracklist_after_completion must be a boolean"}), 400
+
+            # Optional: Validate creator_name length
+            if len(creator_name) > 100:
+                return jsonify({"error": "creator_name must be 100 characters or less"}), 400
+
+            # Optional: Validate title length
+            if len(title) > 200:
+                return jsonify({"error": "title must be 200 characters or less"}), 400
 
             # Adding track covers
             tracks = data.get("tracks", [])
@@ -262,6 +287,7 @@ def create_editor_blueprint(
                 "cover": data.get("cover"),
                 "creator_name": creator_name,
                 "gift_flow_enabled": gift_flow_enabled,
+                "unwrap_style": unwrap_style,
                 "show_tracklist_after_completion": show_tracklist_after_completion,
             }
 

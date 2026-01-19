@@ -154,50 +154,119 @@ class MixtapeManager:
         return None
 
     def update(self, slug: str, updated_data: dict) -> str:
-        """Updates an existing mixtape with new data while preserving its identity.
+        """Updates an existing mixtape's data while preserving key metadata.
 
-        Maintains the original slug and important metadata so clients can safely refresh mixtape content.
+        Loads the stored mixtape, applies changes only to allowed fields, maintains backward compatibility, and
+        refreshes the update timestamp before saving.
 
         Args:
             slug: The slug of the mixtape to update.
-            updated_data: Dictionary containing fields to update on the mixtape.
+            updated_data: A dictionary of fields to update on the mixtape.
 
         Returns:
             str: The slug of the updated mixtape.
+
+        Raises:
+            FileNotFoundError: If a mixtape with the given slug does not exist.
+        """
+        existing_data = self._load_existing_mixtape(slug)
+        updated_data = self._preserve_client_id(existing_data, updated_data)
+        existing_data = self._apply_allowed_updates(existing_data, updated_data)
+        existing_data = self._ensure_required_fields(existing_data)
+        existing_data["updated_at"] = datetime.now().isoformat()
+
+        return self._save_with_slug(
+            mixtape_data=existing_data, title=existing_data["title"], slug=slug
+        )
+
+    def _load_existing_mixtape(self, slug: str) -> dict:
+        """Loads existing mixtape data for the given slug.
+
+        Reads the mixtape JSON file from disk and returns its contents as a dictionary.
+
+        Args:
+            slug: The slug of the mixtape to load.
+
+        Returns:
+            dict: The loaded mixtape data.
+
+        Raises:
+            FileNotFoundError: If a mixtape with the given slug does not exist.
         """
         old_json_path = self.path_mixtapes / f"{slug}.json"
         if not old_json_path.exists():
             raise FileNotFoundError(f"Mixtape with slug '{slug}' not found.")
 
         with open(old_json_path, "r", encoding="utf-8") as f:
-            existing_data = json.load(f)
+            return json.load(f)
 
-        # Preserve client_id
+    def _preserve_client_id(self, existing_data: dict, updated_data: dict) -> dict:
+        """Ensures client_id is preserved when not provided in updated data.
+
+        Copies the client_id from the existing mixtape data if it is missing in the updated payload.
+
+        Args:
+            existing_data: The currently stored mixtape data.
+            updated_data: The incoming mixtape update payload.
+
+        Returns:
+            dict: The updated data with client_id preserved when applicable.
+        """
         if "client_id" not in updated_data and "client_id" in existing_data:
             updated_data["client_id"] = existing_data["client_id"]
+        return updated_data
 
-        # Merge updates
-        existing_data.update(updated_data)
+    def _apply_allowed_updates(self, existing_data: dict, updated_data: dict) -> dict:
+        """Applies only allowed field updates to an existing mixtape.
 
-        # Ensure required fields
-        existing_data["title"] = updated_data.get(
-            "title", existing_data.get("title", "Untitled Mixtape")
-        )
+        Iterates over a whitelist of fields and updates them when present, avoiding unintended null overwrites.
+
+        Args:
+            existing_data: The currently stored mixtape data.
+            updated_data: The incoming mixtape update payload.
+
+        Returns:
+            dict: The mixtape data with allowed fields updated.
+        """
+        allowed_fields = [
+            "title",
+            "tracks",
+            "liner_notes",
+            "cover",
+            "creator_name",
+            "gift_flow_enabled",
+            "unwrap_style",
+            "show_tracklist_after_completion",
+            "client_id",
+        ]
+
+        for field in allowed_fields:
+            if field in updated_data:
+                if updated_data[field] is not None or field == "cover":
+                    existing_data[field] = updated_data[field]
+        return existing_data
+
+    def _ensure_required_fields(self, existing_data: dict) -> dict:
+        """Ensures required and backward-compatible fields are present on a mixtape.
+
+        Sets default values for core fields such as title, liner notes, and gift flow options when missing.
+
+        Args:
+            existing_data: The mixtape data to normalize.
+
+        Returns:
+            dict: The mixtape data with all required fields populated.
+        """
+        existing_data["title"] = existing_data.get("title", "Untitled Mixtape")
         if "liner_notes" not in existing_data:
             existing_data["liner_notes"] = ""
 
-        # Ensure gift flow fields exist (backward compatibility)
         existing_data.setdefault("creator_name", "")
         existing_data.setdefault("gift_flow_enabled", False)
         existing_data.setdefault("unwrap_style", "playful")
         existing_data.setdefault("show_tracklist_after_completion", True)
 
-        # Only update updated_at
-        existing_data["updated_at"] = datetime.now().isoformat()
-
-        return self._save_with_slug(
-            mixtape_data=existing_data, title=existing_data["title"], slug=slug
-        )
+        return existing_data
 
     def _save_with_slug(self, mixtape_data: dict, title: str, slug: str) -> str:
         """Saves mixtape data and its cover image using a specific slug.
