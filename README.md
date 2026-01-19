@@ -19,14 +19,14 @@ No accounts, no telemetry, no Spotify – just your music, your server, your rul
 - **No accounts needed** – Recipients stream directly in browser
 - **Permanent or temporary** – Links persist until you delete them
 
-### 🎶👂 Mixtape receivers
+### 🎁 For Mixtape Receivers
 
 - **No login required** – Just click and play
 - **Full media controls** – Play, pause, seek, skip
 - **Lock screen integration** – Control from phone notifications
 - **Background playback** – Keep playing with screen off
 - **Personalized PWA** – Each mixtape installs like an app with its own icon and name
-- **Cast anywhere** – Stream in your car or throughout your house
+- **Stream anywhere** – Stream to Chromecast devices in your car or throughout your house
 
 Perfect for:
 
@@ -38,13 +38,12 @@ Perfect for:
 
 ## 🚀 Quick Start
 
-```bash
+```sh
 docker run -d \
   --name mixtape-society \
   --restart unless-stopped \
   -p 5001:5000 \
   -v /path/to/your/music:/music:ro \
-  -v /data/mixtape-society:/app/mixtapes \
   -v /data/mixtape-society:/app/collection-data \
   -e APP_PASSWORD=YourStrongPassword123! \
   ghcr.io/mark-me/mixtape-society:latest
@@ -58,7 +57,6 @@ Open [http://localhost:5001](http://localhost:5001) – Done!
 - 🚀 [Getting Started](https://mark-me.github.io/mixtape-society/user/getting-started.html)
 - 🐳 [Docker Deployment](https://mark-me.github.io/mixtape-society/user/docker.html)
 - 🙌 [Acknowledgements](https://mark-me.github.io/mixtape-society/project/about.html#acknowledgements)
-
 
 ## 👥 Get Involved
 
