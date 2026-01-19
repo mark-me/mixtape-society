@@ -11,18 +11,15 @@ No accounts, no telemetry, no Spotify – just your music, your server, your rul
 ### 🎵 For Mixtape Creators
 
 - **Private music library** – Host your own collection (FLAC, MP3, M4A, AAC, OGG, WAV)
-- **Beautiful editor** – Live search, drag-and-drop track ordering
 - **Custom cover art** – Upload unique artwork for each mixtape
 - **Liner notes** – Add personal messages with Markdown formatting
 - **Smart caching** – Pre-transcode for faster mobile streaming for multiple audio quality options (original to 128k)
 - **Instant public links** – Share via URL, QR code or print-ready codes with cover art
-- **No accounts needed** – Recipients stream directly in browser
 - **Permanent or temporary** – Links persist until you delete them
 
 ### 🎁 For Mixtape Receivers
 
-- **No login required** – Just click and play
-- **Full media controls** – Play, pause, seek, skip
+- **No accounts needed** – Just click and play
 - **Lock screen integration** – Control from phone notifications
 - **Background playback** – Keep playing with screen off
 - **Personalized PWA** – Each mixtape installs like an app with its own icon and name
@@ -81,3 +78,4 @@ Public links should only be shared with people you trust or protected with a pas
 See [DISCLAIMER](./DISCLAIMER) for full text.
 
 Made with love for real mixtapes in a digital world.
+
