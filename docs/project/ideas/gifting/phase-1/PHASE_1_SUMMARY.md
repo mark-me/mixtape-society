@@ -21,7 +21,7 @@ New fields added to mixtape JSON:
   "tracks": [...],
   "liner_notes": "...",
   "cover": "covers/...",
-  
+
   // NEW FIELDS:
   "creator_name": "John Doe",                    // From preferences, can be overridden
   "gift_flow_enabled": false,                    // Enable gift unwrapping experience
@@ -132,7 +132,7 @@ Now that the backend is ready, Phase 2 will add:
 curl -X POST http://localhost:5000/editor/preferences \
   -H "Content-Type: application/json" \
   -d '{
-    "creator_name": "DJ Claude",
+    "creator_name": "DJ Mark",
     "default_gift_flow_enabled": true,
     "default_show_tracklist": false
   }'
@@ -145,7 +145,7 @@ curl -X POST http://localhost:5000/editor/save \
   -d '{
     "title": "Summer Vibes",
     "tracks": [...],
-    "creator_name": "DJ Claude",
+    "creator_name": "DJ Mark",
     "gift_flow_enabled": true,
     "show_tracklist_after_completion": false
   }'
@@ -155,7 +155,7 @@ curl -X POST http://localhost:5000/editor/save \
 ```json
 {
   "title": "Summer Vibes",
-  "creator_name": "DJ Claude",
+  "creator_name": "DJ Mark",
   "gift_flow_enabled": true,
   "show_tracklist_after_completion": false,
   "tracks": [...],

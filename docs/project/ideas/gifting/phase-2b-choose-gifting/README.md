@@ -114,7 +114,7 @@ cp /path/to/outputs/giftSettings.js static/js/editor/
 ```json
 {
   "title": "Summer Vibes",
-  "creator_name": "DJ Claude",
+  "creator_name": "DJ Mark",
   "gift_flow_enabled": true,
   "unwrap_style": "playful",  // or "elegant"
   "show_tracklist_after_completion": true,

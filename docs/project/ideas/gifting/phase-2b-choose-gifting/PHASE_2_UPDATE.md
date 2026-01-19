@@ -111,7 +111,7 @@ These are self-contained HTML files that demonstrate each unwrap style.
   "title": "Summer Vibes '24",
   "tracks": [...],
   "liner_notes": "...",
-  "creator_name": "DJ Claude",
+  "creator_name": "DJ Mark",
   "gift_flow_enabled": true,
   "unwrap_style": "playful",  // NEW: 'playful' or 'elegant'
   "show_tracklist_after_completion": true,
