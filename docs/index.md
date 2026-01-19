@@ -93,7 +93,7 @@ Mixtape Society is a private, self‑hosted web app to create and share beautifu
 - **Personalized PWA** – Each mixtape installs like an app with its own icon and name
 - **Cast anywhere** – Stream to Chromecast devices throughout your home
 
-### 📺 Stream Everywhere
+### 📡 Stream Everywhere
 
 Recipients can stream shared mixtapes to any device using Chromecast, AirPlay, or Android Auto:
 
