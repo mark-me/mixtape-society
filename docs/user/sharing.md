@@ -42,7 +42,7 @@ Sharing a mixtape with friends or family with Mixtape Society recreates the joy 
 
 ---
 
-## 📺 Streaming to TVs and Speakers
+## 📡 Streaming to TVs and Speakers
 
 Recipients can play your mixtapes on their TV or smart speakers using either Chromecast (Android/Chrome) or AirPlay (Apple devices).
 
