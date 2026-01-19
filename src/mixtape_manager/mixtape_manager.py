@@ -35,6 +35,7 @@ class MixtapeManager:
         "unwrap_style",
         "show_tracklist_after_completion",
         "client_id",
+        "schema_version",
     ]
 
     def __init__(
