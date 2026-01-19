@@ -24,7 +24,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 <span class="md-tag">Release</span>
 
-**🗓️** 2026-01-18
+**🗓️** 2026-01-19
 
 ### ✨ Added
 
@@ -32,7 +32,9 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 ### 🐛 Fixed
 
-- Android car not showing.
+- Android car not showing in car.
+
+[Changes since last version](https://github.com/mark-me/mixtape-society/compare/v0.5.9...v0.6.0)
 
 ---
 
@@ -46,6 +48,8 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 - Limiter only applied to login page
 - PWA manifest was not dynamic, so would not work for received shared mixtapes
+
+[Changes since last version](https://github.com/mark-me/mixtape-society/compare/v0.5.8...v0.5.9)
 
 ---
 
@@ -65,6 +69,8 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 ### 🐛 Fixed
 
 - The artist's album accordions in the search results went missing since v0.5.7
+
+[Changes since last version](https://github.com/mark-me/mixtape-society/compare/v0.5.7...v0.5.8)
 
 ---
 
