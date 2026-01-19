@@ -9,8 +9,7 @@ from qr_generator import generate_mixtape_qr, generate_mixtape_qr_with_cover
 
 
 def create_qr_blueprint(
-    mixtape_manager: MixtapeManager,
-    logger: Logger | None = None
+    mixtape_manager: MixtapeManager, logger: Logger | None = None
 ) -> Blueprint:
     """
     Creates Flask blueprint for QR code generation.
@@ -50,19 +49,9 @@ def create_qr_blueprint(
             abort(404, description="Mixtape not found")
 
         # Get parameters
-        size = min(int(request.args.get('size', 400)), 800)
-        include_logo = request.args.get('logo', 'true').lower() != 'false'
-        url_type = request.args.get('type', 'share')  # 'share' or 'gift'
-
-        # Validate url_type
-        if url_type not in ['share', 'gift']:
-            url_type = 'share'
-
-        # Build the appropriate URL based on type
-        if url_type == 'gift':
-            share_url = url_for('play.gift_play', slug=slug, _external=True)
-        else:
-            share_url = url_for('play.public_play', slug=slug, _external=True)
+        size = min(int(request.args.get("size", 400)), 800)
+        include_logo = request.args.get("logo", "true").lower() != "false"
+        url_type = request.args.get("type", "share")  # 'share' or 'gift'
 
         # Generate QR code
         try:
@@ -74,21 +63,21 @@ def create_qr_blueprint(
                     logo_path = Path(current_app.static_folder) / "images" / "logo.png"
                     if not logo_path.exists():
                         logo_path = None
-
+            share_url = _get_url(slug=slug, url_type=url_type)
             qr_bytes = generate_mixtape_qr(
                 url=share_url,
-                title=mixtape.get('title', 'Mixtape'),
+                title=mixtape.get("title", "Mixtape"),
                 logo_path=logo_path,
-                size=size
+                size=size,
             )
 
             # Create filename based on type
-            filename_type = 'gift' if url_type == 'gift' else 'qr'
+            filename_type = "gift" if url_type == "gift" else "qr"
             filename = f"{slug}-{filename_type}.png"
 
-            response = Response(qr_bytes, mimetype='image/png')
-            response.headers['Cache-Control'] = 'public, max-age=3600'
-            response.headers['Content-Disposition'] = f'inline; filename="{filename}"'
+            response = Response(qr_bytes, mimetype="image/png")
+            response.headers["Cache-Control"] = "public, max-age=3600"
+            response.headers["Content-Disposition"] = f'inline; filename="{filename}"'
 
             return response
 
@@ -96,11 +85,25 @@ def create_qr_blueprint(
             logger.error(f"QR code generation failed - library not installed: {e}")
             abort(
                 500,
-                description="QR code generation not available. Install qrcode library."
+                description="QR code generation not available. Install qrcode library.",
             )
         except Exception as e:
             logger.exception("QR code generation failed")
             abort(500, description="Failed to generate QR code")
+
+    def _get_url(slug: str, url_type: str=""):
+        if url_type not in ["share", "gift-playful", "gift-elegant"]:
+            url_type = "share"
+
+        # Build the appropriate URL based on type
+        if url_type == "gift-playful":
+            share_url = url_for("play.gift_playful", slug=slug, _external=True)
+        elif url_type == "gift-elegant":
+            share_url = url_for("play.gift_elegant", slug=slug, _external=True)
+        else:
+            share_url = url_for("play.public_play", slug=slug, _external=True)
+
+        return share_url
 
     @qr.route("/qr/<slug>/download")
     def download_qr(slug: str) -> Response:
@@ -128,20 +131,10 @@ def create_qr_blueprint(
             abort(404, description="Mixtape not found")
 
         # Get parameters
-        qr_size = min(int(request.args.get('size', 800)), 1200)
-        include_cover = request.args.get('include_cover', 'true').lower() != 'false'
-        include_title = request.args.get('include_title', 'true').lower() != 'false'
-        url_type = request.args.get('type', 'share')  # 'share' or 'gift'
-
-        # Validate url_type
-        if url_type not in ['share', 'gift']:
-            url_type = 'share'
-
-        # Build the appropriate URL based on type
-        if url_type == 'gift':
-            share_url = url_for('play.gift_play', slug=slug, _external=True)
-        else:
-            share_url = url_for('play.public_play', slug=slug, _external=True)
+        qr_size = min(int(request.args.get("size", 800)), 1200)
+        include_cover = request.args.get("include_cover", "true").lower() != "false"
+        include_title = request.args.get("include_title", "true").lower() != "false"
+        url_type = request.args.get("type", "share")  # 'share' or 'gift'
 
         try:
             # Get logo path
@@ -153,32 +146,35 @@ def create_qr_blueprint(
 
             # Get cover path if requested
             cover_path = None
-            if include_cover and mixtape.get('cover'):
-                cover_filename = mixtape['cover'].split('/')[-1]
-                cover_path = Path(current_app.config['COVER_DIR']) / cover_filename
+            if include_cover and mixtape.get("cover"):
+                cover_filename = mixtape["cover"].split("/")[-1]
+                cover_path = Path(current_app.config["COVER_DIR"]) / cover_filename
                 if not cover_path.exists():
                     cover_path = None
 
             # Generate enhanced QR code
+            share_url = _get_url(slug=slug, url_type=url_type)
             qr_bytes = generate_mixtape_qr_with_cover(
                 url=share_url,
-                title=mixtape.get('title', 'Mixtape'),
+                title=mixtape.get("title", "Mixtape"),
                 cover_path=cover_path,
                 logo_path=logo_path,
                 qr_size=qr_size,
-                include_title=include_title
+                include_title=include_title,
             )
 
             # Sanitize title for filename
-            title = mixtape.get('title', 'mixtape')
+            title = mixtape.get("title", "mixtape")
             safe_title = "".join(c if c.isalnum() or c in " -_" else "_" for c in title)
 
             # Create filename based on type
-            type_suffix = 'gift' if url_type == 'gift' else 'mixtape'
+            type_suffix = "gift" if url_type == "gift" else "mixtape"
             filename = f"{safe_title}-{type_suffix}-qr-code.png"
 
-            response = Response(qr_bytes, mimetype='image/png')
-            response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
+            response = Response(qr_bytes, mimetype="image/png")
+            response.headers["Content-Disposition"] = (
+                f'attachment; filename="{filename}"'
+            )
 
             return response
 
@@ -186,7 +182,7 @@ def create_qr_blueprint(
             logger.error(f"QR code generation failed - library not installed: {e}")
             abort(
                 500,
-                description="QR code generation not available. Install qrcode library."
+                description="QR code generation not available. Install qrcode library.",
             )
         except Exception as e:
             logger.exception("QR code download failed")

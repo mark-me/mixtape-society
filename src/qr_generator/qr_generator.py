@@ -8,6 +8,7 @@ try:
     from qrcode.image.styledpil import StyledPilImage
     from qrcode.image.styles.moduledrawers import RoundedModuleDrawer
     from qrcode.image.styles.colormasks import SolidFillColorMask
+
     QR_AVAILABLE = True
 except ImportError:
     QR_AVAILABLE = False
@@ -21,7 +22,7 @@ def generate_mixtape_qr_with_cover(
     cover_path: Path | None = None,
     logo_path: Path | None = None,
     qr_size: int = 400,
-    include_title: bool = True
+    include_title: bool = True,
 ) -> bytes:
     """
     Generate a branded QR code with mixtape cover art and title.
@@ -48,8 +49,7 @@ def generate_mixtape_qr_with_cover(
     """
     if not QR_AVAILABLE:
         raise ImportError(
-            "qrcode library not installed. "
-            "Install with: uv add qrcode pillow"
+            "qrcode library not installed. Install with: uv add qrcode pillow"
         )
 
     # Generate base QR code
@@ -69,8 +69,8 @@ def generate_mixtape_qr_with_cover(
         module_drawer=RoundedModuleDrawer(),
         color_mask=SolidFillColorMask(
             back_color=(255, 255, 255),
-            front_color=(30, 58, 95)  # Navy blue
-        )
+            front_color=(30, 58, 95),  # Navy blue
+        ),
     )
 
     qr_img = qr_img.resize((qr_size, qr_size), Image.Resampling.LANCZOS)
@@ -81,15 +81,12 @@ def generate_mixtape_qr_with_cover(
 
     # Create composite image with cover and title
     composite = _create_composite_image(
-        qr_img=qr_img,
-        title=title,
-        cover_path=cover_path,
-        include_title=include_title
+        qr_img=qr_img, title=title, cover_path=cover_path, include_title=include_title
     )
 
     # Convert to bytes
     buffer = io.BytesIO()
-    composite.save(buffer, format='PNG', optimize=True)
+    composite.save(buffer, format="PNG", optimize=True)
     buffer.seek(0)
 
     return buffer.getvalue()
@@ -99,7 +96,7 @@ def _create_composite_image(
     qr_img: Image.Image,
     title: str,
     cover_path: Path | None = None,
-    include_title: bool = True
+    include_title: bool = True,
 ) -> Image.Image:
     """
     Create composite image with cover, title, and QR code.
@@ -130,7 +127,7 @@ def _create_composite_image(
     total_height += padding * 2  # Top and bottom padding
 
     # Create white background
-    composite = Image.new('RGB', (qr_width, total_height), 'white')
+    composite = Image.new("RGB", (qr_width, total_height), "white")
     draw = ImageDraw.Draw(composite)
 
     current_y = padding
@@ -139,7 +136,7 @@ def _create_composite_image(
     if cover_path and cover_path.exists():
         try:
             cover = Image.open(cover_path)
-            cover = cover.convert('RGB')
+            cover = cover.convert("RGB")
 
             # Resize cover to match QR width (square)
             cover = _resize_cover(cover, cover_size)
@@ -156,8 +153,7 @@ def _create_composite_image(
         # Background for title
         title_bg_color = (30, 58, 95)  # Navy blue
         draw.rectangle(
-            [(0, current_y), (qr_width, current_y + title_height)],
-            fill=title_bg_color
+            [(0, current_y), (qr_width, current_y + title_height)], fill=title_bg_color
         )
 
         # Draw title text
@@ -188,11 +184,7 @@ def _resize_cover(cover: Image.Image, target_size: int) -> Image.Image:
 
 
 def _draw_title_text(
-    draw: ImageDraw.Draw,
-    title: str,
-    width: int,
-    y_offset: int,
-    height: int
+    draw: ImageDraw.Draw, title: str, width: int, y_offset: int, height: int
 ):
     """Draw mixtape title centered in the banner."""
     # Try to use a nice font, fall back to default
@@ -220,9 +212,7 @@ def _draw_title_text(
 
     # Truncate title if too long
     max_chars = 30
-    display_title = (
-        title if len(title) <= max_chars else f"{title[:max_chars - 3]}..."
-    )
+    display_title = title if len(title) <= max_chars else f"{title[: max_chars - 3]}..."
 
     # Get text bounding box
     bbox = draw.textbbox((0, 0), display_title, font=font)
@@ -234,7 +224,7 @@ def _draw_title_text(
     y = y_offset + (height - text_height) // 2
 
     # Draw text with white color
-    draw.text((x, y), display_title, fill='white', font=font)
+    draw.text((x, y), display_title, fill="white", font=font)
 
 
 def _add_logo_to_qr(qr_img: Image.Image, logo_path: Path) -> Image.Image:
@@ -251,29 +241,23 @@ def _add_logo_to_qr(qr_img: Image.Image, logo_path: Path) -> Image.Image:
 
         # Create white background circle for logo
         logo_bg_size = int(logo_max_size * 1.3)
-        logo_bg = Image.new('RGB', (logo_bg_size, logo_bg_size), 'white')
+        logo_bg = Image.new("RGB", (logo_bg_size, logo_bg_size), "white")
 
         # Create circular mask
-        mask = Image.new('L', (logo_bg_size, logo_bg_size), 0)
+        mask = Image.new("L", (logo_bg_size, logo_bg_size), 0)
         draw = ImageDraw.Draw(mask)
         draw.ellipse((0, 0, logo_bg_size, logo_bg_size), fill=255)
 
         # Paste white circle onto QR
-        logo_bg_pos = (
-            (qr_width - logo_bg_size) // 2,
-            (qr_height - logo_bg_size) // 2
-        )
+        logo_bg_pos = ((qr_width - logo_bg_size) // 2, (qr_height - logo_bg_size) // 2)
         qr_img.paste(logo_bg, logo_bg_pos, mask)
 
         # Paste logo onto white circle
-        logo_pos = (
-            (qr_width - logo.width) // 2,
-            (qr_height - logo.height) // 2
-        )
+        logo_pos = ((qr_width - logo.width) // 2, (qr_height - logo.height) // 2)
 
         # Convert logo to RGBA if needed
-        if logo.mode != 'RGBA':
-            logo = logo.convert('RGBA')
+        if logo.mode != "RGBA":
+            logo = logo.convert("RGBA")
 
         qr_img.paste(logo, logo_pos, logo)
 
@@ -284,10 +268,7 @@ def _add_logo_to_qr(qr_img: Image.Image, logo_path: Path) -> Image.Image:
 
 
 def generate_mixtape_qr(
-    url: str,
-    title: str,
-    logo_path: Path | None = None,
-    size: int = 400
+    url: str, title: str, logo_path: Path | None = None, size: int = 400
 ) -> bytes:
     """
     Generate a simple QR code (backward compatibility).
@@ -296,8 +277,7 @@ def generate_mixtape_qr(
     """
     if not QR_AVAILABLE:
         raise ImportError(
-            "qrcode library not installed. "
-            "Install with: uv add qrcode pillow"
+            "qrcode library not installed. Install with: uv add qrcode pillow"
         )
 
     qr = qrcode.QRCode(
@@ -314,9 +294,8 @@ def generate_mixtape_qr(
         image_factory=StyledPilImage,
         module_drawer=RoundedModuleDrawer(),
         color_mask=SolidFillColorMask(
-            back_color=(255, 255, 255),
-            front_color=(30, 58, 95)
-        )
+            back_color=(255, 255, 255), front_color=(30, 58, 95)
+        ),
     )
 
     img = img.resize((size, size), Image.Resampling.LANCZOS)
@@ -325,7 +304,7 @@ def generate_mixtape_qr(
         img = _add_logo_to_qr(img, logo_path)
 
     buffer = io.BytesIO()
-    img.save(buffer, format='PNG', optimize=True)
+    img.save(buffer, format="PNG", optimize=True)
     buffer.seek(0)
 
     return buffer.getvalue()

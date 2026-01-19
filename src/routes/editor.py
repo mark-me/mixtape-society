@@ -51,8 +51,7 @@ def create_editor_blueprint(
     def get_preferences_manager():
         """Get PreferencesManager instance using current app config."""
         return PreferencesManager(
-            data_root=current_app.config["DATA_ROOT"],
-            logger=logger
+            data_root=current_app.config["DATA_ROOT"], logger=logger
         )
 
     @editor.route("/preferences", methods=["GET"])
@@ -91,10 +90,7 @@ def create_editor_blueprint(
             prefs_manager = get_preferences_manager()
             updated_prefs = prefs_manager.update_preferences(data)
 
-            return jsonify({
-                "success": True,
-                "preferences": updated_prefs
-            })
+            return jsonify({"success": True, "preferences": updated_prefs})
         except Exception as e:
             logger.error(f"Error updating preferences: {e}")
             return jsonify({"error": str(e)}), 500
@@ -125,7 +121,9 @@ def create_editor_blueprint(
             "creator_name": preferences.get("creator_name", ""),
             "gift_flow_enabled": preferences.get("default_gift_flow_enabled", False),
             "unwrap_style": "playful",  # ADD THIS
-            "show_tracklist_after_completion": preferences.get("default_show_tracklist", True),
+            "show_tracklist_after_completion": preferences.get(
+                "default_show_tracklist", True
+            ),
         }
         return render_template("editor.html", preload_mixtape=empty_mixtape)
 
@@ -179,11 +177,9 @@ def create_editor_blueprint(
             logger.error(f"Search error for query '{query}': {e}", exc_info=True)
 
             # Return a proper JSON error response
-            return jsonify({
-                "error": "Search failed",
-                "message": str(e),
-                "query": query
-            }), 500
+            return jsonify(
+                {"error": "Search failed", "message": str(e), "query": query}
+            ), 500
 
     @editor.route("/artist_details")
     @require_auth
@@ -246,14 +242,18 @@ def create_editor_blueprint(
             creator_name = data.get("creator_name", "").strip()
             unwrap_style = data.get("unwrap_style", "playful")
             gift_flow_enabled = data.get("gift_flow_enabled", False)
-            show_tracklist_after_completion = data.get("show_tracklist_after_completion", True)
+            show_tracklist_after_completion = data.get(
+                "show_tracklist_after_completion", True
+            )
 
             # Validate unwrap_style
             valid_unwrap_styles = ["playful", "elegant"]
             if unwrap_style not in valid_unwrap_styles:
-                return jsonify({
-                    "error": f"Invalid unwrap_style '{unwrap_style}'. Must be one of: {', '.join(valid_unwrap_styles)}"
-                }), 400
+                return jsonify(
+                    {
+                        "error": f"Invalid unwrap_style '{unwrap_style}'. Must be one of: {', '.join(valid_unwrap_styles)}"
+                    }
+                ), 400
 
             # Validate gift_flow_enabled is boolean
             if not isinstance(gift_flow_enabled, bool):
@@ -261,11 +261,15 @@ def create_editor_blueprint(
 
             # Validate show_tracklist_after_completion is boolean
             if not isinstance(show_tracklist_after_completion, bool):
-                return jsonify({"error": "show_tracklist_after_completion must be a boolean"}), 400
+                return jsonify(
+                    {"error": "show_tracklist_after_completion must be a boolean"}
+                ), 400
 
             # Optional: Validate creator_name length
             if len(creator_name) > 100:
-                return jsonify({"error": "creator_name must be 100 characters or less"}), 400
+                return jsonify(
+                    {"error": "creator_name must be 100 characters or less"}
+                ), 400
 
             # Optional: Validate title length
             if len(title) > 200:
