@@ -19,7 +19,7 @@ No accounts, no telemetry, no Spotify – just your music, your server, your rul
 - **No accounts needed** – Recipients stream directly in browser
 - **Permanent or temporary** – Links persist until you delete them
 
-### 📱 Mixtape receivers
+### 📱 For Mixtape Receivers
 
 - **No login required** – Just click and play
 - **Full media controls** – Play, pause, seek, skip
@@ -58,7 +58,6 @@ Open [http://localhost:5001](http://localhost:5001) – Done!
 - 🚀 [Getting Started](https://mark-me.github.io/mixtape-society/user/getting-started.html)
 - 🐳 [Docker Deployment](https://mark-me.github.io/mixtape-society/user/docker.html)
 - 🙌 [Acknowledgements](https://mark-me.github.io/mixtape-society/project/about.html#acknowledgements)
-
 
 ## 👥 Get Involved
 
