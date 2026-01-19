@@ -17,7 +17,7 @@ Mixtape Society is a private, self‑hosted web app to create and share beautifu
 - ✅ **No ads, no tracking, no accounts** – pure privacy.
 - 🔗 **Public share links and QR codes** – anyone can listen without an account.
 - 📼 **Cassette‑style experience** – nostalgic UI with modern tech.
-- 📺 **Universal streaming** – Chromecast, AirPlay, and Android Auto support.
+- 📡 **Universal streaming** – Chromecast, AirPlay, and Android Auto support.
 
 !!! TIP "Quick start"
     👉 [Read the full Getting Started guide](user/getting-started.md)
@@ -84,7 +84,7 @@ Mixtape Society is a private, self‑hosted web app to create and share beautifu
 - **No accounts needed** – Recipients stream directly in browser
 - **Permanent or temporary** – Links persist until you delete them
 
-### 📱 For Listeners
+### 🎁 For Mixtape Receivers
 
 - **No login required** – Just click and play
 - **Full media controls** – Play, pause, seek, skip

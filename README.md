@@ -26,7 +26,7 @@ No accounts, no telemetry, no Spotify – just your music, your server, your rul
 - **Lock screen integration** – Control from phone notifications
 - **Background playback** – Keep playing with screen off
 - **Personalized PWA** – Each mixtape installs like an app with its own icon and name
-- **Cast anywhere** – Stream to Chromecast devices in your car or throughout your house
+- **Stream anywhere** – Stream to Chromecast devices in your car or throughout your house
 
 Perfect for:
 
