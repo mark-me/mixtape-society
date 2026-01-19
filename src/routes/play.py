@@ -260,14 +260,11 @@ def create_play_blueprint(mixtape_manager: MixtapeManager, path_audio_cache: Pat
             Response: The Flask response object containing the rendered gift page.
         """
         mixtape = mixtape_manager.get(slug)
-        # Extract gift message from mixtape metadata (if present)
-        gift_message = mixtape.get('gift_message', 'A mixtape made just for you')
         recipient_name = mixtape.get('recipient_name', 'you')
 
         return render_template(
             "gift.html",
             mixtape=mixtape,
-            gift_message=gift_message,
             recipient_name=recipient_name,
             is_gift=True
         )
