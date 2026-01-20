@@ -1,4 +1,4 @@
-![Manage collection](../images/manage-collection.png){ align=right width="90" }
+![Manage collection](../../images/manage-collection.png){ align=right width="90" }
 
 # Collection Management
 
@@ -16,7 +16,7 @@ To access collection management:
 1. Click the **Collection** button in the top navigation bar
 2. The collection management modal will open automatically
 
-![Collection management](images/screenshot/collection-manager.png)
+![Collection management](../images/screenshot/collection-manager.png)
 
 !!! note
     You must be logged in to access collection management features.
@@ -26,15 +26,19 @@ To access collection management:
 When you open the Collection Management modal, you'll see current statistics about your music library.
 
 ### Artist Count
+
 The total number of unique artists in your music collection. This includes both individual artists and bands.
 
 ### Album Count
+
 The total number of unique albums across all artists. Compilation albums with various artists are counted as separate albums.
 
 ### Track Count
+
 The total number of individual music tracks in your collection.
 
 ### Total Duration
+
 The combined playback time of all tracks in your library, displayed in a human-readable format:
 
 - Days (d)
@@ -44,6 +48,7 @@ The combined playback time of all tracks in your library, displayed in a human-r
 **Example:** `5d 3h 45m` means 5 days, 3 hours, and 45 minutes of total music
 
 ### Last Added
+
 Shows the age of the most recently added track in your collection:
 
 - **Recent additions** - Displays as relative time (e.g., "2 hours ago", "3 days ago")
