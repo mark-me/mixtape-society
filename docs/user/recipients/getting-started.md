@@ -1,4 +1,4 @@
-![Getting Started](../../images/share.png){ align=right width="90" }
+![Getting Started](../../images/receiver.png){ align=right width="90" }
 
 # Getting Started for Recipients
 

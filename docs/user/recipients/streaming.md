@@ -1,4 +1,4 @@
-![Streaming](../../images/share.png){ align=right width="90" }
+![Streaming](../../images/chromecast.png){ align=right width="90" }
 
 # Streaming to Devices
 

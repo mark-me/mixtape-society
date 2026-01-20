@@ -1,4 +1,4 @@
-![Player](../../images/mixtape.png){ align=right width="90" }
+![Player](../../images/walkman.png){ align=right width="90" }
 
 # Player Guide for Recipients
 
