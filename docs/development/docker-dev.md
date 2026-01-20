@@ -5,7 +5,7 @@
 While uv is recommended for local dev (faster iteration), Docker is great for testing production-like environments.
 
 !!! INFO
-    For production deployment with Docker, see the [Production Docker Guide](../user/docker-deployment.md)
+    For production deployment with Docker, see the [Production Docker Guide](../user//creators/installation.md)
 
 ## Building the Image
 

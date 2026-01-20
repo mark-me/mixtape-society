@@ -51,7 +51,7 @@ This format ensures:
 Perfect for everyday sharing via text, email, or messaging apps.
 
 <figure markdown="span">
-    ![Quick share link](images/screenshot/share.png)
+    ![Quick share link](../images/screenshot/share.png)
 </figure>
 
 ### When to Use
@@ -90,13 +90,13 @@ Transform your mixtape into a memorable gift with a beautiful themed landing pag
 ### Choosing a Theme
 
 <figure markdown="span">
-    ![Gift sharing options](images/screenshot/gift-options.png)
+    ![Gift sharing options](../images/screenshot/gift-options.png)
 </figure>
 
 #### Playful Theme
 
 <figure markdown="span">
-    ![Playful gift](images/screenshot/gift-playful.jpg)
+    ![Playful gift](../images/screenshot/gift-playful.jpg)
 </figure>
 
 **Best for:**
@@ -117,7 +117,7 @@ Transform your mixtape into a memorable gift with a beautiful themed landing pag
 #### Elegant Theme
 
 <figure markdown="span">
-    ![Elegant gift](images/screenshot/gift-elegant.jpg)
+    ![Elegant gift](../images/screenshot/gift-elegant.jpg)
 </figure>
 
 **Best for:**

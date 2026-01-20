@@ -15,6 +15,7 @@ You want to run your own Mixtape Society server to craft and share mixtapes from
 **[→ Creator's Guide](creators/index.md)**
 
 **What you'll learn:**
+
 - Installing and setting up your server
 - Creating your first mixtape
 - Managing your music collection
@@ -22,6 +23,7 @@ You want to run your own Mixtape Society server to craft and share mixtapes from
 - Privacy and access control
 
 **Perfect for:**
+
 - Music enthusiasts with personal music libraries
 - People who love curating playlists for friends
 - Anyone wanting to run their own music sharing server
@@ -35,6 +37,7 @@ Someone shared a mixtape link with you and you want to know how to listen to it.
 **[→ Recipient's Guide](recipients/index.md)**
 
 **What you'll learn:**
+
 - Opening and playing mixtapes
 - Using player controls and features
 - Streaming to TVs and speakers
@@ -42,6 +45,7 @@ Someone shared a mixtape link with you and you want to know how to listen to it.
 - Mobile and desktop tips
 
 **Perfect for:**
+
 - Friends and family receiving mixtape links
 - Anyone who got a QR code or gift link
 - People wanting to cast to Chromecast or AirPlay
@@ -72,12 +76,14 @@ docker run -d \
 ## 💡 Not Sure Which Path?
 
 **You're a Creator if:**
+
 - You have a music library you want to share
 - You want to run your own server
 - You need login/admin access
 - You're setting up Mixtape Society
 
 **You're a Recipient if:**
+
 - Someone sent you a mixtape link
 - You just want to listen to music
 - You don't need to create mixtapes

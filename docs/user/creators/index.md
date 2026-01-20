@@ -116,7 +116,7 @@ Share your creations:
 5. Copy the gift link
 6. Share with your recipient
 
-[Gift sharing details →](sharing.md#gift-experience-enhanced-presentation)
+[Gift sharing details →](sharing.md#gift-experience-themed-landing-page)
 
 ---
 
@@ -200,7 +200,7 @@ volumes:
 - Music directory path is correct
 - You have sufficient disk space
 
-[Detailed troubleshooting →](installation.md#common-gotchas--troubleshooting)
+[Detailed troubleshooting →](installation.md#common-gotchas-troubleshooting)
 
 ### Music Not Appearing
 

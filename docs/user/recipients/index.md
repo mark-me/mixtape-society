@@ -188,7 +188,7 @@ Scan with your phone camera.
 - Lock screen controls work automatically
 - AirPlay to Apple TV or HomePod
 
-[iPhone guide →](player.md#mobile--desktop-experience)
+[iPhone guide →](player.md#mobile-desktop-experience)
 
 ### Android
 
@@ -201,7 +201,7 @@ Scan with your phone camera.
 - Cast to Chromecast devices
 - Android Auto support in cars
 
-[Android guide →](player.md#mobile--desktop-experience)
+[Android guide →](player.md#mobile-desktop-experience)
 
 ### Desktop
 
@@ -214,7 +214,7 @@ Scan with your phone camera.
 - Large album art display
 - Full track listing visible
 
-[Desktop guide →](player.md#mobile--desktop-experience)
+[Desktop guide →](player.md#mobile-desktop-experience)
 
 ---
 
