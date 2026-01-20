@@ -530,11 +530,20 @@ async function copyShareLink(slug, mode) {
         const currentStyle = getSelectedGiftStyle();
         const baseUrl = `${window.location.origin}/play/gift-${currentStyle}/${encodedSlug}`;
         
+        // Read current form values directly (don't rely on cached giftSettings)
+        const receiverInput = document.getElementById('gift-receiver-name-modal');
+        const noteInput = document.getElementById('gift-note-modal');
+        const creatorInput = document.getElementById('gift-creator-name-modal');
+        
+        const receiverName = receiverInput ? receiverInput.value.trim() : '';
+        const giftNote = noteInput ? noteInput.value.trim() : '';
+        const creatorName = creatorInput ? creatorInput.value.trim() : '';
+        
         // Add personalization parameters
         const params = new URLSearchParams();
-        if (giftSettings.receiver_name) params.append('to', giftSettings.receiver_name);
-        if (giftSettings.gift_note) params.append('note', giftSettings.gift_note);
-        if (giftSettings.creator_name) params.append('from', giftSettings.creator_name);
+        if (receiverName) params.append('to', receiverName);
+        if (giftNote) params.append('note', giftNote);
+        if (creatorName) params.append('from', creatorName);
         
         shareUrl = params.toString() ? `${baseUrl}?${params.toString()}` : baseUrl;
     } else {
