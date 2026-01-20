@@ -20,7 +20,7 @@ theme:
       accent: custom
       toggle:
         icon: material/brightness-4
-        name: Switch to light mode
+        name: light mode
   features:
     - navigation.tabs
     - navigation.top
@@ -40,13 +40,19 @@ nav:
   - Introduction: index.md
   - Getting Started:
     - Overview: user/getting-started.md
-    - Installation:
-      - Local Development (Docker): development/docker-dev.md
-      - Production Deployment: user/docker-deployment.md
-    - Using Mixtape Society:
-      - Editor Guide: user/editor.md
-      - Collection Management: user/collection-management.md
-      - Sharing & Public Links: user/sharing.md
+    - For Creators:
+      - Creator's Guide: user/creators/index.md
+      - Installation: user/creators/installation.md
+      - Creating Mixtapes: user/creators/editor.md
+      - Collection Management: user/creators/collection-management.md
+      - Sharing Mixtapes: user/creators/sharing.md
+      - Creator FAQ: user/creators/faq.md
+    - For Recipients:
+      - Recipient's Guide: user/recipients/index.md
+      - Getting Started: user/recipients/getting-started.md
+      - Player Guide: user/recipients/player.md
+      - Streaming to Devices: user/recipients/streaming.md
+      - Recipient FAQ: user/recipients/faq.md
   - Architecture & Development:
     - Project Overview: development/intro.md
     - Core Components:

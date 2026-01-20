@@ -138,7 +138,7 @@ The **`app.py`** file wires everything together:
 Each blueprint has its own Markdown file that details the routes, request flow, and any special middleware:
 
 * [Browser UI & mixtape management](routes/browse_mixtapes.md)
-* [Editor UI, save logic, and progress modal.](routes/editor.md)
+* [Editor UI, save logic, and progress modal.](routes/editor/index.md)
 * [Streaming, MIME detection, and range handling.](routes/play/index.md)
 * [Session‑based login flow.](routes/authentication.md)
 * [OG image generation.](routes/opengraph_images.md)

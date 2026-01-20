@@ -572,7 +572,7 @@ services:
 
 **Persistence:** Cache survives container restarts
 
-See: [Docker Deployment](../../../user/docker-deployment.md)
+See: [Docker Deployment](../../../user/creators/installation.md)
 
 ---
 
