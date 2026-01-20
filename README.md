@@ -16,6 +16,7 @@ No accounts, no telemetry, no Spotify – just your music, your server, your rul
 - **Smart caching** – Pre-transcode for faster mobile streaming for multiple audio quality options (original to 128k)
 - **Instant public links** – Share via URL, QR code or print-ready codes with cover art
 - **Permanent or temporary** – Links persist until you delete them
+- **Gift rituals** – Add a gifting ritual for mixtape receivers.
 
 ### 🎁 For Mixtape Receivers
 
