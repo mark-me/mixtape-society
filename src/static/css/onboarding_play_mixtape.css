@@ -7,20 +7,33 @@
 .beacon::before {
     content: '';
     position: absolute;
-    top: -8px;
-    left: -8px;
-    right: -8px;
-    bottom: -8px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: calc(100% + 16px);
+    height: calc(100% + 16px);
     border: 2px solid rgba(25, 135, 84, 0.7); /* Green, theme-color #198754 */
     border-radius: 50%;
     animation: pulse 1.5s infinite ease-in-out;
     pointer-events: none;
-    z-index: 1;
+    z-index: 1000;
+}
+
+/* Special positioning for side panel (cassette mode toggle) */
+.side-panel-left.beacon::before {
+    width: calc(100% + 12px);
+    height: calc(100% + 12px);
+    border-radius: 8px; /* Rounded rectangle instead of circle for panel */
+}
+
+/* Special positioning for quality selector container */
+.quality-selector.beacon::before {
+    border-radius: 6px; /* Rounded rectangle for button container */
 }
 
 @keyframes pulse {
-    0% { transform: scale(1); opacity: 1; }
-    100% { transform: scale(1.3); opacity: 0; }
+    0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(1.3); opacity: 0; }
 }
 
 /* Tooltip styling (override Bootstrap defaults for subtlety) */
@@ -39,6 +52,11 @@
     border-top-color: rgba(0, 0, 0, 0.85);
 }
 
+.bs-tooltip-auto[data-popper-placement^=right] .tooltip-arrow::before,
+.bs-tooltip-right .tooltip-arrow::before {
+    border-right-color: rgba(0, 0, 0, 0.85);
+}
+
 /* Dark mode adjustment */
 [data-bs-theme="dark"] .tooltip-inner {
     background-color: rgba(255, 255, 255, 0.85);
@@ -48,6 +66,11 @@
 [data-bs-theme="dark"] .bs-tooltip-auto[data-popper-placement^=top] .tooltip-arrow::before,
 [data-bs-theme="dark"] .bs-tooltip-top .tooltip-arrow::before {
     border-top-color: rgba(255, 255, 255, 0.85);
+}
+
+[data-bs-theme="dark"] .bs-tooltip-auto[data-popper-placement^=right] .tooltip-arrow::before,
+[data-bs-theme="dark"] .bs-tooltip-right .tooltip-arrow::before {
+    border-right-color: rgba(255, 255, 255, 0.85);
 }
 
 /* Fade-out animation for beacons after interaction */

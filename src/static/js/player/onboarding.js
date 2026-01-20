@@ -3,15 +3,20 @@ export function initOnboarding() {
     // Check if it is first load
     if (localStorage.getItem('mixtapeOnboarded') === 'true') {
         console.log('Onboarding skipped: already completed');
-        initHoverTooltips(); // Altijd hover-tooltips activeren (optie 3)
+        initHoverTooltips(); // Always activate hover tooltips
         return;
     }
 
     // First-load: Activate beacons + tooltips
     initBeaconsAndTooltips();
 
-    // Markeer als onboarded na eerste interactie of timeout (bijv. 10s)
-    setTimeout(() => markAsOnboarded(), 10000); // Auto na 10s
+    // Listen for cast button to become available
+    document.addEventListener('cast:ready', () => {
+        addCastButtonTooltip();
+    });
+
+    // Mark as onboarded after first interaction or timeout (e.g., 10s)
+    setTimeout(() => markAsOnboarded(), 10000); // Auto after 10s
 
     // Listen to first click (click anywhere)
     document.addEventListener('click', () => markAsOnboarded(), { once: true });
@@ -22,34 +27,53 @@ export function initOnboarding() {
 
 function initBeaconsAndTooltips() {
     const elements = [
-        { selector: '#big-play-btn', tooltip: 'Start playing your mixtape!' },
-        { selector: '#cast-button', tooltip: 'Cast to your TV or speaker (Chromecast)' },
-        { selector: '#quality-btn-bottom', tooltip: 'Choose audio-quality (for improved streaming)' },
-        { selector: '#panel-mode-toggle', tooltip: 'Switch to retro-cassette mode' }
+        { selector: '#big-play-btn', tooltip: 'Start playing your mixtape!', placement: 'top' },
+        { selector: '.quality-selector', tooltip: 'Choose audio quality for improved streaming', placement: 'top' },
+        { selector: '.side-panel-left', tooltip: 'Switch to retro cassette mode', placement: 'right' }
     ];
 
-    elements.forEach(({ selector, tooltip }) => {
+    elements.forEach(({ selector, tooltip, placement }) => {
         const el = document.querySelector(selector);
-        if (!el) return;
+        if (!el) {
+            console.log(`⚠️ Onboarding element not found: ${selector}`);
+            return;
+        }
 
-        // Add beacon class
-        el.classList.add('beacon');
-
-        // Activate Bootstrap tooltip (with data-bs attributes)
-        el.setAttribute('data-bs-toggle', 'tooltip');
-        el.setAttribute('data-bs-placement', 'top'); // Or 'right'/'bottom' dependent on position
-        el.setAttribute('data-bs-title', tooltip);
-        el.setAttribute('data-bs-trigger', 'manual'); // Manual for first-load show
-
-        // Initialise and show tooltip immediately
-        const bsTooltip = new bootstrap.Tooltip(el);
-        bsTooltip.show();
-
-        // Hide tooltip after 5s or at hover/click
-        setTimeout(() => bsTooltip.hide(), 5000);
-        el.addEventListener('mouseenter', () => bsTooltip.hide(), { once: true });
-        el.addEventListener('click', () => bsTooltip.hide(), { once: true });
+        addTooltipToElement(el, tooltip, placement);
     });
+}
+
+function addCastButtonTooltip() {
+    const el = document.querySelector('#cast-button');
+    if (!el || el.hidden) {
+        console.log('⚠️ Cast button not available for onboarding');
+        return;
+    }
+
+    // Only add tooltip if onboarding hasn't been completed
+    if (localStorage.getItem('mixtapeOnboarded') !== 'true') {
+        addTooltipToElement(el, 'Cast to your TV or speaker (Chromecast)', 'top');
+    }
+}
+
+function addTooltipToElement(el, tooltip, placement) {
+    // Add beacon class
+    el.classList.add('beacon');
+
+    // Activate Bootstrap tooltip (with data-bs attributes)
+    el.setAttribute('data-bs-toggle', 'tooltip');
+    el.setAttribute('data-bs-placement', placement);
+    el.setAttribute('data-bs-title', tooltip);
+    el.setAttribute('data-bs-trigger', 'manual'); // Manual for first-load show
+
+    // Initialize and show tooltip immediately
+    const bsTooltip = new bootstrap.Tooltip(el);
+    bsTooltip.show();
+
+    // Hide tooltip after 5s or at hover/click
+    setTimeout(() => bsTooltip.hide(), 5000);
+    el.addEventListener('mouseenter', () => bsTooltip.hide(), { once: true });
+    el.addEventListener('click', () => bsTooltip.hide(), { once: true });
 }
 
 function initHoverTooltips() {
