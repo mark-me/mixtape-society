@@ -55,7 +55,7 @@
         <meta name="twitter:card" content="summary_large_image">
         <meta name="twitter:image" content="{{ og_url }}">
     {% else %}
-        <meta property="og:image" content="{{ url_for('static', filename='image.jpg') }}"/>
+        <meta property="og:image" content="{{ url_for('static', filename='images/default_cover.jpg') }}"/>
     {% endif %}
 
     <!-- Twitter Card -->
@@ -65,7 +65,7 @@
     {% if mixtape.cover %}
         <meta name="twitter:image" content="{{ url_for('play.serve_cover', filename=mixtape.cover.split('/')[-1], _external=True) }}"/>
     {% else %}
-        <meta name="twitter:image" content="{{ url_for('static', filename='image.jpg') }}"/>
+        <meta name="twitter:image" content="{{ url_for('static', filename='images/default_cover.jpg') }}"/>
     {% endif %}
 
     <!-- PWA Manifest - Only for shared pages -->

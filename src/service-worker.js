@@ -20,8 +20,8 @@ const STATIC_ASSETS = [
     '/static/js/player/linerNotes.js',
     '/static/js/player/adaptiveTheming.js',
     '/static/js/player/cassettePlayer.js',
-    '/static/logo.svg',
-    '/static/favicon.svg',
+    '/static/images/logo.svg',
+    '/static/images/favicon.svg',
 ];
 
 // External CDN resources (cache with fallback)

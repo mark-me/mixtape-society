@@ -24,6 +24,7 @@ from auth import require_auth
 from common.logging import Logger, NullLogger
 from mixtape_manager import MixtapeManager
 from musiclib import MusicCollectionUI
+from preferences import PreferencesManager
 from utils import CoverCompositor
 
 
@@ -46,6 +47,54 @@ def create_editor_blueprint(
 
     logger: Logger = logger or NullLogger()
 
+    # Initialize preferences manager
+    def get_preferences_manager():
+        """Get PreferencesManager instance using current app config."""
+        return PreferencesManager(
+            data_root=current_app.config["DATA_ROOT"], logger=logger
+        )
+
+    @editor.route("/preferences", methods=["GET"])
+    @require_auth
+    def get_preferences() -> Response:
+        """
+        Get user preferences including creator name and default settings.
+
+        Returns:
+            Response: JSON containing user preferences.
+        """
+        try:
+            prefs_manager = get_preferences_manager()
+            preferences = prefs_manager.get_preferences()
+            return jsonify(preferences)
+        except Exception as e:
+            logger.error(f"Error fetching preferences: {e}")
+            return jsonify({"error": str(e)}), 500
+
+    @editor.route("/preferences", methods=["POST"])
+    @require_auth
+    def update_preferences() -> Response:
+        """
+        Update user preferences.
+
+        Accepts JSON with any of: creator_name, default_gift_flow_enabled, default_show_tracklist
+
+        Returns:
+            Response: JSON with updated preferences or error.
+        """
+        try:
+            data = request.get_json()
+            if not data:
+                return jsonify({"error": "No data provided"}), 400
+
+            prefs_manager = get_preferences_manager()
+            updated_prefs = prefs_manager.update_preferences(data)
+
+            return jsonify({"success": True, "preferences": updated_prefs})
+        except Exception as e:
+            logger.error(f"Error updating preferences: {e}")
+            return jsonify({"error": str(e)}), 500
+
     @editor.route("/")
     @require_auth
     def new_mixtape() -> str:
@@ -57,6 +106,10 @@ def create_editor_blueprint(
         Returns:
             str: De gerenderde HTML-pagina voor het aanmaken van een nieuwe mixtape.
         """
+        # Get user preferences for defaults
+        prefs_manager = get_preferences_manager()
+        preferences = prefs_manager.get_preferences()
+
         empty_mixtape = {
             "title": "",
             "cover": None,
@@ -65,6 +118,12 @@ def create_editor_blueprint(
             "slug": None,
             "created_at": None,
             "updated_at": None,
+            "creator_name": preferences.get("creator_name", ""),
+            "gift_flow_enabled": preferences.get("default_gift_flow_enabled", False),
+            "unwrap_style": "playful",  # ADD THIS
+            "show_tracklist_after_completion": preferences.get(
+                "default_show_tracklist", True
+            ),
         }
         return render_template("editor.html", preload_mixtape=empty_mixtape)
 
@@ -118,11 +177,9 @@ def create_editor_blueprint(
             logger.error(f"Search error for query '{query}': {e}", exc_info=True)
 
             # Return a proper JSON error response
-            return jsonify({
-                "error": "Search failed",
-                "message": str(e),
-                "query": query
-            }), 500
+            return jsonify(
+                {"error": "Search failed", "message": str(e), "query": query}
+            ), 500
 
     @editor.route("/artist_details")
     @require_auth
@@ -181,6 +238,43 @@ def create_editor_blueprint(
             liner_notes = data.get("liner_notes", "")
             slug = data.get("slug")  # Present only when editing
 
+            # Get gift flow fields from request
+            creator_name = data.get("creator_name", "").strip()
+            unwrap_style = data.get("unwrap_style", "playful")
+            gift_flow_enabled = data.get("gift_flow_enabled", False)
+            show_tracklist_after_completion = data.get(
+                "show_tracklist_after_completion", True
+            )
+
+            # Validate unwrap_style
+            valid_unwrap_styles = ["playful", "elegant"]
+            if unwrap_style not in valid_unwrap_styles:
+                return jsonify(
+                    {
+                        "error": f"Invalid unwrap_style '{unwrap_style}'. Must be one of: {', '.join(valid_unwrap_styles)}"
+                    }
+                ), 400
+
+            # Validate gift_flow_enabled is boolean
+            if not isinstance(gift_flow_enabled, bool):
+                return jsonify({"error": "gift_flow_enabled must be a boolean"}), 400
+
+            # Validate show_tracklist_after_completion is boolean
+            if not isinstance(show_tracklist_after_completion, bool):
+                return jsonify(
+                    {"error": "show_tracklist_after_completion must be a boolean"}
+                ), 400
+
+            # Optional: Validate creator_name length
+            if len(creator_name) > 100:
+                return jsonify(
+                    {"error": "creator_name must be 100 characters or less"}
+                ), 400
+
+            # Optional: Validate title length
+            if len(title) > 200:
+                return jsonify({"error": "title must be 200 characters or less"}), 400
+
             # Adding track covers
             tracks = data.get("tracks", [])
             for track in tracks:
@@ -195,6 +289,10 @@ def create_editor_blueprint(
                 "tracks": tracks,
                 "liner_notes": liner_notes,
                 "cover": data.get("cover"),
+                "creator_name": creator_name,
+                "gift_flow_enabled": gift_flow_enabled,
+                "unwrap_style": unwrap_style,
+                "show_tracklist_after_completion": show_tracklist_after_completion,
             }
 
             # Instantiate the manager

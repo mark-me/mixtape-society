@@ -558,10 +558,7 @@ export function initPlayerControls() {
                 // Immediately play next track without delay
                 const nextIndex = currentIndex + 1;
                 if (nextIndex < trackItems.length) {
-                    console.log('ðŸŽµ Auto-advancing to next track');
                     playTrack(nextIndex);
-                } else {
-                    console.log('ðŸ Reached end of playlist');
                 }
             }
         });

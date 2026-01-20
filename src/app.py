@@ -588,7 +588,7 @@ def create_app() -> Flask:
     )
     app.register_blueprint(
         create_og_cover_blueprint(
-            path_logo=Path(__file__).parent / "static" / "logo.svg", logger=logger
+            path_logo=Path(__file__).parent / "static" / "images" / "logo.svg", logger=logger
         ),
         url_prefix="/og",
     )

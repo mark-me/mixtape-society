@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elegant/Cinematic Mockup - Gift Flow</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;600&display=swap');
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #0a0a0a;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+
+        .gift-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            min-height: 600px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Step 1: Initial Prompt */
+        .initial-prompt {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            opacity: 1;
+            transition: opacity 0.8s ease;
+        }
+
+        .initial-prompt.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .gift-icon {
+            font-size: 5rem;
+            color: #d4af37;
+            margin-bottom: 2rem;
+            animation: gentle-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes gentle-pulse {
+            0%, 100% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+
+        .initial-prompt h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #f5f5f5;
+            margin-bottom: 1rem;
+            letter-spacing: 1px;
+        }
+
+        .initial-prompt p {
+            font-size: 1.1rem;
+            color: #999;
+            margin-bottom: 2rem;
+            font-weight: 300;
+        }
+
+        .reveal-btn {
+            padding: 1rem 3rem;
+            background: transparent;
+            border: 2px solid #d4af37;
+            color: #d4af37;
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .reveal-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: #d4af37;
+            transform: translateX(-100%);
+            transition: transform 0.4s ease;
+            z-index: -1;
+        }
+
+        .reveal-btn:hover {
+            color: #0a0a0a;
+        }
+
+        .reveal-btn:hover::before {
+            transform: translateX(0);
+        }
+
+        /* Step 2: Polaroid Development */
+        .polaroid-container {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.8s ease;
+        }
+
+        .polaroid-container.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .polaroid {
+            background: #f5f5f5;
+            padding: 20px 20px 60px 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            transform: rotate(-2deg);
+            transition: transform 0.5s ease;
+            cursor: pointer;
+        }
+
+        .polaroid:hover {
+            transform: rotate(0deg) scale(1.02);
+        }
+
+        .polaroid-image-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            aspect-ratio: 1;
+            background: #1a1a1a;
+            overflow: hidden;
+        }
+
+        .polaroid-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            filter: brightness(0.3) contrast(0.8);
+            animation: develop 4s ease-out forwards;
+        }
+
+        @keyframes develop {
+            0% {
+                opacity: 0;
+                filter: brightness(0.3) contrast(0.8) saturate(0);
+            }
+            20% {
+                opacity: 0.3;
+                filter: brightness(0.5) contrast(0.9) saturate(0.2);
+            }
+            60% {
+                opacity: 0.7;
+                filter: brightness(0.8) contrast(1) saturate(0.7);
+            }
+            100% {
+                opacity: 1;
+                filter: brightness(1) contrast(1.05) saturate(1);
+            }
+        }
+
+        .development-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg,
+                rgba(255,255,255,0.3) 0%,
+                transparent 100%);
+            animation: overlay-fade 4s ease-out forwards;
+        }
+
+        @keyframes overlay-fade {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .polaroid-caption {
+            margin-top: 1rem;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .tap-to-continue {
+            position: absolute;
+            bottom: -60px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #999;
+            font-size: 0.9rem;
+            font-weight: 300;
+            opacity: 0;
+            animation: fade-in-delayed 1s ease-out 4s forwards;
+        }
+
+        @keyframes fade-in-delayed {
+            0% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+            100% { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        /* Step 3: Liner Notes */
+        .liner-notes-container {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.8s ease;
+        }
+
+        .liner-notes-container.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .liner-notes-book {
+            width: 90%;
+            max-width: 500px;
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 3rem;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.7);
+            animation: book-open 1s ease-out;
+            position: relative;
+        }
+
+        @keyframes book-open {
+            0% {
+                transform: perspective(1000px) rotateY(-90deg);
+                opacity: 0;
+            }
+            100% {
+                transform: perspective(1000px) rotateY(0deg);
+                opacity: 1;
+            }
+        }
+
+        .liner-notes-book::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: #d4af37;
+        }
+
+        .liner-notes-book h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            color: #f5f5f5;
+            margin-bottom: 0.5rem;
+        }
+
+        .liner-notes-book .creator {
+            font-size: 1rem;
+            color: #d4af37;
+            font-weight: 300;
+            margin-bottom: 2rem;
+            font-style: italic;
+        }
+
+        .liner-notes-book .message {
+            color: #ccc;
+            line-height: 1.8;
+            margin-bottom: 2.5rem;
+            font-weight: 300;
+        }
+
+        .play-button {
+            width: 100%;
+            padding: 1.2rem;
+            background: linear-gradient(135deg, #d4af37 0%, #c19a2c 100%);
+            border: none;
+            border-radius: 4px;
+            color: #0a0a0a;
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2);
+        }
+
+        .play-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(212, 175, 55, 0.3);
+        }
+
+        /* Controls */
+        .controls {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+            z-index: 1000;
+        }
+
+        .controls button {
+            padding: 0.5rem 1.5rem;
+            border-radius: 4px;
+            border: 1px solid #333;
+            background: rgba(26, 26, 26, 0.8);
+            backdrop-filter: blur(10px);
+            color: #999;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .controls button:hover {
+            background: rgba(42, 42, 42, 0.9);
+            border-color: #d4af37;
+            color: #d4af37;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Vignette effect */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.7) 100%);
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="gift-container">
+        <!-- Step 1: Initial Prompt -->
+        <div class="initial-prompt" id="initial-prompt">
+            <div class="gift-icon">
+                <i class="bi bi-box2-heart"></i>
+            </div>
+            <h1>You've Received a Gift</h1>
+            <p>A mixtape, made just for you</p>
+            <button class="reveal-btn" id="reveal-btn">
+                Begin
+            </button>
+        </div>
+
+        <!-- Step 2: Polaroid Development -->
+        <div class="polaroid-container" id="polaroid-container">
+            <div class="polaroid" id="polaroid">
+                <div class="polaroid-image-wrapper">
+                    <img src="https://via.placeholder.com/400/2a2a2a/d4af37?text=Mixtape+Cover"
+                         alt="Mixtape Cover"
+                         class="polaroid-image"
+                         id="polaroid-image">
+                    <div class="development-overlay"></div>
+                </div>
+                <div class="polaroid-caption">Summer '24</div>
+                <div class="tap-to-continue">
+                    <i class="bi bi-hand-index"></i> Tap to continue
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Liner Notes -->
+        <div class="liner-notes-container" id="liner-notes-container">
+            <div class="liner-notes-book">
+                <h2>Summer Vibes</h2>
+                <p class="creator">For you, from DJ Mark</p>
+                <p class="message">
+                    Hey! I spent some time putting together these tracks that remind me of our summer adventures.
+                    Each song captures a different moment we shared. I hope this brings back all those good memories
+                    and maybe makes some new ones too. Enjoy! 🎵
+                </p>
+                <button class="play-button" id="play-button">
+                    <i class="bi bi-play-fill me-2"></i>Start Listening
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Demo Controls -->
+    <div class="controls">
+        <button onclick="resetDemo()">
+            <i class="bi bi-arrow-clockwise me-1"></i>Reset
+        </button>
+        <button onclick="nextStep()">
+            <i class="bi bi-skip-forward me-1"></i>Next Step
+        </button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentStep = 0;
+
+        const initialPrompt = document.getElementById('initial-prompt');
+        const polaroidContainer = document.getElementById('polaroid-container');
+        const polaroid = document.getElementById('polaroid');
+        const linerNotesContainer = document.getElementById('liner-notes-container');
+        const revealBtn = document.getElementById('reveal-btn');
+        const playButton = document.getElementById('play-button');
+
+        // Step progression
+        revealBtn.addEventListener('click', () => {
+            if (currentStep === 0) nextStep();
+        });
+
+        polaroid.addEventListener('click', () => {
+            if (currentStep === 1) {
+                // Only allow click after development animation completes (4s)
+                setTimeout(() => {
+                    nextStep();
+                }, 100);
+            }
+        });
+
+        playButton.addEventListener('click', () => {
+            alert('🎵 Starting playback! (This would navigate to the player)');
+        });
+
+        function nextStep() {
+            currentStep++;
+
+            switch(currentStep) {
+                case 1:
+                    // Fade out initial prompt
+                    initialPrompt.classList.add('fade-out');
+                    setTimeout(() => {
+                        initialPrompt.classList.add('hidden');
+                        polaroidContainer.classList.add('active');
+                    }, 800);
+                    break;
+
+                case 2:
+                    // Show liner notes
+                    polaroidContainer.classList.remove('active');
+                    setTimeout(() => {
+                        linerNotesContainer.classList.add('active');
+                    }, 400);
+                    break;
+
+                case 3:
+                    // Would navigate to player
+                    alert('🎵 Navigating to player...');
+                    break;
+            }
+        }
+
+        function resetDemo() {
+            currentStep = 0;
+            initialPrompt.classList.remove('fade-out', 'hidden');
+            polaroidContainer.classList.remove('active');
+            linerNotesContainer.classList.remove('active');
+
+            // Reset polaroid image animation
+            const polaroidImage = document.getElementById('polaroid-image');
+            polaroidImage.style.animation = 'none';
+            setTimeout(() => {
+                polaroidImage.style.animation = '';
+            }, 10);
+        }
+    </script>
+</body>
+</html>

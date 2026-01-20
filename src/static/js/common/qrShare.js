@@ -1,12 +1,18 @@
 // static/js/common/qrShare.js
 
 /**
- * Common QR code sharing functionality
+ * Unified QR code sharing with regular and gift modes
  * Works across browser, editor, and player pages
  */
 
-// Store current slug when modal is opened
+// Store current state
 let currentModalSlug = null;
+let currentShareMode = 'regular'; // 'regular' or 'gift'
+let giftSettings = {
+    creator_name: '',
+    unwrap_style: 'playful',
+    show_tracklist_after_completion: true
+};
 
 /**
  * Initialize QR sharing for a specific context
@@ -31,14 +37,17 @@ export function initQRShare(options = {}) {
         return;
     }
 
+    // Load saved gift preferences
+    loadGiftPreferences();
+
     // Initialize all share buttons
     const shareButtons = document.querySelectorAll(shareButtonSelector);
     shareButtons.forEach(btn => {
         initShareButton(btn, modal, getSlug, autoShow);
     });
 
-    // Setup modal buttons
-    setupModalButtons(modal, getSlug);
+    // Setup modal controls
+    setupModalControls(modal, getSlug);
 
     // Listen for dynamic updates (e.g., after save in editor)
     document.addEventListener('mixtape-saved', (e) => {
@@ -110,12 +119,17 @@ function getSlugFromButton(button, getSlugFn) {
     }
     
     // Try getting from URL (player page)
-    const match = window.location.pathname.match(/\/play\/share\/([^\/]+)/);
-    if (match) {
-        return decodeURIComponent(match[1]);
+    const shareMatch = window.location.pathname.match(/\/play\/share\/([^\/]+)/);
+    if (shareMatch) {
+        return decodeURIComponent(shareMatch[1]);
     }
     
-    // Try from preloaded data (editor page)
+    const giftMatch = window.location.pathname.match(/\/play\/gift\/([^\/]+)/);
+    if (giftMatch) {
+        return decodeURIComponent(giftMatch[1]);
+    }
+    
+    // Try from preloaded data
     if (window.PRELOADED_MIXTAPE && window.PRELOADED_MIXTAPE.slug) {
         return window.PRELOADED_MIXTAPE.slug;
     }
@@ -139,28 +153,45 @@ function updateShareButtons(selector, autoShow) {
 }
 
 /**
- * Show QR modal with loading state
+ * Show QR modal
  */
 function showQRModal(modal, slug) {
-    const qrImg = document.getElementById('qr-code-img');
-    const qrLoading = document.getElementById('qr-loading');
-    const qrError = document.getElementById('qr-error');
-    
-    if (!qrImg) return;
-    
-    // Store current slug for modal buttons
     currentModalSlug = slug;
+    currentShareMode = 'regular';
+    
+    // Reset to regular share tab
+    const regularTab = document.getElementById('regular-share-tab');
+    if (regularTab) {
+        const tab = new bootstrap.Tab(regularTab);
+        tab.show();
+    }
     
     // Show modal
     modal.show();
+    
+    // Load regular QR code
+    loadRegularQR(slug);
+}
+
+/**
+ * Load regular share QR code
+ */
+function loadRegularQR(slug) {
+    const qrImg = document.getElementById('qr-code-img');
+    const qrLoading = document.getElementById('qr-loading');
+    const qrError = document.getElementById('qr-error');
+    const qrInstructions = document.getElementById('qr-instructions');
+    
+    if (!qrImg) return;
     
     // Reset state
     qrImg.style.display = 'none';
     if (qrLoading) qrLoading.style.display = 'block';
     if (qrError) qrError.style.display = 'none';
+    if (qrInstructions) qrInstructions.style.display = 'none';
     
     // Build QR URL
-    const qrUrl = `/qr/${encodeURIComponent(slug)}.png?size=400&logo=true`;
+    const qrUrl = `/qr/${encodeURIComponent(slug)}.png?size=400&logo=true&type=share`;
     
     // Load QR code image
     const img = new Image();
@@ -169,6 +200,7 @@ function showQRModal(modal, slug) {
         qrImg.src = qrUrl;
         qrImg.style.display = 'block';
         if (qrLoading) qrLoading.style.display = 'none';
+        if (qrInstructions) qrInstructions.style.display = 'block';
     };
     
     img.onerror = () => {
@@ -186,42 +218,236 @@ function showQRModal(modal, slug) {
 }
 
 /**
- * Setup modal action buttons (download, copy link)
+ * Setup modal controls (tabs, buttons, etc.)
  */
-function setupModalButtons(modal, getSlugFn) {
-    // Download button
+function setupModalControls(modal, getSlugFn) {
+    // Tab switching
+    const regularTab = document.getElementById('regular-share-tab');
+    const giftTab = document.getElementById('gift-share-tab');
+    
+    if (regularTab) {
+        regularTab.addEventListener('shown.bs.tab', () => {
+            currentShareMode = 'regular';
+            const slug = getCurrentSlug(getSlugFn);
+            if (slug) loadRegularQR(slug);
+        });
+    }
+    
+    if (giftTab) {
+        giftTab.addEventListener('shown.bs.tab', () => {
+            currentShareMode = 'gift';
+            showGiftConfigForm();
+        });
+    }
+    
+    // Gift form controls
+    setupGiftFormControls();
+    
+    // Action buttons
     const downloadBtn = document.getElementById('qr-download-btn');
     if (downloadBtn) {
         downloadBtn.addEventListener('click', async () => {
             const slug = getCurrentSlug(getSlugFn);
             if (slug) {
-                await downloadQRCode(slug);
+                await downloadQRCode(slug, currentShareMode);
             }
         });
     }
     
-    // Copy link button
     const copyLinkBtn = document.getElementById('qr-copy-link-btn');
     if (copyLinkBtn) {
         copyLinkBtn.addEventListener('click', async () => {
             const slug = getCurrentSlug(getSlugFn);
             if (slug) {
-                await copyShareLink(slug);
+                await copyShareLink(slug, currentShareMode);
             }
         });
     }
 }
 
 /**
+ * Setup gift form controls
+ */
+function setupGiftFormControls() {
+    // Preview button
+    const previewBtn = document.getElementById('preview-gift-style');
+    if (previewBtn) {
+        previewBtn.addEventListener('click', () => {
+            const style = getSelectedGiftStyle();
+            openGiftPreview(style);
+        });
+    }
+    
+    // Generate gift QR button
+    const generateBtn = document.getElementById('generate-gift-qr');
+    if (generateBtn) {
+        generateBtn.addEventListener('click', async () => {
+            await generateGiftQR();
+        });
+    }
+    
+    // Edit gift settings button
+    const editBtn = document.getElementById('edit-gift-settings');
+    if (editBtn) {
+        editBtn.addEventListener('click', () => {
+            showGiftConfigForm();
+        });
+    }
+}
+
+/**
+ * Show gift configuration form
+ */
+function showGiftConfigForm() {
+    const configForm = document.getElementById('gift-config-form');
+    const qrDisplay = document.getElementById('gift-qr-display');
+    
+    if (configForm) {
+        configForm.style.display = 'block';
+        
+        // Populate with saved settings
+        const nameInput = document.getElementById('gift-creator-name-modal');
+        if (nameInput) nameInput.value = giftSettings.creator_name;
+        
+        const styleRadio = document.getElementById(`style-${giftSettings.unwrap_style}-modal`);
+        if (styleRadio) styleRadio.checked = true;
+        
+        const tracklistCheckbox = document.getElementById('show-tracklist-modal');
+        if (tracklistCheckbox) tracklistCheckbox.checked = giftSettings.show_tracklist_after_completion;
+    }
+    
+    if (qrDisplay) {
+        qrDisplay.style.display = 'none';
+    }
+}
+
+/**
+ * Get selected gift style from form
+ */
+function getSelectedGiftStyle() {
+    const selected = document.querySelector('input[name="gift-style-modal"]:checked');
+    return selected ? selected.value : 'playful';
+}
+
+/**
+ * Open gift preview window
+ */
+function openGiftPreview(style) {
+    const previewUrl = `/static/mockups/mockup-${style}.html`;
+    
+    const width = 600;
+    const height = 700;
+    const left = (screen.width - width) / 2;
+    const top = (screen.height - height) / 2;
+    
+    window.open(
+        previewUrl,
+        'GiftFlowPreview',
+        `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
+    );
+}
+
+/**
+ * Generate gift QR code
+ */
+async function generateGiftQR() {
+    const slug = currentModalSlug;
+    if (!slug) return;
+    
+    // Get form values
+    const nameInput = document.getElementById('gift-creator-name-modal');
+    const receiverInput = document.getElementById('gift-receiver-name-modal');
+    const noteInput = document.getElementById('gift-note-modal');
+    const style = getSelectedGiftStyle();
+    const tracklistCheckbox = document.getElementById('show-tracklist-modal');
+    const saveDefaultsCheckbox = document.getElementById('save-gift-defaults-modal');
+    
+    // Update settings (storing for QR generation and copy link)
+    giftSettings.creator_name = nameInput ? nameInput.value.trim() : '';
+    giftSettings.receiver_name = receiverInput ? receiverInput.value.trim() : '';
+    giftSettings.gift_note = noteInput ? noteInput.value.trim() : '';
+    giftSettings.unwrap_style = style;
+    giftSettings.show_tracklist_after_completion = tracklistCheckbox ? tracklistCheckbox.checked : true;
+    
+    // Save defaults if requested (only save creator name, not receiver/note)
+    if (saveDefaultsCheckbox && saveDefaultsCheckbox.checked) {
+        await saveGiftPreferences();
+        saveDefaultsCheckbox.checked = false; // Reset checkbox
+    }
+    
+    // Show QR display area
+    const configForm = document.getElementById('gift-config-form');
+    const qrDisplay = document.getElementById('gift-qr-display');
+    const giftQrLoading = document.getElementById('gift-qr-loading');
+    const giftQrImg = document.getElementById('gift-qr-code-img');
+    const giftInfo = document.getElementById('gift-info');
+    const giftEditLink = document.getElementById('gift-edit-link');
+    
+    if (configForm) configForm.style.display = 'none';
+    if (qrDisplay) qrDisplay.style.display = 'block';
+    if (giftQrLoading) giftQrLoading.style.display = 'block';
+    if (giftQrImg) giftQrImg.style.display = 'none';
+    if (giftInfo) giftInfo.style.display = 'none';
+    if (giftEditLink) giftEditLink.style.display = 'none';
+    
+    // Build gift URL with query parameters for personalization
+    const params = new URLSearchParams();
+    if (giftSettings.receiver_name) params.append('to', giftSettings.receiver_name);
+    if (giftSettings.gift_note) params.append('note', giftSettings.gift_note);
+    if (giftSettings.creator_name) params.append('from', giftSettings.creator_name);
+    
+    const urlType = style === 'elegant' ? 'gift-elegant' : 'gift-playful';
+    const baseQrUrl = `/qr/${encodeURIComponent(slug)}.png?size=400&logo=true&type=${urlType}`;
+    
+    // Add gift parameters to QR URL
+    const qrUrl = params.toString() ? `${baseQrUrl}&${params.toString()}` : baseQrUrl;
+    
+    // Load QR code image
+    const img = new Image();
+    
+    img.onload = () => {
+        if (giftQrImg) {
+            giftQrImg.src = qrUrl;
+            giftQrImg.style.display = 'block';
+        }
+        if (giftQrLoading) giftQrLoading.style.display = 'none';
+        
+        // Show gift info
+        if (giftInfo) {
+            const fromDisplay = document.getElementById('gift-from-display');
+            const toDisplay = document.getElementById('gift-to-display');
+            const styleDisplay = document.getElementById('gift-style-display');
+            
+            if (fromDisplay) fromDisplay.textContent = giftSettings.creator_name || 'Anonymous';
+            if (toDisplay) toDisplay.textContent = giftSettings.receiver_name || '(not specified)';
+            if (styleDisplay) {
+                const emoji = style === 'elegant' ? '✨' : '🎉';
+                const label = style.charAt(0).toUpperCase() + style.slice(1);
+                styleDisplay.textContent = `${emoji} ${label}`;
+            }
+            
+            giftInfo.style.display = 'block';
+        }
+        
+        if (giftEditLink) giftEditLink.style.display = 'block';
+    };
+    
+    img.onerror = () => {
+        if (giftQrLoading) giftQrLoading.style.display = 'none';
+        showError('Failed to generate gift QR code');
+    };
+    
+    img.src = qrUrl;
+}
+
+/**
  * Get current slug from modal context
  */
 function getCurrentSlug(getSlugFn) {
-    // First, try the stored slug from when modal was opened
     if (currentModalSlug) {
         return currentModalSlug;
     }
     
-    // Then try custom function (without parameters)
     if (getSlugFn) {
         try {
             const slug = getSlugFn();
@@ -231,39 +457,30 @@ function getCurrentSlug(getSlugFn) {
         }
     }
     
-    // Try various sources
-    const editingInput = document.getElementById('editing-slug');
-    if (editingInput && editingInput.value) {
-        return editingInput.value;
-    }
-    
-    const match = window.location.pathname.match(/\/play\/share\/([^\/]+)/);
-    if (match) {
-        return decodeURIComponent(match[1]);
-    }
-    
-    if (window.PRELOADED_MIXTAPE && window.PRELOADED_MIXTAPE.slug) {
-        return window.PRELOADED_MIXTAPE.slug;
-    }
-    
-    return null;
+    return getSlugFromButton(null, null);
 }
 
 /**
- * Download enhanced QR code with cover art
+ * Download QR code (regular or gift)
  */
-async function downloadQRCode(slug) {
+async function downloadQRCode(slug, mode) {
     const downloadBtn = document.getElementById('qr-download-btn');
     
     if (!downloadBtn) return;
     
-    // Disable button during download
     const originalHTML = downloadBtn.innerHTML;
     downloadBtn.disabled = true;
     downloadBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Generating...';
     
     try {
-        const response = await fetch(`/qr/${encodeURIComponent(slug)}/download?size=800&include_cover=true&include_title=true`);
+        let urlType = 'share';
+        if (mode === 'gift') {
+            urlType = giftSettings.unwrap_style === 'elegant' ? 'gift-elegant' : 'gift-playful';
+        }
+        
+        const response = await fetch(
+            `/qr/${encodeURIComponent(slug)}/download?size=800&include_cover=true&include_title=true&type=${urlType}`
+        );
         
         if (!response.ok) {
             throw new Error('Download failed');
@@ -289,14 +506,13 @@ async function downloadQRCode(slug) {
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
         
-        // Show success message
-        showToast('QR code downloaded successfully!', 'success');
+        const message = mode === 'gift' ? 'Gift QR code downloaded!' : 'QR code downloaded successfully!';
+        showToast(message, 'success');
         
     } catch (error) {
         console.error('QR download failed:', error);
         showToast('Failed to download QR code', 'danger');
     } finally {
-        // Re-enable button
         downloadBtn.disabled = false;
         downloadBtn.innerHTML = originalHTML;
     }
@@ -305,14 +521,39 @@ async function downloadQRCode(slug) {
 /**
  * Copy share link to clipboard
  */
-async function copyShareLink(slug) {
-    // URL-encode the slug to handle spaces and special characters
+async function copyShareLink(slug, mode) {
     const encodedSlug = encodeURIComponent(slug);
-    const shareUrl = `${window.location.origin}/play/share/${encodedSlug}`;
+    let shareUrl;
+    
+    if (mode === 'gift') {
+        // Get current style from form (in case user changed it after generating QR)
+        const currentStyle = getSelectedGiftStyle();
+        const baseUrl = `${window.location.origin}/play/gift-${currentStyle}/${encodedSlug}`;
+        
+        // Read current form values directly (don't rely on cached giftSettings)
+        const receiverInput = document.getElementById('gift-receiver-name-modal');
+        const noteInput = document.getElementById('gift-note-modal');
+        const creatorInput = document.getElementById('gift-creator-name-modal');
+        
+        const receiverName = receiverInput ? receiverInput.value.trim() : '';
+        const giftNote = noteInput ? noteInput.value.trim() : '';
+        const creatorName = creatorInput ? creatorInput.value.trim() : '';
+        
+        // Add personalization parameters
+        const params = new URLSearchParams();
+        if (receiverName) params.append('to', receiverName);
+        if (giftNote) params.append('note', giftNote);
+        if (creatorName) params.append('from', creatorName);
+        
+        shareUrl = params.toString() ? `${baseUrl}?${params.toString()}` : baseUrl;
+    } else {
+        shareUrl = `${window.location.origin}/play/share/${encodedSlug}`;
+    }
     
     try {
         await navigator.clipboard.writeText(shareUrl);
-        showToast('Link copied to clipboard!', 'success');
+        const message = mode === 'gift' ? 'Gift link copied to clipboard!' : 'Link copied to clipboard!';
+        showToast(message, 'success');
     } catch (error) {
         // Fallback for older browsers
         const textarea = document.createElement('textarea');
@@ -324,7 +565,8 @@ async function copyShareLink(slug) {
         
         try {
             document.execCommand('copy');
-            showToast('Link copied to clipboard!', 'success');
+            const message = mode === 'gift' ? 'Gift link copied to clipboard!' : 'Link copied to clipboard!';
+            showToast(message, 'success');
         } catch (e) {
             showToast('Failed to copy link', 'danger');
         }
@@ -334,10 +576,56 @@ async function copyShareLink(slug) {
 }
 
 /**
+ * Load gift preferences from server
+ */
+async function loadGiftPreferences() {
+    try {
+        const response = await fetch('/editor/preferences');
+        if (response.ok) {
+            const prefs = await response.json();
+            
+            if (prefs.creator_name) {
+                giftSettings.creator_name = prefs.creator_name;
+            }
+            if (prefs.default_unwrap_style) {
+                giftSettings.unwrap_style = prefs.default_unwrap_style;
+            }
+            if (prefs.default_show_tracklist !== undefined) {
+                giftSettings.show_tracklist_after_completion = prefs.default_show_tracklist;
+            }
+        }
+    } catch (error) {
+        console.warn('Failed to load gift preferences:', error);
+    }
+}
+
+/**
+ * Save gift preferences to server
+ */
+async function saveGiftPreferences() {
+    try {
+        const response = await fetch('/editor/preferences', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                creator_name: giftSettings.creator_name,
+                default_unwrap_style: giftSettings.unwrap_style,
+                default_show_tracklist: giftSettings.show_tracklist_after_completion
+            })
+        });
+        
+        if (response.ok) {
+            showToast('Gift preferences saved!', 'success');
+        }
+    } catch (error) {
+        console.error('Failed to save gift preferences:', error);
+    }
+}
+
+/**
  * Show toast notification
  */
 function showToast(message, type = 'success') {
-    // Try to use existing toast container
     let container = document.querySelector('.toast-container');
     
     if (!container) {
@@ -347,7 +635,6 @@ function showToast(message, type = 'success') {
         document.body.appendChild(container);
     }
     
-    // Create toast element
     const toastEl = document.createElement('div');
     toastEl.className = `toast align-items-center text-bg-${type} border-0 shadow`;
     toastEl.setAttribute('role', 'alert');
@@ -364,11 +651,9 @@ function showToast(message, type = 'success') {
     
     container.appendChild(toastEl);
     
-    // Show toast
     const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
     toast.show();
     
-    // Remove from DOM after hidden
     toastEl.addEventListener('hidden.bs.toast', () => {
         toastEl.remove();
     });
@@ -388,5 +673,5 @@ export function preloadQRCode(slug) {
     if (!slug) return;
     
     const img = new Image();
-    img.src = `/qr/${encodeURIComponent(slug)}.png?size=400&logo=true`;
+    img.src = `/qr/${encodeURIComponent(slug)}.png?size=400&logo=true&type=share`;
 }

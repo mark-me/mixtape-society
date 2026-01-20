@@ -4,7 +4,6 @@ from base64 import b64decode
 from datetime import datetime
 from io import BytesIO
 from pathlib import Path
-from typing import Optional
 
 from PIL import Image
 
@@ -18,6 +17,27 @@ class MixtapeManager:
     Provides functionality to create, update, delete, list, and retrieve mixtapes stored on disk.
     """
 
+    # Default values for gift flow fields
+    CURRENT_SCHEMA_VERSION = 2
+    DEFAULT_CREATOR_NAME = ""
+    DEFAULT_GIFT_FLOW_ENABLED = False
+    DEFAULT_UNWRAP_STYLE = "playful"
+    DEFAULT_SHOW_TRACKLIST = True
+
+    # Allowed field names for updates
+    ALLOWED_UPDATE_FIELDS = [
+        "title",
+        "tracks",
+        "liner_notes",
+        "cover",
+        "creator_name",
+        "gift_flow_enabled",
+        "unwrap_style",
+        "show_tracklist_after_completion",
+        "client_id",
+        "schema_version",
+    ]
+
     def __init__(
         self,
         path_mixtapes: Path,
@@ -29,9 +49,9 @@ class MixtapeManager:
         Sets up the directory structure for storing mixtape JSON files and cover images.
 
         Args:
-            path_mixtapes: Path to the directory where mixtapes are stored.
-            collection: Access to the collection's metadata
-            logger: Optional logger instance for logging actions.
+            path_mixtapes (Path): Path to the directory where mixtapes are stored.
+            collection (MusicCollection): Access to the collection's metadata
+            logger (Logger): Optional logger instance for logging actions.
         """
         self._logger: Logger = logger or NullLogger()
         self.path_mixtapes: Path = path_mixtapes
@@ -60,15 +80,15 @@ class MixtapeManager:
         return slug or "untitled"
 
     def _generate_unique_slug(
-        self, base_slug: str, current_slug: Optional[str] = None
+        self, base_slug: str, current_slug: str | None = None
     ) -> str:
         """Generates a unique slug for a mixtape based on the provided base slug.
 
         Ensures the slug does not conflict with existing mixtape files, allowing reuse of the current slug if updating.
 
         Args:
-            base_slug: The base string to use for the slug.
-            current_slug: The current slug, if updating an existing mixtape.
+            base_slug (str): The base string to use for the slug.
+            current_slug (str | None): The current slug, if updating an existing mixtape.
 
         Returns:
             str: A unique slug string.
@@ -91,7 +111,7 @@ class MixtapeManager:
         Reuses an existing mixtape when a matching client_id is found, otherwise generates a fresh mixtape entry.
 
         Args:
-            mixtape_data: Dictionary containing mixtape information, including optional client_id, title, and tracks.
+            mixtape_data (dict): Dictionary containing mixtape information, including optional client_id, title, and tracks.
 
         Returns:
             str: The slug of the created or updated mixtape.
@@ -107,6 +127,7 @@ class MixtapeManager:
             return self.update(slug, mixtape_data)
 
         # New creation
+        mixtape_data["schema_version"] = self.CURRENT_SCHEMA_VERSION
         title = mixtape_data.get("title", "Untitled Mixtape")
         base_slug = self._sanitize_title(title)
         slug = self._generate_unique_slug(base_slug)
@@ -119,6 +140,9 @@ class MixtapeManager:
         mixtape_data["created_at"] = now
         mixtape_data["updated_at"] = now
 
+        # Ensure gift flow fields have defaults if not provided
+        mixtape_data = self._ensure_gift_flow_fields(mixtape_data)
+
         return self._save_with_slug(mixtape_data=mixtape_data, title=title, slug=slug)
 
     def _find_by_client_id(self, client_id: str | None) -> dict | None:
@@ -127,7 +151,7 @@ class MixtapeManager:
         Scans stored mixtapes to locate a matching client_id and returns its data in a convenient format.
 
         Args:
-            client_id: The identifier used to associate a client with a mixtape.
+            client_id (str): The identifier used to associate a client with a mixtape.
 
         Returns:
             dict | None: The mixtape data including its slug if found, otherwise None.
@@ -148,44 +172,123 @@ class MixtapeManager:
         return None
 
     def update(self, slug: str, updated_data: dict) -> str:
-        """Updates an existing mixtape with new data while preserving its identity.
+        """Updates an existing mixtape's data while preserving key metadata.
 
-        Maintains the original slug and important metadata so clients can safely refresh mixtape content.
+        Loads the stored mixtape, applies changes only to allowed fields, maintains backward compatibility, and
+        refreshes the update timestamp before saving.
 
         Args:
-            slug: The slug of the mixtape to update.
-            updated_data: Dictionary containing fields to update on the mixtape.
+            slug (str): The slug of the mixtape to update.
+            updated_data (dict): A dictionary of fields to update on the mixtape.
 
         Returns:
             str: The slug of the updated mixtape.
+
+        Raises:
+            FileNotFoundError: If a mixtape with the given slug does not exist.
+        """
+        existing_data = self._load_existing_mixtape(slug)
+        updated_data = self._preserve_client_id(existing_data, updated_data)
+        existing_data = self._apply_allowed_updates(existing_data, updated_data)
+        existing_data = self._ensure_required_fields(existing_data)
+        existing_data["updated_at"] = datetime.now().isoformat()
+
+        return self._save_with_slug(
+            mixtape_data=existing_data, title=existing_data["title"], slug=slug
+        )
+
+    def _load_existing_mixtape(self, slug: str) -> dict:
+        """Loads existing mixtape data for the given slug.
+
+        Reads the mixtape JSON file from disk and returns its contents as a dictionary.
+
+        Args:
+            slug (str): The slug of the mixtape to load.
+
+        Returns:
+            dict: The loaded mixtape data.
+
+        Raises:
+            FileNotFoundError: If a mixtape with the given slug does not exist.
         """
         old_json_path = self.path_mixtapes / f"{slug}.json"
         if not old_json_path.exists():
             raise FileNotFoundError(f"Mixtape with slug '{slug}' not found.")
 
         with open(old_json_path, "r", encoding="utf-8") as f:
-            existing_data = json.load(f)
+            return json.load(f)
 
-        # Preserve client_id
+    def _preserve_client_id(self, existing_data: dict, updated_data: dict) -> dict:
+        """Ensures client_id is preserved when not provided in updated data.
+
+        Copies the client_id from the existing mixtape data if it is missing in the updated payload.
+
+        Args:
+            existing_data (dict): The currently stored mixtape data.
+            updated_data (dict): The incoming mixtape update payload.
+
+        Returns:
+            dict: The updated data with client_id preserved when applicable.
+        """
         if "client_id" not in updated_data and "client_id" in existing_data:
             updated_data["client_id"] = existing_data["client_id"]
+        return updated_data
 
-        # Merge updates
-        existing_data.update(updated_data)
+    def _apply_allowed_updates(self, existing_data: dict, updated_data: dict) -> dict:
+        """Applies only allowed field updates to an existing mixtape.
 
-        # Ensure required fields
-        existing_data["title"] = updated_data.get(
-            "title", existing_data.get("title", "Untitled Mixtape")
-        )
+        Iterates over a whitelist of fields and updates them when present, avoiding unintended null overwrites.
+
+        Args:
+            existing_data (dict): The currently stored mixtape data.
+            updated_data (dict): The incoming mixtape update payload.
+
+        Returns:
+            dict: The mixtape data with allowed fields updated.
+        """
+        for field in self.ALLOWED_UPDATE_FIELDS:
+            if field in updated_data:
+                if updated_data[field] is not None or field == "cover":
+                    existing_data[field] = updated_data[field]
+        return existing_data
+
+    def _ensure_required_fields(self, existing_data: dict) -> dict:
+        """Ensures required and backward-compatible fields are present on a mixtape.
+
+        Sets default values for core fields such as title, liner notes, and gift flow options when missing.
+
+        Args:
+            existing_data (dict): The mixtape data to normalize.
+
+        Returns:
+            dict: The mixtape data with all required fields populated.
+        """
+        existing_data["title"] = existing_data.get("title", "Untitled Mixtape")
         if "liner_notes" not in existing_data:
             existing_data["liner_notes"] = ""
 
-        # Only update updated_at
-        existing_data["updated_at"] = datetime.now().isoformat()
+        # Use centralized gift flow defaults
+        existing_data = self._ensure_gift_flow_fields(existing_data)
 
-        return self._save_with_slug(
-            mixtape_data=existing_data, title=existing_data["title"], slug=slug
-        )
+        return existing_data
+
+    def _ensure_gift_flow_fields(self, data: dict) -> dict:
+        """Ensures all gift flow fields exist with proper defaults.
+
+        Applies default values for creator name, gift flow settings, unwrap style,
+        and tracklist visibility to maintain backward compatibility with older mixtapes.
+
+        Args:
+            data (dict): The mixtape data dictionary to normalize.
+
+        Returns:
+            dict: The mixtape data with gift flow fields populated.
+        """
+        data.setdefault("creator_name", self.DEFAULT_CREATOR_NAME)
+        data.setdefault("gift_flow_enabled", self.DEFAULT_GIFT_FLOW_ENABLED)
+        data.setdefault("unwrap_style", self.DEFAULT_UNWRAP_STYLE)
+        data.setdefault("show_tracklist_after_completion", self.DEFAULT_SHOW_TRACKLIST)
+        return data
 
     def _save_with_slug(self, mixtape_data: dict, title: str, slug: str) -> str:
         """Saves mixtape data and its cover image using a specific slug.
@@ -193,9 +296,9 @@ class MixtapeManager:
         Persists the mixtape JSON file and optional cover image to disk so it can be retrieved later.
 
         Args:
-            mixtape_data: The mixtape metadata and track information to be stored.
-            title: The human-readable title of the mixtape used for logging.
-            slug: The filesystem-safe identifier used as the mixtape filename.
+            mixtape_data (dict): The mixtape metadata and track information to be stored.
+            title (str): The human-readable title of the mixtape used for logging.
+            slug (str): The filesystem-safe identifier used as the mixtape filename.
 
         Returns:
             str: The slug under which the mixtape was saved.
@@ -228,8 +331,8 @@ class MixtapeManager:
         Returns the relative path to the saved cover image, or None if processing fails.
 
         Args:
-            cover_data: The base64-encoded image data string.
-            slug: The unique identifier for the mixtape.
+            cover_data (str): The base64-encoded image data string.
+            slug (str): The unique identifier for the mixtape.
 
         Returns:
             str | None: The relative path to the saved cover image, or None if processing fails.
@@ -272,8 +375,8 @@ class MixtapeManager:
         If the image width is 1200 or smaller, the original image is returned unchanged.
 
         Args:
-            image: The PIL Image object to resize.
-            new_width: The desired width of the resized image (default is 1200).
+            image (Image): The PIL Image object to resize.
+            new_width (int): The desired width of the resized image (default is 1200).
 
         Returns:
             Image: The resized PIL Image object, or the original if width <= new_width.
@@ -292,7 +395,7 @@ class MixtapeManager:
         Removes the mixtape JSON file and cover image from disk if they exist.
 
         Args:
-            slug: The slug of the mixtape to delete.
+            slug (str): The slug of the mixtape to delete.
         """
         json_path = self.path_mixtapes / f"{slug}.json"
         json_path.unlink(missing_ok=True)
@@ -342,7 +445,7 @@ class MixtapeManager:
         Loads the mixtape from disk, validates its tracks against the collection, and normalizes optional fields.
 
         Args:
-            slug: The slug identifier of the mixtape to retrieve.
+            slug (str): The slug identifier of the mixtape to retrieve.
 
         Returns:
             dict | None: The validated and normalized mixtape data, or None if the mixtape is missing or invalid.
@@ -385,7 +488,7 @@ class MixtapeManager:
         Compares each track entry with current collection data and updates fields when differences are detected.
 
         Args:
-            data: The mixtape data dictionary containing a "tracks" list to validate.
+            data (dict): The mixtape data dictionary containing a "tracks" list to validate.
 
         Returns:
             tuple[dict, bool | None]: A tuple of the updated tracks list and a flag indicating whether any changes
@@ -416,7 +519,7 @@ class MixtapeManager:
         Converts legacy structures, ensures optional fields are present, and standardizes timestamps for consistency.
 
         Args:
-            data: The raw mixtape data dictionary to validate and normalize.
+            data (dict): The raw mixtape data dictionary to validate and normalize.
 
         Returns:
             dict: The updated mixtape data dictionary with normalized metadata and timestamps.
@@ -427,6 +530,8 @@ class MixtapeManager:
         if "client_id" not in data:
             data["client_id"] = None
 
+        # Use centralized gift flow defaults (backward compatibility)
+        data = self._ensure_gift_flow_fields(data)
         data = self._normalize_timestamps(data)
 
         return data
@@ -437,14 +542,14 @@ class MixtapeManager:
         Fills in missing created_at and updated_at values and migrates legacy fields to the current schema.
 
         Args:
-            data: The mixtape data dictionary whose timestamps should be normalized.
+            data (dict): The mixtape data dictionary whose timestamps should be normalized.
 
         Returns:
             dict: The updated mixtape data dictionary with normalized timestamps.
         """
         now = datetime.now().isoformat()
 
-        # Migrate legacy saved_at → updated_at
+        # Migrate legacy saved_at -> updated_at
         if "saved_at" in data and "updated_at" not in data:
             data["updated_at"] = data.pop("saved_at")
         if "created_at" not in data:
@@ -460,7 +565,7 @@ class MixtapeManager:
         Renames outdated track fields so older mixtapes can be handled consistently with newer ones.
 
         Args:
-            data: The raw mixtape data dictionary that may use legacy field names.
+            data (dict): The raw mixtape data dictionary that may use legacy field names.
 
         Returns:
             dict: The updated mixtape data dictionary using the current field names.

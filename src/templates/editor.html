@@ -55,9 +55,9 @@
                                 data-bs-placement="bottom"
                                 data-bs-html="true"
                                 data-bs-title="<strong>Tagged search:</strong><br>
-                                    <code>artist:beatles</code> – artists only<br>
-                                    <code>album:abbey</code> – albums only<br>
-                                    <code>track:hey</code> – tracks only<br>
+                                    <code>artist:beatles</code> â€“ artists only<br>
+                                    <code>album:abbey</code> â€“ albums only<br>
+                                    <code>track:hey</code> â€“ tracks only<br>
                                     Combine: <code>artist:Radiohead album:OK</code>">
                             <i class="bi bi-info-circle"></i>
                         </button>
@@ -79,7 +79,7 @@
                         <h2 class="h5 mb-0">Library</h2>
                     </div>
                     <div class="card-body" id="results">
-                        <p class="text-muted text-center my-5">Type at least 2 characters to search…</p>
+                        <p class="text-muted text-center my-5">Type at least 2 characters to searchâ€¦</p>
                     </div>
                 </div>
             </div>
@@ -108,7 +108,7 @@
                         <div class="text-center mb-4" id="cover-title">
                             <div class="position-relative d-inline-block">
                                 <img id="playlist-cover"
-                                    src="{{ url_for('static', filename='image.jpg') }}"
+                                    src="{{ url_for('static', filename='images/default_cover.jpg') }}"
                                     class="rounded shadow-sm img-fluid"
                                     style="max-width: 260px; aspect-ratio: 1; object-fit: cover; border: 3px solid rgba(255,255,255,0.1);">
 
@@ -261,8 +261,8 @@
                         <img id="now-playing-cover" src="" alt="Cover" class="me-2 rounded" style="width: 50px; height: 50px; object-fit: cover; display: none;">
                         <button id="close-player" class="btn btn-sm btn-outline-light me-2"><i class="bi bi-x-lg"></i></button>
                         <div class="me-2" style="max-width: 140px;">
-                            <div class="fw-bold text-truncate" id="now-playing-title">—</div>
-                            <div class="small opacity-75 text-truncate" id="now-playing-artist">—</div>
+                            <div class="fw-bold text-truncate" id="now-playing-title">â€”</div>
+                            <div class="small opacity-75 text-truncate" id="now-playing-artist">â€”</div>
                         </div>
                     </div>
 
@@ -304,7 +304,11 @@
                 tracks: {{ preload_mixtape.tracks | default([]) | tojson | safe }},
                 slug: {{ preload_mixtape.slug | default(null) | tojson | safe }},
                 created_at: {{ preload_mixtape.created_at | default(null) | tojson | safe }},
-                updated_at: {{ preload_mixtape.updated_at | default(null) | tojson | safe }}
+                updated_at: {{ preload_mixtape.updated_at | default(null) | tojson | safe }},
+                creator_name: {{ preload_mixtape.creator_name | default('') | tojson | safe }},
+                gift_flow_enabled: {{ preload_mixtape.gift_flow_enabled | default(false) | tojson | safe }},
+                unwrap_style: {{ preload_mixtape.unwrap_style | default('playful') | tojson | safe }},
+                show_tracklist_after_completion: {{ preload_mixtape.show_tracklist_after_completion | default(true) | tojson | safe }}
             };
     </script>
 
