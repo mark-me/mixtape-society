@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playful/Animated Mockup - Gift Flow</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+        }
+
+        .gift-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            aspect-ratio: 1;
+            perspective: 1000px;
+        }
+
+        /* Step 1: Wrapped Gift */
+        .wrapped-gift {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .wrapped-gift:hover {
+            transform: scale(1.05);
+        }
+
+        .gift-box {
+            position: relative;
+            width: 80%;
+            aspect-ratio: 1;
+            background: linear-gradient(145deg, #ff6b9d 0%, #c06c84 100%);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .gift-ribbon-vertical {
+            position: absolute;
+            width: 60px;
+            height: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(90deg, #ffd700 0%, #ffed4e 50%, #ffd700 100%);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+
+        .gift-ribbon-horizontal {
+            position: absolute;
+            width: 100%;
+            height: 60px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: linear-gradient(180deg, #ffd700 0%, #ffed4e 50%, #ffd700 100%);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+
+        .gift-bow {
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 80px;
+            background: #ffd700;
+            border-radius: 50% 50% 0 0;
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.5);
+        }
+
+        .gift-bow::before,
+        .gift-bow::after {
+            content: '';
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: #ffd700;
+            border-radius: 50%;
+            top: 10px;
+        }
+
+        .gift-bow::before {
+            left: -30px;
+        }
+
+        .gift-bow::after {
+            right: -30px;
+        }
+
+        .tap-instruction {
+            position: absolute;
+            bottom: -80px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(2deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: translateX(-50%) scale(1); }
+            50% { opacity: 0.7; transform: translateX(-50%) scale(1.05); }
+        }
+
+        /* Step 2: Unwrapping Animation */
+        .unwrapping .gift-box {
+            animation: unwrap 1.5s ease-out forwards;
+        }
+
+        .unwrapping .gift-ribbon-vertical,
+        .unwrapping .gift-ribbon-horizontal {
+            animation: ribbon-fall 1s ease-out forwards;
+        }
+
+        .unwrapping .gift-bow {
+            animation: bow-fly 1s ease-out forwards;
+        }
+
+        @keyframes unwrap {
+            0% { transform: scale(1) rotate(0deg); }
+            30% { transform: scale(1.1) rotate(5deg); }
+            60% { transform: scale(0.9) rotate(-5deg); }
+            100% { transform: scale(0) rotate(360deg); opacity: 0; }
+        }
+
+        @keyframes ribbon-fall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(200px) rotate(180deg); opacity: 0; }
+        }
+
+        @keyframes bow-fly {
+            0% { transform: translate(-50%, 0) rotate(0deg); opacity: 1; }
+            100% { transform: translate(-50%, -200px) rotate(-180deg); opacity: 0; }
+        }
+
+        /* Step 3: Cover Reveal */
+        .cover-reveal {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.6s ease;
+        }
+
+        .cover-reveal.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .cover-image {
+            width: 80%;
+            max-width: 400px;
+            aspect-ratio: 1;
+            border-radius: 20px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.4);
+            animation: cover-appear 1s ease-out;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .cover-image:hover {
+            transform: scale(1.05) rotate(2deg);
+        }
+
+        @keyframes cover-appear {
+            0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+            60% { transform: scale(1.1) rotate(10deg); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        /* Step 4: Message Screen */
+        .message-screen {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.6s ease;
+        }
+
+        .message-screen.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .liner-notes {
+            width: 90%;
+            max-width: 500px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 3rem;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: notes-unfold 0.8s ease-out;
+            color: #333;
+        }
+
+        @keyframes notes-unfold {
+            0% { transform: rotateX(-90deg); opacity: 0; }
+            100% { transform: rotateX(0deg); opacity: 1; }
+        }
+
+        .liner-notes h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #667eea;
+        }
+
+        .liner-notes .creator {
+            font-style: italic;
+            color: #666;
+            margin-bottom: 2rem;
+        }
+
+        .liner-notes .play-btn {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 50px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .liner-notes .play-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Controls */
+        .controls {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+            z-index: 1000;
+        }
+
+        .controls button {
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            border: 2px solid white;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .controls button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #ffd700;
+            animation: confetti-fall 3s linear;
+            pointer-events: none;
+        }
+
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="gift-container">
+        <!-- Step 1: Wrapped Gift -->
+        <div class="wrapped-gift" id="wrapped-gift">
+            <div class="gift-box">
+                <div class="gift-ribbon-vertical"></div>
+                <div class="gift-ribbon-horizontal"></div>
+                <div class="gift-bow"></div>
+            </div>
+            <div class="tap-instruction">
+                <i class="bi bi-hand-index-thumb"></i> Tap to unwrap
+            </div>
+        </div>
+
+        <!-- Step 2: Cover Reveal -->
+        <div class="cover-reveal" id="cover-reveal">
+            <img src="../images/default_cover.jpg"
+                 alt="Mixtape Cover"
+                 class="cover-image"
+                 id="cover-image">
+        </div>
+
+        <!-- Step 3: Message Screen -->
+        <div class="message-screen" id="message-screen">
+            <div class="liner-notes">
+                <h2>Summer Vibes '24</h2>
+                <p class="creator">Created by DJ Mark</p>
+                <p>Hey! I made this mixtape just for you. Each track reminds me of our adventures this summer. Hope it brings back all those good memories! 🎵</p>
+                <button class="play-btn" id="play-btn">
+                    <i class="bi bi-play-fill me-2"></i>Start Listening
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Demo Controls -->
+    <div class="controls">
+        <button onclick="resetDemo()">
+            <i class="bi bi-arrow-clockwise me-1"></i>Reset
+        </button>
+        <button onclick="nextStep()">
+            <i class="bi bi-skip-forward me-1"></i>Next Step
+        </button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentStep = 0;
+
+        const wrappedGift = document.getElementById('wrapped-gift');
+        const coverReveal = document.getElementById('cover-reveal');
+        const messageScreen = document.getElementById('message-screen');
+        const coverImage = document.getElementById('cover-image');
+        const playBtn = document.getElementById('play-btn');
+
+        // Step progression
+        wrappedGift.addEventListener('click', () => {
+            if (currentStep === 0) nextStep();
+        });
+
+        coverImage.addEventListener('click', () => {
+            if (currentStep === 1) nextStep();
+        });
+
+        playBtn.addEventListener('click', () => {
+            alert('🎵 Starting playback! (This would navigate to the player)');
+        });
+
+        function nextStep() {
+            currentStep++;
+
+            switch(currentStep) {
+                case 1:
+                    // Start unwrap animation
+                    wrappedGift.classList.add('unwrapping');
+                    createConfetti();
+                    setTimeout(() => {
+                        wrappedGift.classList.add('hidden');
+                        coverReveal.classList.add('active');
+                    }, 1500);
+                    break;
+
+                case 2:
+                    // Show message screen
+                    coverReveal.classList.remove('active');
+                    setTimeout(() => {
+                        messageScreen.classList.add('active');
+                    }, 300);
+                    break;
+
+                case 3:
+                    // Would navigate to player
+                    alert('🎵 Navigating to player...');
+                    break;
+            }
+        }
+
+        function resetDemo() {
+            currentStep = 0;
+            wrappedGift.classList.remove('unwrapping', 'hidden');
+            coverReveal.classList.remove('active');
+            messageScreen.classList.remove('active');
+        }
+
+        function createConfetti() {
+            const colors = ['#ffd700', '#ff6b9d', '#667eea', '#764ba2', '#fff'];
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                    document.body.appendChild(confetti);
+                    setTimeout(() => confetti.remove(), 3000);
+                }, i * 30);
+            }
+        }
+    </script>
+</body>
+</html>

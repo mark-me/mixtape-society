@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}🎁 {{ mixtape.title }} - A Gift for You{% endblock %}
+
+{% block extra_meta %}
+    <meta name="description" content="A special mixtape gift: {{ mixtape.title }}">
+    <meta property="og:title" content="🎁 You've received a mixtape gift!"/>
+    <meta property="og:type" content="music.playlist"/>
+    <meta property="og:url" content="{{ url_for('play.gift_playful', slug=mixtape.slug, _external=True) }}"/>
+    <meta property="og:description" content="Someone made you a special mixtape. Click to unwrap it!"/>
+    {% if mixtape.cover %}
+        <meta property="og:image" content="{{ url_for('play.serve_cover', filename=mixtape.cover.split('/')[-1], _external=True) }}"/>
+    {% endif %}
+    <meta name="robots" content="noindex, nofollow">
+{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/gift-playful.css') }}">
+{% endblock %}
+
+{% block content %}
+
+    <!-- Gift Reveal Flow -->
+    <div id="gift-container" class="gift-container">
+
+        <!-- Step 1: Wrapped gift (PNG image) -->
+        <div class="wrapped-gift" id="wrapped-gift">
+            <img src="{{ url_for('static', filename='images/gift.png') }}"
+                 alt="Gift box to unwrap"
+                 class="gift-image"
+                 id="gift-image">
+            <div class="tap-instruction">
+                <i class="bi bi-hand-index-thumb"></i> Tap to unwrap your gift
+            </div>
+        </div>
+
+        <!-- Step 2: Cover reveal -->
+        <div class="cover-reveal" id="cover-reveal">
+            {% if mixtape.cover %}
+            <img src="{{ url_for('play.serve_cover', filename=mixtape.cover.split('/')[-1]) }}"
+                 alt="Cover for {{ mixtape.title }}"
+                 class="cover-image"
+                 id="cover-image">
+            {% else %}
+            <div class="cover-image placeholder-cover">
+                <div class="placeholder-text">{{ mixtape.title }}</div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Step 3: Message / liner notes card -->
+        <div class="message-screen" id="message-screen">
+            <div class="liner-notes">
+                <h2>{{ mixtape.title }}</h2>
+
+                {% if receiver_name %}
+                <p class="receiver">For {{ receiver_name }}</p>
+                {% endif %}
+
+                {% if from_name %}
+                <p class="creator">From {{ from_name }}</p>
+                {% elif mixtape.creator_name %}
+                <p class="creator">From {{ mixtape.creator_name }}</p>
+                {% else %}
+                <p class="creator">From a friend</p>
+                {% endif %}
+
+                {% if gift_note %}
+                <p class="gift-message-body">{{ gift_note | safe }}</p>
+                {% elif mixtape.liner_notes and mixtape.liner_notes.strip() %}
+                <p class="gift-message-body">{{ mixtape.liner_notes | safe }}</p>
+                {% else %}
+                <p>Hope these songs bring a smile – made this one just for you 🎶</p>
+                {% endif %}
+
+                <button class="play-btn" id="play-btn">
+                    <i class="bi bi-play-fill me-2"></i>Start Listening
+                </button>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block extra_js %}
+    <script type="module" src="{{ url_for('static', filename='js/player/giftRevealPlayful.js') }}"></script>
+{% endblock %}

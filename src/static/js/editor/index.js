@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ---------------------------------------------------------------
-    // 2️⃣  Initialise EasyMDE (the editor) — the tabs are already rendered,
+    // 2️⃣  Initialise EasyMDE (the editor) – the tabs are already rendered,
     //     so the editor will be visible and will receive the correct
     //     initial value.
     // ---------------------------------------------------------------
@@ -80,7 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // ---------------------------------------------------------------
-    // 5️⃣  Activate the appropriate sub‑tab (Write vs Preview)
+    // 5️⃣  Activate the appropriate sub-tab (Write vs Preview)
     // ---------------------------------------------------------------
     // If there are liner notes, we want the *Preview* tab to be visible
     // right away. Otherwise we fall back to the *Write* tab.

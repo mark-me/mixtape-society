@@ -8,7 +8,7 @@ No accounts, no telemetry, no Spotify – just your music, your server, your rul
 
 ## ✨ Features
 
-### 🎵 For Mixtape Creators
+### 🎶🧑‍🎨 For Mixtape Creators
 
 - **Private music library** – Host your own collection (FLAC, MP3, M4A, AAC, OGG, WAV)
 - **Custom cover art** – Upload unique artwork for each mixtape

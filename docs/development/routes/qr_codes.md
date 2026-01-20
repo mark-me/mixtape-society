@@ -142,7 +142,7 @@ sequenceDiagram
 | ------- | -------------- | ------- | ------- |
 | **`qrcode`** (Python library) | `project.toml` / `uv.lock` | `>=7.4` | Required for both endpoints. |
 | **`Pillow`** (image handling) | `project.toml` | `>=10.0` | Needed for compositing the logo/cover. |
-| **Static logo files** | `static/logo.svg` or `static/logo.png` | — | The blueprint prefers SVG; falls back to PNG. |
+| **Static logo files** | `static/images/logo.svg` or `static/logo.png` | — | The blueprint prefers SVG; falls back to PNG. |
 | **Cover directory** | `app.config["COVER_DIR"]` (set in config.py) | `collection-data/mixtapes/covers` | Used only by the download endpoint. |
 | **Cache-Control** | Hard-coded in the view (`public, max-age=3600`). | — | Adjust in the source if you need a different TTL. |
 
@@ -150,9 +150,9 @@ sequenceDiagram
     If you ever need to change the logo location, edit qr_blueprint.py where logo_path is resolved:
 
     ```python
-    logo_path = Path(current_app.static_folder) / "logo.svg"
+    logo_path = Path(current_app.static_folder) / "images" / "logo.svg"
     if not logo_path.exists():
-        logo_path = Path(current_app.static_folder) / "logo.png"
+        logo_path = Path(current_app.static_folder) / "images" / "logo.png"
     ```
 
 ## 📌 Example Requests

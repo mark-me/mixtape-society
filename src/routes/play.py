@@ -18,7 +18,11 @@ from common.logging import Logger, NullLogger
 from mixtape_manager import MixtapeManager
 
 
-def create_play_blueprint(mixtape_manager: MixtapeManager, path_audio_cache: Path, logger: Logger | None = None) -> Blueprint:
+def create_play_blueprint(
+    mixtape_manager: MixtapeManager,
+    path_audio_cache: Path,
+    logger: Logger | None = None,
+) -> Blueprint:
     """
     Creates and configures the Flask blueprint for mixtape playback and audio streaming.
 
@@ -79,18 +83,19 @@ def create_play_blueprint(mixtape_manager: MixtapeManager, path_audio_cache: Pat
             return _handle_range_request(serve_path, mime_type, range_header, file_size)
 
         # Full file request
-        response = send_file(serve_path, mimetype=mime_type, download_name=serve_path.name)
+        response = send_file(
+            serve_path, mimetype=mime_type, download_name=serve_path.name
+        )
         response.headers["Accept-Ranges"] = "bytes"
         response.headers["Access-Control-Allow-Origin"] = "*"
-        response.headers["Access-Control-Expose-Headers"] = "Content-Type, Accept-Encoding, Range"
+        response.headers["Access-Control-Expose-Headers"] = (
+            "Content-Type, Accept-Encoding, Range"
+        )
         response.headers["Cache-Control"] = "public, max-age=3600"
         return response
 
     def _get_serving_path(
-        original_path: Path,
-        quality: QualityLevel,
-        cache: AudioCache,
-        log: Logger
+        original_path: Path, quality: QualityLevel, cache: AudioCache, log: Logger
     ) -> Path:
         """
         Determine which file path to serve based on quality and cache availability.
@@ -169,15 +174,15 @@ def create_play_blueprint(mixtape_manager: MixtapeManager, path_audio_cache: Pat
             ".avif": "image/avif",
             ".heic": "image/heic",
             ".heif": "image/heif",
-            ".svg":  "image/svg+xml",
+            ".svg": "image/svg+xml",
             ".svgz": "image/svg+xml",
             ".flac": "audio/flac",
-            ".m4a":  "audio/mp4",
-            ".aac":  "audio/aac",
-            ".ogg":  "audio/ogg",
-            ".oga":  "audio/ogg",
+            ".m4a": "audio/mp4",
+            ".aac": "audio/aac",
+            ".ogg": "audio/ogg",
+            ".oga": "audio/ogg",
             ".opus": "audio/ogg",
-            ".mp3":  "audio/mpeg",
+            ".mp3": "audio/mpeg",
         }.get(suffix, "application/octet-stream")
 
     def _handle_range_request(
@@ -244,6 +249,82 @@ def create_play_blueprint(mixtape_manager: MixtapeManager, path_audio_cache: Pat
             abort(404)
         return render_template("play_mixtape.html", mixtape=mixtape, public=True)
 
+    @play.route("/gift-playful/<slug>")
+    def gift_playful(slug: str) -> Response:
+        """
+        Renders the playful gift mixtape reveal page for a given slug.
+
+        Shows interactive gift reveal experience before playback,
+        or returns a 404 error if mixtape not found.
+
+        Query parameters:
+            to: Recipient name
+            from: Sender name
+            note: Personal gift message
+
+        Args:
+            slug: The unique identifier for the mixtape.
+
+        Returns:
+            Response: The Flask response object containing the rendered gift page.
+        """
+        mixtape = mixtape_manager.get(slug)
+        if not mixtape:
+            abort(404)
+
+        # Get gift personalization from URL parameters
+        receiver_name = request.args.get('to', '')
+        gift_note = request.args.get('note', '')
+        from_name = request.args.get('from', '')
+
+        return render_template(
+            "gift-playful.html",
+            mixtape=mixtape,
+            slug=slug,
+            receiver_name=receiver_name,
+            gift_note=gift_note,
+            from_name=from_name,
+            is_gift=True,
+        )
+
+    @play.route("/gift-elegant/<slug>")
+    def gift_elegant(slug: str) -> Response:
+        """
+        Renders the elegant gift mixtape reveal page for a given slug.
+
+        Shows interactive gift reveal experience before playback,
+        or returns a 404 error if mixtape not found.
+
+        Query parameters:
+            to: Recipient name
+            from: Sender name
+            note: Personal gift message
+
+        Args:
+            slug: The unique identifier for the mixtape.
+
+        Returns:
+            Response: The Flask response object containing the rendered gift page.
+        """
+        mixtape = mixtape_manager.get(slug)
+        if not mixtape:
+            abort(404)
+
+        # Get gift personalization from URL parameters
+        receiver_name = request.args.get('to', '')
+        gift_note = request.args.get('note', '')
+        from_name = request.args.get('from', '')
+
+        return render_template(
+            "gift-elegant.html",
+            mixtape=mixtape,
+            slug=slug,
+            receiver_name=receiver_name,
+            gift_note=gift_note,
+            from_name=from_name,
+            is_gift=True,
+        )
+
     @play.route("/share/<slug>/manifest.json")
     def mixtape_manifest(slug: str) -> Response:
         """
@@ -255,18 +336,17 @@ def create_play_blueprint(mixtape_manager: MixtapeManager, path_audio_cache: Pat
         mixtape = mixtape_manager.get(slug)
         if not mixtape:
             abort(404)
-
         # Get cover URL or use default icon
-        if mixtape.get('cover'):
-            mime_type = _guess_mime_type(Path(mixtape['cover']))
+        if mixtape.get("cover"):
+            mime_type = _guess_mime_type(Path(mixtape["cover"]))
             icon_url = f"/play/covers/{mixtape['cover'].split('/')[-1]}"
         else:
             mime_type = _guess_mime_type(Path("/static/icons/icon-512.png"))
             icon_url = "/static/icons/icon-512.png"
 
         manifest = {
-            "name": mixtape.get('title', 'Mixtape'),
-            "short_name": mixtape.get('title', 'Mixtape')[:12],
+            "name": mixtape.get("title", "Mixtape"),
+            "short_name": mixtape.get("title", "Mixtape")[:12],
             "description": f"A mixtape with {len(mixtape.get('tracks', []))} tracks",
             "start_url": f"/play/share/{slug}",
             "scope": "/play/",
@@ -279,28 +359,28 @@ def create_play_blueprint(mixtape_manager: MixtapeManager, path_audio_cache: Pat
                     "src": icon_url,
                     "sizes": "512x512",
                     "type": mime_type,
-                    "purpose": "any maskable"
+                    "purpose": "any maskable",
                 },
                 {
                     "src": "/static/icons/icon-192.png",
                     "sizes": "192x192",
                     "type": "image/png",
-                    "purpose": "any maskable"
+                    "purpose": "any maskable",
                 },
                 {
                     "src": "/static/icons/icon-512.png",
                     "sizes": "512x512",
                     "type": "image/png",
-                    "purpose": "any maskable"
-                }
-            ]
+                    "purpose": "any maskable",
+                },
+            ],
         }
 
         return Response(
             json.dumps(manifest, indent=2),
-            mimetype='application/manifest+json',
-            headers={'Cache-Control': 'public, max-age=3600'}
-    )
+            mimetype="application/manifest+json",
+            headers={"Cache-Control": "public, max-age=3600"},
+        )
 
     @play.route("/covers/<filename>")
     def serve_cover(filename: str) -> Response:
