@@ -57,18 +57,33 @@ Play tracks in random order instead of the mixtape's sequence.
 
 **How to enable:**
 
-1. Find the **🔀 Shuffle** button
+1. Find the **🔀 Shuffle** button next to the prev/next controls
 2. Click/tap to toggle on (button lights up)
 3. Click/tap again to return to normal order
+
+**What happens:**
+
+- Tracks play in a random sequence
+- Next/Previous buttons follow the shuffled order
+- Your shuffle order stays the same even if you reload the page
+
+**Visual indicator:**
+
+- **Off:** Button is outlined (⚪ 🔀)
+- **On:** Button is filled (⚫ 🔀)
 
 **When it's useful:**
 
 - You've listened through already and want variety
 - Long mixtapes (20+ tracks)
 - Background music where order doesn't matter
+- Discovering tracks you might have skipped
+
+**Getting a new shuffle:**
+Click shuffle off, then on again to get a different random order.
 
 !!! note
-    The creator carefully ordered the tracks—shuffle changes the intended experience!
+    The creator carefully ordered the tracks—shuffle changes the intended experience! Best for repeat listens.
 
 ### Repeat Mode
 
@@ -481,6 +496,14 @@ Check with the creator about their server's features.
 3. Use wired headphones
 4. Close battery-draining apps
 5. Disable battery saver temporarily
+
+### Shuffle Not Saving
+
+**Solutions:**
+
+1. Check if you're in private/incognito mode (shuffle won't save)
+2. Make sure browser allows cookies and storage
+3. To get a new random order: toggle shuffle off then on again
 
 ---
 
