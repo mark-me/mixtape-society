@@ -477,7 +477,7 @@ export function initPlayerControls() {
             try {
                 const trackElement = trackItems[currentIndex];
                 const title = trackElement?.dataset.title || 'Unknown';
-
+                
                 localStorage.setItem(STORAGE_KEY_TRACK, currentIndex.toString());
                 localStorage.setItem(STORAGE_KEY_TIME, player.currentTime.toString());
                 localStorage.setItem(STORAGE_KEY_POSITION, JSON.stringify({
@@ -536,7 +536,17 @@ export function initPlayerControls() {
             castTogglePlayPause();
         }
         else if (player.paused) {
-            player.play().catch(err => console.error("Resume failed:", err));
+            // If no source loaded, call playTrack to load the current track
+            if (!player.src || player.src === '') {
+                if (currentIndex >= 0 && currentIndex < trackItems.length) {
+                    playTrack(currentIndex);
+                } else {
+                    // No track selected, start from beginning
+                    playTrack(0);
+                }
+            } else {
+                player.play().catch(err => console.error("Resume failed:", err));
+            }
         }
         else {
             player.pause();
@@ -623,20 +633,20 @@ export function initPlayerControls() {
         // Handle playback errors with retry logic
         let errorRetryCount = 0;
         const MAX_RETRIES = 2;
-
+        
         player?.addEventListener('error', (e) => {
             const trackElement = trackItems[index];
             const trackTitle = trackElement?.dataset.title || 'Unknown';
-
+            
             console.error('🚫 Playback error:', {
                 code: player.error?.code,
                 message: player.error?.message,
                 track: trackTitle
             });
-
+            
             // Save state before handling error
             savePlaybackState();
-
+            
             if (errorRetryCount < MAX_RETRIES) {
                 errorRetryCount++;
                 console.log(`🔄 Retrying playback (attempt ${errorRetryCount}/${MAX_RETRIES})...`);
@@ -651,18 +661,18 @@ export function initPlayerControls() {
                 }, 1000);
             }
         });
-
+        
         // Handle stalled playback
         player?.addEventListener('stalled', () => {
             console.warn('⚠️ Playback stalled, attempting to recover...');
             savePlaybackState();
         });
-
+        
         // Handle waiting/buffering
         player?.addEventListener('waiting', () => {
             console.log('⏳ Buffering...');
         });
-
+        
         // Handle successful play resume after buffering
         player?.addEventListener('playing', () => {
             console.log('▶️ Playback resumed');
@@ -674,11 +684,11 @@ export function initPlayerControls() {
             const trackElement = trackItems[currentIndex];
             const trackTitle = trackElement?.dataset.title || 'Unknown';
             console.log('✅ Track ended:', trackTitle);
-
+            
             if (!checkCastingState()) {
                 // Save that we completed this track
                 savePlaybackState();
-
+                
                 // Immediately play next track without delay
                 const nextIndex = currentIndex + 1;
                 if (nextIndex < trackItems.length) {
@@ -701,13 +711,13 @@ export function initPlayerControls() {
         player?.addEventListener('play', () => {
             startAutoSave();
         });
-
+        
         // Stop auto-saving when paused
         player?.addEventListener('pause', () => {
             savePlaybackState(); // Save immediately on pause
             stopAutoSave();
         });
-
+        
         const handlePositionUpdate = onlyWhenNotCasting(updatePositionState);
         player?.addEventListener('loadedmetadata', handlePositionUpdate);
         player?.addEventListener('play', handlePositionUpdate);
@@ -785,27 +795,43 @@ export function initPlayerControls() {
         // Update currentIndex to the saved track
         currentIndex = savedState.track;
         window.currentTrackIndex = savedState.track;  // Keep window property in sync
-
-        // Load the track into the player (but don't start playing)
-        const trackElement = trackItems[savedState.track];
-        if (trackElement && player) {
-            const audioUrl = buildAudioUrl(trackElement.dataset.path, currentQuality);
-            player.src = audioUrl;
-
-            // When the track is loaded, seek to the saved position
-            const seekToSaved = () => {
-                if (player && savedState.time > 0) {
-                    player.currentTime = savedState.time;
-                    console.log(`⏩ Restored position: ${Math.floor(savedState.time)}s`);
+        
+        // Store the saved time to seek to when user clicks play
+        // This avoids loading the audio file immediately (which causes "double load" perception)
+        let restoredSeekTime = savedState.time;
+        
+        // Intercept the first play to seek to saved position
+        const handleRestoredPlay = () => {
+            if (restoredSeekTime > 0 && player && currentIndex === savedState.track) {
+                // Wait for metadata to be loaded before seeking
+                const seekToRestored = () => {
+                    if (player.duration && restoredSeekTime <= player.duration) {
+                        player.currentTime = restoredSeekTime;
+                        console.log(`⏩ Restored position: ${Math.floor(restoredSeekTime)}s`);
+                    }
+                    restoredSeekTime = 0; // Clear so it only happens once
+                    player.removeEventListener('loadedmetadata', seekToRestored);
+                };
+                
+                if (player.readyState >= 1) {
+                    // Metadata already loaded
+                    if (player.duration && restoredSeekTime <= player.duration) {
+                        player.currentTime = restoredSeekTime;
+                        console.log(`⏩ Restored position: ${Math.floor(restoredSeekTime)}s`);
+                    }
+                    restoredSeekTime = 0;
+                } else {
+                    // Wait for metadata
+                    player.addEventListener('loadedmetadata', seekToRestored);
                 }
-                player.removeEventListener('loadedmetadata', seekToSaved);
-            };
-            player.addEventListener('loadedmetadata', seekToSaved);
-
-            // Update UI to show this is the current track
-            syncPlayIcons();
-        }
-
+            }
+            player.removeEventListener('play', handleRestoredPlay);
+        };
+        player.addEventListener('play', handleRestoredPlay);
+        
+        // Update UI to show this is the current track (but don't load audio yet)
+        syncPlayIcons();
+        
         // Scroll to the saved track with visual indicator
         setTimeout(() => {
             const savedTrackItem = trackItems[savedState.track];
@@ -818,7 +844,12 @@ export function initPlayerControls() {
                 }, 3000);
             }
         }, 500);
-
+        
+        // Optional: Auto-play from saved position (uncomment if desired)
+        // Note: This WILL cause immediate audio loading, which is why it's commented out
+        // setTimeout(() => {
+        //     playTrack(savedState.track);
+        // }, 1000);
     }
 
 
