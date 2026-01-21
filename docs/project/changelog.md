@@ -16,8 +16,11 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 - Gift receiver experience!
 - Help pages for users
+- Resuming playback on reload
 
 ### 🐛 Fixed
+
+- Made playback more resistant against temporary network failures
 
 ---
 

@@ -475,12 +475,15 @@ export function initPlayerControls() {
     const savePlaybackState = () => {
         if (currentIndex >= 0 && player && !player.paused) {
             try {
+                const trackElement = trackItems[currentIndex];
+                const title = trackElement?.dataset.title || 'Unknown';
+
                 localStorage.setItem(STORAGE_KEY_TRACK, currentIndex.toString());
                 localStorage.setItem(STORAGE_KEY_TIME, player.currentTime.toString());
                 localStorage.setItem(STORAGE_KEY_POSITION, JSON.stringify({
                     track: currentIndex,
                     time: player.currentTime,
-                    title: tracks[currentIndex]?.title || 'Unknown',
+                    title: title,
                     timestamp: Date.now()
                 }));
             } catch (e) {
@@ -622,10 +625,13 @@ export function initPlayerControls() {
         const MAX_RETRIES = 2;
 
         player?.addEventListener('error', (e) => {
+            const trackElement = trackItems[index];
+            const trackTitle = trackElement?.dataset.title || 'Unknown';
+
             console.error('🚫 Playback error:', {
                 code: player.error?.code,
                 message: player.error?.message,
-                track: tracks[index]?.title
+                track: trackTitle
             });
 
             // Save state before handling error
@@ -639,7 +645,7 @@ export function initPlayerControls() {
                     player.play().catch(err => {
                         console.error('Retry failed:', err);
                         if (errorRetryCount >= MAX_RETRIES) {
-                            alert(`Failed to play track: ${tracks[index]?.title}\n\nTry skipping to the next track or refreshing the page.`);
+                            alert(`Failed to play track: ${trackTitle}\n\nTry skipping to the next track or refreshing the page.`);
                         }
                     });
                 }, 1000);
@@ -665,7 +671,9 @@ export function initPlayerControls() {
 
         player?.addEventListener('ended', () => {
             syncPlayIcons();
-            console.log('✅ Track ended:', tracks[currentIndex]?.title);
+            const trackElement = trackItems[currentIndex];
+            const trackTitle = trackElement?.dataset.title || 'Unknown';
+            console.log('✅ Track ended:', trackTitle);
 
             if (!checkCastingState()) {
                 // Save that we completed this track
@@ -773,8 +781,31 @@ export function initPlayerControls() {
 
     // Restore playback position if available
     const savedState = restorePlaybackState();
-    if (savedState && savedState.track < tracks.length) {
-        // Scroll to the saved track
+    if (savedState && savedState.track < trackItems.length) {
+        // Update currentIndex to the saved track
+        currentIndex = savedState.track;
+
+        // Load the track into the player (but don't start playing)
+        const trackElement = trackItems[savedState.track];
+        if (trackElement && player) {
+            const audioUrl = buildAudioUrl(trackElement.dataset.path, currentQuality);
+            player.src = audioUrl;
+
+            // When the track is loaded, seek to the saved position
+            const seekToSaved = () => {
+                if (player && savedState.time > 0) {
+                    player.currentTime = savedState.time;
+                    console.log(`⏩ Restored position: ${Math.floor(savedState.time)}s`);
+                }
+                player.removeEventListener('loadedmetadata', seekToSaved);
+            };
+            player.addEventListener('loadedmetadata', seekToSaved);
+
+            // Update UI to show this is the current track
+            syncPlayIcons();
+        }
+
+        // Scroll to the saved track with visual indicator
         setTimeout(() => {
             const savedTrackItem = trackItems[savedState.track];
             if (savedTrackItem) {
@@ -783,17 +814,10 @@ export function initPlayerControls() {
                 savedTrackItem.style.backgroundColor = '#fff3cd';
                 setTimeout(() => {
                     savedTrackItem.style.backgroundColor = '';
-                }, 5000);
+                }, 3000);
             }
         }, 500);
 
-        // Optionally auto-resume (commented out by default - uncomment if desired)
-        // setTimeout(() => {
-        //     playTrack(savedState.track);
-        //     setTimeout(() => {
-        //         if (player) player.currentTime = savedState.time;
-        //     }, 500);
-        // }, 1000);
     }
 
 
