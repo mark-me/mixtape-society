@@ -102,6 +102,13 @@ export function initPlayerControls() {
     let currentIndex = -1;
     window.currentTrackIndex = currentIndex;
     let currentQuality = localStorage.getItem('audioQuality') || DEFAULT_QUALITY;
+
+    // Playback state persistence
+    const STORAGE_KEY_POSITION = 'mixtape_playback_position';
+    const STORAGE_KEY_TRACK = 'mixtape_current_track';
+    const STORAGE_KEY_TIME = 'mixtape_current_time';
+    const AUTO_SAVE_INTERVAL = 5000; // Save position every 5 seconds
+    let autoSaveTimer = null;
     let isCurrentlyCasting = false;
 
     // Log device capabilities
@@ -464,6 +471,66 @@ export function initPlayerControls() {
         });
     }
 
+    // Save current playback state
+    const savePlaybackState = () => {
+        if (currentIndex >= 0 && player && !player.paused) {
+            try {
+                const trackElement = trackItems[currentIndex];
+                const title = trackElement?.dataset.title || 'Unknown';
+
+                localStorage.setItem(STORAGE_KEY_TRACK, currentIndex.toString());
+                localStorage.setItem(STORAGE_KEY_TIME, player.currentTime.toString());
+                localStorage.setItem(STORAGE_KEY_POSITION, JSON.stringify({
+                    track: currentIndex,
+                    time: player.currentTime,
+                    title: title,
+                    timestamp: Date.now()
+                }));
+            } catch (e) {
+                console.warn('Failed to save playback state:', e);
+            }
+        }
+    };
+
+    // Restore playback state
+    const restorePlaybackState = () => {
+        try {
+            const savedPosition = localStorage.getItem(STORAGE_KEY_POSITION);
+            if (savedPosition) {
+                const state = JSON.parse(savedPosition);
+                // Only restore if saved within last 24 hours
+                if (Date.now() - state.timestamp < 24 * 60 * 60 * 1000) {
+                    console.log(`📍 Resuming from track ${state.track}: "${state.title}" at ${Math.floor(state.time)}s`);
+                    return state;
+                }
+            }
+        } catch (e) {
+            console.warn('Failed to restore playback state:', e);
+        }
+        return null;
+    };
+
+    // Clear saved state
+    const clearPlaybackState = () => {
+        localStorage.removeItem(STORAGE_KEY_TRACK);
+        localStorage.removeItem(STORAGE_KEY_TIME);
+        localStorage.removeItem(STORAGE_KEY_POSITION);
+    };
+
+    // Start auto-saving playback position
+    const startAutoSave = () => {
+        if (autoSaveTimer) clearInterval(autoSaveTimer);
+        autoSaveTimer = setInterval(savePlaybackState, AUTO_SAVE_INTERVAL);
+    };
+
+    // Stop auto-saving
+    const stopAutoSave = () => {
+        if (autoSaveTimer) {
+            clearInterval(autoSaveTimer);
+            autoSaveTimer = null;
+        }
+    };
+
     const togglePlayPause = () => {
         if (checkCastingState()) {
             castTogglePlayPause();
@@ -552,13 +619,74 @@ export function initPlayerControls() {
             }
         }));
 
+
+        // Handle playback errors with retry logic
+        let errorRetryCount = 0;
+        const MAX_RETRIES = 2;
+
+        player?.addEventListener('error', (e) => {
+            const trackElement = trackItems[index];
+            const trackTitle = trackElement?.dataset.title || 'Unknown';
+
+            console.error('🚫 Playback error:', {
+                code: player.error?.code,
+                message: player.error?.message,
+                track: trackTitle
+            });
+
+            // Save state before handling error
+            savePlaybackState();
+
+            if (errorRetryCount < MAX_RETRIES) {
+                errorRetryCount++;
+                console.log(`🔄 Retrying playback (attempt ${errorRetryCount}/${MAX_RETRIES})...`);
+                setTimeout(() => {
+                    player.load();
+                    player.play().catch(err => {
+                        console.error('Retry failed:', err);
+                        if (errorRetryCount >= MAX_RETRIES) {
+                            alert(`Failed to play track: ${trackTitle}\n\nTry skipping to the next track or refreshing the page.`);
+                        }
+                    });
+                }, 1000);
+            }
+        });
+
+        // Handle stalled playback
+        player?.addEventListener('stalled', () => {
+            console.warn('⚠️ Playback stalled, attempting to recover...');
+            savePlaybackState();
+        });
+
+        // Handle waiting/buffering
+        player?.addEventListener('waiting', () => {
+            console.log('⏳ Buffering...');
+        });
+
+        // Handle successful play resume after buffering
+        player?.addEventListener('playing', () => {
+            console.log('▶️ Playback resumed');
+            errorRetryCount = 0; // Reset error count on successful playback
+        });
+
         player?.addEventListener('ended', () => {
             syncPlayIcons();
+            const trackElement = trackItems[currentIndex];
+            const trackTitle = trackElement?.dataset.title || 'Unknown';
+            console.log('✅ Track ended:', trackTitle);
+
             if (!checkCastingState()) {
+                // Save that we completed this track
+                savePlaybackState();
+
                 // Immediately play next track without delay
                 const nextIndex = currentIndex + 1;
                 if (nextIndex < trackItems.length) {
+                    console.log('🎵 Auto-advancing to next track');
                     playTrack(nextIndex);
+                } else {
+                    console.log('🏁 Reached end of playlist');
+                    clearPlaybackState(); // Clear saved position at end
                 }
             }
         });
@@ -567,6 +695,18 @@ export function initPlayerControls() {
         player?.addEventListener('timeupdate', handleAudioProgress);
         player?.addEventListener('loadedmetadata', handleAudioProgress);
         player?.addEventListener('seeked', handleAudioProgress);
+
+
+        // Start auto-saving position when playing
+        player?.addEventListener('play', () => {
+            startAutoSave();
+        });
+
+        // Stop auto-saving when paused
+        player?.addEventListener('pause', () => {
+            savePlaybackState(); // Save immediately on pause
+            stopAutoSave();
+        });
 
         const handlePositionUpdate = onlyWhenNotCasting(updatePositionState);
         player?.addEventListener('loadedmetadata', handlePositionUpdate);
@@ -637,6 +777,50 @@ export function initPlayerControls() {
     initCastListeners();
     initEventListeners();
     handleAutoStart();
+
+
+    // Restore playback position if available
+    const savedState = restorePlaybackState();
+    if (savedState && savedState.track < trackItems.length) {
+        // Update currentIndex to the saved track
+        currentIndex = savedState.track;
+        window.currentTrackIndex = savedState.track;  // Keep window property in sync
+
+        // Load the track into the player (but don't start playing)
+        const trackElement = trackItems[savedState.track];
+        if (trackElement && player) {
+            const audioUrl = buildAudioUrl(trackElement.dataset.path, currentQuality);
+            player.src = audioUrl;
+
+            // When the track is loaded, seek to the saved position
+            const seekToSaved = () => {
+                if (player && savedState.time > 0) {
+                    player.currentTime = savedState.time;
+                    console.log(`⏩ Restored position: ${Math.floor(savedState.time)}s`);
+                }
+                player.removeEventListener('loadedmetadata', seekToSaved);
+            };
+            player.addEventListener('loadedmetadata', seekToSaved);
+
+            // Update UI to show this is the current track
+            syncPlayIcons();
+        }
+
+        // Scroll to the saved track with visual indicator
+        setTimeout(() => {
+            const savedTrackItem = trackItems[savedState.track];
+            if (savedTrackItem) {
+                savedTrackItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Add a visual indicator
+                savedTrackItem.style.backgroundColor = '#fff3cd';
+                setTimeout(() => {
+                    savedTrackItem.style.backgroundColor = '';
+                }, 3000);
+            }
+        }, 500);
+
+    }
+
 
     return {
         playTrack,

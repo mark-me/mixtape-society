@@ -8,15 +8,19 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 ## 📦 v0.7.0
 
-<span class="md-tag">Development</span>
+<span class="md-tag">Release</span>
 
-**🗓️** 2026-01-xx
+**🗓️** 2026-01-21
 
 ### ✨ Added
 
 - Gift receiver experience!
+- Help pages for users
+- Resuming playback on reload
 
 ### 🐛 Fixed
+
+- Made playback more resistant against temporary network failures
 
 ---
 
