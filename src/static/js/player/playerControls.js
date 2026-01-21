@@ -784,6 +784,7 @@ export function initPlayerControls() {
     if (savedState && savedState.track < trackItems.length) {
         // Update currentIndex to the saved track
         currentIndex = savedState.track;
+        window.currentTrackIndex = savedState.track;  // Keep window property in sync
 
         // Load the track into the player (but don't start playing)
         const trackElement = trackItems[savedState.track];
