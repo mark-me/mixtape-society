@@ -15,6 +15,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 ### ✨ Added
 
 - Gift receiver experience!
+- Help pages for users
 
 ### 🐛 Fixed
 
