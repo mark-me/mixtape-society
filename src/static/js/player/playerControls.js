@@ -43,6 +43,35 @@ const QUALITY_LEVELS = {
 
 const DEFAULT_QUALITY = 'medium';
 
+/**
+ * Repeat mode settings
+ */
+const REPEAT_MODES = {
+    OFF: 'off',
+    ALL: 'all',
+    ONE: 'one'
+};
+
+const REPEAT_MODE_LABELS = {
+    [REPEAT_MODES.OFF]: 'Off',
+    [REPEAT_MODES.ALL]: 'All',
+    [REPEAT_MODES.ONE]: 'One'
+};
+
+const REPEAT_MODE_ICONS = {
+    [REPEAT_MODES.OFF]: 'bi-repeat',
+    [REPEAT_MODES.ALL]: 'bi-repeat',
+    [REPEAT_MODES.ONE]: 'bi-repeat-1'
+};
+
+const REPEAT_MODE_STYLES = {
+    [REPEAT_MODES.OFF]: 'btn-outline-light',
+    [REPEAT_MODES.ALL]: 'btn-light',
+    [REPEAT_MODES.ONE]: 'btn-info'
+};
+
+const DEFAULT_REPEAT_MODE = REPEAT_MODES.OFF;
+
 // Global flag to prevent duplicate iOS help setup
 let iOSHelpInitialized = false;
 
@@ -125,8 +154,7 @@ export function initPlayerControls() {
     let shuffleOrder = [];
 
     // Repeat state
-    // Modes: 'off', 'all', 'one'
-    let repeatMode = 'off';
+    let repeatMode = DEFAULT_REPEAT_MODE;
 
     // Log device capabilities
     logDeviceInfo();
@@ -509,7 +537,7 @@ export function initPlayerControls() {
      * Cycle through repeat modes: off → all → one → off
      */
     const cycleRepeatMode = () => {
-        const modes = ['off', 'all', 'one'];
+        const modes = Object.values(REPEAT_MODES);
         const currentIndex = modes.indexOf(repeatMode);
         const nextIndex = (currentIndex + 1) % modes.length;
         repeatMode = modes[nextIndex];
@@ -524,12 +552,7 @@ export function initPlayerControls() {
         // Update button UI
         updateRepeatButton();
         
-        const modeLabels = {
-            'off': 'Off',
-            'all': 'All',
-            'one': 'One'
-        };
-        console.log(`🔁 Repeat: ${modeLabels[repeatMode]}`);
+        console.log(`🔁 Repeat: ${REPEAT_MODE_LABELS[repeatMode]}`);
     };
 
     /**
@@ -540,22 +563,28 @@ export function initPlayerControls() {
         if (!repeatBtn) return;
         
         // Remove all mode classes
-        repeatBtn.classList.remove('btn-outline-light', 'btn-light', 'btn-info');
+        Object.values(REPEAT_MODE_STYLES).forEach(cls => {
+            repeatBtn.classList.remove(cls);
+        });
         
-        // Update based on mode
-        if (repeatMode === 'off') {
-            repeatBtn.classList.add('btn-outline-light');
-            repeatBtn.innerHTML = '<i class="bi bi-repeat"></i>';
-            repeatBtn.title = 'Repeat: Off';
-        } else if (repeatMode === 'all') {
-            repeatBtn.classList.add('btn-light');
-            repeatBtn.innerHTML = '<i class="bi bi-repeat"></i>';
-            repeatBtn.title = 'Repeat: All';
-        } else if (repeatMode === 'one') {
-            repeatBtn.classList.add('btn-info');
-            repeatBtn.innerHTML = '<i class="bi bi-repeat-1"></i>';
-            repeatBtn.title = 'Repeat: One';
-        }
+        // Add appropriate style class
+        const styleClass = REPEAT_MODE_STYLES[repeatMode] || REPEAT_MODE_STYLES[REPEAT_MODES.OFF];
+        repeatBtn.classList.add(styleClass);
+        
+        // Set icon
+        const iconClass = REPEAT_MODE_ICONS[repeatMode] || REPEAT_MODE_ICONS[REPEAT_MODES.OFF];
+        repeatBtn.innerHTML = `<i class="${iconClass}"></i>`;
+        
+        // Set title
+        const label = REPEAT_MODE_LABELS[repeatMode] || REPEAT_MODE_LABELS[REPEAT_MODES.OFF];
+        repeatBtn.title = `Repeat: ${label}`;
+    };
+
+    /**
+     * Validate if a value is a valid repeat mode
+     */
+    const isValidRepeatMode = (mode) => {
+        return Object.values(REPEAT_MODES).includes(mode);
     };
 
     /**
@@ -564,10 +593,10 @@ export function initPlayerControls() {
     const restoreRepeatMode = () => {
         try {
             const stored = localStorage.getItem(STORAGE_KEY_REPEAT);
-            if (stored && ['off', 'all', 'one'].includes(stored)) {
+            if (stored && isValidRepeatMode(stored)) {
                 repeatMode = stored;
                 updateRepeatButton();
-                console.log(`🔁 Restored repeat mode: ${repeatMode}`);
+                console.log(`🔁 Restored repeat mode: ${REPEAT_MODE_LABELS[repeatMode]}`);
                 return true;
             }
         } catch (e) {
@@ -578,18 +607,35 @@ export function initPlayerControls() {
 
     /**
      * Get next track index considering repeat mode
+     * Handles edge cases: invalid currentIndex, empty playlist, etc.
+     * 
+     * @param {number} currentIndex - Current track index
+     * @returns {number} Next track index, or -1 if no next track
      */
     const getNextTrackWithRepeat = (currentIndex) => {
-        // If repeat one, return same track
-        if (repeatMode === 'one') {
+        // Defensive: Validate playlist has tracks
+        if (trackItems.length === 0) {
+            console.warn('⚠️ No tracks available');
+            return -1;
+        }
+        
+        // Defensive: Handle invalid currentIndex
+        // Treat out-of-bounds or negative as "start from beginning"
+        if (currentIndex < 0 || currentIndex >= trackItems.length) {
+            console.warn(`⚠️ Invalid currentIndex: ${currentIndex}, defaulting to 0`);
+            currentIndex = 0;
+        }
+        
+        // Repeat One: Return same track (validated)
+        if (repeatMode === REPEAT_MODES.ONE) {
             return currentIndex;
         }
         
         // Get next track based on shuffle
         let nextIndex = getNextTrackIndex(currentIndex);
         
-        // If we've reached the end and repeat all is on, loop back
-        if (nextIndex === -1 && repeatMode === 'all') {
+        // Repeat All: Loop back to start if we've reached the end
+        if (nextIndex === -1 && repeatMode === REPEAT_MODES.ALL) {
             // Loop back to start (respecting shuffle if enabled)
             if (isShuffled && shuffleOrder.length > 0) {
                 return shuffleOrder[0];
