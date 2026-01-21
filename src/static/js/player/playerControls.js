@@ -102,6 +102,13 @@ export function initPlayerControls() {
     let currentIndex = -1;
     window.currentTrackIndex = currentIndex;
     let currentQuality = localStorage.getItem('audioQuality') || DEFAULT_QUALITY;
+
+    // Playback state persistence
+    const STORAGE_KEY_POSITION = 'mixtape_playback_position';
+    const STORAGE_KEY_TRACK = 'mixtape_current_track';
+    const STORAGE_KEY_TIME = 'mixtape_current_time';
+    const AUTO_SAVE_INTERVAL = 5000; // Save position every 5 seconds
+    let autoSaveTimer = null;
     let isCurrentlyCasting = false;
 
     // Log device capabilities
@@ -148,6 +155,143 @@ export function initPlayerControls() {
         };
     }
 
+    // =============================================================================
+    // HELPER FUNCTIONS - Centralized logic to avoid repetition
+    // =============================================================================
+
+    /**
+     * Check if player has a source loaded
+     */
+    const hasSource = () => {
+        return !!(player && player.src && player.src !== '');
+    };
+
+    /**
+     * Get a safe track index for playback
+     * Returns currentIndex if valid, otherwise 0, or -1 if no tracks
+     */
+    const getSafeTrackIndex = () => {
+        if (trackItems.length === 0) {
+            return -1; // No tracks available
+        }
+        
+        if (currentIndex >= 0 && currentIndex < trackItems.length) {
+            return currentIndex;
+        }
+        
+        return 0; // Default to first track
+    };
+
+    /**
+     * Ensure a track is loaded and start playing
+     * Centralizes the "check source, load if needed, then play" logic
+     */
+    const ensureTrackLoadedAndPlay = () => {
+        const index = getSafeTrackIndex();
+        
+        if (index === -1) {
+            console.warn('⚠️ No tracks available to play');
+            return;
+        }
+        
+        // If no source, load the track first
+        if (!hasSource()) {
+            console.log('🎵 Loading track before play:', index);
+            playTrack(index);
+            // Update play icons after track loads
+            setTimeout(() => syncPlayIcons(), 100);
+        } else {
+            // Source already loaded, just resume
+            player.play().catch(err => console.error("Resume failed:", err));
+        }
+    };
+
+    /**
+     * Seek to a specific time when player is ready
+     * More deterministic than arbitrary setTimeout
+     */
+    const seekWhenReady = (targetTime) => {
+        if (!targetTime || targetTime <= 0) {
+            return;
+        }
+        
+        const trySeek = () => {
+            if (!player) return;
+            if (!player.duration || isNaN(player.duration)) return;
+            if (targetTime > player.duration) return;
+            if (player.readyState < 2) return; // Need HAVE_CURRENT_DATA or better
+            
+            player.currentTime = targetTime;
+            console.log(`⏩ Restored position: ${Math.floor(targetTime)}s`);
+            
+            // Clean up listeners
+            player.removeEventListener('canplay', trySeek);
+            player.removeEventListener('loadedmetadata', trySeek);
+        };
+        
+        // Check if already ready
+        if (player.readyState >= 2) {
+            trySeek();
+        } else {
+            // Wait for ready events
+            player.addEventListener('canplay', trySeek, { once: true });
+            player.addEventListener('loadedmetadata', trySeek, { once: true });
+        }
+    };
+
+    /**
+     * Apply UI state from restored playback position
+     */
+    const applyRestoredUIState = (savedState) => {
+        const track = trackItems[savedState.track];
+        if (!track) {
+            console.warn('⚠️ Cannot restore UI: track not found');
+            return;
+        }
+        
+        // Update bottom player info
+        bottomTitle.textContent = track.dataset.title;
+        bottomArtistAlbum.textContent = `${track.dataset.artist} • ${track.dataset.album}`;
+        container.style.display = 'block';
+        
+        // Mark track as active
+        trackItems.forEach(t => t.classList.remove('active-track'));
+        track.classList.add('active-track');
+        
+        // Update play icons
+        syncPlayIcons();
+        
+        // Scroll to track with visual indicator
+        setTimeout(() => {
+            track.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            track.style.backgroundColor = '#fff3cd';
+            setTimeout(() => {
+                track.style.backgroundColor = '';
+            }, 3000);
+        }, 500);
+    };
+
+    /**
+     * Attach listener to seek on first play after restoration
+     */
+    const attachRestoredSeekOnFirstPlay = (savedState) => {
+        let restoredSeekTime = savedState.time;
+        
+        const handleRestoredPlay = () => {
+            if (player && currentIndex === savedState.track && restoredSeekTime > 0) {
+                seekWhenReady(restoredSeekTime);
+                restoredSeekTime = 0; // Clear after use
+            }
+            player.removeEventListener('play', handleRestoredPlay);
+        };
+        
+        player.addEventListener('play', handleRestoredPlay);
+    };
+
+    // =============================================================================
+    // END HELPER FUNCTIONS
+    // =============================================================================
+
     const setupAudioControlInterception = () => {
         player.addEventListener('play', (e) => {
             if (checkCastingState()) {
@@ -156,6 +300,17 @@ export function initPlayerControls() {
                 e.stopImmediatePropagation();
                 player.pause();
                 castPlay();
+                return false;
+            }
+            
+            // Check if trying to play without a source (after restoration)
+            if (!hasSource()) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                
+                console.log('🎵 Native play button clicked - loading track first');
+                ensureTrackLoadedAndPlay();
                 return false;
             }
         }, true);
@@ -464,12 +619,72 @@ export function initPlayerControls() {
         });
     }
 
+    // Save current playback state
+    const savePlaybackState = () => {
+        if (currentIndex >= 0 && player && !player.paused) {
+            try {
+                const trackElement = trackItems[currentIndex];
+                const title = trackElement?.dataset.title || 'Unknown';
+                
+                localStorage.setItem(STORAGE_KEY_TRACK, currentIndex.toString());
+                localStorage.setItem(STORAGE_KEY_TIME, player.currentTime.toString());
+                localStorage.setItem(STORAGE_KEY_POSITION, JSON.stringify({
+                    track: currentIndex,
+                    time: player.currentTime,
+                    title: title,
+                    timestamp: Date.now()
+                }));
+            } catch (e) {
+                console.warn('Failed to save playback state:', e);
+            }
+        }
+    };
+
+    // Restore playback state
+    const restorePlaybackState = () => {
+        try {
+            const savedPosition = localStorage.getItem(STORAGE_KEY_POSITION);
+            if (savedPosition) {
+                const state = JSON.parse(savedPosition);
+                // Only restore if saved within last 24 hours
+                if (Date.now() - state.timestamp < 24 * 60 * 60 * 1000) {
+                    console.log(`📍 Resuming from track ${state.track}: "${state.title}" at ${Math.floor(state.time)}s`);
+                    return state;
+                }
+            }
+        } catch (e) {
+            console.warn('Failed to restore playback state:', e);
+        }
+        return null;
+    };
+
+    // Clear saved state
+    const clearPlaybackState = () => {
+        localStorage.removeItem(STORAGE_KEY_TRACK);
+        localStorage.removeItem(STORAGE_KEY_TIME);
+        localStorage.removeItem(STORAGE_KEY_POSITION);
+    };
+
+    // Start auto-saving playback position
+    const startAutoSave = () => {
+        if (autoSaveTimer) clearInterval(autoSaveTimer);
+        autoSaveTimer = setInterval(savePlaybackState, AUTO_SAVE_INTERVAL);
+    };
+
+    // Stop auto-saving
+    const stopAutoSave = () => {
+        if (autoSaveTimer) {
+            clearInterval(autoSaveTimer);
+            autoSaveTimer = null;
+        }
+    };
+
     const togglePlayPause = () => {
         if (checkCastingState()) {
             castTogglePlayPause();
         }
         else if (player.paused) {
-            player.play().catch(err => console.error("Resume failed:", err));
+            ensureTrackLoadedAndPlay();
         }
         else {
             player.pause();
@@ -528,12 +743,16 @@ export function initPlayerControls() {
     const initEventListeners = () => {
         document.getElementById('big-play-btn')?.addEventListener('click', () => {
             if (trackItems.length === 0) return;
+            
             if (currentIndex === -1) {
-                playTrack(0);
+                // No track selected - start from beginning
+                if (trackItems.length > 0) {
+                    playTrack(0);
+                }
             } else if (checkCastingState()) {
                 castPlay();
             } else {
-                player.play();
+                ensureTrackLoadedAndPlay();
             }
         });
 
@@ -552,13 +771,74 @@ export function initPlayerControls() {
             }
         }));
 
+
+        // Handle playback errors with retry logic
+        let errorRetryCount = 0;
+        const MAX_RETRIES = 2;
+        
+        player?.addEventListener('error', (e) => {
+            const trackElement = trackItems[index];
+            const trackTitle = trackElement?.dataset.title || 'Unknown';
+            
+            console.error('🚫 Playback error:', {
+                code: player.error?.code,
+                message: player.error?.message,
+                track: trackTitle
+            });
+            
+            // Save state before handling error
+            savePlaybackState();
+            
+            if (errorRetryCount < MAX_RETRIES) {
+                errorRetryCount++;
+                console.log(`🔄 Retrying playback (attempt ${errorRetryCount}/${MAX_RETRIES})...`);
+                setTimeout(() => {
+                    player.load();
+                    player.play().catch(err => {
+                        console.error('Retry failed:', err);
+                        if (errorRetryCount >= MAX_RETRIES) {
+                            alert(`Failed to play track: ${trackTitle}\n\nTry skipping to the next track or refreshing the page.`);
+                        }
+                    });
+                }, 1000);
+            }
+        });
+        
+        // Handle stalled playback
+        player?.addEventListener('stalled', () => {
+            console.warn('⚠️ Playback stalled, attempting to recover...');
+            savePlaybackState();
+        });
+        
+        // Handle waiting/buffering
+        player?.addEventListener('waiting', () => {
+            console.log('⏳ Buffering...');
+        });
+        
+        // Handle successful play resume after buffering
+        player?.addEventListener('playing', () => {
+            console.log('▶️ Playback resumed');
+            errorRetryCount = 0; // Reset error count on successful playback
+        });
+
         player?.addEventListener('ended', () => {
             syncPlayIcons();
+            const trackElement = trackItems[currentIndex];
+            const trackTitle = trackElement?.dataset.title || 'Unknown';
+            console.log('✅ Track ended:', trackTitle);
+            
             if (!checkCastingState()) {
+                // Save that we completed this track
+                savePlaybackState();
+                
                 // Immediately play next track without delay
                 const nextIndex = currentIndex + 1;
                 if (nextIndex < trackItems.length) {
+                    console.log('🎵 Auto-advancing to next track');
                     playTrack(nextIndex);
+                } else {
+                    console.log('🏁 Reached end of playlist');
+                    clearPlaybackState(); // Clear saved position at end
                 }
             }
         });
@@ -568,6 +848,18 @@ export function initPlayerControls() {
         player?.addEventListener('loadedmetadata', handleAudioProgress);
         player?.addEventListener('seeked', handleAudioProgress);
 
+
+        // Start auto-saving position when playing
+        player?.addEventListener('play', () => {
+            startAutoSave();
+        });
+        
+        // Stop auto-saving when paused
+        player?.addEventListener('pause', () => {
+            savePlaybackState(); // Save immediately on pause
+            stopAutoSave();
+        });
+        
         const handlePositionUpdate = onlyWhenNotCasting(updatePositionState);
         player?.addEventListener('loadedmetadata', handlePositionUpdate);
         player?.addEventListener('play', handlePositionUpdate);
@@ -636,7 +928,24 @@ export function initPlayerControls() {
     setupAudioControlInterception();
     initCastListeners();
     initEventListeners();
-    handleAutoStart();
+
+    // Restore playback position if available (BEFORE handleAutoStart)
+    const savedState = restorePlaybackState();
+    if (savedState && savedState.track < trackItems.length) {
+        // Update currentIndex to the saved track
+        currentIndex = savedState.track;
+        window.currentTrackIndex = savedState.track;  // Keep window property in sync
+        
+        // Apply UI state using helper
+        applyRestoredUIState(savedState);
+        
+        // Attach seek handler using helper
+        attachRestoredSeekOnFirstPlay(savedState);
+    } else {
+        // No saved state - run auto-start logic
+        handleAutoStart();
+    }
+
 
     return {
         playTrack,
