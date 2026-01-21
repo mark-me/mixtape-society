@@ -2,31 +2,31 @@
 
 # Docker Deployment
 
-Deploying Mixtape Society with Docker is the easiest and most reliable way to get your private mixtape server up and running—perfect for home servers, VPS, or NAS devices.
+Deploying Mixtape Society with Docker is the recommended way to run your private mixtape server—perfect for home servers, VPS, or NAS devices.
 
 ## 🐋 Why Docker?
 
 | Benefit | Explanation |
 | ------- | ---------- |
-| Zero-setup | No manual Python, `uv`, or system-package installation. The container bundles the interpreter, dependencies, and the Flask app. |
-| Portability | Works on Linux, macOS, Windows (Docker Desktop) and ARM devices (Raspberry Pi) without code changes. |
-| Isolation | The app runs as an unprivileged user inside the container; the host file system is only accessed through explicit volume mounts. |
-| Persistence | Docker volumes keep your SQLite DB, mixtape JSON files, cover images, and audio-cache across container upgrades or restarts. |
-| Automatic Updates | Pull the latest image from GitHub Container Registry (`ghcr.io/...`) and restart – the new version starts instantly. |
+| Zero-setup | No manual Python or dependency installation. Everything runs in an isolated container. |
+| Portability | Works on Linux, macOS, Windows, and ARM devices (Raspberry Pi) without code changes. |
+| Isolation | The app runs securely with limited system access through volume mounts. |
+| Persistence | Your data (database, mixtapes, covers, cache) survives container updates and restarts. |
+| Easy Updates | Pull the latest image and restart—new version runs in seconds. |
 
 ## ✅ Official Image
 
-The official, automatically‑built image lives at:
+The official, automatically-built image is available at:
 
 ```bash
 ghcr.io/mark-me/mixtape-society:latest
 ```
 
-*Tags are rebuilt on every release tag for `master`. Use a specific tag (e.g. `v1.4.2`) for reproducible deployments.*
+*Images are rebuilt automatically on every release. Use specific version tags (e.g., `v1.4.2`) for reproducible deployments.*
 
-## 🚀 Quick‑Start One‑Liner
+## 🚀 Quick-Start One-Liner
 
-Replace the placeholders with paths that exist on your host:
+Replace the placeholders with your actual paths:
 
 ```bash
 docker run -d \
@@ -34,8 +34,9 @@ docker run -d \
   --restart unless-stopped \
   -p 5000:5000 \
   -v /path/to/your/music:/music:ro \
-  -v /path/for/data:/app/collection-data \
-  -e APP_PASSWORD=YourStrongPassword123! \
+  -v mixtape_data:/app/collection-data \
+  -e PASSWORD=YourStrongPassword123! \
+  -e APP_ENV=production \
   ghcr.io/mark-me/mixtape-society:latest
 ```
 
@@ -43,20 +44,33 @@ docker run -d \
 
 | Flag | Effect |
 | ---- | ----- |
-| `-p 5000:5000` | Exposes the Flask dev server on host port 5000. |
-| `-v /path/to/your/music:/music:ro` | Mounts your music library read-only (required by `MUSIC_ROOT`). |
-| `-v /path/for/data:/app/collection-data` | Persists the SQLite DB, mixtapes, covers, and audio cache. |
-| `-e APP_PASSWORD=…` | Sets the login password (mandatory in production). |
-| `-e APP_ENV=production` | Forces the `ProductionConfig` class (disables debug mode). |
-| `--restart unless-stopped` | Guarantees the container restarts after crashes or host reboots. |
+| `-p 5000:5000` | Exposes the web interface on host port 5000. |
+| `-v /path/to/your/music:/music:ro` | Mounts your music library read-only. |
+| `-v mixtape_data:/app/collection-data` | Persists database, mixtapes, covers, and cache. |
+| `-e PASSWORD=...` | Sets your login password (required). |
+| `-e APP_ENV=production` | Enables production configuration (required). |
+| `--restart unless-stopped` | Automatically restarts after crashes or reboots. |
 
-After the container starts, open [http://localhost:5000](http://localhost:5000), log in with the password you set, and let the indexing run (check progress with `docker logs -f mixtape-society`).
+After the container starts:
 
-## 🏗️ Full Docker‑Compose Setup (Production Ready)
+1. Open [http://localhost:5000](http://localhost:5000)
+2. Log in with your password
+3. Wait for initial music indexing to complete (check progress with `docker logs -f mixtape-society`)
 
-Create a directory (e.g. `docker`/) and place the following two files inside it.
+## 🗂️ Full Docker-Compose Setup (Recommended)
 
-### `docker-compose.yml`
+### Directory Structure
+
+Create a deployment directory:
+
+```bash
+mkdir ~/mixtape-society
+cd ~/mixtape-society
+```
+
+### docker-compose.yml
+
+Create this file in your deployment directory:
 
 ```yaml
 services:
@@ -67,273 +81,396 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - /your/music:/music:ro
-      - /data/mixtape-society:/app/collection-data
+      - ${MUSIC_HOST_PATH}:/music:ro
+      - mixtape_data:/app/collection-data
     environment:
       - PUID=1000
       - PGID=1000
       - TZ=Europe/Amsterdam
-      - PASSWORD=${APP_PASSWORD}
+      - PASSWORD=${PASSWORD}
       - APP_ENV=production
       - LOG_LEVEL=INFO
+
+volumes:
+  mixtape_data:
 ```
 
-### `.env` (placed next to `docker-compose.yml`)
+### .env
 
-Create a .env file in the same directory:
-
-```text
-# Path on the host where your music files live.
-# Example: /home/user/Music   (Linux/macOS)
-#          C:\Users\Me\Music   (Windows, use forward slashes)
-MUSIC_HOST_PATH=/absolute/path/to/your/music
-
-# Strong password for the web UI (required in production!)
-APP_PASSWORD=YourVeryStrongPasswordHere!
-```
-
-!!! TIP
-    Tip: Keep the `.env` file outside version control (`gitignore`) because it contains secrets.
-
-#### Starting the stack
+Create this file next to `docker-compose.yml`:
 
 ```bash
-cd docker
-docker compose up -d   # pulls the image, creates the volume, and starts the service
+# Path to your music collection on the host
+MUSIC_HOST_PATH=/home/user/Music
+
+# Strong password for web interface (required!)
+PASSWORD=YourVeryStrongPasswordHere!
 ```
 
-#### Updating to a newer version
+!!! warning "Security Note"
+    Never commit `.env` files to version control. Add it to `.gitignore` if you're tracking your deployment configuration.
+
+### Starting the Service
 
 ```bash
-docker compose pull          # fetch latest image
-docker compose up -d --no-deps --force-recreate mixtape   # restart only the app container
+docker compose up -d
 ```
 
-## 🔄 Configuration Mapping (Env ↔ Filesystem)
+**First-time setup:**
 
-| Config variable (Python) | Docker-Compose / docker run mapping | Default (if omitted) | Where it ends up on the host |
-| ------------------------ | --------------------------------- | ------------------ | ---------------------------- |
-| APP_ENV | `-e APP_ENV=production` (or in `.env`) | `development` | Controls which subclass (`ProductionConfig`) is used. |
-| MUSIC_ROOT | Volume mount `-v /host/music:/music:ro` | `/music` | The container sees the music library at `/music`. |
-| DATA_ROOT | Volume mount `-v mixtape_data:/app/collection-data` (named volume) | `../collection-data` (relative to repo) | Holds `collection.db`, `mixtapes/`, `cache/audio/`. |
-| PASSWORD (APP_PASSWORD) | `-e APP_PASSWORD=…` (or in `.env`) | `dev-password` (dev) / `test-password` (test) | Required in production; used for login. |
-| LOG_LEVEL (optional) | `-e LOG_LEVEL=INFO` | `INFO` | Controls the verbosity of the Flask logger. |
-| TZ (optional) | `-e TZ=UTC` | System timezone | Affects timestamps shown in the UI (`now` context variable). |
+- The container will start indexing your music library automatically
+- Monitor progress: `docker compose logs -f`
+- Indexing time depends on library size (e.g., ~5 minutes for 10,000 tracks)
 
-All derived paths (`DB_PATH`, `MIXTAPE_DIR`, `COVER_DIR`, `AUDIO_CACHE_DIR`) are automatically calculated from `DATA_ROOT` inside the container, so you never need to set them manually.
+### Updating to a Newer Version
 
-## 📦 Volume Layout Explained
+```bash
+docker compose pull
+docker compose up -d
+```
 
-Inside the container (`/app/collection-data`):
+Your data (database, mixtapes, covers) is preserved in the `mixtape_data` volume.
+
+## 📁 Data Storage
+
+### Volume Layout
+
+Inside the container, data is stored at `/app/collection-data`:
 
 ```bash
 /app/collection-data/
-├─ collection.db                # SQLite DB with indexed music metadata
-├─ mixtapes/
-│   ├─ <slug>.json             # One JSON file per mixtape
-│   └─ covers/
-│       └─ <slug>.jpg          # Optional cover image for each mixtape
-└─ cache/
-    └─ audio/
-        └─ <artist>/<album>/<track>.mp3   # Cached/transcoded audio files
+├── collection.db              # Music library database
+├── mixtapes/
+│   ├── <slug>.json           # Mixtape definitions
+│   └── covers/
+│       └── <slug>.jpg        # Custom cover images
+└── cache/
+    └── audio/
+        └── <artist>/<album>/<track>.mp3   # Transcoded audio cache
 ```
 
-On the **host**, the named volume `mixtape_data` maps to a directory managed by Docker (usually under`/var/lib/docker/volumes/...`). You can inspect it with:
+### Using Named Volumes (Default)
+
+Named volumes are managed by Docker and are the recommended approach:
+
+```yaml
+volumes:
+  - mixtape_data:/app/collection-data
+```
+
+**Advantages:**
+
+- Automatic management by Docker
+- Good performance
+- Easy to backup with `docker volume` commands
+
+**Inspect volume location:**
 
 ```bash
 docker volume inspect mixtape_data
+# Usually at: /var/lib/docker/volumes/mixtape_data/_data
 ```
 
-If you prefer a **bind‑mount** (easier to explore manually), replace the volume line with:
+### Using Bind Mounts (Alternative)
 
-```bash
-- /path/on/host/collection-data:/app/collection-data
+If you prefer direct access to data files:
+
+```yaml
+volumes:
+  - /path/on/host/mixtape-data:/app/collection-data
 ```
 
-Make sure the host directory is writable by the UID/GID the container runs as (default `1000:1000`).
+**Advantages:**
 
-## 🌐 Running Behind a Reverse Proxy (HTTPS & Domain)
+- Easy to browse/backup with regular tools
+- Direct file system access
 
-For external access you’ll typically terminate TLS at a reverse proxy (Traefik, Nginx Proxy Manager, Caddy, TSDProxy, etc.). Below is a minimal Traefik example that assumes you already have Traefik running on the same Docker network.
+**Requirements:**
+
+- Directory must be writable by UID 1000 (default container user)
+- Run: `sudo chown -R 1000:1000 /path/on/host/mixtape-data`
+
+## 🔧 Configuration Reference
+
+### Environment Variables
+
+| Variable | Required | Default | Description |
+| -------- | -------- | ------- | ----------- |
+| `PASSWORD` | **Yes** | *(none)* | Login password for the web interface |
+| `APP_ENV` | **Yes** | `development` | Must be set to `production` for deployment |
+| `MUSIC_ROOT` | No | `/music` | Container path to music (matches volume mount) |
+| `LOG_LEVEL` | No | `INFO` | Logging verbosity: `DEBUG`, `INFO`, `WARNING`, `ERROR` |
+| `TZ` | No | `UTC` | Timezone for timestamps (e.g., `America/New_York`) |
+| `PUID` | No | `1000` | User ID for file permissions |
+| `PGID` | No | `1000` | Group ID for file permissions |
+
+### Port Configuration
+
+Default port mapping:
+
+```yaml
+ports:
+  - "5000:5000"    # host:container
+```
+
+To use a different host port (e.g., 8080):
+
+```yaml
+ports:
+  - "8080:5000"    # Access at http://localhost:8080
+```
+
+## 🌐 Running Behind a Reverse Proxy
+
+For external access with HTTPS and a custom domain, use a reverse proxy.
 
 ### Traefik
 
-#### Add Labels to docker-compose.yml
-
-```yaml
-services:
-  mixtape-society:
-    # ... existing config
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.mixtape.rule=Host(`mixtape.yourdomain.com`)"
-      - "traefik.http.routers.mixtape.entrypoints=websecure"
-      - "traefik.http.routers.mixtape.tls.certresolver=myresolver"
-```
-
-| Label | Meaning |
-| ----- | ------- |
-| `traefik.enable=true` | Expose this container to Traefik. |
-| `rule=Host(...)` | Route requests for your domain to this service. |
-| `entrypoints=websecure` | Use the TLS entrypoint (usually port 443). |
-| `tls.certresolver=myresolver` | Let Traefik obtain a Let's Encrypt certificate automatically. |
-| `loadbalancer.server.port=5000` | Traefik forwards to the Flask container’s internal port 5000. |
-
-#### Minimal docker-compose.yml Snippet
-
-```yaml
-services:
-  traefik:
-    image: traefik:v2.11
-    command:
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.myresolver.acme.email=you@example.com"
-      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
-      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
-    ports:
-      - "80:80"
-      - "443:443"
-      - "8080:8080"   # Traefik dashboard
-    volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - "letsencrypt:/letsencrypt"
-    restart: unless-stopped
-
-volumes:
-  letsencrypt:
-```
-
-Now visiting `https://mixtape.yourdomain.com` will present a secure HTTPS site with a valid certificate.
-
-### TSDProxy
-
-If you prefer to terminate TLS and handle routing with [tailscale](https://tailscale.com/) and [TSDProxy](https://almeidapaulopt.github.io/tsdproxy/docs/) (a lightweight, Docker‑native reverse‑proxy that works similarly to Traefik/Nginx Proxy Manager), you can expose the Mixtape Society container behind it with just a few environment variables and labels.
-
-#### Add TSDProxy Labels / Env Vars to docker-compose.yml
+Add these labels to your `docker-compose.yml`:
 
 ```yaml
 services:
   mixtape:
-    image: ghcr.io/mark-me/mixtape-society:latest
-    container_name: mixtape-society
-    restart: unless-stopped
-    ports:
-      - "5000:5000"                     # internal Flask port (kept private)
-    volumes:
-      - ${MUSIC_HOST_PATH}:/music:ro
-      - mixtape_data:/app/collection-data
-    environment:
-      - APP_ENV=production
-      - APP_PASSWORD=${APP_PASSWORD}
-      # ==== TSDProxy integration ====
-      - TSDPROXY_ENABLE=true                     # tell TSDProxy to watch this container
-      - TSDPROXY_HOST=mixtape.yourdomain.com    # the public hostname
-      - TSDPROXY_HTTP_PORT=5000                 # internal port to forward to
-      - TSDPROXY_TLS_EMAIL=you@example.com      # email for Let’s Encrypt
-    # Alternatively you can use Docker **labels** instead of env vars:
-    # labels:
-    #   - "tsdproxy.enable=true"
-    #   - "tsdproxy.host=mixtape.yourdomain.com"
-    #   - "tsdproxy.port=5000"
-    #   - "tsdproxy.tls.email=you@example.com"
+    # ... existing configuration ...
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mixtape.rule=Host(`mixtape.yourdomain.com`)"
+      - "traefik.http.routers.mixtape.entrypoints=websecure"
+      - "traefik.http.routers.mixtape.tls.certresolver=letsencrypt"
+      - "traefik.http.services.mixtape.loadbalancer.server.port=5000"
 ```
 
-What each variable does
+**What this does:**
 
-| Variable / Label | Meaning |
-| ---------------- | ------- |
-| `TSDPROXY_ENABLE=true` | Marks the container as a candidate for proxying. |
-| `TSDPROXY_HOST=mixtape.yourdomain.com` | The DNS name that will resolve to your server’s public IP. |
-| `TSDPROXY_HTTP_PORT=5000` | The internal port on which the Flask app listens (the port you expose above). |
-| `TSDPROXY_TLS_EMAIL=you@example.com` | Email address used by Let’s Encrypt for certificate issuance and renewal notices. |
+- Routes `mixtape.yourdomain.com` to your service
+- Automatically obtains Let's Encrypt certificates
+- Terminates TLS at the proxy level
 
-!!! NOTE
-    TSDProxy reads either environment variables (as shown) or Docker labels prefixed with `tsdproxy..` Pick whichever style fits your workflow.
+### Nginx Proxy Manager
 
-#### Deploy the TSDProxy Container
+1. In NPM web interface, add a new Proxy Host
+2. Set:
+   - **Domain:** `mixtape.yourdomain.com`
+   - **Forward Hostname:** `mixtape-society` (container name)
+   - **Forward Port:** `5000`
+   - **Enable SSL:** Yes (request Let's Encrypt certificate)
 
-Create a separate `docker-compose.tsdproxy.yml` (or add it to the same file) that runs the proxy:
+### Caddy
+
+Create a `Caddyfile`:
+
+```json
+mixtape.yourdomain.com {
+    reverse_proxy mixtape-society:5000
+}
+```
+
+Caddy automatically handles HTTPS certificates.
+
+### Tailscale with TSDProxy
+
+If using Tailscale for private access:
 
 ```yaml
 services:
-  tsdproxy:
-    image: ghcr.io/tsdproxy/tsdproxy:latest
-    container_name: tsdproxy
-    restart: unless-stopped
-    ports:
-      - "80:80"          # HTTP → redirect to HTTPS
-      - "443:443"        # HTTPS entry point
-    volumes:
-      - tsdproxy_data:/etc/tsdproxy   # persistent config & cert storage
+  mixtape:
+    # ... existing configuration ...
     environment:
-      - TZ=UTC
-    networks:
-      - default   # ensure it shares the same network as the mixtape service
-
-volumes:
-  mixtape_data:
-  tsdproxy_data:
+      - TSDPROXY_ENABLE=true
+      - TSDPROXY_HOST=mixtape.yourtailnet.ts.net
+      - TSDPROXY_HTTP_PORT=5000
+      - TSDPROXY_TLS_EMAIL=you@example.com
 ```
 
-**Key points:**
+**What this does:**
 
-* TSDProxy automatically discovers containers on the same Docker network that have `TSDPROXY_ENABLE=true` (or the matching label).
-* It will request a Let’s Encrypt certificate for the hostname you supplied (`mixtape.yourdomain.com`).
-* Certificates are stored in the `tsdproxy_data` volume, so they survive container restarts and updates.
+- Exposes your service on your Tailscale network
+- Automatically provisions TLS certificates
+- Private access without exposing to public internet
 
-## ⚠️ Common Gotchas & Troubleshooting
+## ⚠️ Troubleshooting
 
-| Symptom | Likely Cause | Fix |
-| ------- | ------------ | --- |
-| First indexing hangs forever | The music library is huge or the container lacks permission to read it. | Verify the `/music` mount is read-only and the UID inside the container (default 1000) can traverse the host directory. Check logs: `docker logs -f mixtape-society`. |
-| Permission denied when writing covers | DATA_ROOT volume owned by root. | Ensure the named volume or bind-mount is owned by UID 1000 (or set `PUID`/`PGID` env vars and adjust the Dockerfile accordingly). |
-| Cannot reach the app on port 5000 | Port not published or firewall blocks it. | Confirm `-p 5000:5000` (or the `ports:` entry in compose) and that your host firewall allows inbound traffic. |
-| Database corruption after abrupt shutdown | Container killed with SIGKILL while SQLite was writing. | Use Docker’s graceful stop (`docker stop`) or configure `restart: unless-stopped`. SQLite is robust, but a clean shutdown is safest. |
-| Audio cache not being created | `AUDIO_CACHE_ENABLED` set to False or `AUDIO_CACHE_PRECACHE_ON_UPLOAD` disabled. | Verify those env vars (defaults are True). |
-| Cover images not showing | Wrong `COVER_DIR` mount or missing `covers/` sub-folder. | The container automatically creates `covers/` under `MIXTAPE_DIR`. Ensure the volume is persistent and not overwritten on each `docker compose up`. |
-| SSL handshake errors behind proxy | Proxy terminates TLS but forwards HTTP to Flask on the wrong port. | Make sure the proxy forwards to port 5000 (the Flask server) and that the `X-Forwarded-Proto` header is respected (Flask handles it automatically). |
+### Container Won't Start
 
-## 🛠️ Building a Custom Image (Optional)
-
-If you need to add extra Python packages, modify the UI, or pin a specific commit, you can build your own image:
-
-```dockerfile
-# Dockerfile (place in project root)
-FROM python:3.11-slim
-
-# Install system deps required by Pillow, ffmpeg, etc.
-RUN apt-get update && apt-get install -y \
-    libjpeg-dev zlib1g-dev libffi-dev libssl-dev \
-    ffmpeg && rm -rf /var/lib/apt/lists/*
-
-# Set a non‑root user (mirrors the official image)
-ARG USER_ID=1000
-ARG GROUP_ID=1000
-RUN groupadd -g ${GROUP_ID} appgroup && \
-    useradd -m -u ${USER_ID} -g ${GROUP_ID} appuser
-
-WORKDIR /app
-COPY . /app
-
-# Install uv (fast Python package manager) and dependencies
-RUN pip install --no-cache-dir uv && \
-    uv sync --no-dev --frozen-lockfile
-
-# Switch to non‑root user
-USER appuser
-
-EXPOSE 5000
-CMD ["python", "app.py"]
-```
-
-Build and push:
+**Check logs:**
 
 ```bash
-docker build -t ghcr.io/yourname/mixtape-society:custom .
-docker push ghcr.io/yourname/mixtape-society:custom
+docker compose logs
 ```
 
-Then reference the custom tag in your `docker-compose.yml`.
+**Common causes:**
+
+- Missing required environment variables (`PASSWORD`, `APP_ENV`)
+- Port 5000 already in use
+- Volume mount paths don't exist
+
+### Music Library Not Indexing
+
+**Verify music mount:**
+
+```bash
+docker compose exec mixtape ls -la /music
+```
+
+**Check permissions:**
+
+- Container user (UID 1000) must be able to read music files
+- For bind mounts: `chmod -R 755 /path/to/music`
+
+**Monitor indexing progress:**
+
+```bash
+docker compose logs -f | grep -i index
+```
+
+### Cannot Access Web Interface
+
+**Check container is running:**
+
+```bash
+docker compose ps
+```
+
+**Verify port mapping:**
+
+```bash
+docker compose port mixtape 5000
+```
+
+**Test from inside container:**
+
+```bash
+docker compose exec mixtape curl -I http://localhost:5000
+```
+
+### Permission Errors When Writing Data
+
+**Verify volume ownership:**
+
+```bash
+# For bind mounts
+ls -la /path/to/mixtape-data
+
+# Should be owned by UID 1000
+sudo chown -R 1000:1000 /path/to/mixtape-data
+```
+
+**Adjust container user (if needed):**
+
+```yaml
+environment:
+  - PUID=1001
+  - PGID=1001
+```
+
+### Database Corruption
+
+If you encounter database errors:
+
+1. **Stop the container:**
+
+   ```bash
+   docker compose down
+   ```
+
+2. **Backup current data:**
+
+   ```bash
+   docker run --rm -v mixtape_data:/data -v $(pwd):/backup \
+     alpine tar czf /backup/mixtape-backup.tar.gz /data
+   ```
+
+3. **Reset database** (this will re-index your library):
+   - Through web UI: Settings → Reset Database
+   - Manual: Delete `collection.db` and restart
+
+4. **Restore only mixtapes** (if needed):
+
+   ```bash
+   tar xzf mixtape-backup.tar.gz data/mixtapes/ --strip-components=1
+   ```
+
+### Audio Not Playing
+
+**Check audio cache:**
+
+```bash
+docker compose exec mixtape ls -la /app/collection-data/cache/audio/
+```
+
+**Verify browser console for errors:**
+
+- Open browser DevTools (F12)
+- Check Console and Network tabs for failed requests
+
+**Test direct audio access:**
+
+```bash
+curl -I http://localhost:5000/play/<mixtape-slug>/stream/<track-id>
+```
+
+## 📊 Monitoring and Maintenance
+
+### View Logs
+
+```bash
+# Real-time logs
+docker compose logs -f
+
+# Last 100 lines
+docker compose logs --tail=100
+
+# Logs for specific time
+docker compose logs --since="2024-01-20T10:00:00"
+```
+
+### Container Resource Usage
+
+```bash
+docker stats mixtape-society
+```
+
+### Backup Data
+
+**Using named volume:**
+
+```bash
+docker run --rm \
+  -v mixtape_data:/data \
+  -v $(pwd):/backup \
+  alpine tar czf /backup/mixtape-backup-$(date +%Y%m%d).tar.gz /data
+```
+
+**Using bind mount:**
+
+```bash
+tar czf mixtape-backup-$(date +%Y%m%d).tar.gz /path/to/mixtape-data
+```
+
+### Restore Backup
+
+```bash
+docker compose down
+docker run --rm \
+  -v mixtape_data:/data \
+  -v $(pwd):/backup \
+  alpine sh -c "cd /data && tar xzf /backup/mixtape-backup.tar.gz --strip-components=1"
+docker compose up -d
+```
+
+## 🔄 Upgrade Checklist
+
+Before upgrading to a new version:
+
+1. ✅ **Backup your data** (see above)
+2. ✅ **Read release notes** for breaking changes
+3. ✅ **Pull new image**: `docker compose pull`
+4. ✅ **Restart**: `docker compose up -d`
+5. ✅ **Verify functionality**: Check web interface and play a mixtape
+6. ✅ **Monitor logs**: `docker compose logs -f` for any errors
+
+## 📚 Related Documentation
+
+- **[Local Development with Docker](../../development/docker-dev.md)**: For developers building and testing images
+- **[Configuration Reference](../../development/configuration.md)**: Detailed explanation of all configuration options
+- **[Installation Overview](installation.md)**: Alternative installation methods (non-Docker)
