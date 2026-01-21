@@ -1,4 +1,4 @@
-![Recipient](../../images/share.png){ align=right width="90" }
+![Recipient](../../images/receiver.png){ align=right width="90" }
 
 # Recipient's Guide
 

@@ -1,6 +1,6 @@
-![Container](../../images/deployment.png){ align=right width="90" }
+![Container](../../images/rocket.png){ align=right width="90" }
 
-# Docker Deployment
+# Installation
 
 Deploying Mixtape Society with Docker is the recommended way to run your private mixtape server—perfect for home servers, VPS, or NAS devices.
 
