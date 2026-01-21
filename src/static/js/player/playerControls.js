@@ -770,9 +770,23 @@ export function initPlayerControls() {
 
     /**
      * Scroll to the currently playing track to keep it visible
+     * Only scroll when the track is outside the viewport to avoid jank.
      */
     const scrollToCurrentTrack = (trackElement) => {
         if (!trackElement) return;
+
+        const rect = trackElement.getBoundingClientRect();
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+        const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+
+        // Element is considered out of view if it's completely above/below/left/right the viewport
+        const isVerticallyOutOfView = rect.bottom <= 0 || rect.top >= viewportHeight;
+        const isHorizontallyOutOfView = rect.right <= 0 || rect.left >= viewportWidth;
+
+        if (!isVerticallyOutOfView && !isHorizontallyOutOfView) {
+            // Already visible; avoid scrolling to reduce jank
+            return;
+        }
 
         // Use smooth scrolling with 'center' alignment for best visibility
         trackElement.scrollIntoView({
