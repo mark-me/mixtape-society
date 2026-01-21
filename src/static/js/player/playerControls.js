@@ -165,6 +165,26 @@ export function initPlayerControls() {
                 castPlay();
                 return false;
             }
+            
+            // Check if trying to play without a source (after restoration)
+            if (!player.src || player.src === '') {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                
+                // Load the current track first
+                if (currentIndex >= 0 && currentIndex < trackItems.length) {
+                    console.log('🎵 Native play button clicked - loading track first');
+                    playTrack(currentIndex);
+                    // Update play icons after track loads
+                    setTimeout(() => syncPlayIcons(), 100);
+                } else {
+                    // No track selected, start from beginning
+                    playTrack(0);
+                    setTimeout(() => syncPlayIcons(), 100);
+                }
+                return false;
+            }
         }, true);
 
         player.addEventListener('pause', (e) => {
@@ -610,7 +630,14 @@ export function initPlayerControls() {
             } else if (checkCastingState()) {
                 castPlay();
             } else {
-                player.play();
+                // Check if player has a source loaded
+                if (!player.src || player.src === '') {
+                    // No source - load the current track
+                    playTrack(currentIndex);
+                } else {
+                    // Source already loaded - just play
+                    player.play();
+                }
             }
         });
 
@@ -786,15 +813,25 @@ export function initPlayerControls() {
     setupAudioControlInterception();
     initCastListeners();
     initEventListeners();
-    handleAutoStart();
 
-
-    // Restore playback position if available
+    // Restore playback position if available (BEFORE handleAutoStart)
     const savedState = restorePlaybackState();
     if (savedState && savedState.track < trackItems.length) {
         // Update currentIndex to the saved track
         currentIndex = savedState.track;
         window.currentTrackIndex = savedState.track;  // Keep window property in sync
+        
+        // Update UI to show the restored track in player controls
+        const track = trackItems[savedState.track];
+        if (track) {
+            bottomTitle.textContent = track.dataset.title;
+            bottomArtistAlbum.textContent = `${track.dataset.artist} • ${track.dataset.album}`;
+            container.style.display = 'block';  // Show the player controls
+            
+            // Mark track as active
+            trackItems.forEach(t => t.classList.remove('active-track'));
+            track.classList.add('active-track');
+        }
         
         // Store the saved time to seek to when user clicks play
         // This avoids loading the audio file immediately (which causes "double load" perception)
@@ -803,26 +840,33 @@ export function initPlayerControls() {
         // Intercept the first play to seek to saved position
         const handleRestoredPlay = () => {
             if (restoredSeekTime > 0 && player && currentIndex === savedState.track) {
-                // Wait for metadata to be loaded before seeking
+                // Wait for enough data to be loaded before seeking
                 const seekToRestored = () => {
-                    if (player.duration && restoredSeekTime <= player.duration) {
+                    // Check if we have enough data and duration is known
+                    if (player.duration && !isNaN(player.duration) && 
+                        restoredSeekTime <= player.duration && 
+                        player.readyState >= 2) {  // HAVE_CURRENT_DATA or better
+                        
                         player.currentTime = restoredSeekTime;
                         console.log(`⏩ Restored position: ${Math.floor(restoredSeekTime)}s`);
+                        restoredSeekTime = 0; // Clear so it only happens once
                     }
-                    restoredSeekTime = 0; // Clear so it only happens once
-                    player.removeEventListener('loadedmetadata', seekToRestored);
                 };
                 
-                if (player.readyState >= 1) {
-                    // Metadata already loaded
-                    if (player.duration && restoredSeekTime <= player.duration) {
-                        player.currentTime = restoredSeekTime;
-                        console.log(`⏩ Restored position: ${Math.floor(restoredSeekTime)}s`);
-                    }
-                    restoredSeekTime = 0;
+                // Use canplay event which fires when enough data is available to start playing
+                const handleCanPlay = () => {
+                    seekToRestored();
+                    player.removeEventListener('canplay', handleCanPlay);
+                    player.removeEventListener('loadedmetadata', handleCanPlay);
+                };
+                
+                if (player.readyState >= 2) {
+                    // Already have enough data
+                    seekToRestored();
                 } else {
-                    // Wait for metadata
-                    player.addEventListener('loadedmetadata', seekToRestored);
+                    // Wait for canplay (which means we can start playing)
+                    player.addEventListener('canplay', handleCanPlay, { once: true });
+                    player.addEventListener('loadedmetadata', handleCanPlay, { once: true });
                 }
             }
             player.removeEventListener('play', handleRestoredPlay);
@@ -850,6 +894,9 @@ export function initPlayerControls() {
         // setTimeout(() => {
         //     playTrack(savedState.track);
         // }, 1000);
+    } else {
+        // No saved state - run auto-start logic
+        handleAutoStart();
     }
 
 

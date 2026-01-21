@@ -208,6 +208,26 @@ h4.text-white {
     }
 }
 
+/* Play button styling for light theme */
+[data-bs-theme="light"] audio::-webkit-media-controls-play-button {
+    opacity: 0.8;
+    filter: brightness(0.3);  /* Darkens button to 30% */
+}
+
+[data-bs-theme="light"] audio::-webkit-media-controls-pause-button {
+    opacity: 0.8;
+    filter: brightness(0.3);
+}
+
+/* Extra emphasis on mobile (where it's most problematic) */
+@media (max-width: 768px) {
+    [data-bs-theme="light"] audio::-webkit-media-controls-play-button,
+    [data-bs-theme="light"] audio::-webkit-media-controls-pause-button {
+        opacity: 1;
+        filter: brightness(0.2) contrast(1.2);  /* Even darker on mobile */
+    }
+}
+
 /* --- 3. Track List – Layout & Numbering --- */
 
 .track-item {
