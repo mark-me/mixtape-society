@@ -66,14 +66,17 @@
                 <li><button class="dropdown-item d-flex align-items-center gap-2 active" data-theme="auto"><i class="bi bi-circle-half"></i> System</button></li>
               </ul>
             </div>
-            {% if is_authenticated %}
             <div>
-              <a class="btn btn-outline-light d-flex align-items-center gap-2" href="https://mark-me.github.io/mixtape-society/user/creators/index.html" target="_blank" rel="noopener noreferrer" data-bs-toggle="tooltip" data-bs-placement="bottom" title="View help for Mixtape creation">
+            {% if is_authenticated %}
+              <a class="btn btn-outline-light d-flex align-items-center gap-2" href="https://mark-me.github.io/mixtape-society/user/creators/index.html" target="_blank" rel="noopener noreferrer" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Help for Mixtape creation">
+            {% else %}
+              <a class="btn btn-outline-light d-flex align-items-center gap-2" href="https://mark-me.github.io/mixtape-society/user/recipients/index.html" target="_blank" rel="noopener noreferrer" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Help for Mixtape listening">
+            {% endif %}
                 <i class="bi bi-question-circle fs-5"></i>
                 <span class="d-md-none">Help</span>
               </a>
             </div>
-            {% endif %}
+
 
             <div>
               <a class="btn btn-outline-light d-flex align-items-center gap-2" href="https://github.com/mark-me/mixtape-society" target="_blank" rel="noopener noreferrer" data-bs-toggle="tooltip" data-bs-placement="bottom" title="View source on GitHub">
