@@ -55,6 +55,7 @@ nav:
       - Recipient FAQ: user/recipients/faq.md
   - Architecture & Development:
     - Project Overview: development/intro.md
+    - Deployment: development/deployment.md
     - Core Components:
       - Music Library (musiclib):
         - Overview: development/musiclib/intro.md
