@@ -21,6 +21,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 ### 🐛 Fixed
 
 - Made playback more resistant against temporary network failures
+- Play button on bottom didn't properly show on mobile devices with a light theme
 
 ---
 
