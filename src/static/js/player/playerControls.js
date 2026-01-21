@@ -763,6 +763,23 @@ export function initPlayerControls() {
 
         currentIndex = index;
         window.currentTrackIndex = index;
+
+        // Auto-scroll to keep currently playing track visible
+        scrollToCurrentTrack(track);
+    }
+
+    /**
+     * Scroll to the currently playing track to keep it visible
+     */
+    const scrollToCurrentTrack = (trackElement) => {
+        if (!trackElement) return;
+
+        // Use smooth scrolling with 'center' alignment for best visibility
+        trackElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+            inline: 'nearest'
+        });
     }
 
     const stopPlayback = () => {
