@@ -101,7 +101,14 @@ export function initPlayerControls() {
 
     let currentIndex = -1;
     window.currentTrackIndex = currentIndex;
-    let currentQuality = localStorage.getItem('audioQuality') || DEFAULT_QUALITY;
+    
+    // Initialize quality from storage with error handling
+    let currentQuality = DEFAULT_QUALITY;
+    try {
+        currentQuality = localStorage.getItem('audioQuality') || DEFAULT_QUALITY;
+    } catch (e) {
+        console.warn('Failed to load audio quality from storage, using default:', e.message);
+    }
 
     // Playback state persistence
     const STORAGE_KEY_POSITION = 'mixtape_playback_position';
@@ -326,13 +333,19 @@ export function initPlayerControls() {
         // Generate new shuffle order
         shuffleOrder = generateShuffleOrder();
         
-        // Save to storage
-        const shuffleState = {
-            enabled: true,
-            order: shuffleOrder,
-            timestamp: Date.now()
-        };
-        localStorage.setItem(STORAGE_KEY_SHUFFLE, JSON.stringify(shuffleState));
+        // Save to storage with error handling
+        try {
+            const shuffleState = {
+                enabled: true,
+                order: shuffleOrder,
+                timestamp: Date.now()
+            };
+            localStorage.setItem(STORAGE_KEY_SHUFFLE, JSON.stringify(shuffleState));
+        } catch (e) {
+            // Storage failed (privacy mode, quota exceeded, etc.)
+            // Shuffle still works in-memory, just won't persist
+            console.warn('Failed to save shuffle state to storage:', e.message);
+        }
         
         // Update button UI
         updateShuffleButton();
@@ -347,8 +360,14 @@ export function initPlayerControls() {
         isShuffled = false;
         shuffleOrder = [];
         
-        // Remove from storage
-        localStorage.removeItem(STORAGE_KEY_SHUFFLE);
+        // Remove from storage with error handling
+        try {
+            localStorage.removeItem(STORAGE_KEY_SHUFFLE);
+        } catch (e) {
+            // Storage removal failed (privacy mode, etc.)
+            // Shuffle is still disabled in-memory
+            console.warn('Failed to remove shuffle state from storage:', e.message);
+        }
         
         // Update button UI
         updateShuffleButton();
@@ -589,7 +608,14 @@ export function initPlayerControls() {
 
     const changeQuality = (newQuality) => {
         currentQuality = newQuality;
-        localStorage.setItem('audioQuality', newQuality);
+        
+        // Save quality preference with error handling
+        try {
+            localStorage.setItem('audioQuality', newQuality);
+        } catch (e) {
+            // Quality change still works, just won't persist
+            console.warn('Failed to save audio quality preference:', e.message);
+        }
 
         updateQualityButtonText();
         updateQualityMenuState(newQuality);
@@ -770,23 +796,9 @@ export function initPlayerControls() {
 
     /**
      * Scroll to the currently playing track to keep it visible
-     * Only scroll when the track is outside the viewport to avoid jank.
      */
     const scrollToCurrentTrack = (trackElement) => {
         if (!trackElement) return;
-
-        const rect = trackElement.getBoundingClientRect();
-        const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-        const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
-
-        // Element is considered out of view if it's completely above/below/left/right the viewport
-        const isVerticallyOutOfView = rect.bottom <= 0 || rect.top >= viewportHeight;
-        const isHorizontallyOutOfView = rect.right <= 0 || rect.left >= viewportWidth;
-
-        if (!isVerticallyOutOfView && !isHorizontallyOutOfView) {
-            // Already visible; avoid scrolling to reduce jank
-            return;
-        }
 
         // Use smooth scrolling with 'center' alignment for best visibility
         trackElement.scrollIntoView({
@@ -880,9 +892,14 @@ export function initPlayerControls() {
 
     // Clear saved state
     const clearPlaybackState = () => {
-        localStorage.removeItem(STORAGE_KEY_TRACK);
-        localStorage.removeItem(STORAGE_KEY_TIME);
-        localStorage.removeItem(STORAGE_KEY_POSITION);
+        try {
+            localStorage.removeItem(STORAGE_KEY_TRACK);
+            localStorage.removeItem(STORAGE_KEY_TIME);
+            localStorage.removeItem(STORAGE_KEY_POSITION);
+        } catch (e) {
+            // Storage removal failed (privacy mode, etc.)
+            console.warn('Failed to clear playback state from storage:', e.message);
+        }
     };
 
     // Start auto-saving playback position
