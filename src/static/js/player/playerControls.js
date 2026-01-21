@@ -101,15 +101,27 @@ export function initPlayerControls() {
 
     let currentIndex = -1;
     window.currentTrackIndex = currentIndex;
-    let currentQuality = localStorage.getItem('audioQuality') || DEFAULT_QUALITY;
+    
+    // Initialize quality from storage with error handling
+    let currentQuality = DEFAULT_QUALITY;
+    try {
+        currentQuality = localStorage.getItem('audioQuality') || DEFAULT_QUALITY;
+    } catch (e) {
+        console.warn('Failed to load audio quality from storage, using default:', e.message);
+    }
 
     // Playback state persistence
     const STORAGE_KEY_POSITION = 'mixtape_playback_position';
     const STORAGE_KEY_TRACK = 'mixtape_current_track';
     const STORAGE_KEY_TIME = 'mixtape_current_time';
+    const STORAGE_KEY_SHUFFLE = 'mixtape_shuffle_state';
     const AUTO_SAVE_INTERVAL = 5000; // Save position every 5 seconds
     let autoSaveTimer = null;
     let isCurrentlyCasting = false;
+
+    // Shuffle state
+    let isShuffled = false;
+    let shuffleOrder = [];
 
     // Log device capabilities
     logDeviceInfo();
@@ -289,6 +301,202 @@ export function initPlayerControls() {
     };
 
     // =============================================================================
+    // SHUFFLE FUNCTIONS
+    // =============================================================================
+
+    /**
+     * Generate a shuffled order of track indices using Fisher-Yates algorithm
+     */
+    const generateShuffleOrder = () => {
+        const order = Array.from({ length: trackItems.length }, (_, i) => i);
+        
+        // Fisher-Yates shuffle
+        for (let i = order.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [order[i], order[j]] = [order[j], order[i]];
+        }
+        
+        return order;
+    };
+
+    /**
+     * Enable shuffle mode
+     */
+    const enableShuffle = () => {
+        if (trackItems.length === 0) {
+            console.warn('⚠️ Cannot shuffle: no tracks available');
+            return;
+        }
+
+        isShuffled = true;
+        
+        // Generate new shuffle order
+        shuffleOrder = generateShuffleOrder();
+        
+        // Save to storage with error handling
+        try {
+            const shuffleState = {
+                enabled: true,
+                order: shuffleOrder,
+                timestamp: Date.now()
+            };
+            localStorage.setItem(STORAGE_KEY_SHUFFLE, JSON.stringify(shuffleState));
+        } catch (e) {
+            // Storage failed (privacy mode, quota exceeded, etc.)
+            // Shuffle still works in-memory, just won't persist
+            console.warn('Failed to save shuffle state to storage:', e.message);
+        }
+        
+        // Update button UI
+        updateShuffleButton();
+        
+        console.log('🔀 Shuffle enabled:', shuffleOrder);
+    };
+
+    /**
+     * Disable shuffle mode
+     */
+    const disableShuffle = () => {
+        isShuffled = false;
+        shuffleOrder = [];
+        
+        // Remove from storage with error handling
+        try {
+            localStorage.removeItem(STORAGE_KEY_SHUFFLE);
+        } catch (e) {
+            // Storage removal failed (privacy mode, etc.)
+            // Shuffle is still disabled in-memory
+            console.warn('Failed to remove shuffle state from storage:', e.message);
+        }
+        
+        // Update button UI
+        updateShuffleButton();
+        
+        console.log('▶️ Shuffle disabled - sequential playback');
+    };
+
+    /**
+     * Toggle shuffle on/off
+     */
+    const toggleShuffle = () => {
+        if (isShuffled) {
+            disableShuffle();
+        } else {
+            enableShuffle();
+        }
+    };
+
+    /**
+     * Update shuffle button appearance
+     */
+    const updateShuffleButton = () => {
+        const shuffleBtn = document.getElementById('shuffle-btn-bottom');
+        if (!shuffleBtn) return;
+        
+        if (isShuffled) {
+            shuffleBtn.classList.remove('btn-outline-light');
+            shuffleBtn.classList.add('btn-light');
+            shuffleBtn.title = 'Shuffle: ON';
+        } else {
+            shuffleBtn.classList.remove('btn-light');
+            shuffleBtn.classList.add('btn-outline-light');
+            shuffleBtn.title = 'Shuffle: OFF';
+        }
+    };
+
+    /**
+     * Restore shuffle state from localStorage
+     */
+    const restoreShuffleState = () => {
+        try {
+            const stored = localStorage.getItem(STORAGE_KEY_SHUFFLE);
+            if (!stored) return false;
+            
+            const shuffleState = JSON.parse(stored);
+            
+            // Validate shuffle order matches current playlist length
+            if (shuffleState.enabled && 
+                shuffleState.order && 
+                shuffleState.order.length === trackItems.length) {
+                
+                isShuffled = true;
+                shuffleOrder = shuffleState.order;
+                updateShuffleButton();
+                
+                console.log('🔀 Restored shuffle mode:', shuffleOrder);
+                return true;
+            } else if (shuffleState.order && shuffleState.order.length !== trackItems.length) {
+                // Playlist changed - clear old shuffle
+                console.log('⚠️ Shuffle order length mismatch - clearing');
+                localStorage.removeItem(STORAGE_KEY_SHUFFLE);
+            }
+        } catch (error) {
+            console.warn('Could not restore shuffle state:', error);
+        }
+        
+        return false;
+    };
+
+    /**
+     * Get the next track index based on shuffle state
+     */
+    const getNextTrackIndex = (fromIndex) => {
+        if (isShuffled && shuffleOrder.length > 0) {
+            // Find current position in shuffle order
+            const currentPosition = shuffleOrder.indexOf(fromIndex);
+            
+            if (currentPosition === -1) {
+                // Current track not in shuffle order (shouldn't happen)
+                // Return first track in shuffle
+                console.warn('⚠️ Track not in shuffle order, starting from beginning');
+                return shuffleOrder[0];
+            }
+            
+            // Get next position in shuffle order
+            const nextPosition = currentPosition + 1;
+            
+            if (nextPosition < shuffleOrder.length) {
+                return shuffleOrder[nextPosition];
+            } else {
+                // End of shuffle
+                return -1; // Signal end of playlist
+            }
+        } else {
+            // Sequential playback
+            const nextIndex = fromIndex + 1;
+            return nextIndex < trackItems.length ? nextIndex : -1;
+        }
+    };
+
+    /**
+     * Get the previous track index based on shuffle state
+     */
+    const getPreviousTrackIndex = (fromIndex) => {
+        if (isShuffled && shuffleOrder.length > 0) {
+            // Find current position in shuffle order
+            const currentPosition = shuffleOrder.indexOf(fromIndex);
+            
+            if (currentPosition === -1) {
+                // Current track not in shuffle order
+                return shuffleOrder[shuffleOrder.length - 1];
+            }
+            
+            // Get previous position in shuffle order
+            const prevPosition = currentPosition - 1;
+            
+            if (prevPosition >= 0) {
+                return shuffleOrder[prevPosition];
+            } else {
+                // At start of shuffle
+                return -1;
+            }
+        } else {
+            // Sequential playback
+            return fromIndex - 1;
+        }
+    };
+
+    // =============================================================================
     // END HELPER FUNCTIONS
     // =============================================================================
 
@@ -400,7 +608,14 @@ export function initPlayerControls() {
 
     const changeQuality = (newQuality) => {
         currentQuality = newQuality;
-        localStorage.setItem('audioQuality', newQuality);
+        
+        // Save quality preference with error handling
+        try {
+            localStorage.setItem('audioQuality', newQuality);
+        } catch (e) {
+            // Quality change still works, just won't persist
+            console.warn('Failed to save audio quality preference:', e.message);
+        }
 
         updateQualityButtonText();
         updateQualityMenuState(newQuality);
@@ -574,6 +789,23 @@ export function initPlayerControls() {
 
         currentIndex = index;
         window.currentTrackIndex = index;
+
+        // Auto-scroll to keep currently playing track visible
+        scrollToCurrentTrack(track);
+    }
+
+    /**
+     * Scroll to the currently playing track to keep it visible
+     */
+    const scrollToCurrentTrack = (trackElement) => {
+        if (!trackElement) return;
+
+        // Use smooth scrolling with 'center' alignment for best visibility
+        trackElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+            inline: 'nearest'
+        });
     }
 
     const stopPlayback = () => {
@@ -660,9 +892,14 @@ export function initPlayerControls() {
 
     // Clear saved state
     const clearPlaybackState = () => {
-        localStorage.removeItem(STORAGE_KEY_TRACK);
-        localStorage.removeItem(STORAGE_KEY_TIME);
-        localStorage.removeItem(STORAGE_KEY_POSITION);
+        try {
+            localStorage.removeItem(STORAGE_KEY_TRACK);
+            localStorage.removeItem(STORAGE_KEY_TIME);
+            localStorage.removeItem(STORAGE_KEY_POSITION);
+        } catch (e) {
+            // Storage removal failed (privacy mode, etc.)
+            console.warn('Failed to clear playback state from storage:', e.message);
+        }
     };
 
     // Start auto-saving playback position
@@ -831,10 +1068,12 @@ export function initPlayerControls() {
                 // Save that we completed this track
                 savePlaybackState();
                 
-                // Immediately play next track without delay
-                const nextIndex = currentIndex + 1;
-                if (nextIndex < trackItems.length) {
-                    console.log('🎵 Auto-advancing to next track');
+                // Get next track based on shuffle state
+                const nextIndex = getNextTrackIndex(currentIndex);
+                
+                if (nextIndex >= 0 && nextIndex < trackItems.length) {
+                    const mode = isShuffled ? '🔀 shuffle' : '▶️ sequential';
+                    console.log(`🎵 Auto-advancing to next track (${mode})`);
                     playTrack(nextIndex);
                 } else {
                     console.log('🏁 Reached end of playlist');
@@ -880,7 +1119,12 @@ export function initPlayerControls() {
             if (checkCastingState()) {
                 castPrevious();
             } else {
-                playTrack(currentIndex - 1);
+                const prevIndex = getPreviousTrackIndex(currentIndex);
+                if (prevIndex >= 0) {
+                    playTrack(prevIndex);
+                } else {
+                    console.log('⏮️ At start of playlist');
+                }
             }
         });
 
@@ -888,9 +1132,18 @@ export function initPlayerControls() {
             if (checkCastingState()) {
                 castNext();
             } else {
-                playTrack(currentIndex + 1);
+                const nextIndex = getNextTrackIndex(currentIndex);
+                if (nextIndex >= 0 && nextIndex < trackItems.length) {
+                    playTrack(nextIndex);
+                } else {
+                    console.log('⏭️ At end of playlist');
+                }
             }
         });
+
+        // Shuffle button
+        const shuffleBtn = document.getElementById('shuffle-btn-bottom');
+        shuffleBtn?.addEventListener('click', toggleShuffle);
 
         closeBtn?.addEventListener('click', stopPlayback);
 
@@ -928,6 +1181,9 @@ export function initPlayerControls() {
     setupAudioControlInterception();
     initCastListeners();
     initEventListeners();
+
+    // Restore shuffle state FIRST (before playback restoration)
+    restoreShuffleState();
 
     // Restore playback position if available (BEFORE handleAutoStart)
     const savedState = restorePlaybackState();
