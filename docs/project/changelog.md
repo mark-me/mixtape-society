@@ -15,6 +15,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 ### ✨ Added
 
 - Shuffle option for receiver
+- Repeat mode (off/all/one)
 
 ---
 

@@ -115,6 +115,7 @@ export function initPlayerControls() {
     const STORAGE_KEY_TRACK = 'mixtape_current_track';
     const STORAGE_KEY_TIME = 'mixtape_current_time';
     const STORAGE_KEY_SHUFFLE = 'mixtape_shuffle_state';
+    const STORAGE_KEY_REPEAT = 'mixtape_repeat_mode';
     const AUTO_SAVE_INTERVAL = 5000; // Save position every 5 seconds
     let autoSaveTimer = null;
     let isCurrentlyCasting = false;
@@ -122,6 +123,10 @@ export function initPlayerControls() {
     // Shuffle state
     let isShuffled = false;
     let shuffleOrder = [];
+
+    // Repeat state
+    // Modes: 'off', 'all', 'one'
+    let repeatMode = 'off';
 
     // Log device capabilities
     logDeviceInfo();
@@ -494,6 +499,106 @@ export function initPlayerControls() {
             // Sequential playback
             return fromIndex - 1;
         }
+    };
+
+    // =============================================================================
+    // REPEAT MODE FUNCTIONS
+    // =============================================================================
+
+    /**
+     * Cycle through repeat modes: off → all → one → off
+     */
+    const cycleRepeatMode = () => {
+        const modes = ['off', 'all', 'one'];
+        const currentIndex = modes.indexOf(repeatMode);
+        const nextIndex = (currentIndex + 1) % modes.length;
+        repeatMode = modes[nextIndex];
+        
+        // Save to storage
+        try {
+            localStorage.setItem(STORAGE_KEY_REPEAT, repeatMode);
+        } catch (e) {
+            console.warn('Failed to save repeat mode:', e.message);
+        }
+        
+        // Update button UI
+        updateRepeatButton();
+        
+        const modeLabels = {
+            'off': 'Off',
+            'all': 'All',
+            'one': 'One'
+        };
+        console.log(`🔁 Repeat: ${modeLabels[repeatMode]}`);
+    };
+
+    /**
+     * Update repeat button appearance based on current mode
+     */
+    const updateRepeatButton = () => {
+        const repeatBtn = document.getElementById('repeat-btn-bottom');
+        if (!repeatBtn) return;
+        
+        // Remove all mode classes
+        repeatBtn.classList.remove('btn-outline-light', 'btn-light', 'btn-info');
+        
+        // Update based on mode
+        if (repeatMode === 'off') {
+            repeatBtn.classList.add('btn-outline-light');
+            repeatBtn.innerHTML = '<i class="bi bi-repeat"></i>';
+            repeatBtn.title = 'Repeat: Off';
+        } else if (repeatMode === 'all') {
+            repeatBtn.classList.add('btn-light');
+            repeatBtn.innerHTML = '<i class="bi bi-repeat"></i>';
+            repeatBtn.title = 'Repeat: All';
+        } else if (repeatMode === 'one') {
+            repeatBtn.classList.add('btn-info');
+            repeatBtn.innerHTML = '<i class="bi bi-repeat-1"></i>';
+            repeatBtn.title = 'Repeat: One';
+        }
+    };
+
+    /**
+     * Restore repeat mode from localStorage
+     */
+    const restoreRepeatMode = () => {
+        try {
+            const stored = localStorage.getItem(STORAGE_KEY_REPEAT);
+            if (stored && ['off', 'all', 'one'].includes(stored)) {
+                repeatMode = stored;
+                updateRepeatButton();
+                console.log(`🔁 Restored repeat mode: ${repeatMode}`);
+                return true;
+            }
+        } catch (e) {
+            console.warn('Failed to restore repeat mode:', e.message);
+        }
+        return false;
+    };
+
+    /**
+     * Get next track index considering repeat mode
+     */
+    const getNextTrackWithRepeat = (currentIndex) => {
+        // If repeat one, return same track
+        if (repeatMode === 'one') {
+            return currentIndex;
+        }
+        
+        // Get next track based on shuffle
+        let nextIndex = getNextTrackIndex(currentIndex);
+        
+        // If we've reached the end and repeat all is on, loop back
+        if (nextIndex === -1 && repeatMode === 'all') {
+            // Loop back to start (respecting shuffle if enabled)
+            if (isShuffled && shuffleOrder.length > 0) {
+                return shuffleOrder[0];
+            } else {
+                return 0;
+            }
+        }
+        
+        return nextIndex;
     };
 
     // =============================================================================
@@ -1068,12 +1173,13 @@ export function initPlayerControls() {
                 // Save that we completed this track
                 savePlaybackState();
                 
-                // Get next track based on shuffle state
-                const nextIndex = getNextTrackIndex(currentIndex);
+                // Get next track based on shuffle and repeat state
+                const nextIndex = getNextTrackWithRepeat(currentIndex);
                 
                 if (nextIndex >= 0 && nextIndex < trackItems.length) {
-                    const mode = isShuffled ? '🔀 shuffle' : '▶️ sequential';
-                    console.log(`🎵 Auto-advancing to next track (${mode})`);
+                    const shuffleMode = isShuffled ? '🔀 shuffle' : '▶️ sequential';
+                    const repeatInfo = repeatMode !== 'off' ? ` (repeat: ${repeatMode})` : '';
+                    console.log(`🎵 Auto-advancing to next track (${shuffleMode}${repeatInfo})`);
                     playTrack(nextIndex);
                 } else {
                     console.log('🏁 Reached end of playlist');
@@ -1145,6 +1251,10 @@ export function initPlayerControls() {
         const shuffleBtn = document.getElementById('shuffle-btn-bottom');
         shuffleBtn?.addEventListener('click', toggleShuffle);
 
+        // Repeat button
+        const repeatBtn = document.getElementById('repeat-btn-bottom');
+        repeatBtn?.addEventListener('click', cycleRepeatMode);
+
         closeBtn?.addEventListener('click', stopPlayback);
 
         trackItems.forEach((item, i) => {
@@ -1182,8 +1292,9 @@ export function initPlayerControls() {
     initCastListeners();
     initEventListeners();
 
-    // Restore shuffle state FIRST (before playback restoration)
+    // Restore shuffle and repeat state FIRST (before playback restoration)
     restoreShuffleState();
+    restoreRepeatMode();
 
     // Restore playback position if available (BEFORE handleAutoStart)
     const savedState = restorePlaybackState();
