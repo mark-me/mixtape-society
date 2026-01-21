@@ -620,17 +620,17 @@ export function initPlayerControls() {
         // Handle playback errors with retry logic
         let errorRetryCount = 0;
         const MAX_RETRIES = 2;
-        
+
         player?.addEventListener('error', (e) => {
             console.error('🚫 Playback error:', {
                 code: player.error?.code,
                 message: player.error?.message,
                 track: tracks[index]?.title
             });
-            
+
             // Save state before handling error
             savePlaybackState();
-            
+
             if (errorRetryCount < MAX_RETRIES) {
                 errorRetryCount++;
                 console.log(`🔄 Retrying playback (attempt ${errorRetryCount}/${MAX_RETRIES})...`);
@@ -645,18 +645,18 @@ export function initPlayerControls() {
                 }, 1000);
             }
         });
-        
+
         // Handle stalled playback
         player?.addEventListener('stalled', () => {
             console.warn('⚠️ Playback stalled, attempting to recover...');
             savePlaybackState();
         });
-        
+
         // Handle waiting/buffering
         player?.addEventListener('waiting', () => {
             console.log('⏳ Buffering...');
         });
-        
+
         // Handle successful play resume after buffering
         player?.addEventListener('playing', () => {
             console.log('▶️ Playback resumed');
@@ -666,11 +666,11 @@ export function initPlayerControls() {
         player?.addEventListener('ended', () => {
             syncPlayIcons();
             console.log('✅ Track ended:', tracks[currentIndex]?.title);
-            
+
             if (!checkCastingState()) {
                 // Save that we completed this track
                 savePlaybackState();
-                
+
                 // Immediately play next track without delay
                 const nextIndex = currentIndex + 1;
                 if (nextIndex < trackItems.length) {
@@ -693,13 +693,13 @@ export function initPlayerControls() {
         player?.addEventListener('play', () => {
             startAutoSave();
         });
-        
+
         // Stop auto-saving when paused
         player?.addEventListener('pause', () => {
             savePlaybackState(); // Save immediately on pause
             stopAutoSave();
         });
-        
+
         const handlePositionUpdate = onlyWhenNotCasting(updatePositionState);
         player?.addEventListener('loadedmetadata', handlePositionUpdate);
         player?.addEventListener('play', handlePositionUpdate);
@@ -783,10 +783,10 @@ export function initPlayerControls() {
                 savedTrackItem.style.backgroundColor = '#fff3cd';
                 setTimeout(() => {
                     savedTrackItem.style.backgroundColor = '';
-                }, 3000);
+                }, 5000);
             }
         }, 500);
-        
+
         // Optionally auto-resume (commented out by default - uncomment if desired)
         // setTimeout(() => {
         //     playTrack(savedState.track);
