@@ -72,6 +72,17 @@ const REPEAT_MODE_STYLES = {
 
 const DEFAULT_REPEAT_MODE = REPEAT_MODES.OFF;
 
+/**
+ * Timing constants for various UI delays and intervals
+ */
+const TIMING = {
+    AUTO_SAVE_INTERVAL: 5000,      // Save playback position every 5s
+    UI_RESTORE_DELAY: 500,          // Delay before scrolling to restored track
+    HIGHLIGHT_DURATION: 3000,       // How long to highlight restored track (yellow background)
+    IOS_HELP_DISMISS: 10000,        // Auto-dismiss iOS casting help after 10s
+    PLAYBACK_RESUME_DELAY: 50       // Small delay before resuming playback after restoration
+};
+
 // Global flag to prevent duplicate iOS help setup
 let iOSHelpInitialized = false;
 
@@ -145,7 +156,6 @@ export function initPlayerControls() {
     const STORAGE_KEY_TIME = 'mixtape_current_time';
     const STORAGE_KEY_SHUFFLE = 'mixtape_shuffle_state';
     const STORAGE_KEY_REPEAT = 'mixtape_repeat_mode';
-    const AUTO_SAVE_INTERVAL = 5000; // Save position every 5 seconds
     let autoSaveTimer = null;
     let isCurrentlyCasting = false;
 
@@ -155,6 +165,50 @@ export function initPlayerControls() {
 
     // Repeat state
     let repeatMode = DEFAULT_REPEAT_MODE;
+
+    // Guard flag to prevent duplicate document click listener installation
+    let documentClickHandlerInstalled = false;
+
+    // Toast notification system
+    const TOAST_TYPES = {
+        SUCCESS: 'success',
+        INFO: 'info',
+        WARNING: 'warning',
+        ERROR: 'error'
+    };
+
+    const TOAST_CONFIG = {
+        [TOAST_TYPES.SUCCESS]: {
+            icon: 'bi-check-circle-fill',
+            bgClass: 'bg-success',
+            textClass: 'text-white',
+            duration: 3000
+        },
+        [TOAST_TYPES.INFO]: {
+            icon: 'bi-info-circle-fill',
+            bgClass: 'bg-info',
+            textClass: 'text-white',
+            duration: 4000
+        },
+        [TOAST_TYPES.WARNING]: {
+            icon: 'bi-exclamation-circle-fill',
+            bgClass: 'bg-warning',
+            textClass: 'text-dark',
+            duration: 5000
+        },
+        [TOAST_TYPES.ERROR]: {
+            icon: 'bi-exclamation-triangle-fill',
+            bgClass: 'bg-danger',
+            textClass: 'text-white',
+            duration: 8000,
+            autohide: false  // Don't auto-hide errors
+        }
+    };
+
+    // Toast queue management
+    let toastQueue = [];
+    let currentToast = null;
+    let toastIdCounter = 0;
 
     // Log device capabilities
     logDeviceInfo();
@@ -295,13 +349,11 @@ export function initPlayerControls() {
         }
         
         // Update bottom player info
-        bottomTitle.textContent = track.dataset.title;
-        bottomArtistAlbum.textContent = `${track.dataset.artist} • ${track.dataset.album}`;
+        updateBottomPlayerInfo(track);
         container.style.display = 'block';
         
         // Mark track as active
-        trackItems.forEach(t => t.classList.remove('active-track'));
-        track.classList.add('active-track');
+        setActiveTrack(track);
         
         // Update play icons
         syncPlayIcons();
@@ -312,8 +364,8 @@ export function initPlayerControls() {
             track.style.backgroundColor = '#fff3cd';
             setTimeout(() => {
                 track.style.backgroundColor = '';
-            }, 3000);
-        }, 500);
+            }, TIMING.HIGHLIGHT_DURATION);
+        }, TIMING.UI_RESTORE_DELAY);
     };
 
     /**
@@ -331,6 +383,56 @@ export function initPlayerControls() {
         };
         
         player.addEventListener('play', handleRestoredPlay);
+    };
+
+    // =============================================================================
+    // UI UPDATE HELPERS
+    // =============================================================================
+
+    /**
+     * Set the active track in the UI
+     * Removes active class from all tracks and adds it to the specified track
+     * 
+     * @param {HTMLElement} trackElement - Track element to make active (or null to clear all)
+     */
+    const setActiveTrack = (trackElement) => {
+        trackItems.forEach(t => t.classList.remove('active-track'));
+        if (trackElement) {
+            trackElement.classList.add('active-track');
+        }
+    };
+
+    /**
+     * Update bottom player display with track info
+     * 
+     * @param {HTMLElement} track - Track element with data attributes (or null to clear)
+     */
+    const updateBottomPlayerInfo = (track) => {
+        if (!track) {
+            bottomTitle.textContent = '–';
+            bottomArtistAlbum.textContent = '–';
+            return;
+        }
+        bottomTitle.textContent = track.dataset.title;
+        bottomArtistAlbum.textContent = `${track.dataset.artist} • ${track.dataset.album}`;
+    };
+
+    /**
+     * Create a handler that checks casting state before executing
+     * Centralizes the casting vs local playback decision pattern
+     * 
+     * @param {Function} castHandler - Handler function for casting mode
+     * @param {Function} localHandler - Handler function for local playback
+     * @returns {Function} Combined handler that chooses based on casting state
+     */
+    const createCastAwareHandler = (castHandler, localHandler) => {
+        return () => {
+            if (checkCastingState()) {
+                castHandler();
+            } else {
+                localHandler();
+            }
+        };
     };
 
     // =============================================================================
@@ -595,15 +697,45 @@ export function initPlayerControls() {
     };
 
     /**
+     * Normalize a repeat mode against the current playback context
+     * Forces Repeat Off when it doesn't make sense (e.g., 0-1 tracks)
+     * 
+     * @param {string} mode - The repeat mode to normalize
+     * @returns {string} Normalized repeat mode
+     */
+    const normalizeRepeatModeForContext = (mode) => {
+        // Force Repeat Off when there are 0-1 tracks (repeat makes no sense)
+        if (!Array.isArray(trackItems) || trackItems.length <= 1) {
+            return REPEAT_MODES.OFF;
+        }
+
+        // If casting is active and doesn't support repeat, force Off
+        // (This is a placeholder - implement if casting limitations exist)
+        // if (checkCastingState() && !castingSupportsRepeat()) {
+        //     return REPEAT_MODES.OFF;
+        // }
+
+        return mode;
+    };
+
+    /**
      * Restore repeat mode from localStorage
      */
     const restoreRepeatMode = () => {
         try {
             const stored = localStorage.getItem(STORAGE_KEY_REPEAT);
             if (stored && isValidRepeatMode(stored)) {
-                repeatMode = stored;
+                // Normalize stored mode to current context
+                const normalizedMode = normalizeRepeatModeForContext(stored);
+                
+                repeatMode = normalizedMode;
                 updateRepeatButton();
-                console.log(`🔁 Restored repeat mode: ${REPEAT_MODE_LABELS[repeatMode]}`);
+                
+                if (normalizedMode !== stored) {
+                    console.log(`🔁 Normalized repeat mode: ${stored} → ${normalizedMode} (context: ${trackItems.length} tracks)`);
+                } else {
+                    console.log(`🔁 Restored repeat mode: ${REPEAT_MODE_LABELS[repeatMode]}`);
+                }
                 return true;
             }
         } catch (e) {
@@ -617,9 +749,13 @@ export function initPlayerControls() {
      * Handles edge cases: invalid currentIndex, empty playlist, etc.
      * 
      * @param {number} currentIndex - Current track index
+     * @param {Object} options - Optional behavior modifiers
+     * @param {boolean} options.skipRepeatOne - If true, treat Repeat One as Repeat Off (for prefetch)
      * @returns {number} Next track index, or -1 if no next track
      */
-    const getNextTrackWithRepeat = (currentIndex) => {
+    const getNextTrackWithRepeat = (currentIndex, options = {}) => {
+        const { skipRepeatOne = false } = options;
+        
         // Defensive: Validate playlist has tracks
         if (trackItems.length === 0) {
             console.warn('⚠️ No tracks available');
@@ -633,8 +769,8 @@ export function initPlayerControls() {
             currentIndex = 0;
         }
         
-        // Repeat One: Return same track (validated)
-        if (repeatMode === REPEAT_MODES.ONE) {
+        // Repeat One: Return same track (unless skipRepeatOne is set for prefetch)
+        if (repeatMode === REPEAT_MODES.ONE && !skipRepeatOne) {
             return currentIndex;
         }
         
@@ -764,11 +900,20 @@ export function initPlayerControls() {
             qualityMenu.classList.toggle('show');
         });
 
-        document.addEventListener('click', (e) => {
-            if (!qualityBtn.contains(e.target) && !qualityMenu.contains(e.target)) {
-                qualityMenu.classList.remove('show');
-            }
-        });
+        // Only install document click listener once to prevent memory leaks
+        if (!documentClickHandlerInstalled) {
+            document.addEventListener('click', (e) => {
+                const qualityBtn = document.getElementById('quality-btn-bottom');
+                const qualityMenu = document.getElementById('quality-menu');
+                
+                if (qualityBtn && qualityMenu && 
+                    !qualityBtn.contains(e.target) && 
+                    !qualityMenu.contains(e.target)) {
+                    qualityMenu.classList.remove('show');
+                }
+            });
+            documentClickHandlerInstalled = true;
+        }
 
         qualityMenu.querySelectorAll('.quality-option').forEach(option => {
             option.addEventListener('click', (e) => {
@@ -893,51 +1038,73 @@ export function initPlayerControls() {
      *
      * Prefetch strategy:
      * - First check if already cached to avoid redundant network traffic
-     * - Use a single low-priority GET request (HEAD + GET was redundant)
+     * - Use requestIdleCallback for low-priority scheduling (fallback to setTimeout)
      * - The service worker will handle caching asynchronously
+     * - Does NOT mutate global repeat state (uses options parameter instead)
      */
     const prefetchNextTrack = async (currentIdx) => {
-        const nextIdx = currentIdx + 1;
+        // For prefetching, skip Repeat One (otherwise we'd prefetch the same track)
+        // Pass this as an option instead of mutating global repeatMode
+        const nextIdx = getNextTrackWithRepeat(currentIdx, { 
+            skipRepeatOne: true 
+        });
 
-        // Don't prefetch if we're at the last track
-        if (nextIdx >= trackItems.length) {
-            console.log('🚫 No next track to prefetch (end of playlist)');
+        // Check if there's a valid next track (-1 means no next track)
+        if (nextIdx < 0 || nextIdx >= trackItems.length || nextIdx === currentIdx) {
+            console.log('🚫 No next track to prefetch (end of playlist or same track)');
             return;
         }
 
         const nextTrack = trackItems[nextIdx];
-        if (!nextTrack) return;
+        if (!nextTrack) {
+            console.log('🚫 Resolved next track for prefetch is missing');
+            return;
+        }
 
         const audioUrl = buildAudioUrl(nextTrack.dataset.path, currentQuality);
 
-        console.log(`🔥 Prefetching next track (${nextIdx + 1}/${trackItems.length}):`, nextTrack.dataset.title);
+        const modeInfo = isShuffled ? '🔀 shuffle' : '▶️ sequential';
+        const repeatInfo = repeatMode !== REPEAT_MODES.OFF ? ` (repeat: ${repeatMode})` : '';
+        console.log(`🔥 Prefetching next track (${modeInfo}${repeatInfo}):`, nextTrack.dataset.title);
 
-        try {
-            // Check if already cached (avoid redundant network request)
-            if ('caches' in window) {
-                try {
-                    const cached = await caches.match(audioUrl);
-                    if (cached) {
-                        console.log('✅ Next track already cached, skipping prefetch');
-                        return;
+        const doPrefetch = async () => {
+            try {
+                // Check if already cached (avoid redundant network request)
+                if ('caches' in window) {
+                    try {
+                        const cached = await caches.match(audioUrl);
+                        if (cached) {
+                            console.log('✅ Next track already cached, skipping prefetch');
+                            return;
+                        }
+                    } catch (cacheError) {
+                        // Non-fatal: fall through to network prefetch
+                        console.debug('Cache lookup failed during prefetch:', cacheError);
                     }
-                } catch (cacheError) {
-                    // Non-fatal: fall through to network prefetch
-                    console.debug('Cache lookup failed during prefetch:', cacheError);
                 }
+
+                // Single GET request to warm the service worker cache
+                // Note: priority: 'low' is non-standard and ignored by most browsers
+                // We use requestIdleCallback for proper low-priority scheduling instead
+                await fetch(audioUrl, {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+
+                console.log('✅ Next track prefetch initiated');
+            } catch (error) {
+                // Prefetch failures are non-critical, just log them
+                console.warn('⚠️ Prefetch failed (not critical):', error.message);
             }
+        };
 
-            // Single low-priority GET request to warm the service worker cache
-            // The service worker will cache it asynchronously
-            await fetch(audioUrl, {
-                method: 'GET',
-                credentials: 'include',
-                priority: 'low'
-            });
-
-            console.log('✅ Next track prefetch initiated');
-        } catch (error) {
-            console.warn('⚠️ Prefetch failed (not critical):', error.message);
+        // Schedule prefetch as a low-priority task
+        // Use requestIdleCallback when available, otherwise defer with setTimeout
+        if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+            window.requestIdleCallback(() => doPrefetch());
+        } else {
+            // Fallback: defer slightly so we don't contend with critical UI work
+            setTimeout(() => doPrefetch(), 0);
         }
     };
 
@@ -989,12 +1156,10 @@ export function initPlayerControls() {
 
         const track = trackItems[index];
 
-        bottomTitle.textContent = track.dataset.title;
-        bottomArtistAlbum.textContent = `${track.dataset.artist} • ${track.dataset.album}`;
+        updateBottomPlayerInfo(track);
         container.style.display = 'block';
 
-        trackItems.forEach(t => t.classList.remove('active-track'));
-        track.classList.add('active-track');
+        setActiveTrack(track);
 
         currentIndex = index;
         window.currentTrackIndex = index;
@@ -1022,7 +1187,7 @@ export function initPlayerControls() {
         player.src = '';
         player.load();
         container.style.display = 'none';
-        trackItems.forEach(t => t.classList.remove('active-track'));
+        setActiveTrack(null);  // Clear all active tracks
         currentIndex = -1;
 
         // Clear appropriate Media Session
@@ -1061,23 +1226,38 @@ export function initPlayerControls() {
     }
 
     // Save current playback state
+    /**
+     * Save current playback state to localStorage
+     * Saves position regardless of playing/paused state so pause position is preserved
+     */
     const savePlaybackState = () => {
-        if (currentIndex >= 0 && player && !player.paused) {
-            try {
-                const trackElement = trackItems[currentIndex];
-                const title = trackElement?.dataset.title || 'Unknown';
-                
-                localStorage.setItem(STORAGE_KEY_TRACK, currentIndex.toString());
-                localStorage.setItem(STORAGE_KEY_TIME, player.currentTime.toString());
-                localStorage.setItem(STORAGE_KEY_POSITION, JSON.stringify({
-                    track: currentIndex,
-                    time: player.currentTime,
-                    title: title,
-                    timestamp: Date.now()
-                }));
-            } catch (e) {
-                console.warn('Failed to save playback state:', e);
-            }
+        // Only save if we have a valid track and player
+        if (currentIndex < 0 || !player) {
+            return;
+        }
+
+        // Don't save if current time is invalid
+        if (!Number.isFinite(player.currentTime) || player.currentTime < 0) {
+            return;
+        }
+
+        try {
+            const trackElement = trackItems[currentIndex];
+            const title = trackElement?.dataset.title || 'Unknown';
+            
+            localStorage.setItem(STORAGE_KEY_TRACK, currentIndex.toString());
+            localStorage.setItem(STORAGE_KEY_TIME, player.currentTime.toString());
+            localStorage.setItem(STORAGE_KEY_POSITION, JSON.stringify({
+                track: currentIndex,
+                time: player.currentTime,
+                title: title,
+                timestamp: Date.now(),
+                paused: player.paused  // Track whether it was paused
+            }));
+            
+            console.debug(`💾 Saved state: track ${currentIndex}, time ${Math.floor(player.currentTime)}s, paused: ${player.paused}`);
+        } catch (e) {
+            console.warn('Failed to save playback state:', e);
         }
     };
 
@@ -1114,7 +1294,7 @@ export function initPlayerControls() {
     // Start auto-saving playback position
     const startAutoSave = () => {
         if (autoSaveTimer) clearInterval(autoSaveTimer);
-        autoSaveTimer = setInterval(savePlaybackState, AUTO_SAVE_INTERVAL);
+        autoSaveTimer = setInterval(savePlaybackState, TIMING.AUTO_SAVE_INTERVAL);
     };
 
     // Stop auto-saving
@@ -1217,19 +1397,265 @@ export function initPlayerControls() {
             }
         }));
 
+        /**
+         * Show a non-blocking playback error toast with optional skip action
+         * Provides better UX than blocking alert dialogs
+         * 
+         * @param {string} message - Error message to display
+         * @param {Object} options - Configuration options
+         * @param {boolean} options.isTerminal - Whether this is a terminal error
+         * @param {Function} options.onSkip - Handler for skip action
+         */
+        const showPlaybackErrorToast = (message, { isTerminal = false, onSkip } = {}) => {
+            const toastEl = document.getElementById('qualityToast');
+            
+            if (toastEl) {
+                // Reuse existing Bootstrap toast
+                const toastBody = toastEl.querySelector('.toast-body');
+                if (toastBody) {
+                    // Clear existing content
+                    toastBody.textContent = '';
+                    
+                    // Add message
+                    const messageSpan = document.createElement('span');
+                    messageSpan.textContent = message;
+                    messageSpan.style.display = 'block';
+                    messageSpan.style.marginBottom = onSkip ? '0.5rem' : '0';
+                    toastBody.appendChild(messageSpan);
+                    
+                    // Add skip button if terminal error
+                    if (isTerminal && onSkip) {
+                        const skipBtn = document.createElement('button');
+                        skipBtn.className = 'btn btn-sm btn-light me-2';
+                        skipBtn.textContent = 'Skip Track';
+                        skipBtn.onclick = () => {
+                            onSkip();
+                            const toast = bootstrap.Toast.getInstance(toastEl);
+                            if (toast) toast.hide();
+                        };
+                        toastBody.appendChild(skipBtn);
+                    }
+                    
+                    // Show toast with appropriate duration
+                    const toast = new bootstrap.Toast(toastEl, { 
+                        delay: isTerminal ? 8000 : 5000 
+                    });
+                    toast.show();
+                    return;
+                }
+            }
+            
+            // Fallback: Create minimal inline banner
+            const containerId = 'player-error-banner';
+            let banner = document.getElementById(containerId);
+            
+            if (!banner) {
+                banner = document.createElement('div');
+                banner.id = containerId;
+                banner.className = 'alert alert-danger d-flex align-items-center justify-content-between';
+                banner.style.position = 'fixed';
+                banner.style.bottom = '80px';
+                banner.style.left = '50%';
+                banner.style.transform = 'translateX(-50%)';
+                banner.style.zIndex = '1060';
+                banner.style.minWidth = '300px';
+                banner.style.maxWidth = '500px';
+                banner.style.margin = '0';
+                
+                document.body.appendChild(banner);
+            }
+            
+            // Clear and set content
+            banner.innerHTML = '';
+            
+            const messageEl = document.createElement('span');
+            messageEl.textContent = message;
+            messageEl.style.flex = '1';
+            banner.appendChild(messageEl);
+            
+            const actionsEl = document.createElement('div');
+            actionsEl.className = 'd-flex gap-2';
+            
+            if (isTerminal && onSkip) {
+                const skipBtn = document.createElement('button');
+                skipBtn.className = 'btn btn-sm btn-light';
+                skipBtn.textContent = 'Skip';
+                skipBtn.onclick = () => {
+                    onSkip();
+                    banner.remove();
+                };
+                actionsEl.appendChild(skipBtn);
+            }
+            
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'btn-close btn-close-white';
+            closeBtn.setAttribute('aria-label', 'Close');
+            closeBtn.onclick = () => banner.remove();
+            actionsEl.appendChild(closeBtn);
+            
+            banner.appendChild(actionsEl);
+            
+            // Auto-hide for non-terminal errors
+            if (!isTerminal) {
+                setTimeout(() => {
+                    if (banner && banner.parentElement) {
+                        banner.remove();
+                    }
+                }, 5000);
+            }
+        };
+
+        /**
+         * Show a non-blocking playback error toast with optional skip action
+         * Provides better UX than blocking alert dialogs
+         * 
+         * @param {string} message - Error message to display
+         * @param {Object} options - Configuration options
+         * @param {boolean} options.isTerminal - Whether this is a terminal error
+         * @param {Function} options.onSkip - Handler for skip action
+         */
+        const showPlaybackErrorToast = (message, { isTerminal = false, onSkip } = {}) => {
+            const toastEl = document.getElementById('qualityToast');
+            
+            if (toastEl) {
+                // Reuse existing Bootstrap toast
+                const toastBody = toastEl.querySelector('.toast-body');
+                if (toastBody) {
+                    // Clear existing content
+                    toastBody.innerHTML = '';
+                    
+                    // Add error icon and message
+                    const messageContainer = document.createElement('div');
+                    messageContainer.className = 'd-flex align-items-start gap-2';
+                    
+                    const icon = document.createElement('i');
+                    icon.className = isTerminal ? 'bi bi-exclamation-triangle-fill text-danger' : 'bi bi-exclamation-circle-fill text-warning';
+                    messageContainer.appendChild(icon);
+                    
+                    const messageSpan = document.createElement('span');
+                    messageSpan.textContent = message;
+                    messageSpan.style.flex = '1';
+                    messageContainer.appendChild(messageSpan);
+                    
+                    toastBody.appendChild(messageContainer);
+                    
+                    // Add skip button if terminal error and onSkip provided
+                    if (isTerminal && onSkip) {
+                        const actionsDiv = document.createElement('div');
+                        actionsDiv.className = 'd-flex gap-2 mt-2';
+                        
+                        const skipBtn = document.createElement('button');
+                        skipBtn.className = 'btn btn-sm btn-primary';
+                        skipBtn.textContent = 'Skip Track';
+                        skipBtn.onclick = () => {
+                            onSkip();
+                            const toast = bootstrap.Toast.getInstance(toastEl);
+                            if (toast) toast.hide();
+                        };
+                        actionsDiv.appendChild(skipBtn);
+                        
+                        toastBody.appendChild(actionsDiv);
+                    }
+                    
+                    // Show toast with appropriate duration
+                    const toast = new bootstrap.Toast(toastEl, { 
+                        delay: isTerminal ? 8000 : 5000,
+                        autohide: !isTerminal  // Don't auto-hide terminal errors
+                    });
+                    toast.show();
+                    return;
+                }
+            }
+            
+            // Fallback: Create minimal inline banner near the player
+            const containerId = 'player-error-banner';
+            let banner = document.getElementById(containerId);
+            
+            if (!banner) {
+                banner = document.createElement('div');
+                banner.id = containerId;
+                banner.className = 'alert alert-danger alert-dismissible fade show';
+                banner.setAttribute('role', 'alert');
+                banner.style.position = 'fixed';
+                banner.style.bottom = '80px';
+                banner.style.left = '50%';
+                banner.style.transform = 'translateX(-50%)';
+                banner.style.zIndex = '1060';
+                banner.style.minWidth = '300px';
+                banner.style.maxWidth = '500px';
+                banner.style.margin = '0';
+                
+                document.body.appendChild(banner);
+            }
+            
+            // Clear and set content
+            banner.innerHTML = '';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'd-flex align-items-center justify-content-between';
+            
+            const messageEl = document.createElement('span');
+            messageEl.textContent = message;
+            messageEl.style.flex = '1';
+            messageEl.style.marginRight = '1rem';
+            contentDiv.appendChild(messageEl);
+            
+            const actionsEl = document.createElement('div');
+            actionsEl.className = 'd-flex gap-2';
+            
+            if (isTerminal && onSkip) {
+                const skipBtn = document.createElement('button');
+                skipBtn.className = 'btn btn-sm btn-light';
+                skipBtn.textContent = 'Skip';
+                skipBtn.onclick = () => {
+                    onSkip();
+                    banner.remove();
+                };
+                actionsEl.appendChild(skipBtn);
+            }
+            
+            const closeBtn = document.createElement('button');
+            closeBtn.type = 'button';
+            closeBtn.className = 'btn-close';
+            closeBtn.setAttribute('data-bs-dismiss', 'alert');
+            closeBtn.setAttribute('aria-label', 'Close');
+            closeBtn.onclick = () => banner.remove();
+            actionsEl.appendChild(closeBtn);
+            
+            contentDiv.appendChild(actionsEl);
+            banner.appendChild(contentDiv);
+            
+            // Auto-hide for non-terminal errors
+            if (!isTerminal) {
+                setTimeout(() => {
+                    if (banner && banner.parentElement) {
+                        banner.classList.remove('show');
+                        setTimeout(() => banner.remove(), 150);
+                    }
+                }, 5000);
+            }
+        };
 
         // Handle playback errors with retry logic
         let errorRetryCount = 0;
+        let hasShownTerminalErrorToast = false;  // Track if terminal error toast shown
         const MAX_RETRIES = 2;
         
         player?.addEventListener('error', (e) => {
-            const trackElement = trackItems[index];
-            const trackTitle = trackElement?.dataset.title || 'Unknown';
+            const error = player?.error;
+            if (!error) return;
+
+            // Use currentIndex with guard instead of undefined 'index'
+            const trackInfo = currentIndex >= 0 && trackItems[currentIndex]
+                ? trackItems[currentIndex].dataset.title
+                : 'Unknown track';
             
             console.error('🚫 Playback error:', {
-                code: player.error?.code,
-                message: player.error?.message,
-                track: trackTitle
+                code: error.code,
+                message: error.message,
+                src: player?.src,
+                track: trackInfo,
+                trackIndex: currentIndex
             });
             
             // Save state before handling error
@@ -1242,11 +1668,41 @@ export function initPlayerControls() {
                     player.load();
                     player.play().catch(err => {
                         console.error('Retry failed:', err);
-                        if (errorRetryCount >= MAX_RETRIES) {
-                            alert(`Failed to play track: ${trackTitle}\n\nTry skipping to the next track or refreshing the page.`);
+                        // Show toast once when max retries reached
+                        if (errorRetryCount >= MAX_RETRIES && !hasShownTerminalErrorToast) {
+                            hasShownTerminalErrorToast = true;
+                            showPlaybackErrorToast(
+                                `Unable to play "${trackInfo}". Try skipping to another track.`,
+                                {
+                                    isTerminal: true,
+                                    onSkip: () => {
+                                        // Skip to next track
+                                        const nextIndex = getNextTrackWithRepeat(currentIndex);
+                                        if (nextIndex >= 0 && nextIndex < trackItems.length) {
+                                            playTrack(nextIndex);
+                                        }
+                                    }
+                                }
+                            );
                         }
                     });
                 }, 1000);
+            } else if (!hasShownTerminalErrorToast) {
+                // Max retries reached, show toast once
+                hasShownTerminalErrorToast = true;
+                showPlaybackErrorToast(
+                    `Unable to play "${trackInfo}". Try skipping to another track.`,
+                    {
+                        isTerminal: true,
+                        onSkip: () => {
+                            // Skip to next track
+                            const nextIndex = getNextTrackWithRepeat(currentIndex);
+                            if (nextIndex >= 0 && nextIndex < trackItems.length) {
+                                playTrack(nextIndex);
+                            }
+                        }
+                    }
+                );
             }
         });
         
@@ -1265,6 +1721,7 @@ export function initPlayerControls() {
         player?.addEventListener('playing', () => {
             console.log('▶️ Playback resumed');
             errorRetryCount = 0; // Reset error count on successful playback
+            hasShownTerminalAlert = false;  // Reset alert flag on successful playback
         });
 
         player?.addEventListener('ended', () => {
@@ -1325,10 +1782,9 @@ export function initPlayerControls() {
             }
         }));
 
-        prevBtn?.addEventListener('click', () => {
-            if (checkCastingState()) {
-                castPrevious();
-            } else {
+        prevBtn?.addEventListener('click', createCastAwareHandler(
+            castPrevious,
+            () => {
                 const prevIndex = getPreviousTrackWithRepeat(currentIndex);
                 if (prevIndex >= 0) {
                     playTrack(prevIndex);
@@ -1336,12 +1792,11 @@ export function initPlayerControls() {
                     console.log('⏮️ At start of playlist');
                 }
             }
-        });
+        ));
 
-        nextBtn?.addEventListener('click', () => {
-            if (checkCastingState()) {
-                castNext();
-            } else {
+        nextBtn?.addEventListener('click', createCastAwareHandler(
+            castNext,
+            () => {
                 const nextIndex = getNextTrackWithRepeat(currentIndex);
                 if (nextIndex >= 0 && nextIndex < trackItems.length) {
                     playTrack(nextIndex);
@@ -1349,7 +1804,7 @@ export function initPlayerControls() {
                     console.log('⏭️ At end of playlist');
                 }
             }
-        });
+        ));
 
         // Shuffle button
         const shuffleBtn = document.getElementById('shuffle-btn-bottom');

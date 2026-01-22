@@ -616,7 +616,7 @@ def test_invalid_range():
 
 - **[Audio Streaming](audio-streaming.md)** - Main streaming implementation
 - **[Chromecast Integration](../../chromecast/integration.md)** - Cast requirements
-- **[Player Controls](../../player/playerControls.md)** - Frontend seeking
+- **[Player Controls](../play/modules/playerControls.md)** - Frontend seeking
 
 ---
 

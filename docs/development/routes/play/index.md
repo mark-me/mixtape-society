@@ -196,7 +196,7 @@ Frontend JavaScript that consumes these routes.
 - `chromecast.js` - Cast SDK integration
 - `androidAuto.js` - Enhanced Media Session
 
-See: [Player Controls](../../player/playerControls.md)
+See: [Player Controls](../play/modules/playerControls.md)
 
 ---
 
@@ -211,7 +211,7 @@ See: [Player Controls](../../player/playerControls.md)
 
 ### Frontend Integration
 
-- **[Player Controls](../../player/playerControls.md)** - Playback orchestration
+- **[Player Controls](../play/modules/playerControls.md)** - Playback orchestration
 - **[Chromecast Integration](../../chromecast/integration.md)** - Cast SDK setup
 - **[Android Auto](../../android-auto/integration-overview.md)** - Enhanced Media Session
 
