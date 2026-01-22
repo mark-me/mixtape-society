@@ -654,6 +654,47 @@ export function initPlayerControls() {
         return nextIndex;
     };
 
+    /**
+     * Get previous track index considering repeat mode
+     * Handles edge cases: invalid currentIndex, empty playlist, etc.
+     * 
+     * @param {number} currentIndex - Current track index
+     * @returns {number} Previous track index, or -1 if no previous track
+     */
+    const getPreviousTrackWithRepeat = (currentIndex) => {
+        // Defensive: Validate playlist has tracks
+        if (trackItems.length === 0) {
+            console.warn('⚠️ No tracks available');
+            return -1;
+        }
+        
+        // Defensive: Handle invalid currentIndex
+        if (currentIndex < 0 || currentIndex >= trackItems.length) {
+            console.warn(`⚠️ Invalid currentIndex: ${currentIndex}, defaulting to last track`);
+            currentIndex = trackItems.length - 1;
+        }
+        
+        // Repeat One: Return same track (validated)
+        if (repeatMode === REPEAT_MODES.ONE) {
+            return currentIndex;
+        }
+        
+        // Get previous track based on shuffle
+        let prevIndex = getPreviousTrackIndex(currentIndex);
+        
+        // Repeat All: Loop to end if we're at the start
+        if (prevIndex === -1 && repeatMode === REPEAT_MODES.ALL) {
+            // Loop to end (respecting shuffle if enabled)
+            if (isShuffled && shuffleOrder.length > 0) {
+                return shuffleOrder[shuffleOrder.length - 1];
+            } else {
+                return trackItems.length - 1;
+            }
+        }
+        
+        return prevIndex;
+    };
+
     // =============================================================================
     // END HELPER FUNCTIONS
     // =============================================================================
@@ -1288,7 +1329,7 @@ export function initPlayerControls() {
             if (checkCastingState()) {
                 castPrevious();
             } else {
-                const prevIndex = getPreviousTrackIndex(currentIndex);
+                const prevIndex = getPreviousTrackWithRepeat(currentIndex);
                 if (prevIndex >= 0) {
                     playTrack(prevIndex);
                 } else {
@@ -1301,7 +1342,7 @@ export function initPlayerControls() {
             if (checkCastingState()) {
                 castNext();
             } else {
-                const nextIndex = getNextTrackIndex(currentIndex);
+                const nextIndex = getNextTrackWithRepeat(currentIndex);
                 if (nextIndex >= 0 && nextIndex < trackItems.length) {
                     playTrack(nextIndex);
                 } else {

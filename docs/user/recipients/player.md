@@ -97,17 +97,20 @@ Loop the entire mixtape or a single track.
 
 **The three modes:**
 
-**🔁 Repeat Off (default)**
+#### 🔁 Repeat Off (default)
+
 - Button is outlined
 - Mixtape plays through once and stops
 - Normal listening experience
 
-**🔁 Repeat All**
+#### 🔁 Repeat All
+
 - Button is filled/solid white
 - Mixtape loops back to the beginning after the last track
 - Great for background music or extended listening
 
-**🔁₁ Repeat One**
+#### 🔁₁ Repeat One
+
 - Button turns blue with a "1" icon
 - Current track plays over and over
 - Perfect for learning lyrics or focusing on one song
@@ -153,7 +156,7 @@ Adjust streaming quality to match your connection and data plan.
 ### Quality Options
 
 | Quality | Bitrate | File Size/Song | Best For |
-|---------|---------|----------------|----------|
+| ------- | ------- | -------------- | -------- |
 | **Original** | Variable | ~10MB | WiFi, best audio |
 | **High** | 256 kbps | ~7MB | WiFi, great audio |
 | **Medium** | 192 kbps | ~5MB | Default, balanced |
@@ -196,7 +199,7 @@ Adjust streaming quality to match your connection and data plan.
 Master these shortcuts for effortless control:
 
 | Key | Action |
-|-----|--------|
+| --- | ------ |
 | **Space** | Play/Pause |
 | **→** | Next track |
 | **←** | Previous track |
