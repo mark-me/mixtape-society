@@ -690,7 +690,7 @@ window.addEventListener('unsaved-changes', (e) => {
 
 - **[Backend API](backend-api.md)** - Flask routes and server logic
 - **[Editor Overview](index.md)** - Complete system architecture
-- **[Player Controls](../../player/playerControls.md)** - Preview playback
+- **[Player Controls](../play/modules/playerControls.md)** - Preview playback
 - **[QR Share](../../qr_generation.md)** - Shared QR functionality
 
 ---

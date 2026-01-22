@@ -57,34 +57,80 @@ Play tracks in random order instead of the mixtape's sequence.
 
 **How to enable:**
 
-1. Find the **🔀 Shuffle** button
+1. Find the **🔀 Shuffle** button next to the prev/next controls
 2. Click/tap to toggle on (button lights up)
 3. Click/tap again to return to normal order
+
+**What happens:**
+
+- Tracks play in a random sequence
+- Next/Previous buttons follow the shuffled order
+- Your shuffle order stays the same even if you reload the page
+
+**Visual indicator:**
+
+- **Off:** Button is outlined (⚪ 🔀)
+- **On:** Button is filled (⚫ 🔀)
 
 **When it's useful:**
 
 - You've listened through already and want variety
 - Long mixtapes (20+ tracks)
 - Background music where order doesn't matter
+- Discovering tracks you might have skipped
+
+**Getting a new shuffle:**
+Click shuffle off, then on again to get a different random order.
 
 !!! note
-    The creator carefully ordered the tracks—shuffle changes the intended experience!
+    The creator carefully ordered the tracks—shuffle changes the intended experience! Best for repeat listens.
 
 ### Repeat Mode
 
 Loop the entire mixtape or a single track.
 
-**Options:**
+**How to use:**
 
-- **No Repeat** - Mixtape stops after last track
-- **Repeat All** - Restarts from beginning after last track
-- **Repeat One** - Current track loops continuously
+1. Find the **🔁 Repeat** button next to shuffle
+2. Click/tap to cycle through modes
+3. Watch the button change to show which mode is active
 
-**How to change:**
+**The three modes:**
 
-1. Find the **🔁 Repeat** button
-2. Click/tap to cycle through options
-3. Icon changes to show current mode
+#### 🔁 Repeat Off (default)
+
+- Button is outlined
+- Mixtape plays through once and stops
+- Normal listening experience
+
+#### 🔁 Repeat All
+
+- Button is filled/solid white
+- Mixtape loops back to the beginning after the last track
+- Great for background music or extended listening
+
+#### 🔁₁ Repeat One
+
+- Button turns blue with a "1" icon
+- Current track plays over and over
+- Perfect for learning lyrics or focusing on one song
+
+**What happens:**
+
+- Your repeat setting saves automatically
+- Works with shuffle (loops through the shuffled order)
+- Click any track to play it, repeat mode stays active
+
+**When it's useful:**
+
+- **Repeat All:** Long car rides, work sessions, parties
+- **Repeat One:** Practicing a song, meditation, focus
+
+**Getting back to normal:**
+Click the repeat button until it's outlined again (Repeat Off).
+
+!!! tip "Repeat + Shuffle"
+    Enable both for endless variety! The playlist will keep looping through the same shuffle order.
 
 ### Volume Control
 
@@ -110,7 +156,7 @@ Adjust streaming quality to match your connection and data plan.
 ### Quality Options
 
 | Quality | Bitrate | File Size/Song | Best For |
-|---------|---------|----------------|----------|
+| ------- | ------- | -------------- | -------- |
 | **Original** | Variable | ~10MB | WiFi, best audio |
 | **High** | 256 kbps | ~7MB | WiFi, great audio |
 | **Medium** | 192 kbps | ~5MB | Default, balanced |
@@ -153,7 +199,7 @@ Adjust streaming quality to match your connection and data plan.
 Master these shortcuts for effortless control:
 
 | Key | Action |
-|-----|--------|
+| --- | ------ |
 | **Space** | Play/Pause |
 | **→** | Next track |
 | **←** | Previous track |
@@ -481,6 +527,23 @@ Check with the creator about their server's features.
 3. Use wired headphones
 4. Close battery-draining apps
 5. Disable battery saver temporarily
+
+### Shuffle Not Saving
+
+**Solutions:**
+
+1. Check if you're in private/incognito mode (shuffle won't save)
+2. Make sure browser allows cookies and storage
+3. To get a new random order: toggle shuffle off then on again
+
+### Repeat Not Working
+
+**Solutions:**
+
+1. **Not looping:** Make sure repeat mode is on (button should be filled or blue)
+2. **Can't change modes:** Refresh the page
+3. **Repeat lost on reload:** Check if browser allows storage (like with shuffle)
+4. **Track won't stop repeating:** Click repeat button to cycle to "Off" (outlined button)
 
 ---
 

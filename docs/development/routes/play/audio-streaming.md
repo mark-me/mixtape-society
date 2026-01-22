@@ -381,7 +381,7 @@ The template includes JavaScript that:
 - Configures Android Auto Media Session
 - Handles adaptive theming from cover art
 
-See: [Player Controls](../../player/playerControls.md)
+See: [Player Controls](../play/modules/playerControls.md)
 
 ---
 

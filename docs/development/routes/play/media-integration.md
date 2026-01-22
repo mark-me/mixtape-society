@@ -464,13 +464,13 @@ For complete implementation details, see:
 
 ### Frontend Integration
 
-- **[Player Controls](../../player/playerControls.md)** - Playback orchestration
+- **[Player Controls](../play/modules/playerControls.md)** - Playback orchestration
   - Mode coordination logic
   - Casting state management
   - Quality selector
   - Event handling
 
-- **[Player Utilities](../../player/playerUtils.md)** - Shared utilities
+- **[Player Utilities](../play/modules/playerUtils.md)** - Shared utilities
   - Device detection
   - Media Session management
   - Player state control

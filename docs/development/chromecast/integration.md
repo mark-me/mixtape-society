@@ -1034,7 +1034,7 @@ if (window.__CHROMECAST_DEBUG__) {
 - [Playback Routes](../routes/play/index.md) - Audio streaming implementation
 - [Android Auto Integration](../android-auto/backend-implementation.md) - Alternative casting method
 - [Audio Caching](../audio_caching.md) - Quality management
-- [Player Controls](../player/playerControls.md) - UI controls integration
+- [Player Controls](../routes/play/modules/playerControls.md) - UI controls integration
 
 ### Media Session API
 

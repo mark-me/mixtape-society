@@ -200,7 +200,7 @@ volumes:
 - Music directory path is correct
 - You have sufficient disk space
 
-[Detailed troubleshooting →](installation.md#common-gotchas-troubleshooting)
+[Detailed troubleshooting →](installation.md#troubleshooting)
 
 ### Music Not Appearing
 

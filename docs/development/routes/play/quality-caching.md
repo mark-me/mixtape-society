@@ -76,7 +76,7 @@ let currentQuality = localStorage.getItem('audioQuality') || 'medium';
 const url = `/play/${track.path}?quality=${currentQuality}`;
 ```
 
-See: [Player Controls](../../player/playerControls.md#quality-management)
+See: [Player Controls](../play/modules/playerControls.md#quality-management)
 
 ---
 
@@ -580,7 +580,7 @@ See: [Docker Deployment](../../../user/creators/installation.md)
 
 - **[Audio Streaming](audio-streaming.md)** - Uses _get_serving_path()
 - **[Audio Caching](../../audio_caching.md)** - Transcoding implementation
-- **[Player Controls](../../player/playerControls.md)** - Quality selector UI
+- **[Player Controls](../play/modules/playerControls.md)** - Quality selector UI
 - **[Configuration](../../configuration.md)** - Cache directory settings
 
 ---
