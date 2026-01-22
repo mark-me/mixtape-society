@@ -141,7 +141,7 @@ export function initPlayerControls() {
 
     let currentIndex = -1;
     window.currentTrackIndex = currentIndex;
-    
+
     // Initialize quality from storage with error handling
     let currentQuality = DEFAULT_QUALITY;
     try {
@@ -273,11 +273,11 @@ export function initPlayerControls() {
         if (trackItems.length === 0) {
             return -1; // No tracks available
         }
-        
+
         if (currentIndex >= 0 && currentIndex < trackItems.length) {
             return currentIndex;
         }
-        
+
         return 0; // Default to first track
     };
 
@@ -287,12 +287,12 @@ export function initPlayerControls() {
      */
     const ensureTrackLoadedAndPlay = () => {
         const index = getSafeTrackIndex();
-        
+
         if (index === -1) {
             console.warn('⚠️ No tracks available to play');
             return;
         }
-        
+
         // If no source, load the track first
         if (!hasSource()) {
             console.log('🎵 Loading track before play:', index);
@@ -313,21 +313,21 @@ export function initPlayerControls() {
         if (!targetTime || targetTime <= 0) {
             return;
         }
-        
+
         const trySeek = () => {
             if (!player) return;
             if (!player.duration || isNaN(player.duration)) return;
             if (targetTime > player.duration) return;
             if (player.readyState < 2) return; // Need HAVE_CURRENT_DATA or better
-            
+
             player.currentTime = targetTime;
             console.log(`⏩ Restored position: ${Math.floor(targetTime)}s`);
-            
+
             // Clean up listeners
             player.removeEventListener('canplay', trySeek);
             player.removeEventListener('loadedmetadata', trySeek);
         };
-        
+
         // Check if already ready
         if (player.readyState >= 2) {
             trySeek();
@@ -347,17 +347,17 @@ export function initPlayerControls() {
             console.warn('⚠️ Cannot restore UI: track not found');
             return;
         }
-        
+
         // Update bottom player info
         updateBottomPlayerInfo(track);
         container.style.display = 'block';
-        
+
         // Mark track as active
         setActiveTrack(track);
-        
+
         // Update play icons
         syncPlayIcons();
-        
+
         // Scroll to track with visual indicator
         setTimeout(() => {
             track.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -373,7 +373,7 @@ export function initPlayerControls() {
      */
     const attachRestoredSeekOnFirstPlay = (savedState) => {
         let restoredSeekTime = savedState.time;
-        
+
         const handleRestoredPlay = () => {
             if (player && currentIndex === savedState.track && restoredSeekTime > 0) {
                 seekWhenReady(restoredSeekTime);
@@ -381,7 +381,7 @@ export function initPlayerControls() {
             }
             player.removeEventListener('play', handleRestoredPlay);
         };
-        
+
         player.addEventListener('play', handleRestoredPlay);
     };
 
@@ -392,7 +392,7 @@ export function initPlayerControls() {
     /**
      * Set the active track in the UI
      * Removes active class from all tracks and adds it to the specified track
-     * 
+     *
      * @param {HTMLElement} trackElement - Track element to make active (or null to clear all)
      */
     const setActiveTrack = (trackElement) => {
@@ -404,7 +404,7 @@ export function initPlayerControls() {
 
     /**
      * Update bottom player display with track info
-     * 
+     *
      * @param {HTMLElement} track - Track element with data attributes (or null to clear)
      */
     const updateBottomPlayerInfo = (track) => {
@@ -420,7 +420,7 @@ export function initPlayerControls() {
     /**
      * Create a handler that checks casting state before executing
      * Centralizes the casting vs local playback decision pattern
-     * 
+     *
      * @param {Function} castHandler - Handler function for casting mode
      * @param {Function} localHandler - Handler function for local playback
      * @returns {Function} Combined handler that chooses based on casting state
@@ -444,13 +444,13 @@ export function initPlayerControls() {
      */
     const generateShuffleOrder = () => {
         const order = Array.from({ length: trackItems.length }, (_, i) => i);
-        
+
         // Fisher-Yates shuffle
         for (let i = order.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [order[i], order[j]] = [order[j], order[i]];
         }
-        
+
         return order;
     };
 
@@ -464,10 +464,10 @@ export function initPlayerControls() {
         }
 
         isShuffled = true;
-        
+
         // Generate new shuffle order
         shuffleOrder = generateShuffleOrder();
-        
+
         // Save to storage with error handling
         try {
             const shuffleState = {
@@ -481,10 +481,10 @@ export function initPlayerControls() {
             // Shuffle still works in-memory, just won't persist
             console.warn('Failed to save shuffle state to storage:', e.message);
         }
-        
+
         // Update button UI
         updateShuffleButton();
-        
+
         console.log('🔀 Shuffle enabled:', shuffleOrder);
     };
 
@@ -494,7 +494,7 @@ export function initPlayerControls() {
     const disableShuffle = () => {
         isShuffled = false;
         shuffleOrder = [];
-        
+
         // Remove from storage with error handling
         try {
             localStorage.removeItem(STORAGE_KEY_SHUFFLE);
@@ -503,10 +503,10 @@ export function initPlayerControls() {
             // Shuffle is still disabled in-memory
             console.warn('Failed to remove shuffle state from storage:', e.message);
         }
-        
+
         // Update button UI
         updateShuffleButton();
-        
+
         console.log('▶️ Shuffle disabled - sequential playback');
     };
 
@@ -527,7 +527,7 @@ export function initPlayerControls() {
     const updateShuffleButton = () => {
         const shuffleBtn = document.getElementById('shuffle-btn-bottom');
         if (!shuffleBtn) return;
-        
+
         if (isShuffled) {
             shuffleBtn.classList.remove('btn-outline-light');
             shuffleBtn.classList.add('btn-light');
@@ -546,18 +546,18 @@ export function initPlayerControls() {
         try {
             const stored = localStorage.getItem(STORAGE_KEY_SHUFFLE);
             if (!stored) return false;
-            
+
             const shuffleState = JSON.parse(stored);
-            
+
             // Validate shuffle order matches current playlist length
-            if (shuffleState.enabled && 
-                shuffleState.order && 
+            if (shuffleState.enabled &&
+                shuffleState.order &&
                 shuffleState.order.length === trackItems.length) {
-                
+
                 isShuffled = true;
                 shuffleOrder = shuffleState.order;
                 updateShuffleButton();
-                
+
                 console.log('🔀 Restored shuffle mode:', shuffleOrder);
                 return true;
             } else if (shuffleState.order && shuffleState.order.length !== trackItems.length) {
@@ -568,7 +568,7 @@ export function initPlayerControls() {
         } catch (error) {
             console.warn('Could not restore shuffle state:', error);
         }
-        
+
         return false;
     };
 
@@ -579,17 +579,17 @@ export function initPlayerControls() {
         if (isShuffled && shuffleOrder.length > 0) {
             // Find current position in shuffle order
             const currentPosition = shuffleOrder.indexOf(fromIndex);
-            
+
             if (currentPosition === -1) {
                 // Current track not in shuffle order (shouldn't happen)
                 // Return first track in shuffle
                 console.warn('⚠️ Track not in shuffle order, starting from beginning');
                 return shuffleOrder[0];
             }
-            
+
             // Get next position in shuffle order
             const nextPosition = currentPosition + 1;
-            
+
             if (nextPosition < shuffleOrder.length) {
                 return shuffleOrder[nextPosition];
             } else {
@@ -610,15 +610,15 @@ export function initPlayerControls() {
         if (isShuffled && shuffleOrder.length > 0) {
             // Find current position in shuffle order
             const currentPosition = shuffleOrder.indexOf(fromIndex);
-            
+
             if (currentPosition === -1) {
                 // Current track not in shuffle order
                 return shuffleOrder[shuffleOrder.length - 1];
             }
-            
+
             // Get previous position in shuffle order
             const prevPosition = currentPosition - 1;
-            
+
             if (prevPosition >= 0) {
                 return shuffleOrder[prevPosition];
             } else {
@@ -643,17 +643,17 @@ export function initPlayerControls() {
         const currentIndex = modes.indexOf(repeatMode);
         const nextIndex = (currentIndex + 1) % modes.length;
         repeatMode = modes[nextIndex];
-        
+
         // Save to storage
         try {
             localStorage.setItem(STORAGE_KEY_REPEAT, repeatMode);
         } catch (e) {
             console.warn('Failed to save repeat mode:', e.message);
         }
-        
+
         // Update button UI
         updateRepeatButton();
-        
+
         console.log(`🔁 Repeat: ${REPEAT_MODE_LABELS[repeatMode]}`);
     };
 
@@ -663,27 +663,27 @@ export function initPlayerControls() {
     const updateRepeatButton = () => {
         const repeatBtn = document.getElementById('repeat-btn-bottom');
         if (!repeatBtn) return;
-        
+
         // Remove all mode classes
         Object.values(REPEAT_MODE_STYLES).forEach(cls => {
             repeatBtn.classList.remove(cls);
         });
-        
+
         // Add appropriate style class
         const styleClass = REPEAT_MODE_STYLES[repeatMode] || REPEAT_MODE_STYLES[REPEAT_MODES.OFF];
         repeatBtn.classList.add(styleClass);
-        
+
         // Set icon using safe DOM manipulation
         const iconClass = REPEAT_MODE_ICONS[repeatMode] || REPEAT_MODE_ICONS[REPEAT_MODES.OFF];
-        
+
         // Clear existing content safely
         repeatBtn.textContent = '';
-        
+
         // Create and append icon element
         const icon = document.createElement('i');
         icon.className = iconClass;
         repeatBtn.appendChild(icon);
-        
+
         // Set title
         const label = REPEAT_MODE_LABELS[repeatMode] || REPEAT_MODE_LABELS[REPEAT_MODES.OFF];
         repeatBtn.title = `Repeat: ${label}`;
@@ -699,7 +699,7 @@ export function initPlayerControls() {
     /**
      * Normalize a repeat mode against the current playback context
      * Forces Repeat Off when it doesn't make sense (e.g., 0-1 tracks)
-     * 
+     *
      * @param {string} mode - The repeat mode to normalize
      * @returns {string} Normalized repeat mode
      */
@@ -727,10 +727,10 @@ export function initPlayerControls() {
             if (stored && isValidRepeatMode(stored)) {
                 // Normalize stored mode to current context
                 const normalizedMode = normalizeRepeatModeForContext(stored);
-                
+
                 repeatMode = normalizedMode;
                 updateRepeatButton();
-                
+
                 if (normalizedMode !== stored) {
                     console.log(`🔁 Normalized repeat mode: ${stored} → ${normalizedMode} (context: ${trackItems.length} tracks)`);
                 } else {
@@ -747,7 +747,7 @@ export function initPlayerControls() {
     /**
      * Get next track index considering repeat mode
      * Handles edge cases: invalid currentIndex, empty playlist, etc.
-     * 
+     *
      * @param {number} currentIndex - Current track index
      * @param {Object} options - Optional behavior modifiers
      * @param {boolean} options.skipRepeatOne - If true, treat Repeat One as Repeat Off (for prefetch)
@@ -755,28 +755,28 @@ export function initPlayerControls() {
      */
     const getNextTrackWithRepeat = (currentIndex, options = {}) => {
         const { skipRepeatOne = false } = options;
-        
+
         // Defensive: Validate playlist has tracks
         if (trackItems.length === 0) {
             console.warn('⚠️ No tracks available');
             return -1;
         }
-        
+
         // Defensive: Handle invalid currentIndex
         // Treat out-of-bounds or negative as "start from beginning"
         if (currentIndex < 0 || currentIndex >= trackItems.length) {
             console.warn(`⚠️ Invalid currentIndex: ${currentIndex}, defaulting to 0`);
             currentIndex = 0;
         }
-        
+
         // Repeat One: Return same track (unless skipRepeatOne is set for prefetch)
         if (repeatMode === REPEAT_MODES.ONE && !skipRepeatOne) {
             return currentIndex;
         }
-        
+
         // Get next track based on shuffle
         let nextIndex = getNextTrackIndex(currentIndex);
-        
+
         // Repeat All: Loop back to start if we've reached the end
         if (nextIndex === -1 && repeatMode === REPEAT_MODES.ALL) {
             // Loop back to start (respecting shuffle if enabled)
@@ -786,14 +786,14 @@ export function initPlayerControls() {
                 return 0;
             }
         }
-        
+
         return nextIndex;
     };
 
     /**
      * Get previous track index considering repeat mode
      * Handles edge cases: invalid currentIndex, empty playlist, etc.
-     * 
+     *
      * @param {number} currentIndex - Current track index
      * @returns {number} Previous track index, or -1 if no previous track
      */
@@ -803,21 +803,21 @@ export function initPlayerControls() {
             console.warn('⚠️ No tracks available');
             return -1;
         }
-        
+
         // Defensive: Handle invalid currentIndex
         if (currentIndex < 0 || currentIndex >= trackItems.length) {
             console.warn(`⚠️ Invalid currentIndex: ${currentIndex}, defaulting to last track`);
             currentIndex = trackItems.length - 1;
         }
-        
+
         // Repeat One: Return same track (validated)
         if (repeatMode === REPEAT_MODES.ONE) {
             return currentIndex;
         }
-        
+
         // Get previous track based on shuffle
         let prevIndex = getPreviousTrackIndex(currentIndex);
-        
+
         // Repeat All: Loop to end if we're at the start
         if (prevIndex === -1 && repeatMode === REPEAT_MODES.ALL) {
             // Loop to end (respecting shuffle if enabled)
@@ -827,7 +827,7 @@ export function initPlayerControls() {
                 return trackItems.length - 1;
             }
         }
-        
+
         return prevIndex;
     };
 
@@ -845,13 +845,13 @@ export function initPlayerControls() {
                 castPlay();
                 return false;
             }
-            
+
             // Check if trying to play without a source (after restoration)
             if (!hasSource()) {
                 e.preventDefault();
                 e.stopPropagation();
                 e.stopImmediatePropagation();
-                
+
                 console.log('🎵 Native play button clicked - loading track first');
                 ensureTrackLoadedAndPlay();
                 return false;
@@ -905,9 +905,9 @@ export function initPlayerControls() {
             document.addEventListener('click', (e) => {
                 const qualityBtn = document.getElementById('quality-btn-bottom');
                 const qualityMenu = document.getElementById('quality-menu');
-                
-                if (qualityBtn && qualityMenu && 
-                    !qualityBtn.contains(e.target) && 
+
+                if (qualityBtn && qualityMenu &&
+                    !qualityBtn.contains(e.target) &&
                     !qualityMenu.contains(e.target)) {
                     qualityMenu.classList.remove('show');
                 }
@@ -934,15 +934,15 @@ export function initPlayerControls() {
         if (!qualityBtn) return;
 
         const qualityLabel = QUALITY_LEVELS[currentQuality]?.label || 'Medium';
-        
+
         // Clear existing content safely
         qualityBtn.textContent = '';
-        
+
         // Create and append icon
         const icon = document.createElement('i');
         icon.className = 'bi bi-gear-fill me-1';
         qualityBtn.appendChild(icon);
-        
+
         // Append text node for quality label
         qualityBtn.appendChild(document.createTextNode(qualityLabel));
     }
@@ -962,7 +962,7 @@ export function initPlayerControls() {
 
     const changeQuality = (newQuality) => {
         currentQuality = newQuality;
-        
+
         // Save quality preference with error handling
         try {
             localStorage.setItem('audioQuality', newQuality);
@@ -1045,8 +1045,8 @@ export function initPlayerControls() {
     const prefetchNextTrack = async (currentIdx) => {
         // For prefetching, skip Repeat One (otherwise we'd prefetch the same track)
         // Pass this as an option instead of mutating global repeatMode
-        const nextIdx = getNextTrackWithRepeat(currentIdx, { 
-            skipRepeatOne: true 
+        const nextIdx = getNextTrackWithRepeat(currentIdx, {
+            skipRepeatOne: true
         });
 
         // Check if there's a valid next track (-1 means no next track)
@@ -1244,7 +1244,7 @@ export function initPlayerControls() {
         try {
             const trackElement = trackItems[currentIndex];
             const title = trackElement?.dataset.title || 'Unknown';
-            
+
             localStorage.setItem(STORAGE_KEY_TRACK, currentIndex.toString());
             localStorage.setItem(STORAGE_KEY_TIME, player.currentTime.toString());
             localStorage.setItem(STORAGE_KEY_POSITION, JSON.stringify({
@@ -1254,7 +1254,7 @@ export function initPlayerControls() {
                 timestamp: Date.now(),
                 paused: player.paused  // Track whether it was paused
             }));
-            
+
             console.debug(`💾 Saved state: track ${currentIndex}, time ${Math.floor(player.currentTime)}s, paused: ${player.paused}`);
         } catch (e) {
             console.warn('Failed to save playback state:', e);
@@ -1369,7 +1369,7 @@ export function initPlayerControls() {
     const initEventListeners = () => {
         document.getElementById('big-play-btn')?.addEventListener('click', () => {
             if (trackItems.length === 0) return;
-            
+
             if (currentIndex === -1) {
                 // No track selected - start from beginning
                 if (trackItems.length > 0) {
@@ -1400,7 +1400,7 @@ export function initPlayerControls() {
         /**
          * Show a non-blocking playback error toast with optional skip action
          * Provides better UX than blocking alert dialogs
-         * 
+         *
          * @param {string} message - Error message to display
          * @param {Object} options - Configuration options
          * @param {boolean} options.isTerminal - Whether this is a terminal error
@@ -1408,21 +1408,21 @@ export function initPlayerControls() {
          */
         const showPlaybackErrorToast = (message, { isTerminal = false, onSkip } = {}) => {
             const toastEl = document.getElementById('qualityToast');
-            
+
             if (toastEl) {
                 // Reuse existing Bootstrap toast
                 const toastBody = toastEl.querySelector('.toast-body');
                 if (toastBody) {
                     // Clear existing content
                     toastBody.textContent = '';
-                    
+
                     // Add message
                     const messageSpan = document.createElement('span');
                     messageSpan.textContent = message;
                     messageSpan.style.display = 'block';
                     messageSpan.style.marginBottom = onSkip ? '0.5rem' : '0';
                     toastBody.appendChild(messageSpan);
-                    
+
                     // Add skip button if terminal error
                     if (isTerminal && onSkip) {
                         const skipBtn = document.createElement('button');
@@ -1435,20 +1435,20 @@ export function initPlayerControls() {
                         };
                         toastBody.appendChild(skipBtn);
                     }
-                    
+
                     // Show toast with appropriate duration
-                    const toast = new bootstrap.Toast(toastEl, { 
-                        delay: isTerminal ? 8000 : 5000 
+                    const toast = new bootstrap.Toast(toastEl, {
+                        delay: isTerminal ? 8000 : 5000
                     });
                     toast.show();
                     return;
                 }
             }
-            
+
             // Fallback: Create minimal inline banner
             const containerId = 'player-error-banner';
             let banner = document.getElementById(containerId);
-            
+
             if (!banner) {
                 banner = document.createElement('div');
                 banner.id = containerId;
@@ -1461,21 +1461,21 @@ export function initPlayerControls() {
                 banner.style.minWidth = '300px';
                 banner.style.maxWidth = '500px';
                 banner.style.margin = '0';
-                
+
                 document.body.appendChild(banner);
             }
-            
+
             // Clear and set content
             banner.innerHTML = '';
-            
+
             const messageEl = document.createElement('span');
             messageEl.textContent = message;
             messageEl.style.flex = '1';
             banner.appendChild(messageEl);
-            
+
             const actionsEl = document.createElement('div');
             actionsEl.className = 'd-flex gap-2';
-            
+
             if (isTerminal && onSkip) {
                 const skipBtn = document.createElement('button');
                 skipBtn.className = 'btn btn-sm btn-light';
@@ -1486,15 +1486,15 @@ export function initPlayerControls() {
                 };
                 actionsEl.appendChild(skipBtn);
             }
-            
+
             const closeBtn = document.createElement('button');
             closeBtn.className = 'btn-close btn-close-white';
             closeBtn.setAttribute('aria-label', 'Close');
             closeBtn.onclick = () => banner.remove();
             actionsEl.appendChild(closeBtn);
-            
+
             banner.appendChild(actionsEl);
-            
+
             // Auto-hide for non-terminal errors
             if (!isTerminal) {
                 setTimeout(() => {
@@ -1508,7 +1508,7 @@ export function initPlayerControls() {
         /**
          * Show a non-blocking playback error toast with optional skip action
          * Provides better UX than blocking alert dialogs
-         * 
+         *
          * @param {string} message - Error message to display
          * @param {Object} options - Configuration options
          * @param {boolean} options.isTerminal - Whether this is a terminal error
@@ -1516,34 +1516,34 @@ export function initPlayerControls() {
          */
         const showPlaybackErrorToast = (message, { isTerminal = false, onSkip } = {}) => {
             const toastEl = document.getElementById('qualityToast');
-            
+
             if (toastEl) {
                 // Reuse existing Bootstrap toast
                 const toastBody = toastEl.querySelector('.toast-body');
                 if (toastBody) {
                     // Clear existing content
                     toastBody.innerHTML = '';
-                    
+
                     // Add error icon and message
                     const messageContainer = document.createElement('div');
                     messageContainer.className = 'd-flex align-items-start gap-2';
-                    
+
                     const icon = document.createElement('i');
                     icon.className = isTerminal ? 'bi bi-exclamation-triangle-fill text-danger' : 'bi bi-exclamation-circle-fill text-warning';
                     messageContainer.appendChild(icon);
-                    
+
                     const messageSpan = document.createElement('span');
                     messageSpan.textContent = message;
                     messageSpan.style.flex = '1';
                     messageContainer.appendChild(messageSpan);
-                    
+
                     toastBody.appendChild(messageContainer);
-                    
+
                     // Add skip button if terminal error and onSkip provided
                     if (isTerminal && onSkip) {
                         const actionsDiv = document.createElement('div');
                         actionsDiv.className = 'd-flex gap-2 mt-2';
-                        
+
                         const skipBtn = document.createElement('button');
                         skipBtn.className = 'btn btn-sm btn-primary';
                         skipBtn.textContent = 'Skip Track';
@@ -1553,12 +1553,12 @@ export function initPlayerControls() {
                             if (toast) toast.hide();
                         };
                         actionsDiv.appendChild(skipBtn);
-                        
+
                         toastBody.appendChild(actionsDiv);
                     }
-                    
+
                     // Show toast with appropriate duration
-                    const toast = new bootstrap.Toast(toastEl, { 
+                    const toast = new bootstrap.Toast(toastEl, {
                         delay: isTerminal ? 8000 : 5000,
                         autohide: !isTerminal  // Don't auto-hide terminal errors
                     });
@@ -1566,11 +1566,11 @@ export function initPlayerControls() {
                     return;
                 }
             }
-            
+
             // Fallback: Create minimal inline banner near the player
             const containerId = 'player-error-banner';
             let banner = document.getElementById(containerId);
-            
+
             if (!banner) {
                 banner = document.createElement('div');
                 banner.id = containerId;
@@ -1584,25 +1584,25 @@ export function initPlayerControls() {
                 banner.style.minWidth = '300px';
                 banner.style.maxWidth = '500px';
                 banner.style.margin = '0';
-                
+
                 document.body.appendChild(banner);
             }
-            
+
             // Clear and set content
             banner.innerHTML = '';
-            
+
             const contentDiv = document.createElement('div');
             contentDiv.className = 'd-flex align-items-center justify-content-between';
-            
+
             const messageEl = document.createElement('span');
             messageEl.textContent = message;
             messageEl.style.flex = '1';
             messageEl.style.marginRight = '1rem';
             contentDiv.appendChild(messageEl);
-            
+
             const actionsEl = document.createElement('div');
             actionsEl.className = 'd-flex gap-2';
-            
+
             if (isTerminal && onSkip) {
                 const skipBtn = document.createElement('button');
                 skipBtn.className = 'btn btn-sm btn-light';
@@ -1613,7 +1613,7 @@ export function initPlayerControls() {
                 };
                 actionsEl.appendChild(skipBtn);
             }
-            
+
             const closeBtn = document.createElement('button');
             closeBtn.type = 'button';
             closeBtn.className = 'btn-close';
@@ -1621,10 +1621,10 @@ export function initPlayerControls() {
             closeBtn.setAttribute('aria-label', 'Close');
             closeBtn.onclick = () => banner.remove();
             actionsEl.appendChild(closeBtn);
-            
+
             contentDiv.appendChild(actionsEl);
             banner.appendChild(contentDiv);
-            
+
             // Auto-hide for non-terminal errors
             if (!isTerminal) {
                 setTimeout(() => {
@@ -1640,7 +1640,7 @@ export function initPlayerControls() {
         let errorRetryCount = 0;
         let hasShownTerminalErrorToast = false;  // Track if terminal error toast shown
         const MAX_RETRIES = 2;
-        
+
         player?.addEventListener('error', (e) => {
             const error = player?.error;
             if (!error) return;
@@ -1649,7 +1649,7 @@ export function initPlayerControls() {
             const trackInfo = currentIndex >= 0 && trackItems[currentIndex]
                 ? trackItems[currentIndex].dataset.title
                 : 'Unknown track';
-            
+
             console.error('🚫 Playback error:', {
                 code: error.code,
                 message: error.message,
@@ -1657,10 +1657,10 @@ export function initPlayerControls() {
                 track: trackInfo,
                 trackIndex: currentIndex
             });
-            
+
             // Save state before handling error
             savePlaybackState();
-            
+
             if (errorRetryCount < MAX_RETRIES) {
                 errorRetryCount++;
                 console.log(`🔄 Retrying playback (attempt ${errorRetryCount}/${MAX_RETRIES})...`);
@@ -1705,23 +1705,23 @@ export function initPlayerControls() {
                 );
             }
         });
-        
+
         // Handle stalled playback
         player?.addEventListener('stalled', () => {
             console.warn('⚠️ Playback stalled, attempting to recover...');
             savePlaybackState();
         });
-        
+
         // Handle waiting/buffering
         player?.addEventListener('waiting', () => {
             console.log('⏳ Buffering...');
         });
-        
+
         // Handle successful play resume after buffering
         player?.addEventListener('playing', () => {
             console.log('▶️ Playback resumed');
             errorRetryCount = 0; // Reset error count on successful playback
-            hasShownTerminalAlert = false;  // Reset alert flag on successful playback
+            hasShownTerminalErrorToast = false;  // Reset alert flag on successful playback
         });
 
         player?.addEventListener('ended', () => {
@@ -1729,14 +1729,14 @@ export function initPlayerControls() {
             const trackElement = trackItems[currentIndex];
             const trackTitle = trackElement?.dataset.title || 'Unknown';
             console.log('✅ Track ended:', trackTitle);
-            
+
             if (!checkCastingState()) {
                 // Save that we completed this track
                 savePlaybackState();
-                
+
                 // Get next track based on shuffle and repeat state
                 const nextIndex = getNextTrackWithRepeat(currentIndex);
-                
+
                 if (nextIndex >= 0 && nextIndex < trackItems.length) {
                     const shuffleMode = isShuffled ? '🔀 shuffle' : '▶️ sequential';
                     const repeatInfo = repeatMode !== 'off' ? ` (repeat: ${repeatMode})` : '';
@@ -1759,13 +1759,13 @@ export function initPlayerControls() {
         player?.addEventListener('play', () => {
             startAutoSave();
         });
-        
+
         // Stop auto-saving when paused
         player?.addEventListener('pause', () => {
             savePlaybackState(); // Save immediately on pause
             stopAutoSave();
         });
-        
+
         const handlePositionUpdate = onlyWhenNotCasting(updatePositionState);
         player?.addEventListener('loadedmetadata', handlePositionUpdate);
         player?.addEventListener('play', handlePositionUpdate);
@@ -1861,10 +1861,10 @@ export function initPlayerControls() {
         // Update currentIndex to the saved track
         currentIndex = savedState.track;
         window.currentTrackIndex = savedState.track;  // Keep window property in sync
-        
+
         // Apply UI state using helper
         applyRestoredUIState(savedState);
-        
+
         // Attach seek handler using helper
         attachRestoredSeekOnFirstPlay(savedState);
     } else {
