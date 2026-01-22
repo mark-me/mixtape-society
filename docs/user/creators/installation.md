@@ -471,6 +471,6 @@ Before upgrading to a new version:
 
 ## 📚 Related Documentation
 
-- **[Local Development with Docker](../../development/docker-dev.md)**: For developers building and testing images
+- **[Local Development with Docker](../../development/deployment.md)**: For developers building and testing images
 - **[Configuration Reference](../../development/configuration.md)**: Detailed explanation of all configuration options
 - **[Installation Overview](installation.md)**: Alternative installation methods (non-Docker)

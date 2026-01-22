@@ -105,7 +105,7 @@ In Docker, data is stored in volumes:
 - Your original music files (read-only)
 - Not modified by Mixtape Society
 
-[Volume layout details →](installation.md#volume-layout-explained)
+[Volume layout details →](installation.md#data-storage)
 
 ---
 
@@ -190,19 +190,19 @@ New files won't appear until you resync your library.
 
 ### How do I add album art?
 
-**Method 1: Embed in files** (recommended)
+#### Method 1: Embed in files (recommended)
 
 - Use a music tagger (Mp3tag, MusicBrainz Picard)
 - Embed cover art directly in audio files
 - Resync library
 
-**Method 2: Folder.jpg**
+#### Method 2: Folder.jpg
 
 - Place `folder.jpg` or `cover.jpg` in album folder
 - Some taggers do this automatically
 - Resync library
 
-**Method 3: Custom mixtape covers**
+#### Method 3: Custom mixtape covers
 
 - Upload when creating mixtape
 - Overrides album art
@@ -301,7 +301,7 @@ Use the track reference syntax:
 
 **Example liner notes:**
 
-```
+```text
 This mixtape starts with #1, which reminds me of our road trip.
 Tracks #3-5 are for when you need motivation.
 And #12 is your favorite - had to include it!
@@ -441,7 +441,7 @@ Gift links are the same URL as direct links, but displayed differently in your s
 **Recommended:** Use a reverse proxy (Traefik, Nginx, Caddy)
 
 **Example with Traefik:**
-[See installation guide →](installation.md#running-behind-a-reverse-proxy-https-domain)
+[See installation guide →](installation.md#running-behind-a-reverse-proxy)
 
 **Not recommended:**
 
@@ -668,7 +668,7 @@ docker compose up -d
 
 **Recommended structure:**
 
-```
+```bash
 /music/
   ├── Artist Name/
   │   ├── Album Name/

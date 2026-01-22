@@ -26,7 +26,7 @@ If you're thinking of tackling something substantial (new feature, big refactor)
 
 ### Using Docker (Recommended)
 
-See [Docker Development guide](../development/docker-dev.md) for full instructions.
+See [Docker Development guide](../development/deployment.md) for full instructions.
 
 ### Local Development
 
@@ -41,7 +41,7 @@ uv run python app.py
 
 First run will index your music library.
 
-See [Local Development guide](../development/docker-dev.md) for more details.
+See [Local Development guide](../development/deployment.md) for more details.
 
 ## 🎨 Code Style
 
