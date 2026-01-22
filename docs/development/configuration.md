@@ -109,7 +109,7 @@ else:
 
 ## 🐳 Docker Integration
 
-For more information look at the [Docker Deployment](docker-dev.md) documentation.
+For more information look at the [Docker Deployment](deployment.md) documentation.
 
 ## 🖼️ Typical Scenarios (what you’ll see on disk)
 

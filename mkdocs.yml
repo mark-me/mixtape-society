@@ -95,8 +95,8 @@ nav:
           - Range Requests: development/routes/play/range-requests.md
           - Quality Caching: development/routes/play/quality-caching.md
           - Player Modules:
-            - Player Controls: development/player/playerControls.md
-            - Player Utilities: development/player/playerUtils.md
+            - Player Controls: development/routes/play/modules/playerControls.md
+            - Player Utilities: development/routes/play/modules/playerUtils.md
         - Cover Art: development/routes/covers.md
         - Authentication: development/routes/authentication.md
         - OpenGraph: development/routes/opengraph_images.md

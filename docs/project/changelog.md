@@ -8,14 +8,18 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 ## 📦 v0.7.1
 
-<span class="md-tag">Development</span>
+<span class="md-tag">Release</span>
 
-**🗓️** 2026-01-21
+**🗓️** 2026-01-22
 
 ### ✨ Added
 
 - Shuffle option for receiver
 - Repeat mode (off/all/one)
+
+### 🗑️ Removed
+
+- Onboarding tooltips (too little under control to be useful)
 
 ---
 

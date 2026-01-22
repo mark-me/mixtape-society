@@ -596,7 +596,7 @@ navigator.mediaSession.setActionHandler('seekto', (details) => {
   - Network-based playback
   - Different use case
 
-- **[Player Controls](../player/playerControls.md)**
+- **[Player Controls](../routes/play/modules/playerControls.md)**
   - UI control coordination
   - State management
 

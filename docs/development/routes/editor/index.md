@@ -188,34 +188,25 @@ sequenceDiagram
 
 ### Main Components
 
-```
-┌─────────────────────────────────────────────────────────┐
-│ Header: "Create Mixtape" or "Edit: Title"              │
-├─────────────────────────────────────────────────────────┤
-│ Search Bar: [🔍 Search library...] [ℹ️] [⟳]           │
-├─────────────────────────────────────────────────────────┤
-│                                                         │
-│  ┌──────────────────┐  ┌──────────────────────────┐   │
-│  │ Library Results  │  │ My Mixtape               │   │
-│  │                  │  │                          │   │
-│  │ • Artists        │  │ [Cover Image]            │   │
-│  │ • Albums         │  │                          │   │
-│  │ • Tracks         │  │ Title: [____________]    │   │
-│  │                  │  │                          │   │
-│  │ [Add buttons]    │  │ Tabs: [Tracks|Notes]    │   │
-│  │                  │  │                          │   │
-│  │ [Load more...]   │  │ 1. Track one             │   │
-│  │                  │  │ 2. Track two             │   │
-│  │                  │  │ 3. Track three           │   │
-│  │                  │  │                          │   │
-│  └──────────────────┘  │ [Clear Playlist]         │   │
-│                        └──────────────────────────┘   │
-│                                                         │
-├─────────────────────────────────────────────────────────┤
-│ Bottom Player: [▶️ Now Playing: Track • Artist]        │
-└─────────────────────────────────────────────────────────┘
-│ Floating: [💾 Save] [🎵 Tracks]  (mobile only)        │
-└─────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    App["Mixtape Editor Screen"]
+
+    Header["Header\nCreate Mixtape / Edit: Title"]
+    Search["Search Bar\n🔍 Search library… | ℹ️ | ⟳"]
+
+    Content["Main Content"]
+
+    Library["Library Results\n• Artists\n• Albums\n• Tracks\n[Add]\n[Load more…]"]
+    Mixtape["My Mixtape\n[Cover]\nTitle\nTabs: Tracks | Notes\n1. Track one\n2. Track two\n3. Track three\n[Clear Playlist]"]
+
+    Player["Bottom Player\n▶️ Now Playing: Track • Artist"]
+    Floating["Floating Actions (Mobile)\n💾 Save | 🎵 Tracks"]
+
+    App --> Header --> Search --> Content --> Player
+    Content --> Library
+    Content --> Mixtape
+    App -.-> Floating
 ```
 
 ### Modals
@@ -429,7 +420,7 @@ window.addEventListener('search:results', (e) => {
 
 ### Frontend
 
-- **[Player Controls](../../player/playerControls.md)** - Preview playback
+- **[Player Controls](../play/modules/playerControls.md)** - Preview playback
 - **[PWA Features](../../pwa/pwa.md)** - Progressive web app
 
 ---
