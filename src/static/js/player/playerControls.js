@@ -43,6 +43,35 @@ const QUALITY_LEVELS = {
 
 const DEFAULT_QUALITY = 'medium';
 
+/**
+ * Repeat mode settings
+ */
+const REPEAT_MODES = {
+    OFF: 'off',
+    ALL: 'all',
+    ONE: 'one'
+};
+
+const REPEAT_MODE_LABELS = {
+    [REPEAT_MODES.OFF]: 'Off',
+    [REPEAT_MODES.ALL]: 'All',
+    [REPEAT_MODES.ONE]: 'One'
+};
+
+const REPEAT_MODE_ICONS = {
+    [REPEAT_MODES.OFF]: 'bi-repeat',
+    [REPEAT_MODES.ALL]: 'bi-repeat',
+    [REPEAT_MODES.ONE]: 'bi-repeat-1'
+};
+
+const REPEAT_MODE_STYLES = {
+    [REPEAT_MODES.OFF]: 'btn-outline-light',
+    [REPEAT_MODES.ALL]: 'btn-light',
+    [REPEAT_MODES.ONE]: 'btn-info'
+};
+
+const DEFAULT_REPEAT_MODE = REPEAT_MODES.OFF;
+
 // Global flag to prevent duplicate iOS help setup
 let iOSHelpInitialized = false;
 
@@ -115,6 +144,7 @@ export function initPlayerControls() {
     const STORAGE_KEY_TRACK = 'mixtape_current_track';
     const STORAGE_KEY_TIME = 'mixtape_current_time';
     const STORAGE_KEY_SHUFFLE = 'mixtape_shuffle_state';
+    const STORAGE_KEY_REPEAT = 'mixtape_repeat_mode';
     const AUTO_SAVE_INTERVAL = 5000; // Save position every 5 seconds
     let autoSaveTimer = null;
     let isCurrentlyCasting = false;
@@ -122,6 +152,9 @@ export function initPlayerControls() {
     // Shuffle state
     let isShuffled = false;
     let shuffleOrder = [];
+
+    // Repeat state
+    let repeatMode = DEFAULT_REPEAT_MODE;
 
     // Log device capabilities
     logDeviceInfo();
@@ -497,6 +530,131 @@ export function initPlayerControls() {
     };
 
     // =============================================================================
+    // REPEAT MODE FUNCTIONS
+    // =============================================================================
+
+    /**
+     * Cycle through repeat modes: off → all → one → off
+     */
+    const cycleRepeatMode = () => {
+        const modes = Object.values(REPEAT_MODES);
+        const currentIndex = modes.indexOf(repeatMode);
+        const nextIndex = (currentIndex + 1) % modes.length;
+        repeatMode = modes[nextIndex];
+        
+        // Save to storage
+        try {
+            localStorage.setItem(STORAGE_KEY_REPEAT, repeatMode);
+        } catch (e) {
+            console.warn('Failed to save repeat mode:', e.message);
+        }
+        
+        // Update button UI
+        updateRepeatButton();
+        
+        console.log(`🔁 Repeat: ${REPEAT_MODE_LABELS[repeatMode]}`);
+    };
+
+    /**
+     * Update repeat button appearance based on current mode
+     */
+    const updateRepeatButton = () => {
+        const repeatBtn = document.getElementById('repeat-btn-bottom');
+        if (!repeatBtn) return;
+        
+        // Remove all mode classes
+        Object.values(REPEAT_MODE_STYLES).forEach(cls => {
+            repeatBtn.classList.remove(cls);
+        });
+        
+        // Add appropriate style class
+        const styleClass = REPEAT_MODE_STYLES[repeatMode] || REPEAT_MODE_STYLES[REPEAT_MODES.OFF];
+        repeatBtn.classList.add(styleClass);
+        
+        // Set icon using safe DOM manipulation
+        const iconClass = REPEAT_MODE_ICONS[repeatMode] || REPEAT_MODE_ICONS[REPEAT_MODES.OFF];
+        
+        // Clear existing content safely
+        repeatBtn.textContent = '';
+        
+        // Create and append icon element
+        const icon = document.createElement('i');
+        icon.className = iconClass;
+        repeatBtn.appendChild(icon);
+        
+        // Set title
+        const label = REPEAT_MODE_LABELS[repeatMode] || REPEAT_MODE_LABELS[REPEAT_MODES.OFF];
+        repeatBtn.title = `Repeat: ${label}`;
+    };
+
+    /**
+     * Validate if a value is a valid repeat mode
+     */
+    const isValidRepeatMode = (mode) => {
+        return Object.values(REPEAT_MODES).includes(mode);
+    };
+
+    /**
+     * Restore repeat mode from localStorage
+     */
+    const restoreRepeatMode = () => {
+        try {
+            const stored = localStorage.getItem(STORAGE_KEY_REPEAT);
+            if (stored && isValidRepeatMode(stored)) {
+                repeatMode = stored;
+                updateRepeatButton();
+                console.log(`🔁 Restored repeat mode: ${REPEAT_MODE_LABELS[repeatMode]}`);
+                return true;
+            }
+        } catch (e) {
+            console.warn('Failed to restore repeat mode:', e.message);
+        }
+        return false;
+    };
+
+    /**
+     * Get next track index considering repeat mode
+     * Handles edge cases: invalid currentIndex, empty playlist, etc.
+     * 
+     * @param {number} currentIndex - Current track index
+     * @returns {number} Next track index, or -1 if no next track
+     */
+    const getNextTrackWithRepeat = (currentIndex) => {
+        // Defensive: Validate playlist has tracks
+        if (trackItems.length === 0) {
+            console.warn('⚠️ No tracks available');
+            return -1;
+        }
+        
+        // Defensive: Handle invalid currentIndex
+        // Treat out-of-bounds or negative as "start from beginning"
+        if (currentIndex < 0 || currentIndex >= trackItems.length) {
+            console.warn(`⚠️ Invalid currentIndex: ${currentIndex}, defaulting to 0`);
+            currentIndex = 0;
+        }
+        
+        // Repeat One: Return same track (validated)
+        if (repeatMode === REPEAT_MODES.ONE) {
+            return currentIndex;
+        }
+        
+        // Get next track based on shuffle
+        let nextIndex = getNextTrackIndex(currentIndex);
+        
+        // Repeat All: Loop back to start if we've reached the end
+        if (nextIndex === -1 && repeatMode === REPEAT_MODES.ALL) {
+            // Loop back to start (respecting shuffle if enabled)
+            if (isShuffled && shuffleOrder.length > 0) {
+                return shuffleOrder[0];
+            } else {
+                return 0;
+            }
+        }
+        
+        return nextIndex;
+    };
+
+    // =============================================================================
     // END HELPER FUNCTIONS
     // =============================================================================
 
@@ -590,7 +748,17 @@ export function initPlayerControls() {
         if (!qualityBtn) return;
 
         const qualityLabel = QUALITY_LEVELS[currentQuality]?.label || 'Medium';
-        qualityBtn.innerHTML = `<i class="bi bi-gear-fill me-1"></i>${qualityLabel}`;
+        
+        // Clear existing content safely
+        qualityBtn.textContent = '';
+        
+        // Create and append icon
+        const icon = document.createElement('i');
+        icon.className = 'bi bi-gear-fill me-1';
+        qualityBtn.appendChild(icon);
+        
+        // Append text node for quality label
+        qualityBtn.appendChild(document.createTextNode(qualityLabel));
     }
 
     const updateQualityMenuState = (quality) => {
@@ -1068,12 +1236,13 @@ export function initPlayerControls() {
                 // Save that we completed this track
                 savePlaybackState();
                 
-                // Get next track based on shuffle state
-                const nextIndex = getNextTrackIndex(currentIndex);
+                // Get next track based on shuffle and repeat state
+                const nextIndex = getNextTrackWithRepeat(currentIndex);
                 
                 if (nextIndex >= 0 && nextIndex < trackItems.length) {
-                    const mode = isShuffled ? '🔀 shuffle' : '▶️ sequential';
-                    console.log(`🎵 Auto-advancing to next track (${mode})`);
+                    const shuffleMode = isShuffled ? '🔀 shuffle' : '▶️ sequential';
+                    const repeatInfo = repeatMode !== 'off' ? ` (repeat: ${repeatMode})` : '';
+                    console.log(`🎵 Auto-advancing to next track (${shuffleMode}${repeatInfo})`);
                     playTrack(nextIndex);
                 } else {
                     console.log('🏁 Reached end of playlist');
@@ -1145,6 +1314,10 @@ export function initPlayerControls() {
         const shuffleBtn = document.getElementById('shuffle-btn-bottom');
         shuffleBtn?.addEventListener('click', toggleShuffle);
 
+        // Repeat button
+        const repeatBtn = document.getElementById('repeat-btn-bottom');
+        repeatBtn?.addEventListener('click', cycleRepeatMode);
+
         closeBtn?.addEventListener('click', stopPlayback);
 
         trackItems.forEach((item, i) => {
@@ -1182,8 +1355,9 @@ export function initPlayerControls() {
     initCastListeners();
     initEventListeners();
 
-    // Restore shuffle state FIRST (before playback restoration)
+    // Restore shuffle and repeat state FIRST (before playback restoration)
     restoreShuffleState();
+    restoreRepeatMode();
 
     // Restore playback position if available (BEFORE handleAutoStart)
     const savedState = restorePlaybackState();
