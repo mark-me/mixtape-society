@@ -571,9 +571,16 @@ export function initPlayerControls() {
         const styleClass = REPEAT_MODE_STYLES[repeatMode] || REPEAT_MODE_STYLES[REPEAT_MODES.OFF];
         repeatBtn.classList.add(styleClass);
         
-        // Set icon
+        // Set icon using safe DOM manipulation
         const iconClass = REPEAT_MODE_ICONS[repeatMode] || REPEAT_MODE_ICONS[REPEAT_MODES.OFF];
-        repeatBtn.innerHTML = `<i class="${iconClass}"></i>`;
+        
+        // Clear existing content safely
+        repeatBtn.textContent = '';
+        
+        // Create and append icon element
+        const icon = document.createElement('i');
+        icon.className = iconClass;
+        repeatBtn.appendChild(icon);
         
         // Set title
         const label = REPEAT_MODE_LABELS[repeatMode] || REPEAT_MODE_LABELS[REPEAT_MODES.OFF];
@@ -741,7 +748,17 @@ export function initPlayerControls() {
         if (!qualityBtn) return;
 
         const qualityLabel = QUALITY_LEVELS[currentQuality]?.label || 'Medium';
-        qualityBtn.innerHTML = `<i class="bi bi-gear-fill me-1"></i>${qualityLabel}`;
+        
+        // Clear existing content safely
+        qualityBtn.textContent = '';
+        
+        // Create and append icon
+        const icon = document.createElement('i');
+        icon.className = 'bi bi-gear-fill me-1';
+        qualityBtn.appendChild(icon);
+        
+        // Append text node for quality label
+        qualityBtn.appendChild(document.createTextNode(qualityLabel));
     }
 
     const updateQualityMenuState = (quality) => {
