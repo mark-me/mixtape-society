@@ -17,6 +17,10 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 - Shuffle option for receiver
 - Repeat mode (off/all/one)
 
+### 🗑️ Removed
+
+- Onboarding tooltips (too little under control to be useful)
+
 ---
 
 ## 📦 v0.7.0

@@ -5,7 +5,6 @@ import { initAdaptiveTheming } from './adaptiveTheming.js';
 import { initCassettePlayer } from './cassettePlayer.js';
 import { initQRShare } from '../common/qrShare.js';
 import { initChromecast, castMixtapePlaylist, stopCasting } from './chromecast.js';
-import { initOnboarding } from './onboarding.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize adaptive theming first (before other UI elements render)
@@ -32,7 +31,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     initChromecast();
-    initOnboarding();
 
     document.addEventListener('cast:ready', () => {
         const castBtn = document.getElementById('cast-button');
