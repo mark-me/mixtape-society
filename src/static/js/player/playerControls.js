@@ -10,6 +10,9 @@ import {
     castJumpToTrack,
     isCastPlaying,
     setCastControlCallbacks,
+    stopCasting,
+    castSeek,
+    getCastPlayState
 } from './chromecast.js';
 
 import {
