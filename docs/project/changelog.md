@@ -16,6 +16,10 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 - Add confirmation modal when emptying mixtape
 
+### 🔧 Changed
+
+- Centralized toast system for better consistency
+
 ### 🐛 Fixed
 
 - Chromecasting
