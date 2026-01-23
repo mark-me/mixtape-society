@@ -10,6 +10,9 @@ import {
     castJumpToTrack,
     isCastPlaying,
     setCastControlCallbacks,
+    stopCasting,
+    castSeek,
+    getCastPlayState
 } from './chromecast.js';
 
 import {
@@ -237,9 +240,43 @@ export function initPlayerControls() {
                 player.pause();
             }
         },
-        next: () => playTrack(currentIndex + 1),
-        previous: () => playTrack(currentIndex - 1),
-        jumpTo: (index) => playTrack(index)
+        next: () => {
+            // Use proper next track logic (respects shuffle/repeat)
+            const nextIdx = getNextTrackWithRepeat(currentIndex);
+            if (nextIdx >= 0 && nextIdx < trackItems.length) {
+                playTrack(nextIdx);
+            } else {
+                console.log('🚗 No next track available');
+            }
+        },
+        previous: () => {
+            // Use proper previous track logic (respects shuffle/repeat)
+            const prevIdx = getPreviousTrackWithRepeat(currentIndex);
+            if (prevIdx >= 0 && prevIdx < trackItems.length) {
+                playTrack(prevIdx);
+            } else {
+                console.log('🚗 No previous track available');
+            }
+        },
+        jumpTo: (index) => {
+            if (index >= 0 && index < trackItems.length) {
+                playTrack(index);
+            }
+        },
+        seek: (time) => {
+            // Guard against invalid player or time
+            if (!player || !Number.isFinite(time) || time < 0) {
+                return;
+            }
+            
+            // Guard against seeking beyond duration (only if duration is finite)
+            // Some streaming sources have NaN/Infinity duration
+            if (Number.isFinite(player.duration) && time > player.duration) {
+                return;
+            }
+            
+            player.currentTime = time;
+        }
     };
 
     const checkCastingState = () => {
@@ -1010,13 +1047,21 @@ export function initPlayerControls() {
             return;
         }
 
-        // Use Android Auto optimized Media Session if connected to car
-        if (isAndroidAutoConnected()) {
-            console.log('ðŸš— Using Android Auto Media Session');
+        // Use Android Auto optimized Media Session for ALL Android devices
+        // Android Auto will automatically pick it up if connected to car
+        // This also improves notification controls for regular Android usage
+        const androidInfo = detectAndroid();
+        
+        if (androidInfo) {
+            console.log('Using Android-optimized Media Session (works with Android Auto)');
             setupAndroidAutoMediaSession(metadata, playerControlsAPI, player);
+        } else if (detectiOS()) {
+            // iOS Media Session
+            console.log('Using iOS Media Session');
+            setupLocalMediaSession(metadata, playerControlsAPI);
         } else {
-            // Standard Media Session for iOS/desktop
-            console.log('ðŸ“± Using standard Media Session');
+            // Desktop/other Media Session
+            console.log('Using desktop Media Session');
             setupLocalMediaSession(metadata, playerControlsAPI);
         }
     }
