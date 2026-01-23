@@ -174,7 +174,7 @@ export function initUI() {
         };
 
         isSaving = true;
-        saveText.textContent = "Savingâ€¦";
+        saveText.textContent = "Saving...";
         saveBtn.disabled = true;
 
         try {
