@@ -101,6 +101,7 @@ nav:
         - Authentication: development/routes/authentication.md
         - OpenGraph: development/routes/opengraph_images.md
         - QR Codes: development/routes/qr_codes.md
+        - Toast system: development/routes/toast_system.md
   - Project:
     - Overview: project/index.md
     - Changelog: project/changelog.md

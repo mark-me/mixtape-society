@@ -84,11 +84,7 @@ Mixtape Society is a private, self‑hosted web app to create and share beautifu
 - **No accounts needed** – Recipients stream directly in browser
 - **Permanent or temporary** – Links persist until you delete them
 
-<<<<<<< HEAD
-### 🎶👂 For Mixtape Listeners
-=======
 ### 🎁 For Mixtape Receivers
->>>>>>> origin/master
 
 - **No login required** – Just click and play
 - **Full media controls** – Play, pause, seek, skip

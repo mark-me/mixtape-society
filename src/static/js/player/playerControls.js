@@ -10,6 +10,9 @@ import {
     castJumpToTrack,
     isCastPlaying,
     setCastControlCallbacks,
+    stopCasting,
+    castSeek,
+    getCastPlayState
 } from './chromecast.js';
 
 import {
@@ -30,6 +33,11 @@ import {
     logAndroidAutoStatus,
     isAndroidAutoConnected
 } from './androidAuto.js';
+
+import {
+    showPlaybackErrorToast,
+    showSuccessToast
+} from '../common/toastSystem.js';
 
 /**
  * Quality settings for audio playback
@@ -237,9 +245,43 @@ export function initPlayerControls() {
                 player.pause();
             }
         },
-        next: () => playTrack(currentIndex + 1),
-        previous: () => playTrack(currentIndex - 1),
-        jumpTo: (index) => playTrack(index)
+        next: () => {
+            // Use proper next track logic (respects shuffle/repeat)
+            const nextIdx = getNextTrackWithRepeat(currentIndex);
+            if (nextIdx >= 0 && nextIdx < trackItems.length) {
+                playTrack(nextIdx);
+            } else {
+                console.log('🚗 No next track available');
+            }
+        },
+        previous: () => {
+            // Use proper previous track logic (respects shuffle/repeat)
+            const prevIdx = getPreviousTrackWithRepeat(currentIndex);
+            if (prevIdx >= 0 && prevIdx < trackItems.length) {
+                playTrack(prevIdx);
+            } else {
+                console.log('🚗 No previous track available');
+            }
+        },
+        jumpTo: (index) => {
+            if (index >= 0 && index < trackItems.length) {
+                playTrack(index);
+            }
+        },
+        seek: (time) => {
+            // Guard against invalid player or time
+            if (!player || !Number.isFinite(time) || time < 0) {
+                return;
+            }
+            
+            // Guard against seeking beyond duration (only if duration is finite)
+            // Some streaming sources have NaN/Infinity duration
+            if (Number.isFinite(player.duration) && time > player.duration) {
+                return;
+            }
+            
+            player.currentTime = time;
+        }
     };
 
     const checkCastingState = () => {
@@ -989,19 +1031,12 @@ export function initPlayerControls() {
     }
 
     const showQualityToast = (quality) => {
-        const toastEl = document.getElementById('qualityToast');
-        if (!toastEl) return;
-
-        const toastBody = toastEl.querySelector('.toast-body');
         const qualityInfo = QUALITY_LEVELS[quality];
-
-        if (toastBody && qualityInfo) {
-            toastBody.textContent = `Quality changed to ${qualityInfo.label}`;
+        if (qualityInfo) {
+            showSuccessToast(`Quality changed to ${qualityInfo.label}`);
         }
-
-        const toast = new bootstrap.Toast(toastEl, { delay: 2000 });
-        toast.show();
     }
+
 
     const updateLocalMediaSession = (metadata) => {
         if (checkCastingState()) {
@@ -1010,13 +1045,21 @@ export function initPlayerControls() {
             return;
         }
 
-        // Use Android Auto optimized Media Session if connected to car
-        if (isAndroidAutoConnected()) {
-            console.log('ðŸš— Using Android Auto Media Session');
+        // Use Android Auto optimized Media Session for ALL Android devices
+        // Android Auto will automatically pick it up if connected to car
+        // This also improves notification controls for regular Android usage
+        const androidInfo = detectAndroid();
+        
+        if (androidInfo) {
+            console.log('Using Android-optimized Media Session (works with Android Auto)');
             setupAndroidAutoMediaSession(metadata, playerControlsAPI, player);
+        } else if (detectiOS()) {
+            // iOS Media Session
+            console.log('Using iOS Media Session');
+            setupLocalMediaSession(metadata, playerControlsAPI);
         } else {
-            // Standard Media Session for iOS/desktop
-            console.log('ðŸ“± Using standard Media Session');
+            // Desktop/other Media Session
+            console.log('Using desktop Media Session');
             setupLocalMediaSession(metadata, playerControlsAPI);
         }
     }
@@ -1396,114 +1439,6 @@ export function initPlayerControls() {
                 prefetchNextTrack(currentIndex);
             }
         }));
-
-        /**
-         * Show a non-blocking playback error toast with optional skip action
-         * Provides better UX than blocking alert dialogs
-         * 
-         * @param {string} message - Error message to display
-         * @param {Object} options - Configuration options
-         * @param {boolean} options.isTerminal - Whether this is a terminal error
-         * @param {Function} options.onSkip - Handler for skip action
-         */
-        const showPlaybackErrorToast = (message, { isTerminal = false, onSkip } = {}) => {
-            const toastEl = document.getElementById('qualityToast');
-            
-            if (toastEl) {
-                // Reuse existing Bootstrap toast
-                const toastBody = toastEl.querySelector('.toast-body');
-                if (toastBody) {
-                    // Clear existing content
-                    toastBody.textContent = '';
-                    
-                    // Add message
-                    const messageSpan = document.createElement('span');
-                    messageSpan.textContent = message;
-                    messageSpan.style.display = 'block';
-                    messageSpan.style.marginBottom = onSkip ? '0.5rem' : '0';
-                    toastBody.appendChild(messageSpan);
-                    
-                    // Add skip button if terminal error
-                    if (isTerminal && onSkip) {
-                        const skipBtn = document.createElement('button');
-                        skipBtn.className = 'btn btn-sm btn-light me-2';
-                        skipBtn.textContent = 'Skip Track';
-                        skipBtn.onclick = () => {
-                            onSkip();
-                            const toast = bootstrap.Toast.getInstance(toastEl);
-                            if (toast) toast.hide();
-                        };
-                        toastBody.appendChild(skipBtn);
-                    }
-                    
-                    // Show toast with appropriate duration
-                    const toast = new bootstrap.Toast(toastEl, { 
-                        delay: isTerminal ? 8000 : 5000 
-                    });
-                    toast.show();
-                    return;
-                }
-            }
-            
-            // Fallback: Create minimal inline banner
-            const containerId = 'player-error-banner';
-            let banner = document.getElementById(containerId);
-            
-            if (!banner) {
-                banner = document.createElement('div');
-                banner.id = containerId;
-                banner.className = 'alert alert-danger d-flex align-items-center justify-content-between';
-                banner.style.position = 'fixed';
-                banner.style.bottom = '80px';
-                banner.style.left = '50%';
-                banner.style.transform = 'translateX(-50%)';
-                banner.style.zIndex = '1060';
-                banner.style.minWidth = '300px';
-                banner.style.maxWidth = '500px';
-                banner.style.margin = '0';
-                
-                document.body.appendChild(banner);
-            }
-            
-            // Clear and set content
-            banner.innerHTML = '';
-            
-            const messageEl = document.createElement('span');
-            messageEl.textContent = message;
-            messageEl.style.flex = '1';
-            banner.appendChild(messageEl);
-            
-            const actionsEl = document.createElement('div');
-            actionsEl.className = 'd-flex gap-2';
-            
-            if (isTerminal && onSkip) {
-                const skipBtn = document.createElement('button');
-                skipBtn.className = 'btn btn-sm btn-light';
-                skipBtn.textContent = 'Skip';
-                skipBtn.onclick = () => {
-                    onSkip();
-                    banner.remove();
-                };
-                actionsEl.appendChild(skipBtn);
-            }
-            
-            const closeBtn = document.createElement('button');
-            closeBtn.className = 'btn-close btn-close-white';
-            closeBtn.setAttribute('aria-label', 'Close');
-            closeBtn.onclick = () => banner.remove();
-            actionsEl.appendChild(closeBtn);
-            
-            banner.appendChild(actionsEl);
-            
-            // Auto-hide for non-terminal errors
-            if (!isTerminal) {
-                setTimeout(() => {
-                    if (banner && banner.parentElement) {
-                        banner.remove();
-                    }
-                }, 5000);
-            }
-        };
 
         // Handle playback errors with retry logic
         let errorRetryCount = 0;

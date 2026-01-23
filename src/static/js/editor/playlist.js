@@ -1,5 +1,5 @@
 // static/js/editor/playlist.js
-import { escapeHtml } from "./utils.js";
+import { escapeHtml, showConfirm } from "./utils.js";
 
 const { Sortable } = window;
 
@@ -94,10 +94,21 @@ export function addToPlaylist(item) {
  */
 function attachPlaylistEvents() {
     document.getElementById("clear-playlist")
-        .addEventListener("click", () => {
-            playlist.length = 0;
-            renderPlaylist();
-            unsavedCallback();
+        .addEventListener("click", async () => {
+            if (playlist.length === 0) return;
+
+            const confirmed = await showConfirm({
+                title: "Empty Mixtape",
+                message: `Are you sure you want to remove all ${playlist.length} track${playlist.length !== 1 ? 's' : ''} from this mixtape?`,
+                confirmText: "Empty Mixtape",
+                cancelText: "Cancel"
+            });
+
+            if (confirmed) {
+                playlist.length = 0;
+                renderPlaylist();
+                unsavedCallback();
+            }
         });
 
     // Sortable.js integration
