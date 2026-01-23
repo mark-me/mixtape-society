@@ -1,39 +1,98 @@
+// static/js/common/toastSystem.js
+
 /**
- * Toast Queue System - Comprehensive Implementation
+ * Toast Queue System - Centralized Implementation
  * 
- * This is a complete toast notification system with:
+ * A comprehensive toast notification system with:
  * - Queue management (multiple toasts don't replace each other)
  * - Different toast types (success, info, warning, error)
  * - Action buttons support
  * - Auto-hide and manual dismiss
- * - Proper cleanup
+ * - Programmatic control
+ * - Clean animations
  * 
- * INSERT THIS CODE after the prefetch event listener, before the error handler
- * REPLACE both existing showPlaybackErrorToast function definitions
+ * Used across all pages: browser, editor, player, and common utilities
  */
+
+// Toast notification system constants
+const TOAST_TYPES = {
+    SUCCESS: 'success',
+    INFO: 'info',
+    WARNING: 'warning',
+    ERROR: 'error',
+    PWA: 'pwa'  // High-priority PWA system toasts
+};
+
+const TOAST_CONFIG = {
+    [TOAST_TYPES.SUCCESS]: {
+        icon: 'bi-check-circle-fill',
+        bgClass: 'bg-success',
+        textClass: 'text-white',
+        duration: 3000,
+        priority: 1
+    },
+    [TOAST_TYPES.INFO]: {
+        icon: 'bi-info-circle-fill',
+        bgClass: 'bg-info',
+        textClass: 'text-white',
+        duration: 4000,
+        priority: 1
+    },
+    [TOAST_TYPES.WARNING]: {
+        icon: 'bi-exclamation-circle-fill',
+        bgClass: 'bg-warning',
+        textClass: 'text-dark',
+        duration: 5000,
+        priority: 1
+    },
+    [TOAST_TYPES.ERROR]: {
+        icon: 'bi-exclamation-triangle-fill',
+        bgClass: 'bg-danger',
+        textClass: 'text-white',
+        duration: 8000,
+        autohide: false,
+        priority: 2  // Higher than normal toasts
+    },
+    [TOAST_TYPES.PWA]: {
+        icon: 'bi-app-indicator',
+        bgClass: 'bg-primary',
+        textClass: 'text-white',
+        duration: 3000,
+        priority: 10,  // HIGHEST priority - shows immediately
+        zIndex: 9999   // Above everything else
+    }
+};
+
+// Toast queue management
+let toastQueue = [];
+let currentToast = null;
+let toastIdCounter = 0;
 
 /**
  * Show a toast notification with queue support
  * 
  * @param {string} message - Message to display
  * @param {Object} options - Configuration
- * @param {string} options.type - Toast type: 'success', 'info', 'warning', 'error'
+ * @param {string} options.type - Toast type: 'success', 'info', 'warning', 'error', 'pwa'
  * @param {number} options.duration - Duration in ms (default: based on type)
  * @param {boolean} options.autohide - Whether to auto-hide (default: true for non-errors)
  * @param {Array} options.actions - Array of action buttons: [{ label, handler, primary }]
+ * @param {number} options.priority - Priority level (higher = shows first, default: from type config)
  * @returns {Object} Toast control object with dismiss() method
  */
-const showToast = (message, options = {}) => {
+export function showToast(message, options = {}) {
     const {
         type = TOAST_TYPES.INFO,
         duration,
         autohide,
-        actions = []
+        actions = [],
+        priority
     } = options;
 
     const config = TOAST_CONFIG[type] || TOAST_CONFIG[TOAST_TYPES.INFO];
     const toastDuration = duration !== undefined ? duration : config.duration;
     const shouldAutohide = autohide !== undefined ? autohide : (config.autohide !== false);
+    const toastPriority = priority !== undefined ? priority : (config.priority || 1);
 
     const toastId = ++toastIdCounter;
     
@@ -45,12 +104,31 @@ const showToast = (message, options = {}) => {
         duration: toastDuration,
         autohide: shouldAutohide,
         actions,
+        priority: toastPriority,
         element: null,
         timeoutId: null
     };
 
-    // Add to queue
-    toastQueue.push(toastData);
+    // High-priority toasts (PWA, critical errors) interrupt current toast and go to front
+    if (toastPriority >= 10) {
+        // If there's a current toast and it's lower priority, dismiss it
+        if (currentToast && currentToast.priority < toastPriority) {
+            const oldToast = currentToast;
+            currentToast = null;
+            if (oldToast.timeoutId) {
+                clearTimeout(oldToast.timeoutId);
+            }
+            if (oldToast.element) {
+                oldToast.element.remove();
+            }
+        }
+        
+        // Insert at front of queue
+        toastQueue.unshift(toastData);
+    } else {
+        // Normal priority - add to end of queue
+        toastQueue.push(toastData);
+    }
 
     // Process queue if no toast is currently showing
     if (!currentToast) {
@@ -61,12 +139,12 @@ const showToast = (message, options = {}) => {
     return {
         dismiss: () => dismissToast(toastId)
     };
-};
+}
 
 /**
  * Process the toast queue - show next toast
  */
-const processToastQueue = () => {
+function processToastQueue() {
     if (toastQueue.length === 0) {
         currentToast = null;
         return;
@@ -76,12 +154,12 @@ const processToastQueue = () => {
     currentToast = toastData;
 
     displayToast(toastData);
-};
+}
 
 /**
  * Display a single toast
  */
-const displayToast = (toastData) => {
+function displayToast(toastData) {
     const containerId = 'toast-container';
     let container = document.getElementById(containerId);
 
@@ -91,7 +169,7 @@ const displayToast = (toastData) => {
         container.style.position = 'fixed';
         container.style.bottom = '20px';
         container.style.right = '20px';
-        container.style.zIndex = '1060';
+        container.style.zIndex = '1060';  // Default z-index
         container.style.maxWidth = '400px';
         container.style.display = 'flex';
         container.style.flexDirection = 'column';
@@ -99,11 +177,18 @@ const displayToast = (toastData) => {
         document.body.appendChild(container);
     }
 
+    // Update z-index for high-priority toasts (PWA)
+    if (toastData.config.zIndex) {
+        container.style.zIndex = toastData.config.zIndex.toString();
+    } else {
+        container.style.zIndex = '1060';  // Reset to default
+    }
+
     // Create toast element
     const toast = document.createElement('div');
     toast.className = `toast show ${toastData.config.bgClass}`;
     toast.setAttribute('role', 'alert');
-    toast.setAttribute('aria-live', 'assertive');
+    toast.setAttribute('aria-live', toastData.priority >= 10 ? 'assertive' : 'polite');
     toast.setAttribute('aria-atomic', 'true');
     toast.style.minWidth = '300px';
 
@@ -168,12 +253,12 @@ const displayToast = (toastData) => {
             dismissToast(toastData.id);
         }, toastData.duration);
     }
-};
+}
 
 /**
  * Dismiss a toast by ID
  */
-const dismissToast = (toastId) => {
+function dismissToast(toastId) {
     if (currentToast && currentToast.id === toastId) {
         if (currentToast.timeoutId) {
             clearTimeout(currentToast.timeoutId);
@@ -202,32 +287,46 @@ const dismissToast = (toastId) => {
             toastQueue.splice(index, 1);
         }
     }
-};
+}
 
 /**
  * Convenience functions for different toast types
  */
-const showSuccessToast = (message, options = {}) => {
+export function showSuccessToast(message, options = {}) {
     return showToast(message, { ...options, type: TOAST_TYPES.SUCCESS });
-};
+}
 
-const showInfoToast = (message, options = {}) => {
+export function showInfoToast(message, options = {}) {
     return showToast(message, { ...options, type: TOAST_TYPES.INFO });
-};
+}
 
-const showWarningToast = (message, options = {}) => {
+export function showWarningToast(message, options = {}) {
     return showToast(message, { ...options, type: TOAST_TYPES.WARNING });
-};
+}
 
-const showErrorToast = (message, options = {}) => {
+export function showErrorToast(message, options = {}) {
     return showToast(message, { ...options, type: TOAST_TYPES.ERROR });
-};
+}
+
+/**
+ * Show PWA system toast (high priority, appears immediately above all other toasts)
+ * Use for install prompts, update notifications, online/offline status
+ */
+export function showPWAToast(message, options = {}) {
+    return showToast(message, { ...options, type: TOAST_TYPES.PWA });
+}
 
 /**
  * Compatibility wrapper for existing showPlaybackErrorToast calls
  * Maps old API to new toast system
+ * 
+ * @param {string} message - Error message
+ * @param {Object} options
+ * @param {boolean} options.isTerminal - If true, toast won't auto-hide
+ * @param {Function} options.onSkip - Handler for skip button
+ * @returns {Object} Toast control object
  */
-const showPlaybackErrorToast = (message, { isTerminal = false, onSkip } = {}) => {
+export function showPlaybackErrorToast(message, { isTerminal = false, onSkip } = {}) {
     const actions = [];
 
     if (isTerminal && onSkip) {
@@ -242,36 +341,28 @@ const showPlaybackErrorToast = (message, { isTerminal = false, onSkip } = {}) =>
         autohide: !isTerminal,
         actions
     });
-};
+}
 
-/* 
- * USAGE EXAMPLES:
+/**
+ * Legacy compatibility: Simple toast with Bootstrap type names
+ * Maps Bootstrap type names (success, danger, warning, info) to new system
  * 
- * // Simple success toast
- * showSuccessToast('Track added to queue');
- * 
- * // Info toast with custom duration
- * showInfoToast('Buffering track...', { duration: 2000 });
- * 
- * // Warning toast
- * showWarningToast('Slow network detected');
- * 
- * // Error toast with action button
- * showErrorToast('Playback failed', {
- *     autohide: false,
- *     actions: [
- *         { label: 'Retry', handler: () => retry(), primary: true },
- *         { label: 'Skip', handler: () => skip() }
- *     ]
- * });
- * 
- * // Using convenience wrapper (backward compatible)
- * showPlaybackErrorToast('Unable to play track', {
- *     isTerminal: true,
- *     onSkip: () => playNextTrack()
- * });
- * 
- * // Programmatic dismiss
- * const toast = showErrorToast('Critical error');
- * setTimeout(() => toast.dismiss(), 3000);
+ * @param {string} message - Message to display
+ * @param {string} type - Bootstrap type: 'success', 'danger', 'warning', 'info'
+ * @returns {Object} Toast control object
  */
+export function showLegacyToast(message, type = 'success') {
+    // Map Bootstrap types to new system types
+    const typeMap = {
+        'success': TOAST_TYPES.SUCCESS,
+        'danger': TOAST_TYPES.ERROR,
+        'warning': TOAST_TYPES.WARNING,
+        'info': TOAST_TYPES.INFO
+    };
+
+    const mappedType = typeMap[type] || TOAST_TYPES.INFO;
+    return showToast(message, { type: mappedType });
+}
+
+// Export types for consumers
+export { TOAST_TYPES };
