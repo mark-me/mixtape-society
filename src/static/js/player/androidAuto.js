@@ -5,6 +5,9 @@
  * Provides reliable controls and metadata for in-car experience
  */
 
+// Guard flag to prevent duplicate event listener installation
+let eventListenersInstalled = false;
+
 const ANDROID_AUTO_ARTWORK_SIZES = [
     { size: '96x96', type: 'image/jpeg' },    // Required minimum
     { size: '128x128', type: 'image/jpeg' },  // Recommended
@@ -175,6 +178,15 @@ function updatePositionState(audioElement) {
  * Setup audio element event listeners to keep Media Session in sync
  */
 function setupAudioEventListeners(audioElement) {
+    // Only install once to prevent memory leaks
+    if (eventListenersInstalled) {
+        console.log('🚗 Event listeners already installed, skipping');
+        return;
+    }
+    
+    eventListenersInstalled = true;
+    console.log('🚗 Installing Android Auto event listeners');
+    
     // Update playback state
     audioElement.addEventListener('play', () => {
         navigator.mediaSession.playbackState = 'playing';
