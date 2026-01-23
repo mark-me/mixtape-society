@@ -29,22 +29,13 @@ To keep the soul of the project:
 
 ## 📱 Mobile Experience
 
-- Pull-to-refresh on browse page
 - Queue-based background download of tracks
 - Super-light Flutter/Tauri app (webview + native controls)
-- Push notifications for new mixtapes
-- Predictive caching based on listening patterns
-- Differential updates (only changed tracks)
-- Peer-to-peer sharing (WebRTC)
-- Offline playlist editing (IndexedDB)
-- Advanced compression (Opus codec)
-- Smart preloading next track
 
 ## 💬 Sharing & Discovery
 
 - Beautiful public mixtape embed (iframe)
 - Optional short-url service integration
-- Web Share API target
 
 ## 🖼️ Cover Art & Visuals
 
@@ -70,7 +61,6 @@ Image validation improvements:
 
 ## 🎨 Tiny Delights
 
-- Keyboard shortcuts (J/K, space to play/pause)
 - Click album art → enlarge lightbox
 - Sleep timer in player
 - Random mixtape button
