@@ -10,6 +10,7 @@ import {
     showInfoToast,
     showWarningToast,
     showErrorToast,
+    showPWAToast,
     showPlaybackErrorToast,
     showToast,
     TOAST_TYPES
@@ -30,6 +31,9 @@ showWarningToast('Slow connection detected');
 
 // ❌ Error (red, stays visible)
 showErrorToast('Failed to save');
+
+// 📱 PWA (blue, 3s, priority 10, z-index 9999)
+showPWAToast('App installed successfully!');
 ```
 
 ## ⚙️ With Options
@@ -78,6 +82,20 @@ showPlaybackErrorToast('Buffering issue', {
 });
 ```
 
+## 📱 PWA System Toasts
+
+```javascript
+// High-priority PWA events (show immediately, z-index 9999)
+showPWAToast('App installed successfully!');
+showPWAToast('Update available');
+showPWAToast('Back online');
+showPWAToast('You are offline');
+
+// Use for: Install, updates, connectivity changes
+// Priority 10: Interrupts lower-priority toasts
+// Z-index 9999: Appears above modals
+```
+
 ## 🕹️ Programmatic Control
 
 ```javascript
@@ -114,12 +132,13 @@ showLegacyToast('Info', 'info');
 
 ## 🏷️ Toast Types
 
-| Type | Color | Duration | Auto-hide | Icon |
-| ---- | ----- | -------- | --------- | ---- |
-| SUCCESS | Green | 3s | Yes | ✅ Check |
-| INFO | Blue | 4s | Yes | ℹ️ Info |
-| WARNING | Yellow | 5s | Yes | ⚠️ Warning |
-| ERROR | Red | 8s | **No** | ❌ Triangle |
+| Type | Color | Duration | Auto-hide | Priority | Icon |
+| ---- | ----- | -------- | --------- | -------- | ---- |
+| SUCCESS | Green | 3s | Yes | 1 | ✅ Check |
+| INFO | Blue | 4s | Yes | 1 | ℹ️ Info |
+| WARNING | Yellow | 5s | Yes | 1 | ⚠️ Warning |
+| ERROR | Red | 8s | **No** | 2 | ❌ Triangle |
+| PWA | Blue | 3s | Yes | 10 | 📱 App |
 
 ## 📬 Queue Behavior
 

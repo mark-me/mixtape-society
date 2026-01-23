@@ -1,7 +1,7 @@
 // static/js/pwa/pwa-manager.js
 // PWA initialization and offline features management
 
-import { showLegacyToast } from '../common/toastSystem.js';
+import { showLegacyToast, showPWAToast } from '../common/toastSystem.js';
 
 /**
  * PWA Manager - Handles service worker registration, installation prompts,
@@ -469,11 +469,22 @@ class PWAManager {
 
     /**
      * Show toast notification
+     * Uses high-priority PWA toasts for critical events (install, online/offline)
+     * Uses regular toasts for informational messages
      */
     showToast(message, type = 'info') {
-        // Use centralized toast system
-        showLegacyToast(message, type);
+        // Critical PWA events get high-priority PWA toast (shows immediately, z-index 9999)
+        const criticalPWAEvents = ['success', 'warning'];  // Install success, offline warnings
+        
+        if (criticalPWAEvents.includes(type)) {
+            // Use high-priority PWA toast for critical system events
+            showPWAToast(message);
+        } else {
+            // Use regular toast for informational messages
+            showLegacyToast(message, type);
+        }
     }
+
 
 
     /**

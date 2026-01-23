@@ -19,7 +19,8 @@ const TOAST_TYPES = {
     SUCCESS: 'success',
     INFO: 'info',
     WARNING: 'warning',
-    ERROR: 'error'
+    ERROR: 'error',
+    PWA: 'pwa'  // High-priority PWA system toasts
 };
 
 const TOAST_CONFIG = {
@@ -27,26 +28,38 @@ const TOAST_CONFIG = {
         icon: 'bi-check-circle-fill',
         bgClass: 'bg-success',
         textClass: 'text-white',
-        duration: 3000
+        duration: 3000,
+        priority: 1
     },
     [TOAST_TYPES.INFO]: {
         icon: 'bi-info-circle-fill',
         bgClass: 'bg-info',
         textClass: 'text-white',
-        duration: 4000
+        duration: 4000,
+        priority: 1
     },
     [TOAST_TYPES.WARNING]: {
         icon: 'bi-exclamation-circle-fill',
         bgClass: 'bg-warning',
         textClass: 'text-dark',
-        duration: 5000
+        duration: 5000,
+        priority: 1
     },
     [TOAST_TYPES.ERROR]: {
         icon: 'bi-exclamation-triangle-fill',
         bgClass: 'bg-danger',
         textClass: 'text-white',
         duration: 8000,
-        autohide: false
+        autohide: false,
+        priority: 2  // Higher than normal toasts
+    },
+    [TOAST_TYPES.PWA]: {
+        icon: 'bi-app-indicator',
+        bgClass: 'bg-primary',
+        textClass: 'text-white',
+        duration: 3000,
+        priority: 10,  // HIGHEST priority - shows immediately
+        zIndex: 9999   // Above everything else
     }
 };
 
@@ -60,10 +73,11 @@ let toastIdCounter = 0;
  * 
  * @param {string} message - Message to display
  * @param {Object} options - Configuration
- * @param {string} options.type - Toast type: 'success', 'info', 'warning', 'error'
+ * @param {string} options.type - Toast type: 'success', 'info', 'warning', 'error', 'pwa'
  * @param {number} options.duration - Duration in ms (default: based on type)
  * @param {boolean} options.autohide - Whether to auto-hide (default: true for non-errors)
  * @param {Array} options.actions - Array of action buttons: [{ label, handler, primary }]
+ * @param {number} options.priority - Priority level (higher = shows first, default: from type config)
  * @returns {Object} Toast control object with dismiss() method
  */
 export function showToast(message, options = {}) {
@@ -71,12 +85,14 @@ export function showToast(message, options = {}) {
         type = TOAST_TYPES.INFO,
         duration,
         autohide,
-        actions = []
+        actions = [],
+        priority
     } = options;
 
     const config = TOAST_CONFIG[type] || TOAST_CONFIG[TOAST_TYPES.INFO];
     const toastDuration = duration !== undefined ? duration : config.duration;
     const shouldAutohide = autohide !== undefined ? autohide : (config.autohide !== false);
+    const toastPriority = priority !== undefined ? priority : (config.priority || 1);
 
     const toastId = ++toastIdCounter;
     
@@ -88,12 +104,31 @@ export function showToast(message, options = {}) {
         duration: toastDuration,
         autohide: shouldAutohide,
         actions,
+        priority: toastPriority,
         element: null,
         timeoutId: null
     };
 
-    // Add to queue
-    toastQueue.push(toastData);
+    // High-priority toasts (PWA, critical errors) interrupt current toast and go to front
+    if (toastPriority >= 10) {
+        // If there's a current toast and it's lower priority, dismiss it
+        if (currentToast && currentToast.priority < toastPriority) {
+            const oldToast = currentToast;
+            currentToast = null;
+            if (oldToast.timeoutId) {
+                clearTimeout(oldToast.timeoutId);
+            }
+            if (oldToast.element) {
+                oldToast.element.remove();
+            }
+        }
+        
+        // Insert at front of queue
+        toastQueue.unshift(toastData);
+    } else {
+        // Normal priority - add to end of queue
+        toastQueue.push(toastData);
+    }
 
     // Process queue if no toast is currently showing
     if (!currentToast) {
@@ -134,7 +169,7 @@ function displayToast(toastData) {
         container.style.position = 'fixed';
         container.style.bottom = '20px';
         container.style.right = '20px';
-        container.style.zIndex = '1060';
+        container.style.zIndex = '1060';  // Default z-index
         container.style.maxWidth = '400px';
         container.style.display = 'flex';
         container.style.flexDirection = 'column';
@@ -142,11 +177,18 @@ function displayToast(toastData) {
         document.body.appendChild(container);
     }
 
+    // Update z-index for high-priority toasts (PWA)
+    if (toastData.config.zIndex) {
+        container.style.zIndex = toastData.config.zIndex.toString();
+    } else {
+        container.style.zIndex = '1060';  // Reset to default
+    }
+
     // Create toast element
     const toast = document.createElement('div');
     toast.className = `toast show ${toastData.config.bgClass}`;
     toast.setAttribute('role', 'alert');
-    toast.setAttribute('aria-live', 'assertive');
+    toast.setAttribute('aria-live', toastData.priority >= 10 ? 'assertive' : 'polite');
     toast.setAttribute('aria-atomic', 'true');
     toast.style.minWidth = '300px';
 
@@ -264,6 +306,14 @@ export function showWarningToast(message, options = {}) {
 
 export function showErrorToast(message, options = {}) {
     return showToast(message, { ...options, type: TOAST_TYPES.ERROR });
+}
+
+/**
+ * Show PWA system toast (high priority, appears immediately above all other toasts)
+ * Use for install prompts, update notifications, online/offline status
+ */
+export function showPWAToast(message, options = {}) {
+    return showToast(message, { ...options, type: TOAST_TYPES.PWA });
 }
 
 /**
