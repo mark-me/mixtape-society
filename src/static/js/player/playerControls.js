@@ -264,9 +264,18 @@ export function initPlayerControls() {
             }
         },
         seek: (time) => {
-            if (player && Number.isFinite(time) && time >= 0 && time <= player.duration) {
-                player.currentTime = time;
+            // Guard against invalid player or time
+            if (!player || !Number.isFinite(time) || time < 0) {
+                return;
             }
+            
+            // Guard against seeking beyond duration (only if duration is finite)
+            // Some streaming sources have NaN/Infinity duration
+            if (Number.isFinite(player.duration) && time > player.duration) {
+                return;
+            }
+            
+            player.currentTime = time;
         }
     };
 

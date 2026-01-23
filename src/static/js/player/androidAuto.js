@@ -5,8 +5,9 @@
  * Provides reliable controls and metadata for in-car experience
  */
 
-// Guard flag to prevent duplicate event listener installation
-let eventListenersInstalled = false;
+// Track which audio element has listeners attached
+// This prevents duplicates while allowing reattachment to new elements
+let listenersAttachedTo = null;
 
 const ANDROID_AUTO_ARTWORK_SIZES = [
     { size: '96x96', type: 'image/jpeg' },    // Required minimum
@@ -178,13 +179,17 @@ function updatePositionState(audioElement) {
  * Setup audio element event listeners to keep Media Session in sync
  */
 function setupAudioEventListeners(audioElement) {
-    // Only install once to prevent memory leaks
-    if (eventListenersInstalled) {
-        console.log('🚗 Event listeners already installed, skipping');
+    // Check if listeners are already attached to this specific element
+    if (listenersAttachedTo === audioElement) {
+        console.log('🚗 Event listeners already attached to this audio element');
         return;
     }
     
-    eventListenersInstalled = true;
+    // If we had listeners on a different element, we could detach them here
+    // (Not necessary for this use case since we only have one player element)
+    
+    // Mark this element as having listeners
+    listenersAttachedTo = audioElement;
     console.log('🚗 Installing Android Auto event listeners');
     
     // Update playback state
