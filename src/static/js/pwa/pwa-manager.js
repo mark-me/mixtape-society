@@ -1,6 +1,8 @@
 // static/js/pwa/pwa-manager.js
 // PWA initialization and offline features management
 
+import { showLegacyToast } from '../common/toastSystem.js';
+
 /**
  * PWA Manager - Handles service worker registration, installation prompts,
  * and offline functionality controls
@@ -469,48 +471,10 @@ class PWAManager {
      * Show toast notification
      */
     showToast(message, type = 'info') {
-        // Create toast element using DOM methods (XSS-safe)
-        const toastEl = document.createElement('div');
-        toastEl.className = `toast align-items-center text-bg-${type} border-0`;
-        toastEl.setAttribute('role', 'alert');
-
-        const toastFlex = document.createElement('div');
-        toastFlex.className = 'd-flex';
-
-        const toastBody = document.createElement('div');
-        toastBody.className = 'toast-body';
-        toastBody.textContent = message; // Use textContent (XSS-safe)
-
-        const closeButton = document.createElement('button');
-        closeButton.type = 'button';
-        closeButton.className = 'btn-close btn-close-white me-2 m-auto';
-        closeButton.setAttribute('data-bs-dismiss', 'toast');
-
-        toastFlex.appendChild(toastBody);
-        toastFlex.appendChild(closeButton);
-        toastEl.appendChild(toastFlex);
-
-        // Add to toast container
-        let container = document.getElementById('pwa-toast-container');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'pwa-toast-container';
-            container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
-            container.style.zIndex = '9999';
-            document.body.appendChild(container);
-        }
-
-        container.appendChild(toastEl);
-
-        // Show toast
-        const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
-        toast.show();
-
-        // Remove from DOM after hidden
-        toastEl.addEventListener('hidden.bs.toast', () => {
-            toastEl.remove();
-        });
+        // Use centralized toast system
+        showLegacyToast(message, type);
     }
+
 
     /**
      * Format bytes to human readable string

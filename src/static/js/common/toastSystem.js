@@ -1,16 +1,59 @@
+// static/js/common/toastSystem.js
+
 /**
- * Toast Queue System - Comprehensive Implementation
+ * Toast Queue System - Centralized Implementation
  * 
- * This is a complete toast notification system with:
+ * A comprehensive toast notification system with:
  * - Queue management (multiple toasts don't replace each other)
  * - Different toast types (success, info, warning, error)
  * - Action buttons support
  * - Auto-hide and manual dismiss
- * - Proper cleanup
+ * - Programmatic control
+ * - Clean animations
  * 
- * INSERT THIS CODE after the prefetch event listener, before the error handler
- * REPLACE both existing showPlaybackErrorToast function definitions
+ * Used across all pages: browser, editor, player, and common utilities
  */
+
+// Toast notification system constants
+const TOAST_TYPES = {
+    SUCCESS: 'success',
+    INFO: 'info',
+    WARNING: 'warning',
+    ERROR: 'error'
+};
+
+const TOAST_CONFIG = {
+    [TOAST_TYPES.SUCCESS]: {
+        icon: 'bi-check-circle-fill',
+        bgClass: 'bg-success',
+        textClass: 'text-white',
+        duration: 3000
+    },
+    [TOAST_TYPES.INFO]: {
+        icon: 'bi-info-circle-fill',
+        bgClass: 'bg-info',
+        textClass: 'text-white',
+        duration: 4000
+    },
+    [TOAST_TYPES.WARNING]: {
+        icon: 'bi-exclamation-circle-fill',
+        bgClass: 'bg-warning',
+        textClass: 'text-dark',
+        duration: 5000
+    },
+    [TOAST_TYPES.ERROR]: {
+        icon: 'bi-exclamation-triangle-fill',
+        bgClass: 'bg-danger',
+        textClass: 'text-white',
+        duration: 8000,
+        autohide: false
+    }
+};
+
+// Toast queue management
+let toastQueue = [];
+let currentToast = null;
+let toastIdCounter = 0;
 
 /**
  * Show a toast notification with queue support
@@ -23,7 +66,7 @@
  * @param {Array} options.actions - Array of action buttons: [{ label, handler, primary }]
  * @returns {Object} Toast control object with dismiss() method
  */
-const showToast = (message, options = {}) => {
+export function showToast(message, options = {}) {
     const {
         type = TOAST_TYPES.INFO,
         duration,
@@ -61,12 +104,12 @@ const showToast = (message, options = {}) => {
     return {
         dismiss: () => dismissToast(toastId)
     };
-};
+}
 
 /**
  * Process the toast queue - show next toast
  */
-const processToastQueue = () => {
+function processToastQueue() {
     if (toastQueue.length === 0) {
         currentToast = null;
         return;
@@ -76,12 +119,12 @@ const processToastQueue = () => {
     currentToast = toastData;
 
     displayToast(toastData);
-};
+}
 
 /**
  * Display a single toast
  */
-const displayToast = (toastData) => {
+function displayToast(toastData) {
     const containerId = 'toast-container';
     let container = document.getElementById(containerId);
 
@@ -168,12 +211,12 @@ const displayToast = (toastData) => {
             dismissToast(toastData.id);
         }, toastData.duration);
     }
-};
+}
 
 /**
  * Dismiss a toast by ID
  */
-const dismissToast = (toastId) => {
+function dismissToast(toastId) {
     if (currentToast && currentToast.id === toastId) {
         if (currentToast.timeoutId) {
             clearTimeout(currentToast.timeoutId);
@@ -202,32 +245,38 @@ const dismissToast = (toastId) => {
             toastQueue.splice(index, 1);
         }
     }
-};
+}
 
 /**
  * Convenience functions for different toast types
  */
-const showSuccessToast = (message, options = {}) => {
+export function showSuccessToast(message, options = {}) {
     return showToast(message, { ...options, type: TOAST_TYPES.SUCCESS });
-};
+}
 
-const showInfoToast = (message, options = {}) => {
+export function showInfoToast(message, options = {}) {
     return showToast(message, { ...options, type: TOAST_TYPES.INFO });
-};
+}
 
-const showWarningToast = (message, options = {}) => {
+export function showWarningToast(message, options = {}) {
     return showToast(message, { ...options, type: TOAST_TYPES.WARNING });
-};
+}
 
-const showErrorToast = (message, options = {}) => {
+export function showErrorToast(message, options = {}) {
     return showToast(message, { ...options, type: TOAST_TYPES.ERROR });
-};
+}
 
 /**
  * Compatibility wrapper for existing showPlaybackErrorToast calls
  * Maps old API to new toast system
+ * 
+ * @param {string} message - Error message
+ * @param {Object} options
+ * @param {boolean} options.isTerminal - If true, toast won't auto-hide
+ * @param {Function} options.onSkip - Handler for skip button
+ * @returns {Object} Toast control object
  */
-const showPlaybackErrorToast = (message, { isTerminal = false, onSkip } = {}) => {
+export function showPlaybackErrorToast(message, { isTerminal = false, onSkip } = {}) {
     const actions = [];
 
     if (isTerminal && onSkip) {
@@ -242,36 +291,28 @@ const showPlaybackErrorToast = (message, { isTerminal = false, onSkip } = {}) =>
         autohide: !isTerminal,
         actions
     });
-};
+}
 
-/* 
- * USAGE EXAMPLES:
+/**
+ * Legacy compatibility: Simple toast with Bootstrap type names
+ * Maps Bootstrap type names (success, danger, warning, info) to new system
  * 
- * // Simple success toast
- * showSuccessToast('Track added to queue');
- * 
- * // Info toast with custom duration
- * showInfoToast('Buffering track...', { duration: 2000 });
- * 
- * // Warning toast
- * showWarningToast('Slow network detected');
- * 
- * // Error toast with action button
- * showErrorToast('Playback failed', {
- *     autohide: false,
- *     actions: [
- *         { label: 'Retry', handler: () => retry(), primary: true },
- *         { label: 'Skip', handler: () => skip() }
- *     ]
- * });
- * 
- * // Using convenience wrapper (backward compatible)
- * showPlaybackErrorToast('Unable to play track', {
- *     isTerminal: true,
- *     onSkip: () => playNextTrack()
- * });
- * 
- * // Programmatic dismiss
- * const toast = showErrorToast('Critical error');
- * setTimeout(() => toast.dismiss(), 3000);
+ * @param {string} message - Message to display
+ * @param {string} type - Bootstrap type: 'success', 'danger', 'warning', 'info'
+ * @returns {Object} Toast control object
  */
+export function showLegacyToast(message, type = 'success') {
+    // Map Bootstrap types to new system types
+    const typeMap = {
+        'success': TOAST_TYPES.SUCCESS,
+        'danger': TOAST_TYPES.ERROR,
+        'warning': TOAST_TYPES.WARNING,
+        'info': TOAST_TYPES.INFO
+    };
+
+    const mappedType = typeMap[type] || TOAST_TYPES.INFO;
+    return showToast(message, { type: mappedType });
+}
+
+// Export types for consumers
+export { TOAST_TYPES };

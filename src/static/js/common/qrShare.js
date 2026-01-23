@@ -5,6 +5,8 @@
  * Works across browser, editor, and player pages
  */
 
+import { showLegacyToast } from './toastSystem.js';
+
 // Store current state
 let currentModalSlug = null;
 let currentShareMode = 'regular'; // 'regular' or 'gift'
@@ -625,39 +627,10 @@ async function saveGiftPreferences() {
 /**
  * Show toast notification
  */
-function showToast(message, type = 'success') {
-    let container = document.querySelector('.toast-container');
-    
-    if (!container) {
-        container = document.createElement('div');
-        container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
-        container.style.zIndex = '1090';
-        document.body.appendChild(container);
-    }
-    
-    const toastEl = document.createElement('div');
-    toastEl.className = `toast align-items-center text-bg-${type} border-0 shadow`;
-    toastEl.setAttribute('role', 'alert');
-    
-    const icon = type === 'success' ? 'check2-circle' : 'exclamation-triangle';
-    toastEl.innerHTML = `
-        <div class="d-flex">
-            <div class="toast-body">
-                <i class="bi bi-${icon} me-2"></i>${message}
-            </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-        </div>
-    `;
-    
-    container.appendChild(toastEl);
-    
-    const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
-    toast.show();
-    
-    toastEl.addEventListener('hidden.bs.toast', () => {
-        toastEl.remove();
-    });
-}
+/**
+ * Show toast notification (now uses centralized system)
+ */
+const showToast = showLegacyToast;
 
 /**
  * Show error message
