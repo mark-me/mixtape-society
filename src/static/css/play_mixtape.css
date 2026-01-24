@@ -691,6 +691,15 @@ html[data-bs-theme="dark"] .quality-menu {
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 0.8; }
+  0%, 100% { opacity: 0.6; }
   50%      { opacity: 1; }
+}
+
+/* Sleep timer button - active state */
+#sleep-timer-btn.btn-warning {
+  animation: pulse 2s infinite;
+}
+
+#sleep-timer-btn.btn-warning i {
+  animation: pulse 2s infinite;
 }

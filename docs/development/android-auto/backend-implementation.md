@@ -86,10 +86,12 @@ def _generate_cover_variants(self, release_dir: str, slug: str) -> bool:
 ```
 
 **File naming convention:**
+
 - Main cover: `{slug}.jpg` (e.g., `artist_album.jpg`)
 - Variants: `{slug}_{size}x{size}.jpg` (e.g., `artist_album_256x256.jpg`)
 
 **Standard sizes generated:**
+
 - 96×96 px - Thumbnails (5-8 KB)
 - 128×128 px - Small tiles (8-12 KB)
 - 192×192 px - Medium tiles (15-20 KB)
@@ -375,6 +377,7 @@ curl "http://localhost:5000/api/covers/NonExistent%2FAlbum?size=256x256"
 
 **Symptoms:** Variants larger than expected
 **Adjust:** Quality setting in `_generate_cover_variants()`:
+
 ```python
 quality = 90 if size >= 256 else 85  # Increase quality
 ```
@@ -420,4 +423,3 @@ def get_cover_sizes(self, release_dir: str) -> dict[str, str]:
 - [Chromecast Integration](../chromecast/integration.md) - Alternative casting method for TVs and speakers
 - [Player Controls](../routes/play/modules/playerControls.md) - UI control coordination
 - [Media Session API](../routes/play/modules/playerUtils.md) - Lock screen controls
-

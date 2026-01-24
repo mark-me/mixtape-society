@@ -132,6 +132,57 @@ Click the repeat button until it's outlined again (Repeat Off).
 !!! tip "Repeat + Shuffle"
     Enable both for endless variety! The playlist will keep looping through the same shuffle order.
 
+### Sleep Timer
+
+Automatically stop playback after a set duration—perfect for falling asleep or timed listening sessions.
+
+**How to use:**
+
+1. Find the **⏰ Sleep Timer** button next to shuffle and repeat
+2. Click/tap to open the timer settings
+3. Choose a duration or use quick presets
+4. Optional: Enable "Wait until current track ends"
+5. Click **Start Timer**
+
+**Setting the duration:**
+
+- **Quick presets:** 15, 30, 45, or 60 minutes
+- **Custom time:** Use the slider for any duration (5-120 minutes)
+- **Visual display:** Large timer shows your selected duration
+
+**Wait until track ends:**
+When enabled, playback stops gracefully after the current track finishes instead of cutting off mid-song.
+
+**Visual indicator:**
+
+- **Off:** Button is outlined (⚪ ⏰)
+- **Active:** Button turns yellow and pulses (🟡 ⏰)
+
+**What happens:**
+
+- Timer counts down in the background
+- You'll see notifications at 30min, 15min, 10min, 5min, and 1min remaining
+- Each notification includes options to extend or cancel
+- When time expires, playback stops automatically
+- Your preferred duration is remembered for next time
+
+**Managing active timer:**
+
+- **Modify:** Click the pulsing timer button to adjust time
+- **Cancel:** Use the cancel button in settings or notifications
+- **Extend:** Click "Extend" in countdown notifications
+
+**When it's useful:**
+
+- Falling asleep to music
+- Timed meditation or focus sessions
+- Conserving battery on mobile
+- Limiting listening time
+- Background music for specific activities
+
+!!! tip "Perfect for Sleep"
+    Set 30-45 minutes with "wait until track ends" enabled. The music fades naturally as your last track finishes, instead of jarring silence mid-song.
+
 ### Volume Control
 
 Adjust playback volume independent of your device volume.
@@ -208,6 +259,7 @@ Master these shortcuts for effortless control:
 | **M** | Mute/Unmute |
 | **S** | Toggle shuffle |
 | **R** | Cycle repeat modes |
+| **T** | Open sleep timer |
 | **0-9** | Jump to position (0%=start, 5=50%, 9=90%) |
 
 !!! tip "Power User"
@@ -229,6 +281,7 @@ Master these shortcuts for effortless control:
 - ✅ AirPlay support
 - ✅ Apple Watch controls (if paired)
 - ✅ CarPlay support (iOS 14.5+)
+- ✅ Sleep timer with notifications
 
 **Lock Screen Controls:**
 When playing, you'll see:
@@ -266,6 +319,7 @@ Swipe down from top-right (iPhone X+) or swipe up (older iPhones) to access quic
 - ✅ Chromecast support
 - ✅ Android Auto support
 - ✅ Media key support
+- ✅ Sleep timer with notifications
 
 **Lock Screen:**
 Full media controls appear automatically when playing.
@@ -544,6 +598,16 @@ Check with the creator about their server's features.
 2. **Can't change modes:** Refresh the page
 3. **Repeat lost on reload:** Check if browser allows storage (like with shuffle)
 4. **Track won't stop repeating:** Click repeat button to cycle to "Off" (outlined button)
+
+### Sleep Timer Not Working
+
+**Solutions:**
+
+1. **Timer won't start:** Refresh the page and try again
+2. **Not seeing notifications:** Check browser notification permissions
+3. **Timer doesn't stop playback:** Make sure browser tab stays open
+4. **Duration not saving:** Check if browser allows cookies and storage
+5. **Timer stopped unexpectedly:** Check if device went to sleep or lost connection
 
 ---
 

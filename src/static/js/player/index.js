@@ -5,6 +5,7 @@ import { initAdaptiveTheming } from './adaptiveTheming.js';
 import { initCassettePlayer } from './cassettePlayer.js';
 import { initQRShare } from '../common/qrShare.js';
 import { initChromecast, castMixtapePlaylist, stopCasting } from './chromecast.js';
+import { initSleepTimer } from './sleepTimer.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize adaptive theming first (before other UI elements render)
@@ -16,6 +17,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize cassette player (retro mode)
     initCassettePlayer();
+
+    // Initialize sleep timer
+    initSleepTimer();
 
     // Initialize QR share for player page
     // Share button is the big play button companion
