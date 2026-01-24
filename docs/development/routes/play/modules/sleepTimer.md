@@ -102,7 +102,7 @@ let sleepTimerState = {
 **Field Details:**
 
 | Field | Type | Purpose | Default |
-| ----- | ---- | ------- | ------- |
+|-------|------|---------|---------|
 | `active` | boolean | Timer running status | `false` |
 | `endTime` | number\|null | Expiration timestamp (ms) | `null` |
 | `duration` | number | User-selected duration (min) | `30` |
@@ -205,6 +205,11 @@ function startCountdown() {
             return;
         }
 
+        // Update button tooltip every 30 seconds
+        if (secondsRemaining % 30 === 0) {
+            updateSleepTimerButton();
+        }
+
         // Show countdown notifications
         showCountdownNotification(secondsRemaining);
 
@@ -213,6 +218,8 @@ function startCountdown() {
 ```
 
 **Countdown interval:** 1 second (1000ms)
+
+**Button tooltip updates:** Every 30 seconds to show current time remaining
 
 **Termination conditions:**
 
@@ -237,8 +244,17 @@ function startCountdown() {
 
 30-second cooldown between notifications prevents spam if user rapidly toggles timer.
 
+**Race condition prevention:**
+
+Checks `sleepTimerState.active` first to ensure no countdown notifications appear after timer cancellation.
+
 ```javascript
 function showCountdownNotification(secondsRemaining) {
+    // Don't show notification if timer is no longer active
+    if (!sleepTimerState.active) {
+        return;
+    }
+
     const minutesRemaining = Math.ceil(secondsRemaining / 60);
 
     // Check if this is a notification point
@@ -422,9 +438,13 @@ function cleanupSleepTimer() {
                 </div>
 
                 <!-- Wait for track end option -->
-                <div class="form-check">
-                    <input type="checkbox" id="sleep-wait-track-end" checked>
-                    <label>Wait until current track ends</label>
+                <div class="p-3 bg-body-secondary rounded">
+                    <div class="form-check d-flex align-items-center">
+                        <input class="form-check-input mt-0 me-2 flex-shrink-0" type="checkbox" id="sleep-wait-track-end" checked>
+                        <label class="form-check-label mb-0">
+                            <i class="bi bi-skip-end me-2"></i>Wait until current track ends
+                        </label>
+                    </div>
                 </div>
             </div>
 
@@ -447,7 +467,7 @@ function cleanupSleepTimer() {
 **Key components:**
 
 | Component | Element ID | Purpose |
-| --------- | --------- | ------- |
+| --------- | ---------- | ------- |
 | Time Display | `#sleep-timer-display` | Shows selected duration (30min) |
 | Slider | `#sleep-timer-slider` | Fine control (5-120 min) |
 | Preset Buttons | `.sleep-preset` | Quick selection (15/30/45/60) |
@@ -463,14 +483,20 @@ function cleanupSleepTimer() {
 
 ```javascript
 export function showSleepTimerModal() {
-    // 1. Check if modal exists
-    let modal = document.getElementById('sleepTimerModal');
-
-    // 2. Create if needed (lazy loading)
-    if (!modal) {
-        modal = createSleepTimerModal();
-        document.body.appendChild(modal);
+    // 1. Remove existing modal if present (ensures fresh state)
+    let existingModal = document.getElementById('sleepTimerModal');
+    if (existingModal) {
+        // Clean up bootstrap modal instance
+        const bsModal = bootstrap.Modal.getInstance(existingModal);
+        if (bsModal) {
+            bsModal.dispose();
+        }
+        existingModal.remove();
     }
+
+    // 2. Create fresh modal with current timer state
+    const modal = createSleepTimerModal();
+    document.body.appendChild(modal);
 
     // 3. Initialize with saved/active duration
     const duration = sleepTimerState.active
@@ -482,16 +508,26 @@ export function showSleepTimerModal() {
     // 4. Show modal
     const bsModal = new bootstrap.Modal(modal);
     bsModal.show();
+
+    // 5. Clean up modal after it's hidden
+    modal.addEventListener('hidden.bs.modal', () => {
+        modal.remove();
+    }, { once: true });
 }
 ```
 
-**Lazy loading:**
+**Modal recreation strategy:**
 
-Modal is created only when first needed, reducing initial page load.
+Modal is recreated fresh each time to ensure:
+
+- Cancel button appears when timer is active
+- Current timer duration is always accurate
+- No stale state from previous modal instances
+- Automatic cleanup after modal closes
 
 **State restoration:**
 
-- **Active timer:** Shows current duration and settings
+- **Active timer:** Shows current duration and settings, includes "Cancel Timer" button
 - **No timer:** Shows last used duration (from localStorage)
 
 ### Initializing Modal Values
@@ -598,18 +634,22 @@ icon.className = 'bi bi-alarm-fill';  // Filled icon
 
 **Visual:** Yellow button, filled alarm icon ⏰, pulsing animation
 
-**CSS Animation:**
+**CSS Animation (add to `play_mixtape.css`):**
 
 ```css
+/* Sleep timer button - active state */
 #sleep-timer-btn.btn-warning {
-    animation: pulse 2s infinite;
+  animation: pulse 2s infinite;
 }
 
-@keyframes pulse {
-    0%, 100% { opacity: 0.8; }
-    50%      { opacity: 1; }
+#sleep-timer-btn.btn-warning i {
+  animation: pulse 2s infinite;
 }
 ```
+
+This reuses the existing `pulse` keyframe animation (already defined for the cast button).
+
+**Note:** The CSS file already contains the `@keyframes pulse` definition, so only the button-specific rules need to be added.
 
 ### Update Function
 
@@ -623,10 +663,15 @@ function updateSleepTimerButton() {
     const icon = sleepBtn.querySelector('i');
 
     if (sleepTimerState.active) {
+        // Calculate time remaining
+        const now = Date.now();
+        const secondsRemaining = Math.ceil((sleepTimerState.endTime - now) / 1000);
+        const timeStr = formatTimeRemaining(secondsRemaining);
+
         // Active state
         sleepBtn.classList.remove('btn-outline-light');
         sleepBtn.classList.add('btn-warning');
-        sleepBtn.title = 'Sleep timer active - click to modify';
+        sleepBtn.title = `Sleep timer: ${timeStr} remaining - click to modify`;
 
         if (icon) {
             icon.className = 'bi bi-alarm-fill';
@@ -643,6 +688,11 @@ function updateSleepTimerButton() {
     }
 }
 ```
+
+**Tooltip updates:**
+
+- **Inactive:** "Set sleep timer"
+- **Active:** "Sleep timer: 27m remaining - click to modify" (updates every 30 seconds)
 
 **Called by:**
 
@@ -776,7 +826,7 @@ player.addEventListener('ended', handleEnd, { once: true });
 
 ---
 
-## 🛠️ Helper Functions
+## 🎯 Helper Functions
 
 ### Time Formatting
 
@@ -859,8 +909,9 @@ console.log('🛑 Sleep timer cleaned up');
 2. **Page reload during timer:** Timer does not persist (by design)
 3. **localStorage blocked:** Should use default duration (30 min)
 4. **Track ends before timer:** Normal track change, timer continues
-5. **Modal opened twice:** Should reuse existing modal
-6. **Rapid button clicks:** Cooldown prevents duplicate notifications
+5. **Modal opened while timer active:** Shows "Cancel Timer" button and current duration
+6. **Rapid cancellation:** Guard prevents countdown toast after cancellation
+7. **Checkbox alignment:** Properly contained within rounded box (horizontal and vertical)
 
 ---
 
@@ -908,7 +959,7 @@ const STORAGE_KEY_SLEEP_TIMER = 'sleep_timer_duration';
 
 ---
 
-## 🌟 Best Practices
+## 🎯 Best Practices
 
 ### Always Initialize in index.js
 

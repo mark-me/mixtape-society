@@ -79,6 +79,11 @@ function formatTimeRemaining(seconds) {
  * Show countdown notification toast every 5 minutes
  */
 function showCountdownNotification(secondsRemaining) {
+    // Don't show notification if timer is no longer active
+    if (!sleepTimerState.active) {
+        return;
+    }
+
     const minutesRemaining = Math.ceil(secondsRemaining / 60);
 
     // Show notification at: 60min, 30min, 15min, 10min, 5min, 1min
@@ -125,10 +130,15 @@ function updateSleepTimerButton() {
     const icon = sleepBtn.querySelector('i');
 
     if (sleepTimerState.active) {
+        // Calculate time remaining
+        const now = Date.now();
+        const secondsRemaining = Math.ceil((sleepTimerState.endTime - now) / 1000);
+        const timeStr = formatTimeRemaining(secondsRemaining);
+
         // Show as active
         sleepBtn.classList.remove('btn-outline-light');
         sleepBtn.classList.add('btn-warning');
-        sleepBtn.title = 'Sleep timer active - click to modify';
+        sleepBtn.title = `Sleep timer: ${timeStr} remaining - click to modify`;
 
         if (icon) {
             icon.className = 'bi bi-alarm-fill';
@@ -164,6 +174,11 @@ function startCountdown() {
             return;
         }
 
+        // Update button tooltip every 30 seconds
+        if (secondsRemaining % 30 === 0) {
+            updateSleepTimerButton();
+        }
+
         // Show countdown notifications
         showCountdownNotification(secondsRemaining);
 
@@ -175,6 +190,12 @@ function startCountdown() {
  */
 function stopPlayback() {
     console.log('⏰ Sleep timer expired - stopping playback');
+
+    // Clear interval immediately to prevent repeated calls
+    if (sleepTimerState.intervalId) {
+        clearInterval(sleepTimerState.intervalId);
+        sleepTimerState.intervalId = null;
+    }
 
     const player = document.getElementById('main-player');
 
@@ -222,7 +243,10 @@ function cleanupSleepTimer() {
  * Cancel the sleep timer
  */
 function cancelSleepTimer() {
+    // Clear state first to prevent any race conditions
     cleanupSleepTimer();
+
+    // Then show toast
     showInfoToast('Sleep timer cancelled', { duration: 3000 });
 }
 
@@ -279,13 +303,20 @@ function startSleepTimer(minutes, waitForTrackEnd) {
  * Create and show the sleep timer modal
  */
 export function showSleepTimerModal() {
-    // Check if modal already exists
-    let modal = document.getElementById('sleepTimerModal');
-
-    if (!modal) {
-        modal = createSleepTimerModal();
-        document.body.appendChild(modal);
+    // Remove existing modal if present (ensures fresh state)
+    let existingModal = document.getElementById('sleepTimerModal');
+    if (existingModal) {
+        // Clean up bootstrap modal instance
+        const bsModal = bootstrap.Modal.getInstance(existingModal);
+        if (bsModal) {
+            bsModal.dispose();
+        }
+        existingModal.remove();
     }
+
+    // Create fresh modal with current timer state
+    const modal = createSleepTimerModal();
+    document.body.appendChild(modal);
 
     // Initialize modal with saved/active duration
     const duration = sleepTimerState.active
@@ -297,6 +328,11 @@ export function showSleepTimerModal() {
     // Show modal
     const bsModal = new bootstrap.Modal(modal);
     bsModal.show();
+
+    // Clean up modal after it's hidden
+    modal.addEventListener('hidden.bs.modal', () => {
+        modal.remove();
+    }, { once: true });
 }
 
 /**
@@ -357,11 +393,13 @@ function createSleepTimerModal() {
                         </div>
 
                         <!-- Wait for track end option -->
-                        <div class="form-check p-3 bg-body-secondary rounded">
-                            <input class="form-check-input" type="checkbox" id="sleep-wait-track-end" checked>
-                            <label class="form-check-label" for="sleep-wait-track-end">
-                                <i class="bi bi-skip-end me-2"></i>Wait until current track ends
-                            </label>
+                        <div class="p-3 bg-body-secondary rounded">
+                            <div class="form-check d-flex align-items-center">
+                                <input class="form-check-input mt-0 me-2 flex-shrink-0" type="checkbox" id="sleep-wait-track-end" checked>
+                                <label class="form-check-label mb-0" for="sleep-wait-track-end">
+                                    <i class="bi bi-skip-end me-2"></i>Wait until current track ends
+                                </label>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer border-top-0">
