@@ -6,6 +6,18 @@ All notable changes to Mixtape Society are documented here. We follow [Semantic 
 
 Each release rewinds and fast-forwards your mixtape experience—just like a real cassette! 🎧
 
+## 📦 v0.7.4
+
+<span class="md-tag">Development</span>
+
+**🗓️** 2026-01-24
+
+### 🐛 Fixed
+
+- With new mixtape, every save results in a new one
+
+---
+
 ## 📦 v0.7.3
 
 <span class="md-tag">Release</span>

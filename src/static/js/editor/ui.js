@@ -57,7 +57,7 @@ export function initUI() {
     const coverImg = document.getElementById("playlist-cover");
     const saveBtn = document.getElementById("save-playlist");
     const saveText = document.getElementById("save-text");
-    const editingSlug = document.getElementById("editing-slug").value;
+    const editingSlugInput = document.getElementById("editing-slug");
     const titleInput = document.getElementById("playlist-title");
 
     // Cover upload handling with validation
@@ -143,12 +143,17 @@ export function initUI() {
 
         const title = titleInput.value.trim() || "Unnamed Mixtape";
 
+        // Get the current slug (empty for new mixtapes, populated after first save)
+        const editingSlug = editingSlugInput.value;
+
         // Get or generate a clientId for new mixtapes
         let clientId = null;
         const preload = window.PRELOADED_MIXTAPE || {};
         if (editingSlug) {
+            // Editing an existing mixtape - use its client_id if available
             clientId = preload.client_id || null;
         } else {
+            // New mixtape - get or create a client_id
             clientId = preload.client_id || localStorage.getItem("current_mixtape_client_id");
             if (!clientId) {
                 clientId = crypto.randomUUID();
@@ -193,12 +198,17 @@ export function initUI() {
             hasUnsavedChanges = false;
             updateSaveButton();
 
-            // Clear clientId for new mixtapes after successful save
-            if (!editingSlug) {
+            // Update the editing-slug input before clearing client_id
+            editingSlugInput.value = data.slug;
+
+            // Only clear clientId for new mixtapes after we've updated the slug
+            // This ensures subsequent saves will use the slug instead of client_id
+            if (!editingSlug && data.slug) {
+                // We successfully created a new mixtape and now have a slug
+                // We can clear the client_id from localStorage
                 localStorage.removeItem("current_mixtape_client_id");
             }
 
-            document.getElementById('editing-slug').value = data.slug;
             document.dispatchEvent(new CustomEvent('mixtape-saved', {
                 detail: { slug: data.slug }
             }));
@@ -263,7 +273,7 @@ export function initUI() {
             const linkUrl = new URL(link.href, window.location.origin);
             const currentUrl = new URL(window.location.href);
             if (linkUrl.origin === currentUrl.origin && linkUrl.pathname === currentUrl.pathname) return;
-        } catch (err) {
+        } catch (_err) {
             return;
         }
 
