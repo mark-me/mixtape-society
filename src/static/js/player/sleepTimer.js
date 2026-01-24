@@ -2,7 +2,7 @@
 
 /**
  * Sleep Timer Module
- *
+ * 
  * Features:
  * - Quick preset buttons (15, 30, 45, 60 min)
  * - Fine-grained slider control (5-120 min)
@@ -13,9 +13,10 @@
  * - Quick access button in bottom player
  */
 
-import {
-    showInfoToast,
-    showSuccessToast
+import { 
+    showInfoToast, 
+    showSuccessToast,
+    showWarningToast 
 } from '../common/toastSystem.js';
 
 // Storage key for persistent settings
@@ -60,18 +61,18 @@ function saveDuration(minutes) {
  */
 function formatTimeRemaining(seconds) {
     const minutes = Math.ceil(seconds / 60);
-
+    
     if (minutes < 60) {
         return `${minutes}m`;
     }
-
+    
     const hours = Math.floor(minutes / 60);
     const remainingMinutes = minutes % 60;
-
+    
     if (remainingMinutes === 0) {
         return `${hours}h`;
     }
-
+    
     return `${hours}h ${remainingMinutes}m`;
 }
 
@@ -79,24 +80,29 @@ function formatTimeRemaining(seconds) {
  * Show countdown notification toast every 5 minutes
  */
 function showCountdownNotification(secondsRemaining) {
+    // Don't show notification if timer is no longer active
+    if (!sleepTimerState.active) {
+        return;
+    }
+    
     const minutesRemaining = Math.ceil(secondsRemaining / 60);
-
+    
     // Show notification at: 60min, 30min, 15min, 10min, 5min, 1min
     const notificationPoints = [60, 30, 15, 10, 5, 1];
-
+    
     if (notificationPoints.includes(minutesRemaining)) {
         const now = Date.now();
         // Prevent duplicate notifications within 30 seconds
         if (now - sleepTimerState.lastNotificationTime < 30000) {
             return;
         }
-
+        
         sleepTimerState.lastNotificationTime = now;
-
-        const message = minutesRemaining === 1
+        
+        const message = minutesRemaining === 1 
             ? 'Playback will stop in 1 minute'
             : `Playback will stop in ${formatTimeRemaining(secondsRemaining)}`;
-
+        
         showInfoToast(message, {
             duration: 4000,
             actions: [
@@ -121,15 +127,38 @@ function showCountdownNotification(secondsRemaining) {
 function updateSleepTimerButton() {
     const sleepBtn = document.getElementById('sleep-timer-btn');
     if (!sleepBtn) return;
-
+    
     const icon = sleepBtn.querySelector('i');
-
+    
     if (sleepTimerState.active) {
+        // Validate endTime exists and is valid
+        if (!sleepTimerState.endTime || isNaN(sleepTimerState.endTime)) {
+            console.warn('Sleep timer active but endTime is invalid');
+            // Fall back to inactive state
+            sleepTimerState.active = false;
+            updateSleepTimerButton();
+            return;
+        }
+        
+        // Calculate time remaining
+        const now = Date.now();
+        const secondsRemaining = Math.ceil((sleepTimerState.endTime - now) / 1000);
+        
+        // Handle case where timer already expired (shouldn't happen, but safety check)
+        if (secondsRemaining <= 0) {
+            console.warn('Sleep timer endTime is in the past');
+            // Timer should have already stopped, clean up state
+            cleanupSleepTimer();
+            return;
+        }
+        
+        const timeStr = formatTimeRemaining(secondsRemaining);
+        
         // Show as active
         sleepBtn.classList.remove('btn-outline-light');
         sleepBtn.classList.add('btn-warning');
-        sleepBtn.title = 'Sleep timer active - click to modify';
-
+        sleepBtn.title = `Sleep timer: ${timeStr} remaining - click to modify`;
+        
         if (icon) {
             icon.className = 'bi bi-alarm-fill';
         }
@@ -138,7 +167,7 @@ function updateSleepTimerButton() {
         sleepBtn.classList.remove('btn-warning');
         sleepBtn.classList.add('btn-outline-light');
         sleepBtn.title = 'Set sleep timer';
-
+        
         if (icon) {
             icon.className = 'bi bi-alarm';
         }
@@ -153,20 +182,25 @@ function startCountdown() {
     if (sleepTimerState.intervalId) {
         clearInterval(sleepTimerState.intervalId);
     }
-
+    
     sleepTimerState.intervalId = setInterval(() => {
         const now = Date.now();
         const secondsRemaining = Math.ceil((sleepTimerState.endTime - now) / 1000);
-
+        
         if (secondsRemaining <= 0) {
             // Timer expired
             stopPlayback();
             return;
         }
-
+        
+        // Update button tooltip every 30 seconds
+        if (secondsRemaining % 30 === 0) {
+            updateSleepTimerButton();
+        }
+        
         // Show countdown notifications
         showCountdownNotification(secondsRemaining);
-
+        
     }, 1000); // Check every second
 }
 
@@ -175,9 +209,15 @@ function startCountdown() {
  */
 function stopPlayback() {
     console.log('⏰ Sleep timer expired - stopping playback');
-
+    
+    // Clear interval immediately to prevent repeated calls
+    if (sleepTimerState.intervalId) {
+        clearInterval(sleepTimerState.intervalId);
+        sleepTimerState.intervalId = null;
+    }
+    
     const player = document.getElementById('main-player');
-
+    
     if (sleepTimerState.waitForTrackEnd && player && !player.paused) {
         // Wait for track to end
         const handleEnd = () => {
@@ -186,9 +226,9 @@ function stopPlayback() {
             showSuccessToast('Sleep timer ended - playback stopped', { duration: 5000 });
             player.removeEventListener('ended', handleEnd);
         };
-
+        
         player.addEventListener('ended', handleEnd, { once: true });
-
+        
         showInfoToast('Waiting for current track to finish...', { duration: 3000 });
     } else {
         // Stop immediately
@@ -208,13 +248,13 @@ function cleanupSleepTimer() {
         clearInterval(sleepTimerState.intervalId);
         sleepTimerState.intervalId = null;
     }
-
+    
     sleepTimerState.active = false;
     sleepTimerState.endTime = null;
     sleepTimerState.lastNotificationTime = 0;
-
+    
     updateSleepTimerButton();
-
+    
     console.log('🛑 Sleep timer cleaned up');
 }
 
@@ -222,7 +262,10 @@ function cleanupSleepTimer() {
  * Cancel the sleep timer
  */
 function cancelSleepTimer() {
+    // Clear state first to prevent any race conditions
     cleanupSleepTimer();
+    
+    // Then show toast
     showInfoToast('Sleep timer cancelled', { duration: 3000 });
 }
 
@@ -234,33 +277,33 @@ function startSleepTimer(minutes, waitForTrackEnd) {
     if (sleepTimerState.active) {
         cleanupSleepTimer();
     }
-
+    
     // Calculate end time
     const now = Date.now();
     const durationMs = minutes * 60 * 1000;
     const endTime = now + durationMs;
-
+    
     // Update state
     sleepTimerState.active = true;
     sleepTimerState.endTime = endTime;
     sleepTimerState.duration = minutes;
     sleepTimerState.waitForTrackEnd = waitForTrackEnd;
     sleepTimerState.lastNotificationTime = 0;
-
+    
     // Save duration preference
     saveDuration(minutes);
-
+    
     // Start countdown
     startCountdown();
-
+    
     // Update UI
     updateSleepTimerButton();
-
+    
     // Show confirmation
-    const message = waitForTrackEnd
+    const message = waitForTrackEnd 
         ? `Sleep timer set for ${minutes} minutes (will wait for track to finish)`
         : `Sleep timer set for ${minutes} minutes`;
-
+    
     showSuccessToast(message, {
         duration: 4000,
         actions: [
@@ -271,7 +314,7 @@ function startSleepTimer(minutes, waitForTrackEnd) {
             }
         ]
     });
-
+    
     console.log(`⏰ Sleep timer started: ${minutes} minutes, waitForTrackEnd: ${waitForTrackEnd}`);
 }
 
@@ -279,24 +322,36 @@ function startSleepTimer(minutes, waitForTrackEnd) {
  * Create and show the sleep timer modal
  */
 export function showSleepTimerModal() {
-    // Check if modal already exists
-    let modal = document.getElementById('sleepTimerModal');
-
-    if (!modal) {
-        modal = createSleepTimerModal();
-        document.body.appendChild(modal);
+    // Remove existing modal if present (ensures fresh state)
+    let existingModal = document.getElementById('sleepTimerModal');
+    if (existingModal) {
+        // Clean up bootstrap modal instance
+        const bsModal = bootstrap.Modal.getInstance(existingModal);
+        if (bsModal) {
+            bsModal.dispose();
+        }
+        existingModal.remove();
     }
-
+    
+    // Create fresh modal with current timer state
+    const modal = createSleepTimerModal();
+    document.body.appendChild(modal);
+    
     // Initialize modal with saved/active duration
-    const duration = sleepTimerState.active
-        ? sleepTimerState.duration
+    const duration = sleepTimerState.active 
+        ? sleepTimerState.duration 
         : getSavedDuration();
-
+    
     initializeModalValues(modal, duration, sleepTimerState.waitForTrackEnd);
-
+    
     // Show modal
     const bsModal = new bootstrap.Modal(modal);
     bsModal.show();
+    
+    // Clean up modal after it's hidden
+    modal.addEventListener('hidden.bs.modal', () => {
+        modal.remove();
+    }, { once: true });
 }
 
 /**
@@ -324,12 +379,12 @@ function createSleepTimerModal() {
                         <!-- Slider -->
                         <div class="mb-4">
                             <label class="form-label small text-muted">Adjust duration:</label>
-                            <input type="range"
-                                   class="form-range"
+                            <input type="range" 
+                                   class="form-range" 
                                    id="sleep-timer-slider"
-                                   min="5"
-                                   max="120"
-                                   step="5"
+                                   min="5" 
+                                   max="120" 
+                                   step="5" 
                                    value="30">
                             <div class="d-flex justify-content-between small text-muted mt-1">
                                 <span>5 min</span>
@@ -357,11 +412,13 @@ function createSleepTimerModal() {
                         </div>
 
                         <!-- Wait for track end option -->
-                        <div class="form-check p-3 bg-body-secondary rounded">
-                            <input class="form-check-input" type="checkbox" id="sleep-wait-track-end" checked>
-                            <label class="form-check-label" for="sleep-wait-track-end">
-                                <i class="bi bi-skip-end me-2"></i>Wait until current track ends
-                            </label>
+                        <div class="p-3 bg-body-secondary rounded">
+                            <div class="form-check d-flex align-items-center">
+                                <input class="form-check-input mt-0 me-2 flex-shrink-0" type="checkbox" id="sleep-wait-track-end" checked>
+                                <label class="form-check-label mb-0" for="sleep-wait-track-end">
+                                    <i class="bi bi-skip-end me-2"></i>Wait until current track ends
+                                </label>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer border-top-0">
@@ -379,7 +436,7 @@ function createSleepTimerModal() {
             </div>
         </div>
     `;
-
+    
     const div = document.createElement('div');
     div.innerHTML = modalHtml;
     return div.firstElementChild;
@@ -395,22 +452,22 @@ function initializeModalValues(modal, duration, waitForTrackEnd) {
     const startBtn = modal.querySelector('#sleep-start-btn');
     const cancelBtn = modal.querySelector('#sleep-cancel-btn');
     const presetBtns = modal.querySelectorAll('.sleep-preset');
-
+    
     // Set initial values
     slider.value = duration;
     display.textContent = duration;
     checkbox.checked = waitForTrackEnd;
-
+    
     // Update display function
     const updateDisplay = (value) => {
         display.textContent = value;
     };
-
+    
     // Slider event listener
     slider.addEventListener('input', (e) => {
         updateDisplay(e.target.value);
     });
-
+    
     // Preset buttons
     presetBtns.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -419,24 +476,24 @@ function initializeModalValues(modal, duration, waitForTrackEnd) {
             updateDisplay(minutes);
         });
     });
-
+    
     // Start/Update button
     startBtn.addEventListener('click', () => {
         const minutes = parseInt(slider.value, 10);
         const wait = checkbox.checked;
-
+        
         startSleepTimer(minutes, wait);
-
+        
         // Close modal
         const bsModal = bootstrap.Modal.getInstance(modal);
         bsModal.hide();
     });
-
+    
     // Cancel button (only shown if timer is active)
     if (cancelBtn) {
         cancelBtn.addEventListener('click', () => {
             cancelSleepTimer();
-
+            
             // Close modal
             const bsModal = bootstrap.Modal.getInstance(modal);
             bsModal.hide();
@@ -449,23 +506,23 @@ function initializeModalValues(modal, duration, waitForTrackEnd) {
  */
 export function initSleepTimer() {
     console.log('⏰ Initializing sleep timer');
-
+    
     // Find the sleep timer button
     const sleepBtn = document.getElementById('sleep-timer-btn');
-
+    
     if (!sleepBtn) {
         console.warn('Sleep timer button not found in DOM');
         return;
     }
-
+    
     // Add click handler
     sleepBtn.addEventListener('click', () => {
         showSleepTimerModal();
     });
-
+    
     // Initialize button state
     updateSleepTimerButton();
-
+    
     console.log('✅ Sleep timer initialized');
 }
 
