@@ -14,8 +14,8 @@ Welcome to Mixtape Society! This guide will help you set up your server, create 
 
 Choose your deployment method:
 
-- **Docker (Recommended)** - Quick one-command setup
-- **Docker Compose** - Production-ready with persistence
+- **Docker Compose (Recommended)** - Production-ready with persistence
+- **Docker** - Quick one-command setup
 - **Local Development** - For contributors and testing
 
 **What you'll need:**

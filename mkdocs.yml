@@ -97,6 +97,7 @@ nav:
           - Player Modules:
             - Player Controls: development/routes/play/modules/playerControls.md
             - Player Utilities: development/routes/play/modules/playerUtils.md
+            - Sleep Timer: development/routes/play/modules/sleepTimer.md
         - Cover Art: development/routes/covers.md
         - Authentication: development/routes/authentication.md
         - OpenGraph: development/routes/opengraph_images.md
