@@ -20,7 +20,7 @@ Android Auto integration enables:
 ### Key Differences from Chromecast
 
 | Feature | Android Auto | Chromecast |
-|---------|-------------|------------|
+| ------- | ------------ | ---------- |
 | **Network** | Local playback | WiFi casting |
 | **Setup** | Automatic | Manual device selection |
 | **Server Reqs** | None | CORS + Range requests |
@@ -37,7 +37,7 @@ Android Auto is **simpler** - it's just enhanced Media Session API with no netwo
 ### System Overview
 
 ```mermaid
-graph TB
+graph LR
     User[User in Car]
     Car[Car Dashboard]
     Phone[Phone Browser]
@@ -170,11 +170,13 @@ classDiagram
 ### Prerequisites
 
 **User Requirements:**
+
 - Android phone (Android 5.0+)
 - Car with Android Auto support OR Android Auto app
 - USB cable or wireless Android Auto
 
 **Developer Requirements:**
+
 - Media Session API support (already in Mixtape Society)
 - Cover art optimization endpoints (already implemented)
 
@@ -189,7 +191,8 @@ classDiagram
 ### Verification
 
 Check browser console for:
-```
+
+```text
 🚗 Android Auto Status:
    Connected: Yes ✅
    Media Session API: Available ✅
@@ -205,6 +208,7 @@ Check browser console for:
 **File:** `static/js/player/androidAuto.js`
 
 **Detection logic:**
+
 ```javascript
 export function isAndroidAutoConnected() {
     const ua = navigator.userAgent.toLowerCase();
@@ -221,6 +225,7 @@ export function isAndroidAutoConnected() {
 ```
 
 **User agent patterns:**
+
 - Contains "android"
 - Contains "vehicle" OR "automotive"
 - Referrer includes "android-auto"
@@ -403,7 +408,8 @@ audioElement.addEventListener('pause', () => {
 ### Technical Flow
 
 **Initialization:**
-```
+
+```text
 initPlayerControls()
   → detectAndroid()
   → logAndroidAutoStatus()
@@ -411,7 +417,8 @@ initPlayerControls()
 ```
 
 **Track Change:**
-```
+
+```text
 playTrack(index)
   → extractMetadataFromDOM()
     → Detect Android Auto
@@ -423,7 +430,8 @@ playTrack(index)
 ```
 
 **User Interaction:**
-```
+
+```text
 User presses steering wheel button
   → Car sends Media Session event
   → Action handler fires
@@ -439,7 +447,7 @@ User presses steering wheel button
 
 **Required endpoints** (already implemented):
 
-```
+```http
 GET /covers/{slug}_96x96.jpg
 GET /covers/{slug}_128x128.jpg
 GET /covers/{slug}_192x192.jpg
@@ -467,6 +475,7 @@ The complexity is all client-side.
 ### Android Auto (In-Car)
 
 **Full support:**
+
 - ✅ Dashboard integration
 - ✅ Steering wheel controls
 - ✅ Voice commands
@@ -474,6 +483,7 @@ The complexity is all client-side.
 - ✅ Multiple cover art sizes
 
 **Requirements:**
+
 - Android 5.0+ phone
 - Android Auto compatible car OR Android Auto app
 - Media Session API support (all modern Android)
@@ -481,6 +491,7 @@ The complexity is all client-side.
 ### Android (Not in Car)
 
 **Standard Media Session:**
+
 - ✅ Notification controls
 - ✅ Lock screen controls
 - ✅ Basic metadata
@@ -492,6 +503,7 @@ Android Auto detection returns false, so it falls back to standard Media Session
 ### Other Platforms
 
 **iOS, Desktop:**
+
 - Standard Media Session API
 - No Android Auto enhancements
 - Single cover art size
@@ -503,6 +515,7 @@ Android Auto detection returns false, so it falls back to standard Media Session
 For complete testing procedures, see the [Testing Guide](testing-guide.md).
 
 **Quick checklist:**
+
 - [ ] Detection works (console shows "Android Auto Connected")
 - [ ] Cover art displays on dashboard
 - [ ] Metadata shows correctly (title, artist, album)
@@ -521,6 +534,7 @@ For complete testing procedures, see the [Testing Guide](testing-guide.md).
 **Symptom:** Android Auto not detected when connected
 
 **Check:**
+
 ```javascript
 // In browser console:
 navigator.userAgent
@@ -528,6 +542,7 @@ navigator.userAgent
 ```
 
 **Solutions:**
+
 - Verify car is in Android Auto mode
 - Check USB connection (or wireless pairing)
 - Restart browser
@@ -538,12 +553,14 @@ navigator.userAgent
 **Symptom:** No album art on dashboard
 
 **Check network tab:**
-```
+
+```http
 GET /covers/artist_album_96x96.jpg - Should return 200
 GET /covers/artist_album_192x192.jpg - Should return 200
 ```
 
 **Solutions:**
+
 - Verify cover optimization is enabled
 - Check cover endpoints return correct MIME type
 - Ensure slugs match between frontend and backend
@@ -553,11 +570,13 @@ GET /covers/artist_album_192x192.jpg - Should return 200
 **Symptom:** Timeline scrubbing doesn't work
 
 **Check:**
+
 - Position state being set: `navigator.mediaSession.setPositionState(...)`
 - Duration is valid: `audioElement.duration` is not NaN
 - `seekto` handler is registered
 
 **Debug:**
+
 ```javascript
 // Add to setupActionHandlers:
 navigator.mediaSession.setActionHandler('seekto', (details) => {
