@@ -9,10 +9,7 @@ import {
     castPrevious,
     castJumpToTrack,
     isCastPlaying,
-    setCastControlCallbacks,
-    stopCasting,
-    castSeek,
-    getCastPlayState
+    setCastControlCallbacks
 } from './chromecast.js';
 
 import {
@@ -149,7 +146,7 @@ export function initPlayerControls() {
 
     let currentIndex = -1;
     window.currentTrackIndex = currentIndex;
-    
+
     // Initialize quality from storage with error handling
     let currentQuality = DEFAULT_QUALITY;
     try {
@@ -177,46 +174,9 @@ export function initPlayerControls() {
     // Guard flag to prevent duplicate document click listener installation
     let documentClickHandlerInstalled = false;
 
-    // Toast notification system
-    const TOAST_TYPES = {
-        SUCCESS: 'success',
-        INFO: 'info',
-        WARNING: 'warning',
-        ERROR: 'error'
-    };
-
-    const TOAST_CONFIG = {
-        [TOAST_TYPES.SUCCESS]: {
-            icon: 'bi-check-circle-fill',
-            bgClass: 'bg-success',
-            textClass: 'text-white',
-            duration: 3000
-        },
-        [TOAST_TYPES.INFO]: {
-            icon: 'bi-info-circle-fill',
-            bgClass: 'bg-info',
-            textClass: 'text-white',
-            duration: 4000
-        },
-        [TOAST_TYPES.WARNING]: {
-            icon: 'bi-exclamation-circle-fill',
-            bgClass: 'bg-warning',
-            textClass: 'text-dark',
-            duration: 5000
-        },
-        [TOAST_TYPES.ERROR]: {
-            icon: 'bi-exclamation-triangle-fill',
-            bgClass: 'bg-danger',
-            textClass: 'text-white',
-            duration: 8000,
-            autohide: false  // Don't auto-hide errors
-        }
-    };
-
-    // Toast queue management
-    let toastQueue = [];
-    let currentToast = null;
-    let toastIdCounter = 0;
+    // Wake Lock to prevent app suspension during playback (especially when phone is locked)
+    // Critical for ensuring auto-advance works when screen is off
+    let wakeLock = null;
 
     // Log device capabilities
     logDeviceInfo();
@@ -273,14 +233,76 @@ export function initPlayerControls() {
             if (!player || !Number.isFinite(time) || time < 0) {
                 return;
             }
-            
+
             // Guard against seeking beyond duration (only if duration is finite)
             // Some streaming sources have NaN/Infinity duration
             if (Number.isFinite(player.duration) && time > player.duration) {
                 return;
             }
-            
+
             player.currentTime = time;
+        }
+    };
+
+    /**
+     * Request Screen Wake Lock to prevent app suspension during playback
+     * CRITICAL for preventing playback interruption when phone is locked
+     *
+     * Why this is needed:
+     * - When phone is locked, Android may suspend JavaScript execution
+     * - Without wake lock, auto-advance to next track fails
+     * - Notification may disappear
+     * - Especially important for devices with aggressive battery optimization
+     *
+     * @returns {Promise<void>}
+     */
+    const requestWakeLock = async () => {
+        // Wake Lock API only available in secure contexts (HTTPS) and modern browsers
+        if (!('wakeLock' in navigator)) {
+            console.log('⚠️ Wake Lock API not available (requires HTTPS and modern browser)');
+            return;
+        }
+
+        // Don't request if already have one
+        if (wakeLock) {
+            return;
+        }
+
+        try {
+            wakeLock = await navigator.wakeLock.request('screen');
+            console.log('🔒 Wake lock acquired - preventing app suspension during playback');
+
+            // Re-acquire if released (e.g., user switches apps or tabs)
+            wakeLock.addEventListener('release', () => {
+                console.log('🔓 Wake lock auto-released by system');
+                wakeLock = null;
+            });
+        } catch (err) {
+            // Common errors:
+            // - NotAllowedError: Permission denied or no user gesture
+            // - NotSupportedError: Not supported in this browser
+            console.warn('⚠️ Wake lock request failed:', err.name, err.message);
+        }
+    };
+
+    /**
+     * Release Screen Wake Lock when playback stops
+     * Saves battery when user pauses or playback ends completely
+     *
+     * @returns {Promise<void>}
+     */
+    const releaseWakeLock = async () => {
+        if (!wakeLock) {
+            return;
+        }
+
+        try {
+            await wakeLock.release();
+            wakeLock = null;
+            console.log('🔓 Wake lock released - allowing normal power management');
+        } catch (err) {
+            console.warn('⚠️ Wake lock release failed:', err.message);
+            wakeLock = null; // Clear it anyway
         }
     };
 
@@ -315,11 +337,11 @@ export function initPlayerControls() {
         if (trackItems.length === 0) {
             return -1; // No tracks available
         }
-        
+
         if (currentIndex >= 0 && currentIndex < trackItems.length) {
             return currentIndex;
         }
-        
+
         return 0; // Default to first track
     };
 
@@ -329,12 +351,12 @@ export function initPlayerControls() {
      */
     const ensureTrackLoadedAndPlay = () => {
         const index = getSafeTrackIndex();
-        
+
         if (index === -1) {
             console.warn('⚠️ No tracks available to play');
             return;
         }
-        
+
         // If no source, load the track first
         if (!hasSource()) {
             console.log('🎵 Loading track before play:', index);
@@ -355,21 +377,21 @@ export function initPlayerControls() {
         if (!targetTime || targetTime <= 0) {
             return;
         }
-        
+
         const trySeek = () => {
             if (!player) return;
             if (!player.duration || isNaN(player.duration)) return;
             if (targetTime > player.duration) return;
             if (player.readyState < 2) return; // Need HAVE_CURRENT_DATA or better
-            
+
             player.currentTime = targetTime;
             console.log(`⏩ Restored position: ${Math.floor(targetTime)}s`);
-            
+
             // Clean up listeners
             player.removeEventListener('canplay', trySeek);
             player.removeEventListener('loadedmetadata', trySeek);
         };
-        
+
         // Check if already ready
         if (player.readyState >= 2) {
             trySeek();
@@ -389,17 +411,17 @@ export function initPlayerControls() {
             console.warn('⚠️ Cannot restore UI: track not found');
             return;
         }
-        
+
         // Update bottom player info
         updateBottomPlayerInfo(track);
         container.style.display = 'block';
-        
+
         // Mark track as active
         setActiveTrack(track);
-        
+
         // Update play icons
         syncPlayIcons();
-        
+
         // Scroll to track with visual indicator
         setTimeout(() => {
             track.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -415,7 +437,7 @@ export function initPlayerControls() {
      */
     const attachRestoredSeekOnFirstPlay = (savedState) => {
         let restoredSeekTime = savedState.time;
-        
+
         const handleRestoredPlay = () => {
             if (player && currentIndex === savedState.track && restoredSeekTime > 0) {
                 seekWhenReady(restoredSeekTime);
@@ -423,7 +445,7 @@ export function initPlayerControls() {
             }
             player.removeEventListener('play', handleRestoredPlay);
         };
-        
+
         player.addEventListener('play', handleRestoredPlay);
     };
 
@@ -434,7 +456,7 @@ export function initPlayerControls() {
     /**
      * Set the active track in the UI
      * Removes active class from all tracks and adds it to the specified track
-     * 
+     *
      * @param {HTMLElement} trackElement - Track element to make active (or null to clear all)
      */
     const setActiveTrack = (trackElement) => {
@@ -446,7 +468,7 @@ export function initPlayerControls() {
 
     /**
      * Update bottom player display with track info
-     * 
+     *
      * @param {HTMLElement} track - Track element with data attributes (or null to clear)
      */
     const updateBottomPlayerInfo = (track) => {
@@ -462,7 +484,7 @@ export function initPlayerControls() {
     /**
      * Create a handler that checks casting state before executing
      * Centralizes the casting vs local playback decision pattern
-     * 
+     *
      * @param {Function} castHandler - Handler function for casting mode
      * @param {Function} localHandler - Handler function for local playback
      * @returns {Function} Combined handler that chooses based on casting state
@@ -486,13 +508,13 @@ export function initPlayerControls() {
      */
     const generateShuffleOrder = () => {
         const order = Array.from({ length: trackItems.length }, (_, i) => i);
-        
+
         // Fisher-Yates shuffle
         for (let i = order.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [order[i], order[j]] = [order[j], order[i]];
         }
-        
+
         return order;
     };
 
@@ -506,10 +528,10 @@ export function initPlayerControls() {
         }
 
         isShuffled = true;
-        
+
         // Generate new shuffle order
         shuffleOrder = generateShuffleOrder();
-        
+
         // Save to storage with error handling
         try {
             const shuffleState = {
@@ -523,10 +545,10 @@ export function initPlayerControls() {
             // Shuffle still works in-memory, just won't persist
             console.warn('Failed to save shuffle state to storage:', e.message);
         }
-        
+
         // Update button UI
         updateShuffleButton();
-        
+
         console.log('🔀 Shuffle enabled:', shuffleOrder);
     };
 
@@ -536,7 +558,7 @@ export function initPlayerControls() {
     const disableShuffle = () => {
         isShuffled = false;
         shuffleOrder = [];
-        
+
         // Remove from storage with error handling
         try {
             localStorage.removeItem(STORAGE_KEY_SHUFFLE);
@@ -545,10 +567,10 @@ export function initPlayerControls() {
             // Shuffle is still disabled in-memory
             console.warn('Failed to remove shuffle state from storage:', e.message);
         }
-        
+
         // Update button UI
         updateShuffleButton();
-        
+
         console.log('▶️ Shuffle disabled - sequential playback');
     };
 
@@ -569,7 +591,7 @@ export function initPlayerControls() {
     const updateShuffleButton = () => {
         const shuffleBtn = document.getElementById('shuffle-btn-bottom');
         if (!shuffleBtn) return;
-        
+
         if (isShuffled) {
             shuffleBtn.classList.remove('btn-outline-light');
             shuffleBtn.classList.add('btn-light');
@@ -588,18 +610,18 @@ export function initPlayerControls() {
         try {
             const stored = localStorage.getItem(STORAGE_KEY_SHUFFLE);
             if (!stored) return false;
-            
+
             const shuffleState = JSON.parse(stored);
-            
+
             // Validate shuffle order matches current playlist length
-            if (shuffleState.enabled && 
-                shuffleState.order && 
+            if (shuffleState.enabled &&
+                shuffleState.order &&
                 shuffleState.order.length === trackItems.length) {
-                
+
                 isShuffled = true;
                 shuffleOrder = shuffleState.order;
                 updateShuffleButton();
-                
+
                 console.log('🔀 Restored shuffle mode:', shuffleOrder);
                 return true;
             } else if (shuffleState.order && shuffleState.order.length !== trackItems.length) {
@@ -610,7 +632,7 @@ export function initPlayerControls() {
         } catch (error) {
             console.warn('Could not restore shuffle state:', error);
         }
-        
+
         return false;
     };
 
@@ -621,17 +643,17 @@ export function initPlayerControls() {
         if (isShuffled && shuffleOrder.length > 0) {
             // Find current position in shuffle order
             const currentPosition = shuffleOrder.indexOf(fromIndex);
-            
+
             if (currentPosition === -1) {
                 // Current track not in shuffle order (shouldn't happen)
                 // Return first track in shuffle
                 console.warn('⚠️ Track not in shuffle order, starting from beginning');
                 return shuffleOrder[0];
             }
-            
+
             // Get next position in shuffle order
             const nextPosition = currentPosition + 1;
-            
+
             if (nextPosition < shuffleOrder.length) {
                 return shuffleOrder[nextPosition];
             } else {
@@ -652,15 +674,15 @@ export function initPlayerControls() {
         if (isShuffled && shuffleOrder.length > 0) {
             // Find current position in shuffle order
             const currentPosition = shuffleOrder.indexOf(fromIndex);
-            
+
             if (currentPosition === -1) {
                 // Current track not in shuffle order
                 return shuffleOrder[shuffleOrder.length - 1];
             }
-            
+
             // Get previous position in shuffle order
             const prevPosition = currentPosition - 1;
-            
+
             if (prevPosition >= 0) {
                 return shuffleOrder[prevPosition];
             } else {
@@ -685,17 +707,17 @@ export function initPlayerControls() {
         const currentIndex = modes.indexOf(repeatMode);
         const nextIndex = (currentIndex + 1) % modes.length;
         repeatMode = modes[nextIndex];
-        
+
         // Save to storage
         try {
             localStorage.setItem(STORAGE_KEY_REPEAT, repeatMode);
         } catch (e) {
             console.warn('Failed to save repeat mode:', e.message);
         }
-        
+
         // Update button UI
         updateRepeatButton();
-        
+
         console.log(`🔁 Repeat: ${REPEAT_MODE_LABELS[repeatMode]}`);
     };
 
@@ -705,27 +727,27 @@ export function initPlayerControls() {
     const updateRepeatButton = () => {
         const repeatBtn = document.getElementById('repeat-btn-bottom');
         if (!repeatBtn) return;
-        
+
         // Remove all mode classes
         Object.values(REPEAT_MODE_STYLES).forEach(cls => {
             repeatBtn.classList.remove(cls);
         });
-        
+
         // Add appropriate style class
         const styleClass = REPEAT_MODE_STYLES[repeatMode] || REPEAT_MODE_STYLES[REPEAT_MODES.OFF];
         repeatBtn.classList.add(styleClass);
-        
+
         // Set icon using safe DOM manipulation
         const iconClass = REPEAT_MODE_ICONS[repeatMode] || REPEAT_MODE_ICONS[REPEAT_MODES.OFF];
-        
+
         // Clear existing content safely
         repeatBtn.textContent = '';
-        
+
         // Create and append icon element
         const icon = document.createElement('i');
         icon.className = iconClass;
         repeatBtn.appendChild(icon);
-        
+
         // Set title
         const label = REPEAT_MODE_LABELS[repeatMode] || REPEAT_MODE_LABELS[REPEAT_MODES.OFF];
         repeatBtn.title = `Repeat: ${label}`;
@@ -741,7 +763,7 @@ export function initPlayerControls() {
     /**
      * Normalize a repeat mode against the current playback context
      * Forces Repeat Off when it doesn't make sense (e.g., 0-1 tracks)
-     * 
+     *
      * @param {string} mode - The repeat mode to normalize
      * @returns {string} Normalized repeat mode
      */
@@ -769,10 +791,10 @@ export function initPlayerControls() {
             if (stored && isValidRepeatMode(stored)) {
                 // Normalize stored mode to current context
                 const normalizedMode = normalizeRepeatModeForContext(stored);
-                
+
                 repeatMode = normalizedMode;
                 updateRepeatButton();
-                
+
                 if (normalizedMode !== stored) {
                     console.log(`🔁 Normalized repeat mode: ${stored} → ${normalizedMode} (context: ${trackItems.length} tracks)`);
                 } else {
@@ -789,7 +811,7 @@ export function initPlayerControls() {
     /**
      * Get next track index considering repeat mode
      * Handles edge cases: invalid currentIndex, empty playlist, etc.
-     * 
+     *
      * @param {number} currentIndex - Current track index
      * @param {Object} options - Optional behavior modifiers
      * @param {boolean} options.skipRepeatOne - If true, treat Repeat One as Repeat Off (for prefetch)
@@ -797,28 +819,28 @@ export function initPlayerControls() {
      */
     const getNextTrackWithRepeat = (currentIndex, options = {}) => {
         const { skipRepeatOne = false } = options;
-        
+
         // Defensive: Validate playlist has tracks
         if (trackItems.length === 0) {
             console.warn('⚠️ No tracks available');
             return -1;
         }
-        
+
         // Defensive: Handle invalid currentIndex
         // Treat out-of-bounds or negative as "start from beginning"
         if (currentIndex < 0 || currentIndex >= trackItems.length) {
             console.warn(`⚠️ Invalid currentIndex: ${currentIndex}, defaulting to 0`);
             currentIndex = 0;
         }
-        
+
         // Repeat One: Return same track (unless skipRepeatOne is set for prefetch)
         if (repeatMode === REPEAT_MODES.ONE && !skipRepeatOne) {
             return currentIndex;
         }
-        
+
         // Get next track based on shuffle
         let nextIndex = getNextTrackIndex(currentIndex);
-        
+
         // Repeat All: Loop back to start if we've reached the end
         if (nextIndex === -1 && repeatMode === REPEAT_MODES.ALL) {
             // Loop back to start (respecting shuffle if enabled)
@@ -828,14 +850,14 @@ export function initPlayerControls() {
                 return 0;
             }
         }
-        
+
         return nextIndex;
     };
 
     /**
      * Get previous track index considering repeat mode
      * Handles edge cases: invalid currentIndex, empty playlist, etc.
-     * 
+     *
      * @param {number} currentIndex - Current track index
      * @returns {number} Previous track index, or -1 if no previous track
      */
@@ -845,21 +867,21 @@ export function initPlayerControls() {
             console.warn('⚠️ No tracks available');
             return -1;
         }
-        
+
         // Defensive: Handle invalid currentIndex
         if (currentIndex < 0 || currentIndex >= trackItems.length) {
             console.warn(`⚠️ Invalid currentIndex: ${currentIndex}, defaulting to last track`);
             currentIndex = trackItems.length - 1;
         }
-        
+
         // Repeat One: Return same track (validated)
         if (repeatMode === REPEAT_MODES.ONE) {
             return currentIndex;
         }
-        
+
         // Get previous track based on shuffle
         let prevIndex = getPreviousTrackIndex(currentIndex);
-        
+
         // Repeat All: Loop to end if we're at the start
         if (prevIndex === -1 && repeatMode === REPEAT_MODES.ALL) {
             // Loop to end (respecting shuffle if enabled)
@@ -869,7 +891,7 @@ export function initPlayerControls() {
                 return trackItems.length - 1;
             }
         }
-        
+
         return prevIndex;
     };
 
@@ -887,13 +909,13 @@ export function initPlayerControls() {
                 castPlay();
                 return false;
             }
-            
+
             // Check if trying to play without a source (after restoration)
             if (!hasSource()) {
                 e.preventDefault();
                 e.stopPropagation();
                 e.stopImmediatePropagation();
-                
+
                 console.log('🎵 Native play button clicked - loading track first');
                 ensureTrackLoadedAndPlay();
                 return false;
@@ -947,9 +969,9 @@ export function initPlayerControls() {
             document.addEventListener('click', (e) => {
                 const qualityBtn = document.getElementById('quality-btn-bottom');
                 const qualityMenu = document.getElementById('quality-menu');
-                
-                if (qualityBtn && qualityMenu && 
-                    !qualityBtn.contains(e.target) && 
+
+                if (qualityBtn && qualityMenu &&
+                    !qualityBtn.contains(e.target) &&
                     !qualityMenu.contains(e.target)) {
                     qualityMenu.classList.remove('show');
                 }
@@ -976,15 +998,15 @@ export function initPlayerControls() {
         if (!qualityBtn) return;
 
         const qualityLabel = QUALITY_LEVELS[currentQuality]?.label || 'Medium';
-        
+
         // Clear existing content safely
         qualityBtn.textContent = '';
-        
+
         // Create and append icon
         const icon = document.createElement('i');
         icon.className = 'bi bi-gear-fill me-1';
         qualityBtn.appendChild(icon);
-        
+
         // Append text node for quality label
         qualityBtn.appendChild(document.createTextNode(qualityLabel));
     }
@@ -1004,7 +1026,7 @@ export function initPlayerControls() {
 
     const changeQuality = (newQuality) => {
         currentQuality = newQuality;
-        
+
         // Save quality preference with error handling
         try {
             localStorage.setItem('audioQuality', newQuality);
@@ -1049,7 +1071,7 @@ export function initPlayerControls() {
         // Android Auto will automatically pick it up if connected to car
         // This also improves notification controls for regular Android usage
         const androidInfo = detectAndroid();
-        
+
         if (androidInfo) {
             console.log('Using Android-optimized Media Session (works with Android Auto)');
             setupAndroidAutoMediaSession(metadata, playerControlsAPI, player);
@@ -1088,8 +1110,8 @@ export function initPlayerControls() {
     const prefetchNextTrack = async (currentIdx) => {
         // For prefetching, skip Repeat One (otherwise we'd prefetch the same track)
         // Pass this as an option instead of mutating global repeatMode
-        const nextIdx = getNextTrackWithRepeat(currentIdx, { 
-            skipRepeatOne: true 
+        const nextIdx = getNextTrackWithRepeat(currentIdx, {
+            skipRepeatOne: true
         });
 
         // Check if there's a valid next track (-1 means no next track)
@@ -1180,7 +1202,7 @@ export function initPlayerControls() {
         if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {
             try {
                 navigator.mediaSession.setPositionState();
-            } catch (e) { }
+            } catch (_e) { }
         }
 
         updateUIForTrack(index);
@@ -1287,7 +1309,7 @@ export function initPlayerControls() {
         try {
             const trackElement = trackItems[currentIndex];
             const title = trackElement?.dataset.title || 'Unknown';
-            
+
             localStorage.setItem(STORAGE_KEY_TRACK, currentIndex.toString());
             localStorage.setItem(STORAGE_KEY_TIME, player.currentTime.toString());
             localStorage.setItem(STORAGE_KEY_POSITION, JSON.stringify({
@@ -1297,7 +1319,7 @@ export function initPlayerControls() {
                 timestamp: Date.now(),
                 paused: player.paused  // Track whether it was paused
             }));
-            
+
             console.debug(`💾 Saved state: track ${currentIndex}, time ${Math.floor(player.currentTime)}s, paused: ${player.paused}`);
         } catch (e) {
             console.warn('Failed to save playback state:', e);
@@ -1400,11 +1422,13 @@ export function initPlayerControls() {
             onTrackChange: (index) => {
                 updateUIForTrack(index);
             },
-            onPlayStateChange: (state) => {
+            onPlayStateChange: (_state) => {
+                // State parameter not needed - syncPlayIcons checks cast state itself
                 syncPlayIcons();
             },
-            onTimeUpdate: (time) => {
-                // No-op - Chromecast handles progress
+            onTimeUpdate: (_time) => {
+                // Time parameter not needed - Chromecast handles progress internally
+                // No-op callback required by interface
             }
         });
     }
@@ -1412,7 +1436,7 @@ export function initPlayerControls() {
     const initEventListeners = () => {
         document.getElementById('big-play-btn')?.addEventListener('click', () => {
             if (trackItems.length === 0) return;
-            
+
             if (currentIndex === -1) {
                 // No track selected - start from beginning
                 if (trackItems.length > 0) {
@@ -1444,8 +1468,8 @@ export function initPlayerControls() {
         let errorRetryCount = 0;
         let hasShownTerminalErrorToast = false;  // Track if terminal error toast shown
         const MAX_RETRIES = 2;
-        
-        player?.addEventListener('error', (e) => {
+
+        player?.addEventListener('error', (_e) => {
             const error = player?.error;
             if (!error) return;
 
@@ -1453,7 +1477,7 @@ export function initPlayerControls() {
             const trackInfo = currentIndex >= 0 && trackItems[currentIndex]
                 ? trackItems[currentIndex].dataset.title
                 : 'Unknown track';
-            
+
             console.error('🚫 Playback error:', {
                 code: error.code,
                 message: error.message,
@@ -1461,10 +1485,10 @@ export function initPlayerControls() {
                 track: trackInfo,
                 trackIndex: currentIndex
             });
-            
+
             // Save state before handling error
             savePlaybackState();
-            
+
             if (errorRetryCount < MAX_RETRIES) {
                 errorRetryCount++;
                 console.log(`🔄 Retrying playback (attempt ${errorRetryCount}/${MAX_RETRIES})...`);
@@ -1509,23 +1533,23 @@ export function initPlayerControls() {
                 );
             }
         });
-        
+
         // Handle stalled playback
         player?.addEventListener('stalled', () => {
             console.warn('⚠️ Playback stalled, attempting to recover...');
             savePlaybackState();
         });
-        
+
         // Handle waiting/buffering
         player?.addEventListener('waiting', () => {
             console.log('⏳ Buffering...');
         });
-        
+
         // Handle successful play resume after buffering
         player?.addEventListener('playing', () => {
             console.log('▶️ Playback resumed');
             errorRetryCount = 0; // Reset error count on successful playback
-            hasShownTerminalAlert = false;  // Reset alert flag on successful playback
+            hasShownTerminalErrorToast = false;  // Reset error toast flag on successful playback
         });
 
         player?.addEventListener('ended', () => {
@@ -1533,22 +1557,24 @@ export function initPlayerControls() {
             const trackElement = trackItems[currentIndex];
             const trackTitle = trackElement?.dataset.title || 'Unknown';
             console.log('✅ Track ended:', trackTitle);
-            
+
             if (!checkCastingState()) {
                 // Save that we completed this track
                 savePlaybackState();
-                
+
                 // Get next track based on shuffle and repeat state
                 const nextIndex = getNextTrackWithRepeat(currentIndex);
-                
+
                 if (nextIndex >= 0 && nextIndex < trackItems.length) {
                     const shuffleMode = isShuffled ? '🔀 shuffle' : '▶️ sequential';
                     const repeatInfo = repeatMode !== 'off' ? ` (repeat: ${repeatMode})` : '';
                     console.log(`🎵 Auto-advancing to next track (${shuffleMode}${repeatInfo})`);
                     playTrack(nextIndex);
+                    // IMPORTANT: Don't release wake lock here - next track is starting!
                 } else {
                     console.log('🏁 Reached end of playlist');
                     clearPlaybackState(); // Clear saved position at end
+                    releaseWakeLock(); // Release wake lock - playlist completely finished
                 }
             }
         });
@@ -1562,14 +1588,20 @@ export function initPlayerControls() {
         // Start auto-saving position when playing
         player?.addEventListener('play', () => {
             startAutoSave();
+            // Acquire wake lock to prevent app suspension during playback
+            // This ensures auto-advance works when phone is locked
+            requestWakeLock();
         });
-        
+
         // Stop auto-saving when paused
         player?.addEventListener('pause', () => {
             savePlaybackState(); // Save immediately on pause
             stopAutoSave();
+            // Release wake lock when paused to save battery
+            // Only released on explicit pause, not between tracks
+            releaseWakeLock();
         });
-        
+
         const handlePositionUpdate = onlyWhenNotCasting(updatePositionState);
         player?.addEventListener('loadedmetadata', handlePositionUpdate);
         player?.addEventListener('play', handlePositionUpdate);
@@ -1655,6 +1687,29 @@ export function initPlayerControls() {
     initCastListeners();
     initEventListeners();
 
+    // Handle visibility changes (app backgrounded, screen locked, tab switched)
+    // CRITICAL for maintaining playback when phone is locked
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            console.log('👁️ Page hidden (app backgrounded or screen locked)');
+
+            // If currently playing, ensure wake lock is active to prevent suspension
+            // This is especially important when user locks phone mid-playback
+            if (player && !player.paused && !checkCastingState()) {
+                requestWakeLock();
+
+                // Also ensure Media Session state is correct
+                // Some Android versions may have cleared it
+                if ('mediaSession' in navigator) {
+                    navigator.mediaSession.playbackState = 'playing';
+                    console.log('📱 Reinforced Media Session state: playing');
+                }
+            }
+        } else {
+            console.log('👁️ Page visible (app foregrounded)');
+        }
+    });
+
     // Restore shuffle and repeat state FIRST (before playback restoration)
     restoreShuffleState();
     restoreRepeatMode();
@@ -1665,10 +1720,10 @@ export function initPlayerControls() {
         // Update currentIndex to the saved track
         currentIndex = savedState.track;
         window.currentTrackIndex = savedState.track;  // Keep window property in sync
-        
+
         // Apply UI state using helper
         applyRestoredUIState(savedState);
-        
+
         // Attach seek handler using helper
         attachRestoredSeekOnFirstPlay(savedState);
     } else {

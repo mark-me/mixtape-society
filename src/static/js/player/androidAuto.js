@@ -24,14 +24,14 @@ export function isAndroidAutoConnected() {
     // Android Auto sets specific user agent strings
     const ua = navigator.userAgent.toLowerCase();
     const isAndroidAuto = ua.includes('android') && (
-        ua.includes('vehicle') || 
+        ua.includes('vehicle') ||
         ua.includes('automotive') ||
         document.referrer.includes('android-auto')
     );
-    
+
     // Also check for Android Auto specific APIs
     const hasAutoAPIs = 'getInstalledRelatedApps' in navigator;
-    
+
     return isAndroidAuto || hasAutoAPIs;
 }
 
@@ -48,7 +48,7 @@ export function setupAndroidAutoMediaSession(metadata, playerControls, audioElem
 
     // 1. Set metadata with optimized artwork
     const artwork = prepareArtwork(metadata.artwork);
-    
+
     navigator.mediaSession.metadata = new MediaMetadata({
         title: metadata.title || 'Unknown Track',
         artist: metadata.artist || 'Unknown Artist',
@@ -81,7 +81,7 @@ function prepareArtwork(originalArtwork) {
 
     // Get the first artwork URL
     const artworkUrl = originalArtwork[0].src;
-    
+
     // Android Auto requires multiple sizes
     // Return same image at different declared sizes
     return ANDROID_AUTO_ARTWORK_SIZES.map(spec => ({
@@ -157,12 +157,12 @@ function setupActionHandlers(playerControls, audioElement) {
  */
 function updatePositionState(audioElement) {
     if (!('setPositionState' in navigator.mediaSession)) return;
-    
-    if (audioElement.duration && 
-        !isNaN(audioElement.duration) && 
-        isFinite(audioElement.duration) && 
+
+    if (audioElement.duration &&
+        !isNaN(audioElement.duration) &&
+        isFinite(audioElement.duration) &&
         audioElement.duration > 0) {
-        
+
         try {
             navigator.mediaSession.setPositionState({
                 duration: audioElement.duration,
@@ -184,14 +184,14 @@ function setupAudioEventListeners(audioElement) {
         console.log('🚗 Event listeners already attached to this audio element');
         return;
     }
-    
+
     // If we had listeners on a different element, we could detach them here
     // (Not necessary for this use case since we only have one player element)
-    
+
     // Mark this element as having listeners
     listenersAttachedTo = audioElement;
     console.log('🚗 Installing Android Auto event listeners');
-    
+
     // Update playback state
     audioElement.addEventListener('play', () => {
         navigator.mediaSession.playbackState = 'playing';
@@ -204,13 +204,17 @@ function setupAudioEventListeners(audioElement) {
     });
 
     audioElement.addEventListener('ended', () => {
-        navigator.mediaSession.playbackState = 'none';
-        console.log('🚗 Playback state: none');
+        // CRITICAL: Use 'paused' instead of 'none' to keep notification alive
+        // Setting to 'none' causes Android to dismiss the notification and may
+        // suspend the app, preventing auto-advance to the next track
+        // This is especially important when phone is locked
+        navigator.mediaSession.playbackState = 'paused';
+        console.log('🚗 Track ended, state: paused (next track loading)');
     });
 
     // Update position every second during playback
     let positionUpdateInterval;
-    
+
     audioElement.addEventListener('play', () => {
         // Update position state every second
         positionUpdateInterval = setInterval(() => {
@@ -249,20 +253,20 @@ export function clearAndroidAutoMediaSession() {
     if (!('mediaSession' in navigator)) return;
 
     console.log('🚗 Clearing Android Auto Media Session');
-    
+
     navigator.mediaSession.playbackState = 'none';
     navigator.mediaSession.metadata = null;
-    
+
     const actions = [
         'play', 'pause', 'stop',
         'previoustrack', 'nexttrack',
         'seekbackward', 'seekforward', 'seekto'
     ];
-    
+
     actions.forEach(action => {
         try {
             navigator.mediaSession.setActionHandler(action, null);
-        } catch (e) {
+        } catch (_e) {
             // Action may not be supported, that's fine
         }
     });
@@ -273,12 +277,12 @@ export function clearAndroidAutoMediaSession() {
  */
 export function logAndroidAutoStatus() {
     const isConnected = isAndroidAutoConnected();
-    
+
     console.log('🚗 Android Auto Status:');
     console.log(`   Connected: ${isConnected ? 'Yes ✅' : 'No'}`);
     console.log(`   Media Session API: ${'mediaSession' in navigator ? 'Available ✅' : 'Not Available ❌'}`);
     console.log(`   User Agent: ${navigator.userAgent}`);
-    
+
     if (isConnected) {
         console.log('💡 Tip: Keep phone screen unlocked for best Android Auto experience');
     }
