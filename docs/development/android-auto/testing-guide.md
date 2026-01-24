@@ -145,6 +145,7 @@ cd ~/Android/Sdk/platform-tools
 ```
 
 **Windows:**
+
 ```cmd
 cd %LOCALAPPDATA%\Android\Sdk\platform-tools
 desktop-head-unit.exe
@@ -153,6 +154,7 @@ desktop-head-unit.exe
 ### DHU Window
 
 When DHU launches, you'll see:
+
 - Simulated car display (touchscreen)
 - Control buttons (home, back, etc.)
 - Debug console in terminal
@@ -187,6 +189,7 @@ adb shell am start -n com.google.android.projection.gearhead/.MainActivity
 ### Verify Connection
 
 On DHU window, you should see:
+
 - Android Auto home screen
 - Available apps listed
 - "Mixtape Society" appears (if web app is accessible)
@@ -237,7 +240,8 @@ On DHU window, you should see:
    - Click **Inspect**
 
 2. **Check Network Tab:**
-   ```
+
+   ```text
    Request: /covers/artist_album_256x256.jpg
    Status: 200 OK
    Size: 42.3 KB (transferred)
@@ -253,7 +257,7 @@ On DHU window, you should see:
 
 DHU terminal shows debug output:
 
-```
+```text
 [DHU] Media session updated
 [DHU] Artwork: http://192.168.1.100:5000/covers/artist_album_256x256.jpg
 [DHU] Title: Summer Vibes
@@ -263,13 +267,15 @@ DHU terminal shows debug output:
 ### Measure Bandwidth Savings
 
 **Before optimization:**
-```
+
+```text
 Request: /covers/artist_album.jpg
 Size: 387 KB
 ```
 
 **After optimization:**
-```
+
+```text
 Request: /covers/artist_album_256x256.jpg
 Size: 41 KB
 Savings: 89.4%
@@ -284,12 +290,14 @@ Savings: 89.4%
 **Goal:** Verify lazy generation works
 
 **Steps:**
+
 1. Clear cover cache: `rm data/cache/covers/*_*x*.jpg`
 2. Play track with no cached variants
 3. Observe ~200ms delay on first load
 4. Subsequent loads instant (cached)
 
 **Expected:**
+
 - First request: 200-300ms
 - Second request: <10ms
 - Variant files created in cache directory
@@ -299,11 +307,13 @@ Savings: 89.4%
 **Goal:** Verify correct platform detection
 
 **Test on:**
+
 - ✅ Desktop browser → Should NOT trigger Android Auto mode
 - ✅ Mobile Chrome → Should NOT trigger Android Auto mode
 - ✅ Android Auto DHU → Should trigger Android Auto mode
 
 **Verify:**
+
 - Console logs show correct detection
 - Appropriate artwork sizes requested
 - UI changes applied (or not)
@@ -313,11 +323,13 @@ Savings: 89.4%
 **Goal:** Test PWA offline capabilities
 
 **Steps:**
+
 1. Load mixtape while online
 2. Disconnect network
 3. Attempt to play cached track
 
 **Expected:**
+
 - Previously cached tracks play
 - Cover art shows (if cached)
 - Graceful error for non-cached content
@@ -327,11 +339,13 @@ Savings: 89.4%
 **Goal:** Test with different Android versions
 
 **Test on:**
+
 - Android 10 device
 - Android 13 device
 - Emulator with different screen sizes
 
 **Verify:**
+
 - All versions work correctly
 - Cover art scales appropriately
 - No crashes or errors
@@ -345,6 +359,7 @@ Savings: 89.4%
 **Symptoms:** `desktop-head-unit` command not found
 
 **Solution:**
+
 ```bash
 # Add to PATH
 export PATH=$PATH:~/Android/Sdk/platform-tools
@@ -358,6 +373,7 @@ export PATH=$PATH:~/Android/Sdk/platform-tools
 **Symptoms:** DHU shows "Waiting for device..."
 
 **Solution:**
+
 ```bash
 # Check ADB connection
 adb devices
@@ -377,6 +393,7 @@ adb devices
 **Causes & Solutions:**
 
 1. **Web app not accessible from device:**
+
    ```bash
    # On Android device browser, test:
    http://YOUR_COMPUTER_IP:5000
@@ -399,12 +416,14 @@ adb devices
 **Debug:**
 
 1. **Check Network Tab:**
-   ```
+
+   ```text
    Request: /covers/artist_album_256x256.jpg
    Status: 404 (file not generated)
    ```
 
 2. **Verify Backend:**
+
    ```bash
    # Check covers directory
    ls -la data/cache/covers/
@@ -413,6 +432,7 @@ adb devices
    ```
 
 3. **Check Console Logs:**
+
    ```javascript
    // Should show:
    "Generated 256x256 variant for artist_album"
@@ -443,7 +463,7 @@ adb devices
 Target performance metrics for Android Auto:
 
 | Metric | Target | Acceptable | Poor |
-|--------|--------|------------|------|
+| ------ | ------ | ---------- | ---- |
 | Cover load time (cached) | <50ms | <100ms | >200ms |
 | Cover load time (first) | <300ms | <500ms | >1s |
 | Cover file size (256×256) | 30-50 KB | 50-80 KB | >100 KB |
