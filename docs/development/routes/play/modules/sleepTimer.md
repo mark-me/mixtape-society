@@ -102,7 +102,7 @@ let sleepTimerState = {
 **Field Details:**
 
 | Field | Type | Purpose | Default |
-|-------|------|---------|---------|
+| ----- | ---- | ------- | ------- |
 | `active` | boolean | Timer running status | `false` |
 | `endTime` | number\|null | Expiration timestamp (ms) | `null` |
 | `duration` | number | User-selected duration (min) | `30` |
@@ -826,7 +826,7 @@ player.addEventListener('ended', handleEnd, { once: true });
 
 ---
 
-## 🎯 Helper Functions
+## 🛠️ Helper Functions
 
 ### Time Formatting
 
@@ -959,7 +959,7 @@ const STORAGE_KEY_SLEEP_TIMER = 'sleep_timer_duration';
 
 ---
 
-## 🎯 Best Practices
+## 🌟 Best Practices
 
 ### Always Initialize in index.js
 
