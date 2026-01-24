@@ -8,7 +8,7 @@ No accounts, no telemetry, no Spotify – just your music, your server, your rul
 
 ## ✨ Features
 
-### 🎶🧑‍🎨 For Mixtape Creators
+### 📼✍️🎶 For Mixtape Creators
 
 - **Private music library** – Host your own collection (FLAC, MP3, M4A, AAC, OGG, WAV)
 - **Custom cover art** – Upload unique artwork for each mixtape
@@ -18,7 +18,7 @@ No accounts, no telemetry, no Spotify – just your music, your server, your rul
 - **Permanent or temporary** – Links persist until you delete them
 - **Gift rituals** – Add a gifting ritual for mixtape receivers.
 
-### 🎁 For Mixtape Receivers
+### 📼🤲🎧 For Mixtape Receivers
 
 - **No accounts needed** – Just click and play
 - **Lock screen integration** – Control from phone notifications
@@ -79,5 +79,6 @@ Public links should only be shared with people you trust or protected with a pas
 See [DISCLAIMER](./DISCLAIMER) for full text.
 
 Made with love for real mixtapes in a digital world.
+
 
 
