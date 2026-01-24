@@ -195,8 +195,7 @@ Frontend JavaScript that consumes these routes.
 - `playerControls.js` - Playback orchestration
 - `chromecast.js` - Cast SDK integration
 - `androidAuto.js` - Enhanced Media Session
-
-See: [Player Controls](../play/modules/playerControls.md)
+- `sleepTimer.js` - Automatic playback shutdown
 
 ---
 
@@ -211,7 +210,9 @@ See: [Player Controls](../play/modules/playerControls.md)
 
 ### Frontend Integration
 
-- **[Player Controls](../play/modules/playerControls.md)** - Playback orchestration
+- **[Player Controls](modules/playerControls.md)** - Playback orchestration
+- **[Sleep Timer](modules/sleepTimer.md)** - Automatic playback shutdown
+- **[Player Utilities](modules/playerUtils.md)** - Uniforming platform experiences
 - **[Chromecast Integration](../../chromecast/integration.md)** - Cast SDK setup
 - **[Android Auto](../../android-auto/integration-overview.md)** - Enhanced Media Session
 

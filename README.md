@@ -53,7 +53,7 @@ Open [http://localhost:5001](http://localhost:5001) – Done!
 
 - 🏠 [Full Documentation](https://mark-me.github.io/mixtape-society/index.html)
 - 🚀 [Getting Started](https://mark-me.github.io/mixtape-society/user/getting-started.html)
-- 🐳 [Docker Deployment](https://mark-me.github.io/mixtape-society/user/docker.html)
+- 🛠️ [Development documentation](https://mark-me.github.io/mixtape-society/development/intro.html)
 - 🙌 [Acknowledgements](https://mark-me.github.io/mixtape-society/project/about.html#acknowledgements)
 
 ## 👥 Get Involved
