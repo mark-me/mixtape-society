@@ -32,7 +32,7 @@ Perfect for:
 - 🏠 **Home audio** – Stream to whole-home speaker systems
 - 🚗 **Road trips** – Perfect mixtapes for long drives
 - 🎁 **Gifts** – Create physical cards with QR codes that stream anywhere
-- 🌃 **Ambient listening** – Set the mood without managing your phone
+- 🌙 **Ambient listening** – Set the mood without managing your phone
 
 ## 🚀 Quick Start
 
@@ -79,6 +79,7 @@ Public links should only be shared with people you trust or protected with a pas
 See [DISCLAIMER](./DISCLAIMER) for full text.
 
 Made with love for real mixtapes in a digital world.
+
 
 
 
