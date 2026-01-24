@@ -273,7 +273,7 @@ export function initUI() {
             const linkUrl = new URL(link.href, window.location.origin);
             const currentUrl = new URL(window.location.href);
             if (linkUrl.origin === currentUrl.origin && linkUrl.pathname === currentUrl.pathname) return;
-        } catch (err) {
+        } catch (_err) {
             return;
         }
 
