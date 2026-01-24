@@ -16,6 +16,10 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 - Sleep timer
 
+### 🐛 Fixed
+
+- Some Android devices stopped playback when track ended
+
 ---
 
 ## 📦 v0.7.2
