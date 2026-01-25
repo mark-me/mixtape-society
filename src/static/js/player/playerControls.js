@@ -1724,6 +1724,32 @@ export function initPlayerControls() {
         // Apply UI state using helper
         applyRestoredUIState(savedState);
 
+        // CRITICAL FIX: Load the track into the player so play button works
+        // Guard against invalid index (playlist may have changed since save)
+        const track = trackItems[currentIndex];
+        if (!track) {
+            console.warn('⚠️ Cannot restore track: index out of range', {
+                savedIndex: currentIndex,
+                playlistLength: trackItems.length
+            });
+            // Fallback to first track instead of crashing
+            currentIndex = 0;
+            window.currentTrackIndex = 0;
+            handleAutoStart();
+            return;
+        }
+        
+        // Without this load, clicking play won't resume at the saved position
+        player.src = buildAudioUrl(track.dataset.path, currentQuality);
+        
+        // Preload without auto-playing (respects browser autoplay policies)
+        player.load();
+        console.log('🎵 Loaded track for restoration:', currentIndex);
+        
+        // Update Media Session so lock screen/notification shows correct track
+        const metadata = extractMetadataFromDOM(track);
+        updateLocalMediaSession(metadata);
+
         // Attach seek handler using helper
         attachRestoredSeekOnFirstPlay(savedState);
     } else {

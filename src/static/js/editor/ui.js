@@ -84,18 +84,8 @@ export function initUI() {
             return;
         }
 
-        // Validate size (max 5 MiB)
-        const maxSize = 5 * 1024 * 1024;
-        if (file.size > maxSize) {
-            showAlert({
-                title: "File Too Large",
-                message: "Image is too large. Maximum size is 5 MiB."
-            });
-            coverInput.value = "";
-            return;
-        }
-
         // Read the file
+        // Note: Backend will resize images to max 1200px width and optimize them
         const reader = new FileReader();
 
         reader.onload = ev => {
@@ -198,7 +188,7 @@ export function initUI() {
             hasUnsavedChanges = false;
             updateSaveButton();
 
-            // Update the editing-slug input before clearing client_id
+            // CRITICAL FIX: Update the editing-slug input BEFORE clearing client_id
             editingSlugInput.value = data.slug;
 
             // Only clear clientId for new mixtapes after we've updated the slug
@@ -273,7 +263,7 @@ export function initUI() {
             const linkUrl = new URL(link.href, window.location.origin);
             const currentUrl = new URL(window.location.href);
             if (linkUrl.origin === currentUrl.origin && linkUrl.pathname === currentUrl.pathname) return;
-        } catch (_err) {
+        } catch (err) {
             return;
         }
 
