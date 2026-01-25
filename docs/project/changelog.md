@@ -22,6 +22,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 - With new mixtape, every save results in a new one
 - Bottom player play button doesn't resume track after page reload
+- Playback stops on mobile
 
 ---
 
