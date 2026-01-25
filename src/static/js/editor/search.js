@@ -380,6 +380,9 @@ function renderResults(data) {
                                 <img src="/${coverPath}" class="img-thumbnail" style="max-width: 200px;">
                             </div>` : '';
 
+                        // Check if this is a Various Artists album
+                        const isVariousArtists = details.artist === 'Various Artists';
+
                         body.innerHTML = `
                             ${cover}
                             <div class="d-flex justify-content-between mb-3">
@@ -390,26 +393,33 @@ function renderResults(data) {
                                 </button>
                             </div>
                             <ul class="list-group">
-                                ${details.tracks.map((track, i) => `
-                                    <li class="list-group-item d-flex justify-content-between">
-                                        <span>${i + 1}. ${escapeHtml(track.track)}</span>
-                                        <div class="d-flex gap-2">
-                                            <span class="text-muted">${formatDuration(track.duration)}</span>
-                                            <button class="btn btn-track btn-sm preview-btn"
-                                                    data-path="${escapeHtml(track.path)}"
-                                                    data-title="${escapeHtml(track.track)}"
-                                                    data-artist="${escapeHtml(details.artist)}"
-                                                    data-album="${escapeHtml(details.album)}"
-                                                    data-cover="${escapeHtml(coverPath || '')}">
-                                                <i class="bi bi-play-fill"></i>
-                                            </button>
-                                            <button class="btn btn-success btn-sm add-btn"
-                                                    data-item="${escapeHtml(JSON.stringify(track))}">
-                                                <i class="bi bi-plus-circle"></i>
-                                            </button>
-                                        </div>
-                                    </li>
-                                `).join('')}
+                                ${details.tracks.map((track, i) => {
+                                    // For Various Artists albums, show the individual track artist
+                                    const trackDisplay = isVariousArtists && track.artist
+                                        ? `${escapeHtml(track.track)} <span class="text-muted">– ${escapeHtml(track.artist)}</span>`
+                                        : escapeHtml(track.track);
+                                    
+                                    return `
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <span>${i + 1}. ${trackDisplay}</span>
+                                            <div class="d-flex gap-2">
+                                                <span class="text-muted">${formatDuration(track.duration)}</span>
+                                                <button class="btn btn-track btn-sm preview-btn"
+                                                        data-path="${escapeHtml(track.path)}"
+                                                        data-title="${escapeHtml(track.track)}"
+                                                        data-artist="${escapeHtml(track.artist || details.artist)}"
+                                                        data-album="${escapeHtml(details.album)}"
+                                                        data-cover="${escapeHtml(coverPath || '')}">
+                                                    <i class="bi bi-play-fill"></i>
+                                                </button>
+                                                <button class="btn btn-success btn-sm add-btn"
+                                                        data-item="${escapeHtml(JSON.stringify(track))}">
+                                                    <i class="bi bi-plus-circle"></i>
+                                                </button>
+                                            </div>
+                                        </li>
+                                    `;
+                                }).join('')}
                             </ul>
                         `;
 

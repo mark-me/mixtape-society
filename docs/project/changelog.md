@@ -15,6 +15,7 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 ### 🔧 Changed
 
 - Removed cover upload limit
+- Added artist to track label for compilation albums
 
 ### 🐛 Fixed
 
