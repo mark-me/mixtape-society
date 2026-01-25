@@ -1724,6 +1724,19 @@ export function initPlayerControls() {
         // Apply UI state using helper
         applyRestoredUIState(savedState);
 
+        // CRITICAL FIX: Load the track into the player so play button works
+        // Without this, clicking play won't resume at the saved position
+        const track = trackItems[currentIndex];
+        player.src = buildAudioUrl(track.dataset.path, currentQuality);
+        
+        // Preload without auto-playing (respects browser autoplay policies)
+        player.load();
+        console.log('🎵 Loaded track for restoration:', currentIndex);
+        
+        // Update Media Session so lock screen/notification shows correct track
+        const metadata = extractMetadataFromDOM(track);
+        updateLocalMediaSession(metadata);
+
         // Attach seek handler using helper
         attachRestoredSeekOnFirstPlay(savedState);
     } else {
