@@ -160,6 +160,8 @@ INDEX_DEFINITIONS = [
     ("idx_album", "album COLLATE NOCASE"),
     ("idx_title", "title COLLATE NOCASE"),
     ("idx_album_track", "album COLLATE NOCASE, disc_number, track_number"),
+    ("idx_artist_album", "artist COLLATE NOCASE, album COLLATE NOCASE"),
+    ("idx_release_dir", "(SUBSTR(path, 1, LENGTH(path) - LENGTH(filename)))"),
 ]
 
 # Trigger definitions as complete SQL strings (no interpolation)
