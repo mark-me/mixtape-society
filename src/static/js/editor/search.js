@@ -160,7 +160,7 @@ function renderResults(data) {
                                     data-bs-target="#collapse-artist-${safeArtist}"
                                     data-raw-artist="${escapeHtml(entry.raw_artist || entry.artist)}">
                                 <i class="bi bi-person-fill me-2"></i>
-                                <span class="flex-grow-1">${entry.artist}</span>
+                                <span class="flex-grow-1">${escapeHtml(entry.artist)}</span>
                                 <span class="ms-auto small">
                                     <i class="bi bi-disc-fill me-1"></i>${entry.num_albums || 0}
                                 </span>
@@ -185,7 +185,7 @@ function renderResults(data) {
             const safeReleaseDir = safeId(entry.release_dir);
             const coverThumb = entry.cover ? `
                 <div class="album-thumb me-2">
-                    <img src="/${entry.cover}" alt="Album Cover" class="rounded">
+                    <img src="/${escapeHtml(entry.cover)}" alt="Album Cover" class="rounded">
                 </div>` : '';
 
             return `
@@ -199,8 +199,8 @@ function renderResults(data) {
                                     data-raw-artist="${escapeHtml(entry.raw_artist || entry.artist)}">
                                 ${coverThumb}
                                 <div class="flex-grow-1 min-w-0">
-                                    <div class="album-title text-truncate">${entry.album}</div>
-                                    <div class="album-artist text-truncate small text-muted">${entry.artist}</div>
+                                    <div class="album-title text-truncate">${escapeHtml(entry.album)}</div>
+                                    <div class="album-artist text-truncate small text-muted">${escapeHtml(entry.artist)}</div>
                                 </div>
                                 <span class="ms-auto small">
                                     <i class="bi bi-music-note-beamed me-1"></i>${entry.num_tracks || 0}
@@ -230,15 +230,15 @@ function renderResults(data) {
                 <li class="list-group-item d-flex justify-content-between align-items-center mb-2 border rounded">
                     <div class="d-flex align-items-center flex-grow-1 gap-3 min-w-0">
                         ${track.cover ? `
-                            <img src="/${track.cover}" alt="Track Cover" class="rounded" style="width: 50px; height: 50px; object-fit: cover; flex-shrink: 0;">
+                            <img src="/${escapeHtml(track.cover)}" alt="Track Cover" class="rounded" style="width: 50px; height: 50px; object-fit: cover; flex-shrink: 0;">
                         ` : ''}
                         <div class="flex-grow-1 min-w-0">
                             <div class="d-flex align-items-center gap-2 mb-1">
                                 <i class="bi bi-music-note-beamed text-track flex-shrink-0"></i>
                                 <strong class="text-truncate">${entry.highlighted_tracks ? entry.highlighted_tracks[0].highlighted : escapeHtml(track.track)}</strong>
                             </div>
-                            <small class="text-muted d-block text-truncate">${entry.artist}</small>
-                            <small class="text-muted d-block text-truncate">${entry.album}</small>
+                            <small class="text-muted d-block text-truncate">${escapeHtml(entry.artist)}</small>
+                            <small class="text-muted d-block text-truncate">${escapeHtml(entry.album)}</small>
                         </div>
                     </div>
                     <div class="d-flex align-items-center gap-2 flex-shrink-0 ms-2">
@@ -290,7 +290,7 @@ function renderResults(data) {
                         const albumId = safeId(album.album + '-' + index);
                         const coverThumb = album.cover ? `
                             <div class="album-thumb me-2">
-                                <img src="/${album.cover}" class="rounded">
+                                <img src="/${escapeHtml(album.cover)}" class="rounded">
                             </div>` : '';
 
                         const subtitle = album.is_compilation
@@ -316,7 +316,7 @@ function renderResults(data) {
                                 <div id="collapse-album-${albumId}" class="accordion-collapse collapse">
                                     <div class="accordion-body">
                                         ${album.cover ? `
-                                            <img src="/${album.cover}" class="img-fluid rounded mb-3">
+                                            <img src="/${escapeHtml(album.cover)}" class="img-fluid rounded mb-3">
                                         ` : ''}
                                         <button class="btn btn-success btn-sm mb-3 add-album-btn"
                                                 data-tracks="${escapeHtml(JSON.stringify(album.tracks))}">
@@ -380,6 +380,9 @@ function renderResults(data) {
                                 <img src="/${coverPath}" class="img-thumbnail" style="max-width: 200px;">
                             </div>` : '';
 
+                        // Check if this is a Various Artists album
+                        const isVariousArtists = details.artist === 'Various Artists';
+
                         body.innerHTML = `
                             ${cover}
                             <div class="d-flex justify-content-between mb-3">
@@ -390,26 +393,33 @@ function renderResults(data) {
                                 </button>
                             </div>
                             <ul class="list-group">
-                                ${details.tracks.map((track, i) => `
-                                    <li class="list-group-item d-flex justify-content-between">
-                                        <span>${i + 1}. ${escapeHtml(track.track)}</span>
-                                        <div class="d-flex gap-2">
-                                            <span class="text-muted">${formatDuration(track.duration)}</span>
-                                            <button class="btn btn-track btn-sm preview-btn"
-                                                    data-path="${escapeHtml(track.path)}"
-                                                    data-title="${escapeHtml(track.track)}"
-                                                    data-artist="${escapeHtml(details.artist)}"
-                                                    data-album="${escapeHtml(details.album)}"
-                                                    data-cover="${escapeHtml(coverPath || '')}">
-                                                <i class="bi bi-play-fill"></i>
-                                            </button>
-                                            <button class="btn btn-success btn-sm add-btn"
-                                                    data-item="${escapeHtml(JSON.stringify(track))}">
-                                                <i class="bi bi-plus-circle"></i>
-                                            </button>
-                                        </div>
-                                    </li>
-                                `).join('')}
+                                ${details.tracks.map((track, i) => {
+                                    // For Various Artists albums, show the individual track artist
+                                    const trackDisplay = isVariousArtists && track.artist
+                                        ? `${escapeHtml(track.track)} <span class="text-muted">– ${escapeHtml(track.artist)}</span>`
+                                        : escapeHtml(track.track);
+                                    
+                                    return `
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <span>${i + 1}. ${trackDisplay}</span>
+                                            <div class="d-flex gap-2">
+                                                <span class="text-muted">${formatDuration(track.duration)}</span>
+                                                <button class="btn btn-track btn-sm preview-btn"
+                                                        data-path="${escapeHtml(track.path)}"
+                                                        data-title="${escapeHtml(track.track)}"
+                                                        data-artist="${escapeHtml(track.artist || details.artist)}"
+                                                        data-album="${escapeHtml(details.album)}"
+                                                        data-cover="${escapeHtml(coverPath || '')}">
+                                                    <i class="bi bi-play-fill"></i>
+                                                </button>
+                                                <button class="btn btn-success btn-sm add-btn"
+                                                        data-item="${escapeHtml(JSON.stringify(track))}">
+                                                    <i class="bi bi-plus-circle"></i>
+                                                </button>
+                                            </div>
+                                        </li>
+                                    `;
+                                }).join('')}
                             </ul>
                         `;
 

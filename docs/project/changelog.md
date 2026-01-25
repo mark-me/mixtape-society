@@ -10,11 +10,17 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 <span class="md-tag">Development</span>
 
-**🗓️** 2026-01-24
+**🗓️** 2026-01-25
+
+### 🔧 Changed
+
+- Removed cover upload limit
+- Added artist to track label for compilation albums
 
 ### 🐛 Fixed
 
 - With new mixtape, every save results in a new one
+- Bottom player play button doesn't resume track after page reload
 
 ---
 
