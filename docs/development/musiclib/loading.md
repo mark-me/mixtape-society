@@ -82,7 +82,7 @@ Started in `_init_db`:
 1. Opens a connection (`sqlite3.connect(self.db_path)`).
 2. Sets WAL journal mode and normal sync for better concurrency.
 3. Creates the tracks `table` if it does not exist.
-4. Creates three case‑insensitive indexes on `artist`, `album`, and `title`.
+4. Creates indexes on `artist`, `album`, `title`, and composite indexes on `artist+album` and `release_dir` expression for faster grouped queries.
 5. Creates the FTS5 virtual table `tracks_fts` with a Unicode tokenizer that removes diacritics.
 6. Installs three triggers (`tracks_ai`, `tracks_ad`, `tracks_au`) that keep `tracks_fts` in sync with inserts, deletes, and updates on `tracks`.
 
