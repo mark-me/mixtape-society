@@ -2,11 +2,27 @@
 import { escapeHtml } from "./utils.js";
 import { addToPlaylist } from "./playlist.js";
 
+// Get DOMPurify from window (loaded globally in the HTML)
+const { DOMPurify } = window;
+
 const searchInput = document.getElementById("searchInput");
 const resultsDiv = document.getElementById("results");
 let timeoutId;
 
 const STORAGE_KEY = "mixtape_editor_search_query";
+
+/**
+ * Safely sets innerHTML using DOMPurify to sanitize content
+ * This prevents XSS even if escapeHtml was missed somewhere
+ */
+function safeSetHTML(element, html) {
+    if (DOMPurify) {
+        element.innerHTML = DOMPurify.sanitize(html);
+    } else {
+        // Fallback if DOMPurify isn't available
+        element.innerHTML = html;
+    }
+}
 
 function getCurrentQuery() {
     return searchInput.value.trim();
@@ -40,7 +56,11 @@ function attachAccordionLoader({
 
             if (!result || (Array.isArray(result) && result.length === 0)) {
                 if (emptyMessage) {
-                    body.innerHTML = `<p class="text-muted">${emptyMessage}</p>`;
+                    body.textContent = '';
+                    const p = document.createElement('p');
+                    p.className = 'text-muted';
+                    p.textContent = emptyMessage;
+                    body.appendChild(p);
                 } else {
                     body.innerHTML = '';
                 }
@@ -89,13 +109,31 @@ function performSearch() {
         .then(renderResults)
         .catch(error => {
             console.error("Search error:", error);
-            resultsDiv.innerHTML = `
-                <div class="alert alert-danger m-3" role="alert">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                    <strong>Search failed:</strong> ${escapeHtml(error.message)}
-                    <br><small>Try a different search term or report an issue if this persists.</small>
-                </div>
-            `;
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'alert alert-danger m-3';
+            errorDiv.setAttribute('role', 'alert');
+            
+            const icon = document.createElement('i');
+            icon.className = 'bi bi-exclamation-triangle-fill me-2';
+            
+            const strong = document.createElement('strong');
+            strong.textContent = 'Search failed:';
+            
+            const message = document.createTextNode(' ' + error.message);
+            
+            const br = document.createElement('br');
+            
+            const small = document.createElement('small');
+            small.textContent = 'Try a different search term or report an issue if this persists.';
+            
+            errorDiv.appendChild(icon);
+            errorDiv.appendChild(strong);
+            errorDiv.appendChild(message);
+            errorDiv.appendChild(br);
+            errorDiv.appendChild(small);
+            
+            resultsDiv.textContent = '';
+            resultsDiv.appendChild(errorDiv);
         })
         .finally(() => document.getElementById("loading").classList.add("visually-hidden"));
 }
@@ -260,7 +298,8 @@ function renderResults(data) {
         html += '</ul>';
     }
 
-    resultsDiv.innerHTML = html;
+    resultsDiv.innerHTML = '';
+    safeSetHTML(resultsDiv, html);
 
     attachAddButtons();
     attachPreviewButtons();
@@ -350,7 +389,7 @@ function renderResults(data) {
                     });
                     html += '</div>';
 
-                    body.innerHTML = html;
+                    safeSetHTML(body, html);
                     attachAddButtons();
                     attachPreviewButtons();
 
@@ -383,7 +422,7 @@ function renderResults(data) {
                         // Check if this is a Various Artists album
                         const isVariousArtists = details.artist === 'Various Artists';
 
-                        body.innerHTML = `
+                        const albumHTML = `
                             ${cover}
                             <div class="d-flex justify-content-between mb-3">
                                 <h6>${details.num_tracks} tracks</h6>
@@ -423,6 +462,7 @@ function renderResults(data) {
                             </ul>
                         `;
 
+                        safeSetHTML(body, albumHTML);
                         attachAddButtons();
                         attachPreviewButtons();
 
