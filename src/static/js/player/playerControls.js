@@ -85,7 +85,8 @@ const TIMING = {
     UI_RESTORE_DELAY: 500,          // Delay before scrolling to restored track
     HIGHLIGHT_DURATION: 3000,       // How long to highlight restored track (yellow background)
     IOS_HELP_DISMISS: 10000,        // Auto-dismiss iOS casting help after 10s
-    PLAYBACK_RESUME_DELAY: 50       // Small delay before resuming playback after restoration
+    PLAYBACK_RESUME_DELAY: 50,      // Small delay before resuming playback after restoration
+    AUTO_ADVANCE_RETRY_DELAY: 100   // Delay before retrying auto-advance play
 };
 
 // Global flag to prevent duplicate iOS help setup
@@ -449,105 +450,78 @@ export function initPlayerControls() {
         player.addEventListener('play', handleRestoredPlay);
     };
 
-    // =============================================================================
-    // UI UPDATE HELPERS
-    // =============================================================================
-
-    /**
-     * Set the active track in the UI
-     * Removes active class from all tracks and adds it to the specified track
-     *
-     * @param {HTMLElement} trackElement - Track element to make active (or null to clear all)
-     */
-    const setActiveTrack = (trackElement) => {
-        trackItems.forEach(t => t.classList.remove('active-track'));
-        if (trackElement) {
-            trackElement.classList.add('active-track');
-        }
-    };
-
-    /**
-     * Update bottom player display with track info
-     *
-     * @param {HTMLElement} track - Track element with data attributes (or null to clear)
-     */
     const updateBottomPlayerInfo = (track) => {
-        if (!track) {
-            bottomTitle.textContent = '–';
-            bottomArtistAlbum.textContent = '–';
+        if (bottomTitle) {
+            bottomTitle.textContent = track.dataset.title || 'Unknown Track';
+        }
+        if (bottomArtistAlbum) {
+            const artist = track.dataset.artist || 'Unknown Artist';
+            const album = track.dataset.album || '';
+            bottomArtistAlbum.textContent = album ? `${artist} – ${album}` : artist;
+        }
+
+        const coverImg = track.querySelector('.track-cover');
+        const bottomCover = document.getElementById('bottom-now-cover');
+        if (coverImg && bottomCover) {
+            bottomCover.src = coverImg.src;
+            bottomCover.alt = track.dataset.title || 'Album Cover';
+        }
+    }
+
+    const setActiveTrack = (track) => {
+        trackItems.forEach(t => t.classList.remove('active'));
+        if (track) {
+            track.classList.add('active');
+        }
+    }
+
+    const togglePlayPause = () => {
+        if (checkCastingState()) {
+            castTogglePlayPause();
             return;
         }
-        bottomTitle.textContent = track.dataset.title;
-        bottomArtistAlbum.textContent = `${track.dataset.artist} • ${track.dataset.album}`;
-    };
 
-    /**
-     * Create a handler that checks casting state before executing
-     * Centralizes the casting vs local playback decision pattern
-     *
-     * @param {Function} castHandler - Handler function for casting mode
-     * @param {Function} localHandler - Handler function for local playback
-     * @returns {Function} Combined handler that chooses based on casting state
-     */
-    const createCastAwareHandler = (castHandler, localHandler) => {
-        return () => {
-            if (checkCastingState()) {
-                castHandler();
-            } else {
-                localHandler();
-            }
-        };
-    };
+        if (!hasSource()) {
+            console.log('🎵 No source, loading track...');
+            ensureTrackLoadedAndPlay();
+            return;
+        }
+
+        if (player.paused) {
+            player.play().catch(err => console.error("Play failed:", err));
+        } else {
+            player.pause();
+        }
+    }
 
     // =============================================================================
     // SHUFFLE FUNCTIONS
     // =============================================================================
 
     /**
-     * Generate a shuffled order of track indices using Fisher-Yates algorithm
+     * Generate a shuffled order of track indices
      */
     const generateShuffleOrder = () => {
-        const order = Array.from({ length: trackItems.length }, (_, i) => i);
+        // Create array of indices
+        const indices = Array.from({ length: trackItems.length }, (_, i) => i);
 
         // Fisher-Yates shuffle
-        for (let i = order.length - 1; i > 0; i--) {
+        for (let i = indices.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
-            [order[i], order[j]] = [order[j], order[i]];
+            [indices[i], indices[j]] = [indices[j], indices[i]];
         }
 
-        return order;
+        return indices;
     };
 
     /**
      * Enable shuffle mode
      */
     const enableShuffle = () => {
-        if (trackItems.length === 0) {
-            console.warn('⚠️ Cannot shuffle: no tracks available');
-            return;
-        }
-
         isShuffled = true;
-
-        // Generate new shuffle order
         shuffleOrder = generateShuffleOrder();
-
-        // Save to storage with error handling
-        try {
-            const shuffleState = {
-                enabled: true,
-                order: shuffleOrder,
-                timestamp: Date.now()
-            };
-            localStorage.setItem(STORAGE_KEY_SHUFFLE, JSON.stringify(shuffleState));
-        } catch (e) {
-            // Storage failed (privacy mode, quota exceeded, etc.)
-            // Shuffle still works in-memory, just won't persist
-            console.warn('Failed to save shuffle state to storage:', e.message);
-        }
-
-        // Update button UI
         updateShuffleButton();
+        saveShuffleState();
 
         console.log('🔀 Shuffle enabled:', shuffleOrder);
     };
@@ -558,20 +532,24 @@ export function initPlayerControls() {
     const disableShuffle = () => {
         isShuffled = false;
         shuffleOrder = [];
-
-        // Remove from storage with error handling
-        try {
-            localStorage.removeItem(STORAGE_KEY_SHUFFLE);
-        } catch (e) {
-            // Storage removal failed (privacy mode, etc.)
-            // Shuffle is still disabled in-memory
-            console.warn('Failed to remove shuffle state from storage:', e.message);
-        }
-
-        // Update button UI
         updateShuffleButton();
+        saveShuffleState();
 
-        console.log('▶️ Shuffle disabled - sequential playback');
+        console.log('▶️ Sequential playback enabled');
+    };
+
+    /**
+     * Save shuffle state to localStorage
+     */
+    const saveShuffleState = () => {
+        try {
+            localStorage.setItem(STORAGE_KEY_SHUFFLE, JSON.stringify({
+                enabled: isShuffled,
+                order: shuffleOrder
+            }));
+        } catch (error) {
+            console.warn('Could not save shuffle state:', error);
+        }
     };
 
     /**
@@ -788,24 +766,20 @@ export function initPlayerControls() {
     const restoreRepeatMode = () => {
         try {
             const stored = localStorage.getItem(STORAGE_KEY_REPEAT);
-            if (stored && isValidRepeatMode(stored)) {
-                // Normalize stored mode to current context
-                const normalizedMode = normalizeRepeatModeForContext(stored);
+            if (!stored) return;
 
-                repeatMode = normalizedMode;
+            // Validate that the stored mode is valid
+            if (isValidRepeatMode(stored)) {
+                // Normalize against playback context
+                repeatMode = normalizeRepeatModeForContext(stored);
                 updateRepeatButton();
-
-                if (normalizedMode !== stored) {
-                    console.log(`🔁 Normalized repeat mode: ${stored} → ${normalizedMode} (context: ${trackItems.length} tracks)`);
-                } else {
-                    console.log(`🔁 Restored repeat mode: ${REPEAT_MODE_LABELS[repeatMode]}`);
-                }
-                return true;
+                console.log(`🔁 Restored repeat mode: ${REPEAT_MODE_LABELS[repeatMode]}`);
+            } else {
+                console.warn('⚠️ Invalid repeat mode in storage, using default');
             }
-        } catch (e) {
-            console.warn('Failed to restore repeat mode:', e.message);
+        } catch (error) {
+            console.warn('Could not restore repeat mode:', error);
         }
-        return false;
     };
 
     /**
@@ -813,13 +787,11 @@ export function initPlayerControls() {
      * Handles edge cases: invalid currentIndex, empty playlist, etc.
      *
      * @param {number} currentIndex - Current track index
-     * @param {Object} options - Optional behavior modifiers
-     * @param {boolean} options.skipRepeatOne - If true, treat Repeat One as Repeat Off (for prefetch)
+     * @param {object} options - Optional behavior modifiers
+     * @param {boolean} options.skipRepeatOne - For prefetch, skip Repeat One behavior
      * @returns {number} Next track index, or -1 if no next track
      */
     const getNextTrackWithRepeat = (currentIndex, options = {}) => {
-        const { skipRepeatOne = false } = options;
-
         // Defensive: Validate playlist has tracks
         if (trackItems.length === 0) {
             console.warn('⚠️ No tracks available');
@@ -827,23 +799,22 @@ export function initPlayerControls() {
         }
 
         // Defensive: Handle invalid currentIndex
-        // Treat out-of-bounds or negative as "start from beginning"
         if (currentIndex < 0 || currentIndex >= trackItems.length) {
-            console.warn(`⚠️ Invalid currentIndex: ${currentIndex}, defaulting to 0`);
+            console.warn(`⚠️ Invalid currentIndex: ${currentIndex}, defaulting to first track`);
             currentIndex = 0;
         }
 
-        // Repeat One: Return same track (unless skipRepeatOne is set for prefetch)
-        if (repeatMode === REPEAT_MODES.ONE && !skipRepeatOne) {
+        // Repeat One: Return same track (unless skipRepeatOne option is set)
+        if (repeatMode === REPEAT_MODES.ONE && !options.skipRepeatOne) {
             return currentIndex;
         }
 
         // Get next track based on shuffle
         let nextIndex = getNextTrackIndex(currentIndex);
 
-        // Repeat All: Loop back to start if we've reached the end
+        // Repeat All: Loop to start if we're at the end
         if (nextIndex === -1 && repeatMode === REPEAT_MODES.ALL) {
-            // Loop back to start (respecting shuffle if enabled)
+            // Loop to beginning (respecting shuffle if enabled)
             if (isShuffled && shuffleOrder.length > 0) {
                 return shuffleOrder[0];
             } else {
@@ -1063,7 +1034,7 @@ export function initPlayerControls() {
     const updateLocalMediaSession = (metadata) => {
         if (checkCastingState()) {
             // CRITICAL: Do NOT create Media Session when casting
-            console.log('â­ï¸ Skipping Media Session - Chromecast handles it');
+            console.log('⭕️ Skipping Media Session - Chromecast handles it');
             return;
         }
 
@@ -1173,18 +1144,24 @@ export function initPlayerControls() {
         }
     };
 
-    const playTrack = (index) => {
-        console.log(`ðŸŽµ playTrack(${index}), casting: ${checkCastingState()}`);
+    /**
+     * Play a track with enhanced mobile auto-advance support
+     * 
+     * @param {number} index - Track index to play
+     * @param {boolean} isAutoAdvance - True if this is an automatic track transition (not user-initiated)
+     */
+    const playTrack = (index, isAutoAdvance = false) => {
+        console.log(`ðŸŽµ playTrack(${index}), auto-advance: ${isAutoAdvance}, casting: ${checkCastingState()}`);
 
         if (checkCastingState()) {
-            console.log(`ðŸ“¡ Routing to Chromecast`);
+            console.log(`ðŸ"¡ Routing to Chromecast`);
             castJumpToTrack(index);
             updateUIForTrack(index);
             // NO Media Session setup - Chromecast handles it
             return;
         }
 
-        console.log(`ðŸ”Š Playing locally`);
+        console.log(`ðŸ"Š Playing locally`);
 
         if (index === currentIndex && player.src !== '') {
             player.play().catch(e => console.log('Autoplay prevented:', e));
@@ -1210,7 +1187,53 @@ export function initPlayerControls() {
         const metadata = extractMetadataFromDOM(track);
         updateLocalMediaSession(metadata);
 
-        player.play().catch(e => console.log('Autoplay prevented:', e));
+        // CRITICAL FIX FOR MOBILE AUTO-ADVANCE:
+        // When auto-advancing (track ended naturally), use special handling
+        // to work around mobile browser autoplay restrictions
+        if (isAutoAdvance) {
+            console.log('📱 Auto-advance mode: using enhanced playback strategy');
+            
+            // Load the track immediately to ensure metadata is ready
+            player.load();
+            
+            // Attempt playback with robust error handling
+            player.play()
+                .then(() => {
+                    console.log('✅ Auto-advance play successful');
+                })
+                .catch(e => {
+                    // On mobile, if autoplay is blocked, try Media Session workaround
+                    console.warn('⚠️ Auto-advance blocked by browser:', e.message);
+                    
+                    // Try to trigger play through Media Session if available
+                    if ('mediaSession' in navigator) {
+                        try {
+                            // Update playback state to playing - this can help trigger notification controls
+                            navigator.mediaSession.playbackState = 'playing';
+                            console.log('📱 Updated Media Session to playing state');
+                            
+                            // Attempt play again after a short delay (allows Media Session to settle)
+                            setTimeout(() => {
+                                player.play()
+                                    .then(() => {
+                                        console.log('✅ Second play attempt successful via Media Session');
+                                    })
+                                    .catch(err => {
+                                        console.error('❌ Second play attempt also failed:', err.message);
+                                        // At this point, the user needs to interact with the notification/lock screen
+                                        // The Media Session controls should still be visible and functional
+                                    });
+                            }, TIMING.AUTO_ADVANCE_RETRY_DELAY);
+                        } catch (msError) {
+                            console.error('❌ Media Session fallback failed:', msError);
+                        }
+                    }
+                });
+        } else {
+            // Manual track changes - these are initiated by user gesture
+            // and should work without issues
+            player.play().catch(e => console.log('Autoplay prevented:', e));
+        }
 
         // Prefetch next track for smooth transitions
         prefetchNextTrack(index);
@@ -1350,19 +1373,21 @@ export function initPlayerControls() {
             localStorage.removeItem(STORAGE_KEY_TRACK);
             localStorage.removeItem(STORAGE_KEY_TIME);
             localStorage.removeItem(STORAGE_KEY_POSITION);
+            console.log('🗑️ Cleared playback state');
         } catch (e) {
-            // Storage removal failed (privacy mode, etc.)
-            console.warn('Failed to clear playback state from storage:', e.message);
+            console.warn('Failed to clear playback state:', e);
         }
     };
 
-    // Start auto-saving playback position
     const startAutoSave = () => {
-        if (autoSaveTimer) clearInterval(autoSaveTimer);
-        autoSaveTimer = setInterval(savePlaybackState, TIMING.AUTO_SAVE_INTERVAL);
+        // Prevent multiple timers
+        if (autoSaveTimer) return;
+
+        autoSaveTimer = setInterval(() => {
+            savePlaybackState();
+        }, TIMING.AUTO_SAVE_INTERVAL);
     };
 
-    // Stop auto-saving
     const stopAutoSave = () => {
         if (autoSaveTimer) {
             clearInterval(autoSaveTimer);
@@ -1370,171 +1395,156 @@ export function initPlayerControls() {
         }
     };
 
-    const togglePlayPause = () => {
-        if (checkCastingState()) {
-            castTogglePlayPause();
-        }
-        else if (player.paused) {
-            ensureTrackLoadedAndPlay();
-        }
-        else {
-            player.pause();
-        }
-    }
-
     const updateAudioProgress = () => {
-        if (!player.duration || isNaN(player.duration)) return;
+        const progressBar = document.getElementById('bottom-progress-bar');
+        const currentTimeEl = document.getElementById('bottom-current-time');
+        const durationEl = document.getElementById('bottom-duration');
 
-        const progress = (player.currentTime / player.duration) * 100;
-        player.style.setProperty('--audio-progress', `${progress}%`);
-    }
+        if (!progressBar || !player) return;
+
+        const {currentTime, duration} = player;
+
+        if (duration && !isNaN(duration) && isFinite(duration)) {
+            const progress = (currentTime / duration) * 100;
+            progressBar.style.width = `${progress}%`;
+
+            if (currentTimeEl) {
+                currentTimeEl.textContent = formatTime(currentTime);
+            }
+
+            if (durationEl) {
+                durationEl.textContent = formatTime(duration);
+            }
+        }
+    };
+
+    const formatTime = (seconds) => {
+        if (!seconds || isNaN(seconds) || !isFinite(seconds)) {
+            return '0:00';
+        }
+
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    const createCastAwareHandler = (castHandler, localHandler) => {
+        return () => {
+            if (checkCastingState()) {
+                castHandler();
+            } else {
+                localHandler();
+            }
+        };
+    };
 
     const initCastListeners = () => {
-        document.addEventListener('cast:started', () => {
-            isCurrentlyCasting = true;
-            silenceLocalPlayer();
-
-            // Clear local Media Session when casting starts
-            if (isAndroidAutoConnected()) {
-                clearAndroidAutoMediaSession();
-            } else {
-                clearMediaSession();
-            }
-
-            syncPlayIcons();
-        });
-
-        document.addEventListener('cast:ended', () => {
-            isCurrentlyCasting = false;
-            enableLocalPlayer();
-
-            // Restore local Media Session when casting ends
-            if (currentIndex >= 0) {
-                const track = trackItems[currentIndex];
-                const metadata = extractMetadataFromDOM(track);
-                updateLocalMediaSession(metadata);
-            }
-
-            syncPlayIcons();
-        });
-
         setCastControlCallbacks({
-            onTrackChange: (index) => {
-                updateUIForTrack(index);
-            },
-            onPlayStateChange: (_state) => {
-                // State parameter not needed - syncPlayIcons checks cast state itself
+            onCastStart: () => {
+                console.log('🚀 Cast session started');
+                isCurrentlyCasting = true;
+                silenceLocalPlayer();
+                clearMediaSession();
                 syncPlayIcons();
             },
-            onTimeUpdate: (_time) => {
-                // Time parameter not needed - Chromecast handles progress internally
-                // No-op callback required by interface
+            onCastEnd: () => {
+                console.log('🛑 Cast session ended');
+                isCurrentlyCasting = false;
+                enableLocalPlayer();
+
+                if (currentIndex >= 0 && currentIndex < trackItems.length) {
+                    const track = trackItems[currentIndex];
+                    const metadata = extractMetadataFromDOM(track);
+                    updateLocalMediaSession(metadata);
+                }
+
+                syncPlayIcons();
+            },
+            onTrackChange: (newIndex) => {
+                console.log(`🎵 Chromecast track changed to: ${newIndex}`);
+                updateUIForTrack(newIndex);
+            },
+            onPlayStateChange: (isPlaying) => {
+                console.log(`▶️ Chromecast play state: ${isPlaying ? 'playing' : 'paused'}`);
+                syncPlayIcons();
             }
         });
     }
 
     const initEventListeners = () => {
-        document.getElementById('big-play-btn')?.addEventListener('click', () => {
-            if (trackItems.length === 0) return;
-
-            if (currentIndex === -1) {
-                // No track selected - start from beginning
-                if (trackItems.length > 0) {
-                    playTrack(0);
-                }
-            } else if (checkCastingState()) {
-                castPlay();
-            } else {
-                ensureTrackLoadedAndPlay();
-            }
-        });
-
-        player?.addEventListener('play', onlyWhenNotCasting(() => {
-            syncPlayIcons();
-        }));
-
-        player?.addEventListener('pause', onlyWhenNotCasting(() => {
-            syncPlayIcons();
-        }));
-
-        // Prefetch next track when current track can play (has buffered enough)
-        player?.addEventListener('canplay', onlyWhenNotCasting(() => {
-            if (currentIndex >= 0) {
-                prefetchNextTrack(currentIndex);
-            }
-        }));
-
-        // Handle playback errors with retry logic
+        // Error handling with exponential backoff and terminal state
         let errorRetryCount = 0;
-        let hasShownTerminalErrorToast = false;  // Track if terminal error toast shown
-        const MAX_RETRIES = 2;
+        const MAX_RETRY_ATTEMPTS = 3;
+        let hasShownTerminalErrorToast = false;
 
-        player?.addEventListener('error', (_e) => {
-            const error = player?.error;
+        player?.addEventListener('error', (e) => {
+            const error = player.error;
+            console.error('Player error:', error);
+
             if (!error) return;
 
-            // Use currentIndex with guard instead of undefined 'index'
-            const trackInfo = currentIndex >= 0 && trackItems[currentIndex]
-                ? trackItems[currentIndex].dataset.title
-                : 'Unknown track';
+            // Check if we've hit terminal error state
+            if (errorRetryCount >= MAX_RETRY_ATTEMPTS) {
+                if (!hasShownTerminalErrorToast) {
+                    showPlaybackErrorToast(
+                        'Playback failed after multiple attempts. Please check your connection or try a different quality setting.',
+                        10000
+                    );
+                    hasShownTerminalErrorToast = true;
+                }
+                return;
+            }
 
-            console.error('🚫 Playback error:', {
-                code: error.code,
-                message: error.message,
-                src: player?.src,
-                track: trackInfo,
-                trackIndex: currentIndex
-            });
+            // Categorize errors for better handling
+            const errorCode = error.code;
+            let shouldRetry = false;
+            let retryDelay = 1000;
 
-            // Save state before handling error
-            savePlaybackState();
+            switch (errorCode) {
+                case MediaError.MEDIA_ERR_NETWORK:
+                    console.warn('Network error - will retry');
+                    shouldRetry = true;
+                    retryDelay = Math.min(1000 * Math.pow(2, errorRetryCount), 5000);
+                    break;
 
-            if (errorRetryCount < MAX_RETRIES) {
+                case MediaError.MEDIA_ERR_DECODE:
+                    console.error('Decode error - media may be corrupted');
+                    showPlaybackErrorToast('Media file appears to be corrupted. Try switching quality.');
+                    break;
+
+                case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
+                    console.error('Source not supported');
+                    showPlaybackErrorToast('This audio format is not supported by your browser.');
+                    break;
+
+                case MediaError.MEDIA_ERR_ABORTED:
+                    console.warn('Playback aborted by user');
+                    break;
+
+                default:
+                    console.error('Unknown media error:', errorCode);
+                    shouldRetry = true;
+                    retryDelay = 2000;
+            }
+
+            // Retry logic
+            if (shouldRetry && currentIndex >= 0) {
                 errorRetryCount++;
-                console.log(`🔄 Retrying playback (attempt ${errorRetryCount}/${MAX_RETRIES})...`);
+                console.log(`🔄 Retry attempt ${errorRetryCount}/${MAX_RETRY_ATTEMPTS} in ${retryDelay}ms`);
+
                 setTimeout(() => {
-                    player.load();
-                    player.play().catch(err => {
-                        console.error('Retry failed:', err);
-                        // Show toast once when max retries reached
-                        if (errorRetryCount >= MAX_RETRIES && !hasShownTerminalErrorToast) {
-                            hasShownTerminalErrorToast = true;
-                            showPlaybackErrorToast(
-                                `Unable to play "${trackInfo}". Try skipping to another track.`,
-                                {
-                                    isTerminal: true,
-                                    onSkip: () => {
-                                        // Skip to next track
-                                        const nextIndex = getNextTrackWithRepeat(currentIndex);
-                                        if (nextIndex >= 0 && nextIndex < trackItems.length) {
-                                            playTrack(nextIndex);
-                                        }
-                                    }
-                                }
-                            );
-                        }
-                    });
-                }, 1000);
-            } else if (!hasShownTerminalErrorToast) {
-                // Max retries reached, show toast once
-                hasShownTerminalErrorToast = true;
-                showPlaybackErrorToast(
-                    `Unable to play "${trackInfo}". Try skipping to another track.`,
-                    {
-                        isTerminal: true,
-                        onSkip: () => {
-                            // Skip to next track
-                            const nextIndex = getNextTrackWithRepeat(currentIndex);
-                            if (nextIndex >= 0 && nextIndex < trackItems.length) {
-                                playTrack(nextIndex);
-                            }
-                        }
+                    const currentTime = player.currentTime || 0;
+                    playTrack(currentIndex);
+
+                    if (currentTime > 0) {
+                        setTimeout(() => {
+                            player.currentTime = currentTime;
+                        }, 500);
                     }
-                );
+                }, retryDelay);
             }
         });
 
-        // Handle stalled playback
         player?.addEventListener('stalled', () => {
             console.warn('⚠️ Playback stalled, attempting to recover...');
             savePlaybackState();
@@ -1552,6 +1562,7 @@ export function initPlayerControls() {
             hasShownTerminalErrorToast = false;  // Reset error toast flag on successful playback
         });
 
+        // CRITICAL: Enhanced 'ended' event handler with auto-advance flag
         player?.addEventListener('ended', () => {
             syncPlayIcons();
             const trackElement = trackItems[currentIndex];
@@ -1569,7 +1580,10 @@ export function initPlayerControls() {
                     const shuffleMode = isShuffled ? '🔀 shuffle' : '▶️ sequential';
                     const repeatInfo = repeatMode !== 'off' ? ` (repeat: ${repeatMode})` : '';
                     console.log(`🎵 Auto-advancing to next track (${shuffleMode}${repeatInfo})`);
-                    playTrack(nextIndex);
+                    
+                    // CRITICAL FIX: Pass isAutoAdvance=true to enable mobile-friendly handling
+                    playTrack(nextIndex, true);
+                    
                     // IMPORTANT: Don't release wake lock here - next track is starting!
                 } else {
                     console.log('🏁 Reached end of playlist');
