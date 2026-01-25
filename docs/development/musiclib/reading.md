@@ -123,6 +123,16 @@ Matches are weighted using:
 
 This produces ranked candidate sets for artists, albums, and tracks.
 
+### Performance optimization
+
+To minimize database overhead, the search engine batches related queries:
+
+* Album counts for all matched artists are fetched in a single query
+* Track counts for all matched albums are fetched in a single query
+* Compilation status for all matched albums is checked in a single query
+
+This reduces the number of database round trips from O(n+m) to O(1), where n is the number of artists and m is the number of albums.
+
 ---
 
 ## 🏘️ Result grouping and hierarchy

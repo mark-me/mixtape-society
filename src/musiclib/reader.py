@@ -745,6 +745,33 @@ class MusicCollection:
             artist_count = row["artist_count"] if row else 0
             return artist_count > 3
 
+    def _get_compilation_status_batch(self, release_dirs: list[str]) -> dict[str, bool]:
+        """Check compilation status for multiple albums at once.
+        
+        Args:
+            release_dirs: List of release directories to check.
+            
+        Returns:
+            dict[str, bool]: Mapping of release_dir to compilation status (True if >3 artists).
+        """
+        if not release_dirs:
+            return {}
+        
+        with self._get_conn() as conn:
+            # Ensure all release_dirs have trailing slash for consistency
+            normalized_dirs = [rd if rd.endswith("/") else f"{rd}/" for rd in release_dirs]
+            placeholders = ','.join('?' * len(normalized_dirs))
+            expr = self._sql_release_dir_expr()
+            sql = f"""
+                SELECT {expr} as release_dir,
+                       COUNT(DISTINCT artist) as artist_count
+                FROM tracks
+                WHERE {expr} IN ({placeholders})
+                GROUP BY release_dir
+            """
+            results = conn.execute(sql, normalized_dirs).fetchall()
+            return {row['release_dir']: row['artist_count'] > 3 for row in results}
+
     def _build_hierarchical_results(
         self,
         artist_candidates: dict[str, int],
@@ -781,26 +808,39 @@ class MusicCollection:
             covered_albums=covered_albums,
             limit=limit,
         )
+        
+        # Batch fetch all counts in a single database transaction
         with self._get_conn() as conn:
-            # Add album counts for each artist result
-            for artist in artists:
-                count_query = (
-                    "SELECT COUNT(DISTINCT album) FROM tracks WHERE artist = ?"
-                )
-                artist["num_albums"] = (
-                    conn.execute(count_query, (artist["artist"],)).fetchone()[0] or 0
-                )
+            # Batch fetch album counts for all artists at once
+            if artists:
+                artist_names = [a["artist"] for a in artists]
+                placeholders = ','.join('?' * len(artist_names))
+                count_query = f"""
+                    SELECT artist, COUNT(DISTINCT album) as cnt 
+                    FROM tracks 
+                    WHERE artist IN ({placeholders})
+                    GROUP BY artist
+                """
+                count_rows = conn.execute(count_query, artist_names).fetchall()
+                count_map = {row["artist"]: row["cnt"] for row in count_rows}
+                for artist in artists:
+                    artist["num_albums"] = count_map.get(artist["artist"], 0)
 
-            # Add track counts for each album result
-            for album in albums:
-                expr = (
-                    self._sql_release_dir_expr()
-                )  # Reuses your existing method for release_dir expression
-                count_query = f"SELECT COUNT(*) FROM tracks WHERE {expr} = ?"
-                album["num_tracks"] = (
-                    conn.execute(count_query, (album["release_dir"],)).fetchone()[0]
-                    or 0
-                )
+            # Batch fetch track counts for all albums at once
+            if albums:
+                release_dirs = [a["release_dir"] for a in albums]
+                placeholders = ','.join('?' * len(release_dirs))
+                expr = self._sql_release_dir_expr()
+                count_query = f"""
+                    SELECT {expr} as rd, COUNT(*) as cnt 
+                    FROM tracks 
+                    WHERE {expr} IN ({placeholders})
+                    GROUP BY rd
+                """
+                count_rows = conn.execute(count_query, release_dirs).fetchall()
+                count_map = {row["rd"]: row["cnt"] for row in count_rows}
+                for album in albums:
+                    album["num_tracks"] = count_map.get(album["release_dir"], 0)
 
         return {
             "artists": artists,
@@ -856,29 +896,38 @@ class MusicCollection:
         albums: list[dict] = []
         covered_albums: set[str] = set()
 
+        # First, collect the albums we'll include (up to limit, excluding covered artists)
+        candidates_to_include = []
         for album in sorted(
             album_candidates.values(), key=lambda x: x["score"], reverse=True
         ):
-            if len(albums) >= limit:
+            if len(candidates_to_include) >= limit:
                 break
             if album["artist"] in covered_artists:
                 continue
+            candidates_to_include.append(album)
 
-            # Check if this is a compilation album
-            is_compilation = self._is_compilation_album(album["release_dir"])
-            display_artist = "Various Artists" if is_compilation else album["artist"]
+        # Batch check compilation status for all albums at once
+        if candidates_to_include:
+            release_dirs = [album["release_dir"] for album in candidates_to_include]
+            compilation_status = self._get_compilation_status_batch(release_dirs)
+            
+            # Build the result list with compilation info
+            for album in candidates_to_include:
+                is_compilation = compilation_status.get(album["release_dir"], False)
+                display_artist = "Various Artists" if is_compilation else album["artist"]
 
-            albums.append(
-                {
-                    "artist": album["artist"],
-                    "display_artist": display_artist,
-                    "album": album["album"],
-                    "release_dir": album["release_dir"],
-                    "is_compilation": is_compilation,
-                    "cover": self.get_cover(album["release_dir"])
-                }
-            )
-            covered_albums.add(album["release_dir"])
+                albums.append(
+                    {
+                        "artist": album["artist"],
+                        "display_artist": display_artist,
+                        "album": album["album"],
+                        "release_dir": album["release_dir"],
+                        "is_compilation": is_compilation,
+                        "cover": self.get_cover(album["release_dir"])
+                    }
+                )
+                covered_albums.add(album["release_dir"])
 
         return albums, covered_albums
 
