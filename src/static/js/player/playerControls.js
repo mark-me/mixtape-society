@@ -1725,8 +1725,21 @@ export function initPlayerControls() {
         applyRestoredUIState(savedState);
 
         // CRITICAL FIX: Load the track into the player so play button works
-        // Without this, clicking play won't resume at the saved position
+        // Guard against invalid index (playlist may have changed since save)
         const track = trackItems[currentIndex];
+        if (!track) {
+            console.warn('⚠️ Cannot restore track: index out of range', {
+                savedIndex: currentIndex,
+                playlistLength: trackItems.length
+            });
+            // Fallback to first track instead of crashing
+            currentIndex = 0;
+            window.currentTrackIndex = 0;
+            handleAutoStart();
+            return;
+        }
+        
+        // Without this load, clicking play won't resume at the saved position
         player.src = buildAudioUrl(track.dataset.path, currentQuality);
         
         // Preload without auto-playing (respects browser autoplay policies)
