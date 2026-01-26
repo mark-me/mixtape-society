@@ -369,6 +369,35 @@ export function initPlayerControls() {
         uiManager.syncPlayIcons(playbackManager.getCurrentIndex(), isPlaying);
     };
     
+    const updateCastVolume = (volume, muted) => {
+        // Update volume slider if it exists
+        const volumeSlider = document.getElementById('cast-volume-slider');
+        const volumeIcon = document.getElementById('cast-volume-icon');
+        const volumeValue = document.getElementById('cast-volume-value');
+        
+        if (volumeSlider) {
+            volumeSlider.value = volume * 100;
+        }
+        
+        if (volumeValue) {
+            volumeValue.textContent = `${Math.round(volume * 100)}%`;
+        }
+        
+        if (volumeIcon) {
+            // Update volume icon based on level
+            volumeIcon.className = 'bi ';
+            if (muted || volume === 0) {
+                volumeIcon.className += 'bi-volume-mute-fill';
+            } else if (volume < 0.3) {
+                volumeIcon.className += 'bi-volume-down-fill';
+            } else if (volume < 0.7) {
+                volumeIcon.className += 'bi-volume-up-fill';
+            } else {
+                volumeIcon.className += 'bi-volume-up-fill';
+            }
+        }
+    };
+    
     // =========================================================================
     // QUALITY MANAGEMENT
     // =========================================================================
@@ -911,6 +940,14 @@ export function initPlayerControls() {
             onPlayStateChange: (isPlaying) => {
                 console.log(`▶️ Chromecast play state: ${isPlaying ? 'playing' : 'paused'}`);
                 syncPlayIcons();
+            },
+            onTimeUpdate: (currentTime, duration) => {
+                // Update progress bar while casting
+                uiManager.updateProgress(currentTime, duration);
+            },
+            onVolumeChange: (volume, muted) => {
+                console.log(`🔊 Cast volume: ${Math.round(volume * 100)}%${muted ? ' (muted)' : ''}`);
+                updateCastVolume(volume, muted);
             }
         });
     };
