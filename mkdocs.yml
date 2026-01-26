@@ -11,8 +11,8 @@ copyright: Mark Zwart
 
 theme:
   name: material
-  favicon: images/favicon.svg
-  logo: images/logo.svg
+  favicon: images/logo.png
+  logo: images/logo.png
   language: en
   palette:
     - media: "(prefers-color-scheme: light)"

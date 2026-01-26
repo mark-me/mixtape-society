@@ -21,7 +21,7 @@ const STATIC_ASSETS = [
     '/static/js/player/adaptiveTheming.js',
     '/static/js/player/cassettePlayer.js',
     '/static/images/logo.svg',
-    '/static/images/favicon.svg',
+    '/static/images/favicon.png',
 ];
 
 // External CDN resources (cache with fallback)
