@@ -2,7 +2,7 @@
 
 ![Player](../../../../images/player.png){ align=right width="90" }
 
-The `playerControls.js` module is the central orchestration layer for all playback controls in Mixtape Society. It coordinates between local playback, Chromecast casting, and Android Auto integration, ensuring a unified user experience across all playback modes.
+The Player Controls system is a modular architecture that manages all playback functionality in Mixtape Society. It consists of specialized managers coordinated by the main `playerControls.js` orchestrator, handling local playback, Chromecast casting, and Android Auto integration with a unified user experience.
 
 ---
 
@@ -16,31 +16,61 @@ The `playerControls.js` module is the central orchestration layer for all playba
 - Synchronize UI state across all controls
 - Route user actions to appropriate playback system
 - Prevent conflicting playback states
-- Provide non-blocking notifications via toast queue system
 - Manage playback state persistence (resume on reload)
 - Handle errors gracefully with recovery options
 - Maintain wake lock during playback to prevent app suspension
 - Ensure seamless auto-advance on mobile devices with autoplay restrictions
 
 **Key Design Principle:**
-Single source of truth for playback state that routes to the appropriate backend (local player, Cast SDK, or Media Session API).
+Modular architecture with specialized managers, each handling a specific concern, coordinated by a central orchestrator.
 
 ---
 
 ## 🏗️ Architecture
+
+### Modular Structure
+
+The player controls system is organized into focused managers:
+
+```
+player/
+├── playerControls.js         Main orchestrator (1,000 lines)
+├── queueManager.js           Shuffle & repeat logic (306 lines)
+├── playbackManager.js        Core playback operations (192 lines)
+├── uiSyncManager.js          UI updates & synchronization (178 lines)
+├── autoAdvanceManager.js     Mobile auto-advance (137 lines)
+├── qualityManager.js         Audio quality selection (93 lines)
+├── stateManager.js           Playback state persistence (88 lines)
+├── wakeLockManager.js        Wake lock management (75 lines)
+├── playerUtils.js            Platform utilities
+├── androidAuto.js            Android Auto integration
+└── chromecast.js             Chromecast integration
+```
 
 ### Component Relationships
 
 ```mermaid
 graph TB
     PlayerControls[playerControls.js<br/>Main Orchestrator]
-
+    
+    PlayerControls --> QueueMgr[queueManager.js<br/>Shuffle & Repeat]
+    PlayerControls --> PlaybackMgr[playbackManager.js<br/>Core Playback]
+    PlayerControls --> UIMgr[uiSyncManager.js<br/>UI Updates]
+    PlayerControls --> AutoAdvMgr[autoAdvanceManager.js<br/>Auto-Advance]
+    PlayerControls --> QualityMgr[qualityManager.js<br/>Quality Selection]
+    PlayerControls --> StateMgr[stateManager.js<br/>State Persistence]
+    PlayerControls --> WakeLockMgr[wakeLockManager.js<br/>Wake Lock]
+    
     PlayerControls --> LocalPlayer[HTML5 Audio Element]
     PlayerControls --> Chromecast[chromecast.js]
     PlayerControls --> AndroidAuto[androidAuto.js]
     PlayerControls --> PlayerUtils[playerUtils.js]
-    PlayerControls --> ToastQueue[Toast Queue System]
 
+    PlaybackMgr --> LocalPlayer
+    PlaybackMgr --> QualityMgr
+    PlaybackMgr --> StateMgr
+    AutoAdvMgr --> WakeLockMgr
+    
     Chromecast --> CastSDK[Google Cast SDK]
     AndroidAuto --> MediaSession[Media Session API]
     PlayerUtils --> MediaSession
@@ -48,12 +78,17 @@ graph TB
     LocalPlayer --> Audio[Audio Playback]
     CastSDK --> ChromecastDevice[Chromecast Device]
     MediaSession --> CarDashboard[Car Dashboard/Lock Screen]
-    ToastQueue --> Notifications[User Notifications]
 
     style PlayerControls fill:#4a6fa5,color:#fff
+    style QueueMgr fill:#5a8fa5,color:#fff
+    style PlaybackMgr fill:#5a8fa5,color:#fff
+    style UIMgr fill:#5a8fa5,color:#fff
+    style AutoAdvMgr fill:#5a8fa5,color:#fff
+    style QualityMgr fill:#5a8fa5,color:#fff
+    style StateMgr fill:#5a8fa5,color:#fff
+    style WakeLockMgr fill:#5a8fa5,color:#fff
     style Chromecast fill:#c65d5d,color:#fff
     style AndroidAuto fill:#4a8c5f,color:#fff
-    style ToastQueue fill:#8b5a8b,color:#fff
 ```
 
 ### State Flow
@@ -85,152 +120,342 @@ stateDiagram-v2
 export function initPlayerControls() {
     // Initialization sequence:
     // 1. Get DOM elements
-    // 2. Restore shuffle state
-    // 3. Restore repeat mode (with context normalization)
-    // 4. Initialize quality selector
-    // 5. Set up event listeners
-    // 6. Restore playback state (if available)
-    // 7. Initialize casting
+    // 2. Initialize managers (queue, state, wake lock, quality, UI, playback, auto-advance)
+    // 3. Set up audio control interception
+    // 4. Initialize cast listeners
+    // 5. Initialize event listeners
+    // 6. Restore queue state (shuffle & repeat)
+    // 7. Restore playback state (if available)
     // 8. Set up Media Session
 }
 ```
 
-### Initialization Steps
+### Manager Initialization
 
-1. **DOM Element Acquisition**
+The main orchestrator creates and coordinates specialized managers:
 
-   ```javascript
-   const player = document.getElementById('main-player');
-   const trackItems = document.querySelectorAll('.track-item');
-   ```
-
-2. **State Restoration**
-
-   ```javascript
-   restoreShuffleState();  // From localStorage
-   restoreRepeatMode();    // With context validation
-   ```
-
-3. **Playback State Recovery**
-
-   ```javascript
-   restorePlaybackState();  // Resume from last session
-   ```
-
-4. **Event Listener Setup**
-
-   ```javascript
-   initEventListeners();  // All player and UI events
-   ```
-
-5. **Platform Detection**
-
-   ```javascript
-   const iOS = detectiOS();
-   const androidInfo = detectAndroid();
-   ```
+```javascript
+// Initialize managers
+const queueManager = new QueueManager(trackItems.length);
+const stateManager = new StateManager('mixtape');
+const wakeLockManager = new WakeLockManager();
+const qualityManager = new QualityManager('audioQuality');
+const uiManager = new UISyncManager(container, trackItems, bottomTitle, bottomArtistAlbum, bottomCover);
+const playbackManager = new PlaybackManager(player, qualityManager, stateManager);
+const autoAdvanceManager = new AutoAdvanceManager(player, wakeLockManager);
+```
 
 ---
 
-## 🎮 Core Functions
+## 📦 Manager Modules
+
+### QueueManager (`queueManager.js`)
+
+**Purpose:** Manages track queue navigation with shuffle and repeat functionality.
+
+**Responsibilities:**
+- Generate and maintain shuffle order using Fisher-Yates algorithm
+- Handle repeat modes (Off, All, One)
+- Calculate next/previous track indices
+- Persist queue state to localStorage
+
+**Key Methods:**
+
+```javascript
+enableShuffle()              // Enable shuffle mode
+disableShuffle()             // Disable shuffle mode
+toggleShuffle()              // Toggle shuffle on/off
+cycleRepeatMode()            // Cycle through repeat modes
+getNextTrack(index, options) // Get next track respecting shuffle/repeat
+getPreviousTrack(index)      // Get previous track
+saveState() / restoreState() // Persist state
+```
+
+**Constants:**
+- `REPEAT_MODES` - Off, All, One
+- `REPEAT_MODE_LABELS` - UI labels
+- `REPEAT_MODE_ICONS` - Bootstrap icon classes
+- `REPEAT_MODE_STYLES` - Button style classes
+
+**Example Usage:**
+
+```javascript
+const queue = new QueueManager(20); // 20 tracks
+queue.enableShuffle();
+const nextIdx = queue.getNextTrack(5); // Get next after track 5
+```
+
+---
+
+### PlaybackManager (`playbackManager.js`)
+
+**Purpose:** Manages core audio playback operations.
+
+**Responsibilities:**
+- Load tracks into HTML5 audio player
+- Control playback (play, pause, stop, seek)
+- Track current playback position
+- Auto-save playback state
+- Manage playback timing
+
+**Key Methods:**
+
+```javascript
+loadTrack(index, trackPath, metadata) // Load track into player
+play() / pause() / stop()              // Playback controls
+seek(time)                             // Seek to position
+getCurrentTime() / getDuration()       // Get playback info
+getCurrentIndex() / setCurrentIndex()  // Track index management
+hasSource()                            // Check if track loaded
+startAutoSave() / stopAutoSave()       // State persistence
+seekWhenReady(targetTime)              // Seek when metadata ready
+```
+
+**Integration:**
+- Uses `QualityManager` to build audio URLs with quality parameters
+- Uses `StateManager` to save playback position every 5 seconds
+
+**Example Usage:**
+
+```javascript
+playbackManager.loadTrack(5, 'path/to/song.flac', metadata);
+await playbackManager.play();
+```
+
+---
+
+### UISyncManager (`uiSyncManager.js`)
+
+**Purpose:** Handles all UI updates and synchronization.
+
+**Responsibilities:**
+- Update bottom player info (title, artist, album, cover)
+- Sync play/pause icons across all track items
+- Update progress bar and time display
+- Scroll to active track
+- Highlight restored tracks
+
+**Key Methods:**
+
+```javascript
+updateBottomPlayerInfo(track)           // Update bottom player display
+setActiveTrack(track)                   // Mark track as active
+scrollToCurrentTrack(element)           // Scroll track into view
+syncPlayIcons(currentIndex, isPlaying)  // Update all play icons
+updateUIForTrack(index)                 // Complete UI update
+updateProgress(currentTime, duration)   // Update progress bar
+formatTime(seconds)                     // Format time as mm:ss
+applyRestoredUIState(trackIndex)        // Restore with highlight
+showPlayer() / hidePlayer()             // Show/hide player container
+```
+
+**No Dependencies:** Pure DOM manipulation, no business logic.
+
+---
+
+### AutoAdvanceManager (`autoAdvanceManager.js`)
+
+**Purpose:** Handles mobile-optimized automatic track advancement.
+
+**Responsibilities:**
+- Manage track transition state
+- Implement retry logic for blocked autoplay
+- Handle Media Session API fallback
+- Coordinate with wake lock during transitions
+
+**Key Methods:**
+
+```javascript
+isTransitioningTracks()                      // Check transition state
+setTransitioning(value)                      // Set transition flag
+attemptAutoAdvancePlay(onSuccess, onFailure) // Auto-advance with retries
+attemptStandardPlay(onSuccess, onFailure)    // Standard playback
+```
+
+**Retry Strategy:**
+1. Immediate play attempt
+2. Update Media Session state if blocked
+3. Retry after 50ms
+4. Retry after 100ms
+5. Retry after 200ms
+
+**Integration:**
+- Uses `WakeLockManager` to maintain wake lock during transitions
+- Prevents wake lock release between tracks
+
+---
+
+### QualityManager (`qualityManager.js`)
+
+**Purpose:** Manages audio quality selection and URL building.
+
+**Responsibilities:**
+- Store current quality setting
+- Build audio URLs with quality parameters
+- Persist quality preference to localStorage
+- Provide quality level metadata
+
+**Key Methods:**
+
+```javascript
+getQuality()                        // Get current quality
+setQuality(quality)                 // Set quality level
+getQualityLevels()                  // Get available levels
+getQualityLabel(quality)            // Get quality label
+buildAudioUrl(basePath, quality)    // Build URL with quality param
+saveQuality() / restoreQuality()    // Persist preference
+```
+
+**Quality Levels:**
+- `high` - 256kbps
+- `medium` - 192kbps (default)
+- `low` - 128kbps
+- `original` - No transcoding
+
+---
+
+### StateManager (`stateManager.js`)
+
+**Purpose:** Handles playback state persistence using localStorage.
+
+**Responsibilities:**
+- Save current playback position
+- Restore playback state on page load
+- Track last played position
+- Validate state age (24-hour expiry)
+
+**Key Methods:**
+
+```javascript
+savePlaybackState(trackIndex, currentTime, paused, title)
+restorePlaybackState()  // Returns saved state or null
+clearPlaybackState()    // Clear saved position
+```
+
+**Storage Keys:**
+- `mixtape_playback_position` - Full state object
+- `mixtape_current_track` - Track index
+- `mixtape_current_time` - Playback position
+
+**State Object:**
+```javascript
+{
+    track: 5,               // Track index
+    time: 123.45,           // Playback position
+    title: "Song Name",     // Track title
+    timestamp: 1234567890,  // Save timestamp
+    paused: false           // Playback state
+}
+```
+
+---
+
+### WakeLockManager (`wakeLockManager.js`)
+
+**Purpose:** Manages Screen Wake Lock API to prevent app suspension.
+
+**Responsibilities:**
+- Acquire wake lock during playback
+- Release wake lock when paused
+- Handle system-initiated releases
+- Check browser support
+
+**Key Methods:**
+
+```javascript
+isWakeLockSupported() // Check API availability
+isActive()            // Check if wake lock held
+acquire()             // Request wake lock
+release()             // Release wake lock
+```
+
+**Why It's Critical:**
+- Prevents JavaScript suspension when phone is locked
+- Ensures auto-advance works with screen off
+- Maintains media notifications
+- Essential for background playback
+
+**Browser Support:**
+- Chrome 84+
+- Safari 16.4+ (iOS)
+- Requires HTTPS (secure context)
+
+---
+
+## 🎮 Core Functions (Main Orchestrator)
+
+The main orchestrator (`playerControls.js`) coordinates all managers and handles:
+- Event routing
+- Casting integration
+- Media Session updates
+- DOM event listeners
 
 ### playTrack(index, isAutoAdvance = false)
 
-**Purpose:** Primary function to start playback of a track.
+**Purpose:** Primary function to start playback of a track. Coordinates all managers to load and play audio.
 
 **Parameters:**
-
 - `index` - Track index to play
 - `isAutoAdvance` - (Optional) True if this is an automatic track transition (not user-initiated)
 
 **Behavior:**
 
 - Routes to Chromecast if casting
-- Updates UI to show active track
-- Handles quality selection
-- Prefetches next track when ready
-- Saves playback state
-- Uses enhanced mobile auto-advance strategy when `isAutoAdvance=true`
+- Uses `PlaybackManager` to load track with quality settings
+- Uses `UISyncManager` to update UI
+- Uses `AutoAdvanceManager` for playback strategy
+- Prefetches next track for smooth transitions
 
-**Auto-Advance Strategy:**
-
-When a track ends naturally on mobile devices, browsers may block the next track from auto-playing due to autoplay policies. The `isAutoAdvance` parameter enables special handling:
-
-1. **Preload metadata** - Calls `player.load()` before attempting play
-2. **Robust retry logic** - If initial play fails, attempts recovery via Media Session API
-3. **Delayed retry** - Waits 100ms and retries if blocked by browser
-4. **Media Session state sync** - Updates `playbackState` to 'playing' to enable notification controls
+**Implementation:**
 
 ```javascript
 const playTrack = (index, isAutoAdvance = false) => {
     if (checkCastingState()) {
-        // Route to Chromecast
         castJumpToTrack(index);
+        uiManager.updateUIForTrack(index);
+        playbackManager.setCurrentIndex(index);
         return;
     }
 
-    // Local playback
     const track = trackItems[index];
-    const audioUrl = buildAudioUrl(track.dataset.path, currentQuality);
-
-    player.src = audioUrl;
-    updateUIForTrack(index);
-
+    
+    // Load track via PlaybackManager
+    playbackManager.loadTrack(index, track.dataset.path, null);
+    
+    // Update UI via UISyncManager
+    uiManager.updateUIForTrack(index);
+    
+    // Update Media Session
     const metadata = extractMetadataFromDOM(track);
     updateLocalMediaSession(metadata);
-
-    // Enhanced mobile auto-advance handling
+    
+    // Use appropriate playback strategy via AutoAdvanceManager
     if (isAutoAdvance) {
-        console.log('📱 Auto-advance mode: using enhanced playback strategy');
-
-        player.load(); // Ensure metadata ready
-
-        player.play()
-            .then(() => {
-                console.log('✅ Auto-advance play successful');
-            })
-            .catch(e => {
-                console.warn('⚠️ Auto-advance blocked:', e.message);
-
-                // Fallback via Media Session
-                if ('mediaSession' in navigator) {
-                    navigator.mediaSession.playbackState = 'playing';
-
-                    setTimeout(() => {
-                        player.play().catch(err => {
-                            console.error('❌ Second play attempt failed:', err.message);
-                        });
-                    }, 100);
-                }
-            });
+        autoAdvanceManager.attemptAutoAdvancePlay();
     } else {
-        // Manual track changes (user-initiated)
-        player.play().catch(err => {
-            console.error('❌ Playback failed:', err);
-            showErrorToast(`Unable to play track`, {
-                actions: [
-                    {
-                        label: 'Skip Track',
-                        handler: () => playTrack(getNextTrackWithRepeat(index)),
-                        primary: true
-                    }
-                ]
-            });
-        });
+        autoAdvanceManager.attemptStandardPlay();
     }
-
+    
     // Prefetch next track
     prefetchNextTrack(index);
 };
 ```
 
+**Auto-Advance Strategy:**
+
+When a track ends naturally on mobile devices, browsers may block auto-playing. The `AutoAdvanceManager` handles this with retry logic:
+
+1. **Immediate play attempt**
+2. **Update Media Session state** if blocked
+3. **Retry attempts** with delays: 50ms, 100ms, 200ms
+4. **Media Session fallback** - Keeps controls active for user
+
 **Error Handling:**
 
-- Retries up to 2 times automatically
+- Retries up to 3 times automatically with exponential backoff
 - Shows non-blocking error toast
 - Provides "Skip Track" action button
 - Saves state before handling error
-- Special handling for mobile auto-advance failures (via Media Session API)
 
 ---
 
@@ -240,45 +465,39 @@ const playTrack = (index, isAutoAdvance = false) => {
 
 **Purpose:** Randomize playback order
 
-**Implementation:**
+**Implementation via QueueManager:**
 
 ```javascript
+// Toggle shuffle
 const toggleShuffle = () => {
-    isShuffled = !isShuffled;
-
-    if (isShuffled) {
-        shuffleOrder = generateShuffleOrder();
-        showInfoToast('Shuffle enabled');
-    } else {
-        showInfoToast('Shuffle disabled');
-    }
-
+    queueManager.toggleShuffle();
     updateShuffleButton();
-    saveShuffleState();
 };
 ```
 
 **Key Features:**
 
 - Fisher-Yates shuffle algorithm
-- Preserves current track
+- Preserves current track position
 - Persistent across sessions
-- Works with repeat modes
+- Works seamlessly with repeat modes
 
 **Shuffle Order Generation:**
 
-```javascript
-const generateShuffleOrder = () => {
-    const order = Array.from({ length: trackItems.length }, (_, i) => i);
+The `QueueManager` uses Fisher-Yates algorithm for true random shuffle:
 
-    // Fisher-Yates shuffle
+```javascript
+// Inside QueueManager
+_generateShuffleOrder() {
+    const order = Array.from({ length: this.trackCount }, (_, i) => i);
+    
     for (let i = order.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [order[i], order[j]] = [order[j], order[i]];
     }
-
+    
     return order;
-};
+}
 ```
 
 ### Repeat Mode
@@ -291,58 +510,38 @@ const generateShuffleOrder = () => {
 - **🔁 Repeat All** - Loop entire playlist
 - **🔁₁ Repeat One** - Loop current track
 
-**Implementation:**
+**Implementation via QueueManager:**
 
 ```javascript
+// Cycle through repeat modes
 const cycleRepeatMode = () => {
-    const modes = Object.values(REPEAT_MODES);
-    const currentIdx = modes.indexOf(repeatMode);
-    const nextIdx = (currentIdx + 1) % modes.length;
-
-    repeatMode = modes[nextIdx];
+    queueManager.cycleRepeatMode();
     updateRepeatButton();
-    saveRepeatMode();
-
-    const label = REPEAT_MODE_LABELS[repeatMode];
-    showInfoToast(`Repeat: ${label}`);
 };
 ```
 
 **Context Normalization:**
 
+The `QueueManager` automatically normalizes repeat mode based on context:
+
 ```javascript
-const normalizeRepeatModeForContext = (mode) => {
-    // Force OFF when playlist has 0-1 tracks
-    if (!Array.isArray(trackItems) || trackItems.length <= 1) {
+// Inside QueueManager
+_normalizeRepeatMode(mode) {
+    // Force OFF when 0-1 tracks (repeat doesn't make sense)
+    if (this.trackCount <= 1) {
         return REPEAT_MODES.OFF;
     }
     return mode;
-};
+}
 ```
 
 **Next Track Logic:**
 
 ```javascript
-const getNextTrackWithRepeat = (currentIndex, options = {}) => {
-    const { skipRepeatOne = false } = options;
-
-    // Repeat One (unless skipping for prefetch)
-    if (repeatMode === REPEAT_MODES.ONE && !skipRepeatOne) {
-        return currentIndex;
-    }
-
-    // Get next (shuffle-aware)
-    let nextIndex = getNextTrackIndex(currentIndex);
-
-    // Repeat All - loop back
-    if (nextIndex === -1 && repeatMode === REPEAT_MODES.ALL) {
-        return isShuffled && shuffleOrder.length > 0
-            ? shuffleOrder[0]
-            : 0;
-    }
-
-    return nextIndex;
-};
+// QueueManager handles all navigation logic
+const nextIndex = queueManager.getNextTrack(currentIndex, {
+    skipRepeatOne: false  // For prefetch, set to true
+});
 ```
 
 **Key Features:**
@@ -351,7 +550,7 @@ const getNextTrackWithRepeat = (currentIndex, options = {}) => {
 - ✅ Data-driven button updates
 - ✅ Defensive programming with validation
 - ✅ Context-aware restoration
-- ✅ Persistent across sessions
+- ✅ Persistent across sessions via `QueueManager`
 - ✅ Works seamlessly with shuffle
 
 ---
@@ -363,65 +562,40 @@ const getNextTrackWithRepeat = (currentIndex, options = {}) => {
 ### Why Wake Lock is Critical
 
 Mobile devices aggressively suspend background apps to save battery. Without wake lock:
-
 - JavaScript execution may pause when screen locks
 - Auto-advance to next track fails
 - Media notifications disappear
 - Playback interrupts unexpectedly
 
-### Implementation
+### Implementation via WakeLockManager
+
+The `WakeLockManager` encapsulates all wake lock logic:
 
 ```javascript
-const requestWakeLock = async () => {
-    if (!('wakeLock' in navigator)) {
-        console.log('⚠️ Wake Lock API not available');
-        return;
+// Acquire wake lock
+player.addEventListener('play', () => {
+    wakeLockManager.acquire();
+});
+
+// Release wake lock (only when truly paused, not during transitions)
+player.addEventListener('pause', () => {
+    if (!autoAdvanceManager.isTransitioningTracks()) {
+        wakeLockManager.release();
     }
-
-    if (wakeLock) return; // Already have lock
-
-    try {
-        wakeLock = await navigator.wakeLock.request('screen');
-        console.log('🔒 Wake lock acquired');
-
-        // Re-acquire if released by system
-        wakeLock.addEventListener('release', () => {
-            console.log('🔓 Wake lock auto-released');
-            wakeLock = null;
-        });
-    } catch (err) {
-        console.warn('⚠️ Wake lock failed:', err.message);
-    }
-};
-
-const releaseWakeLock = async () => {
-    if (!wakeLock) return;
-
-    try {
-        await wakeLock.release();
-        wakeLock = null;
-        console.log('🔓 Wake lock released');
-    } catch (err) {
-        console.warn('⚠️ Wake lock release failed:', err.message);
-        wakeLock = null;
-    }
-};
+});
 ```
 
 ### Wake Lock Lifecycle
 
 **Acquire when:**
-
 - Playback starts (`play` event)
 - App is backgrounded while playing (`visibilitychange`)
 
 **Release when:**
-
 - Playback is explicitly paused by user
 - Playlist completes entirely
 
 **NOT released when:**
-
 - Auto-advancing between tracks
 - Quality changes mid-playback
 - Track fails and retries
@@ -431,25 +605,19 @@ const releaseWakeLock = async () => {
 ```javascript
 document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
-        console.log('👁️ Page hidden (backgrounded/locked)');
-
         if (player && !player.paused && !checkCastingState()) {
-            requestWakeLock();
-
+            wakeLockManager.acquire();
+            
             // Reinforce Media Session state
             if ('mediaSession' in navigator) {
                 navigator.mediaSession.playbackState = 'playing';
-                console.log('📱 Reinforced Media Session state');
             }
         }
-    } else {
-        console.log('👁️ Page visible');
     }
 });
 ```
 
 **Key Behaviors:**
-
 - ✅ Requires HTTPS (secure context)
 - ✅ Gracefully degrades if unavailable
 - ✅ Automatically re-requested if system releases it
@@ -458,473 +626,35 @@ document.addEventListener('visibilitychange', () => {
 
 ---
 
-## 🔔 Toast Notification System
-
-### Overview
-
-**Purpose:** Provide non-blocking, queued notifications to users
-
-**Key Features:**
-
-- **Queue Management** - Multiple toasts show sequentially
-- **4 Toast Types** - Success, Info, Warning, Error
-- **Action Buttons** - Interactive options
-- **Auto-Hide Control** - Configurable per toast
-- **Programmatic Control** - Dismiss via API
-
-### Toast Types
-
-#### SUCCESS (Green, 3s auto-hide)
-
-```javascript
-showSuccessToast('Track added to queue');
-showSuccessToast('Quality changed to High');
-```
-
-#### INFO (Blue, 4s auto-hide)
-
-```javascript
-showInfoToast('Buffering track...');
-showInfoToast('Shuffle enabled');
-```
-
-#### WARNING (Yellow, 5s auto-hide)
-
-```javascript
-showWarningToast('Slow network detected');
-showWarningToast('Cache nearly full');
-```
-
-#### ERROR (Red, 8s, no auto-hide)
-
-```javascript
-showErrorToast('Playback failed');
-showErrorToast('Unable to load track');
-```
-
-### Usage Examples
-
-**Simple Toast:**
-
-```javascript
-showSuccessToast('Operation completed');
-```
-
-**Toast with Actions:**
-
-```javascript
-showErrorToast('Playback error', {
-    actions: [
-        {
-            label: 'Retry',
-            handler: () => retryPlayback(),
-            primary: true
-        },
-        {
-            label: 'Skip',
-            handler: () => skipTrack()
-        }
-    ]
-});
-```
-
-**Programmatic Control:**
-
-```javascript
-const loadingToast = showInfoToast('Loading track...');
-
-loadTrack()
-    .then(() => {
-        loadingToast.dismiss();
-        showSuccessToast('Track loaded!');
-    })
-    .catch(err => {
-        loadingToast.dismiss();
-        showErrorToast(`Failed: ${err.message}`);
-    });
-```
-
-**Queue Behavior:**
-
-```javascript
-// All show sequentially, none replaced
-showSuccessToast('Track 1 added');
-showSuccessToast('Track 2 added');
-showSuccessToast('Track 3 added');
-// User sees all 3 notifications!
-```
-
-### Configuration
-
-**Toast Types:**
-
-```javascript
-const TOAST_TYPES = {
-    SUCCESS: 'success',
-    INFO: 'info',
-    WARNING: 'warning',
-    ERROR: 'error'
-};
-```
-
-**Toast Configuration:**
-
-```javascript
-const TOAST_CONFIG = {
-    [TOAST_TYPES.SUCCESS]: {
-        icon: 'bi-check-circle-fill',
-        bgClass: 'bg-success',
-        textClass: 'text-white',
-        duration: 3000
-    },
-    // ... other types
-};
-```
-
----
-
-## 🎚️ Quality Management
-
-### changeQuality(newQuality)
-
-**Purpose:** Switch audio quality for current track
-
-**Implementation:**
-
-```javascript
-const changeQuality = (newQuality) => {
-    currentQuality = newQuality;
-
-    // Save preference
-    try {
-        localStorage.setItem('audioQuality', newQuality);
-    } catch (e) {
-        console.warn('Failed to save quality:', e);
-    }
-
-    updateQualityButtonText();
-    updateQualityMenuState(newQuality);
-
-    // Reload current track at new quality
-    if (currentIndex >= 0 && player.src && !checkCastingState()) {
-        const wasPlaying = !player.paused;
-        const targetTime = player.currentTime;
-
-        playTrack(currentIndex);
-
-        // Restore position safely
-        if (targetTime > 0) {
-            seekWhenReady(targetTime);
-        }
-
-        // Resume playback if was playing
-        if (wasPlaying) {
-            setTimeout(() => {
-                player.play().catch(err => {
-                    console.warn('Failed to resume:', err);
-                });
-            }, TIMING.PLAYBACK_RESUME_DELAY);
-        }
-    }
-
-    showSuccessToast(`Quality: ${QUALITY_LEVELS[newQuality].label}`);
-};
-```
-
-**Quality Levels:**
-
-```javascript
-const QUALITY_LEVELS = {
-    high: { label: 'High', bitrate: '256k' },
-    medium: { label: 'Medium', bitrate: '192k' },
-    low: { label: 'Low', bitrate: '128k' },
-    original: { label: 'Original', bitrate: 'original' }
-};
-```
-
-**Key Features:**
-
-- ✅ Uses `seekWhenReady()` to handle metadata loading
-- ✅ Validates duration before seeking
-- ✅ Proper timing for auto-resume
-- ✅ Toast notification on success
-- ✅ Persistent preference
-
----
-
-## 💾 State Persistence
-
-### Save Playback State
-
-**Purpose:** Remember playback position across sessions
-
-**Implementation:**
-
-```javascript
-const savePlaybackState = () => {
-    // Validate
-    if (currentIndex < 0 || !player) return;
-    if (!Number.isFinite(player.currentTime) || player.currentTime < 0) return;
-
-    try {
-        const trackElement = trackItems[currentIndex];
-        const title = trackElement?.dataset.title || 'Unknown';
-
-        localStorage.setItem(STORAGE_KEY_POSITION, JSON.stringify({
-            track: currentIndex,
-            time: player.currentTime,
-            title: title,
-            timestamp: Date.now(),
-            paused: player.paused  // Track paused state
-        }));
-
-        console.debug(`💾 Saved: track ${currentIndex}, time ${Math.floor(player.currentTime)}s, paused: ${player.paused}`);
-    } catch (e) {
-        console.warn('Failed to save state:', e);
-    }
-};
-```
-
-**Key Changes:**
-
-- ✅ **Removed `!player.paused` check** - Now saves when paused!
-- ✅ Validates `currentTime` is finite and non-negative
-- ✅ Tracks paused state for future use
-- ✅ Debug logging for verification
-
-**Auto-Save:**
-
-```javascript
-// Auto-save every 5 seconds while playing
-player?.addEventListener('play', () => {
-    startAutoSave();
-});
-
-// Save immediately on pause
-player?.addEventListener('pause', () => {
-    savePlaybackState();  // Now works!
-    stopAutoSave();
-});
-```
-
-### Restore Playback State
-
-**Implementation:**
-
-```javascript
-const restorePlaybackState = () => {
-    try {
-        const savedPosition = localStorage.getItem(STORAGE_KEY_POSITION);
-        if (!savedPosition) return false;
-
-        const state = JSON.parse(savedPosition);
-
-        // Only restore if saved within last 24 hours
-        if (Date.now() - state.timestamp > 24 * 60 * 60 * 1000) {
-            return false;
-        }
-
-        const trackIdx = state.track;
-        if (trackIdx >= 0 && trackIdx < trackItems.length) {
-            playTrack(trackIdx);
-
-            if (state.time > 0) {
-                seekWhenReady(state.time);
-            }
-
-            showInfoToast(`Resumed: ${state.title}`);
-            return true;
-        }
-    } catch (e) {
-        console.warn('Failed to restore state:', e);
-    }
-    return false;
-};
-```
-
----
-
-## 🎯 Prefetch System
-
-### Purpose
-
-Prefetch the next track to ensure smooth transitions between tracks.
-
-### Implementation
-
-```javascript
-const prefetchNextTrack = async (currentIdx) => {
-    // Use options to skip Repeat One (no global mutation!)
-    const nextIdx = getNextTrackWithRepeat(currentIdx, {
-        skipRepeatOne: true
-    });
-
-    // Validate
-    if (nextIdx < 0 || nextIdx >= trackItems.length || nextIdx === currentIdx) {
-        console.log('🚫 No next track to prefetch');
-        return;
-    }
-
-    const nextTrack = trackItems[nextIdx];
-    const audioUrl = buildAudioUrl(nextTrack.dataset.path, currentQuality);
-
-    const modeInfo = isShuffled ? '🔀 shuffle' : '▶️ sequential';
-    console.log(`🔥 Prefetching next track (${modeInfo}):`, nextTrack.dataset.title);
-
-    const doPrefetch = async () => {
-        try {
-            // Check cache first
-            if ('caches' in window) {
-                const cached = await caches.match(audioUrl);
-                if (cached) {
-                    console.log('✅ Already cached');
-                    return;
-                }
-            }
-
-            // Fetch to warm cache
-            await fetch(audioUrl, {
-                method: 'GET',
-                credentials: 'include'
-            });
-
-            console.log('✅ Prefetch initiated');
-        } catch (error) {
-            console.warn('⚠️ Prefetch failed:', error.message);
-        }
-    };
-
-    // Use requestIdleCallback for low-priority scheduling
-    if ('requestIdleCallback' in window) {
-        window.requestIdleCallback(() => doPrefetch());
-    } else {
-        setTimeout(() => doPrefetch(), 0);
-    }
-};
-```
-
-**Key Improvements:**
-
-- ✅ **No global state mutation** - Uses options parameter
-- ✅ **Respects shuffle and repeat** - Uses `getNextTrackWithRepeat()`
-- ✅ **Proper low-priority** - Uses `requestIdleCallback` (not non-standard `priority: 'low'`)
-- ✅ **Thread-safe** - No race conditions with user actions
-
----
-
-## ⚠️ Error Handling
-
-### Playback Error Handler
-
-**Implementation:**
-
-```javascript
-let errorRetryCount = 0;
-let hasShownTerminalErrorToast = false;
-const MAX_RETRIES = 2;
-
-player?.addEventListener('error', (e) => {
-    const error = player?.error;
-    if (!error) return;
-
-    // Get track info safely
-    const trackInfo = currentIndex >= 0 && trackItems[currentIndex]
-        ? trackItems[currentIndex].dataset.title
-        : 'Unknown track';
-
-    console.error('🚫 Playback error:', {
-        code: error.code,
-        message: error.message,
-        src: player?.src,
-        track: trackInfo,
-        trackIndex: currentIndex
-    });
-
-    // Save state before handling
-    savePlaybackState();
-
-    if (errorRetryCount < MAX_RETRIES) {
-        errorRetryCount++;
-        console.log(`🔄 Retrying (${errorRetryCount}/${MAX_RETRIES})...`);
-
-        setTimeout(() => {
-            player.load();
-            player.play().catch(err => {
-                if (errorRetryCount >= MAX_RETRIES && !hasShownTerminalErrorToast) {
-                    hasShownTerminalErrorToast = true;
-                    showErrorToast(
-                        `Unable to play "${trackInfo}". Try skipping to another track.`,
-                        {
-                            autohide: false,
-                            actions: [{
-                                label: 'Skip Track',
-                                handler: () => {
-                                    const nextIdx = getNextTrackWithRepeat(currentIndex);
-                                    if (nextIdx >= 0) playTrack(nextIdx);
-                                },
-                                primary: true
-                            }]
-                        }
-                    );
-                }
-            });
-        }, 1000);
-    }
-});
-
-// Reset error state on successful playback
-player?.addEventListener('playing', () => {
-    errorRetryCount = 0;
-    hasShownTerminalErrorToast = false;
-});
-```
-
-**Key Features:**
-
-- ✅ **Non-blocking toast** instead of blocking alert
-- ✅ **Action button** - "Skip Track" for easy recovery
-- ✅ **Single notification** - Flag prevents spam
-- ✅ **Contextual message** - Shows track name
-- ✅ **Auto-retry** - Up to 2 retries before showing error
-- ✅ **State reset** - Flags reset on successful playback
-
----
-
 ## 🔄 Track Auto-Advance
 
 ### Overview
 
-Auto-advance ensures seamless transitions between tracks when one ends. This is particularly challenging on mobile devices due to autoplay restrictions.
+Auto-advance ensures seamless transitions between tracks. This is challenging on mobile devices due to autoplay restrictions, which is why the `AutoAdvanceManager` uses sophisticated retry logic.
 
 ### 'ended' Event Handler
 
 ```javascript
 player.addEventListener('ended', () => {
     syncPlayIcons();
-    const trackElement = trackItems[currentIndex];
-    const trackTitle = trackElement?.dataset.title || 'Unknown';
-    console.log('✅ Track ended:', trackTitle);
-
+    const currentIndex = playbackManager.getCurrentIndex();
+    const trackTitle = trackItems[currentIndex]?.dataset.title;
+    
     if (!checkCastingState()) {
-        // Save completion state
-        savePlaybackState();
+        // Save completion state via StateManager
+        playbackManager.saveCurrentState(trackTitle);
 
-        // Get next track (respects shuffle and repeat)
-        const nextIndex = getNextTrackWithRepeat(currentIndex);
+        // Get next track via QueueManager
+        const nextIndex = queueManager.getNextTrack(currentIndex);
 
         if (nextIndex >= 0 && nextIndex < trackItems.length) {
-            const shuffleMode = isShuffled ? '🔀 shuffle' : '▶️ sequential';
-            const repeatInfo = repeatMode !== 'off' ? ` (repeat: ${repeatMode})` : '';
-            console.log(`🎵 Auto-advancing (${shuffleMode}${repeatInfo})`);
-
             // CRITICAL: Pass isAutoAdvance=true
             playTrack(nextIndex, true);
-
-            // Keep wake lock active - next track starting!
+            
+            // WakeLockManager keeps lock active during transition
         } else {
-            console.log('🏁 Reached end of playlist');
-            clearPlaybackState();
-            releaseWakeLock(); // Playlist finished
+            stateManager.clearPlaybackState();
+            wakeLockManager.release(); // Playlist finished
         }
     }
 });
@@ -934,22 +664,21 @@ player.addEventListener('ended', () => {
 
 **Problem:** Mobile browsers block automatic playback after track ends
 
-**Solution:** Multi-layered approach
+**Solution:** Multi-layered approach via `AutoAdvanceManager`
 
 1. **Flag auto-advance** - `playTrack(nextIndex, true)` enables special handling
-2. **Preload metadata** - `player.load()` ensures track is ready
-3. **Attempt playback** - Try standard `player.play()`
-4. **Media Session fallback** - If blocked, update Media Session state
-5. **Delayed retry** - Wait 100ms and try again
-6. **Notification controls** - User can resume from lock screen if needed
+2. **Immediate attempt** - Try standard `player.play()`
+3. **Media Session update** - If blocked, update Media Session state
+4. **Delayed retries** - Wait and try again (50ms, 100ms, 200ms)
+5. **Notification controls** - User can resume from lock screen if needed
 
 ### Key Behaviors
 
-✅ **Wake lock maintained** - Not released between tracks
-✅ **Respects repeat modes** - All/One/Off honored
+✅ **Wake lock maintained** - `WakeLockManager` keeps lock during transitions
+✅ **Respects repeat modes** - `QueueManager` handles All/One/Off
 ✅ **Respects shuffle** - Uses shuffle order if enabled
 ✅ **Prefetch ready** - Next track likely already cached
-✅ **State saved** - Position saved before advancing
+✅ **State saved** - `StateManager` saves position before advancing
 ✅ **Works offline** - Service worker serves cached audio
 
 ### Browser Compatibility
@@ -966,179 +695,44 @@ player.addEventListener('ended', () => {
 
 ---
 
-## 🎨 UI Synchronization
-
-### syncPlayIcons()
-
-**Purpose:** Update play/pause icons across all track items
-
-```javascript
-const syncPlayIcons = () => {
-    trackItems.forEach((item, idx) => {
-        const icon = item.querySelector('.play-overlay-btn i');
-        if (!icon) return;
-
-        if (idx === currentIndex && !player.paused) {
-            icon.className = 'bi bi-pause-fill';
-        } else {
-            icon.className = 'bi bi-play-fill';
-        }
-    });
-};
-```
-
-### updateUIForTrack(index)
-
-**Purpose:** Update UI when track changes
-
-```javascript
-const updateUIForTrack = (index) => {
-    const track = trackItems[index];
-
-    updateBottomPlayerInfo(track);
-    container.style.display = 'block';
-
-    setActiveTrack(track);
-
-    currentIndex = index;
-    window.currentTrackIndex = index;
-
-    scrollToCurrentTrack(track);
-};
-```
-
-**Helper Functions:**
-
-```javascript
-const setActiveTrack = (trackElement) => {
-    trackItems.forEach(t => t.classList.remove('active-track'));
-    if (trackElement) {
-        trackElement.classList.add('active-track');
-    }
-};
-
-const updateBottomPlayerInfo = (track) => {
-    if (!track) {
-        bottomTitle.textContent = '–';
-        bottomArtistAlbum.textContent = '–';
-        return;
-    }
-    bottomTitle.textContent = track.dataset.title;
-    bottomArtistAlbum.textContent = `${track.dataset.artist} • ${track.dataset.album}`;
-};
-```
-
----
-
-## 🔌 Player Controls API
-
-### Exported Interface
-
-```javascript
-export const playerControlsAPI = {
-    playTrack,
-    togglePlayPause,
-    stop: stopPlayback,
-    next: () => {
-        const nextIdx = getNextTrackWithRepeat(currentIndex);
-        if (nextIdx >= 0) playTrack(nextIdx);
-    },
-    previous: () => {
-        const prevIdx = getPreviousTrackWithRepeat(currentIndex);
-        if (prevIdx >= 0) playTrack(prevIdx);
-    },
-    setQuality: changeQuality,
-    getCurrentTrack: () => currentIndex,
-    getPlayer: () => player,
-    getCurrentTime: () => player?.currentTime || 0,
-    getDuration: () => player?.duration || 0,
-    seek: (time) => {
-        if (checkCastingState()) {
-            castSeek(time);
-        } else {
-            player.currentTime = time;
-        }
-    },
-    // Toast API
-    showToast,
-    showSuccessToast,
-    showInfoToast,
-    showWarningToast,
-    showErrorToast
-};
-```
-
----
-
-## 🎯 Keyboard Shortcuts
-
-### Supported Shortcuts
-
-| Key | Action |
-| --- | ------ |
-| **Space** | Toggle play/pause |
-| **→** | Next track |
-| **←** | Previous track |
-| **↑** | Volume up |
-| **↓** | Volume down |
-| **S** | Toggle shuffle |
-| **R** | Cycle repeat mode |
-| **M** | Toggle mute |
-
-### Implementation
-
-```javascript
-document.addEventListener('keydown', (e) => {
-    // Don't trigger if typing in input
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-        return;
-    }
-
-    switch (e.key) {
-        case ' ':
-            e.preventDefault();
-            togglePlayPause();
-            break;
-        case 'ArrowRight':
-            e.preventDefault();
-            playerControlsAPI.next();
-            break;
-        case 'ArrowLeft':
-            e.preventDefault();
-            playerControlsAPI.previous();
-            break;
-        case 's':
-        case 'S':
-            e.preventDefault();
-            toggleShuffle();
-            break;
-        case 'r':
-        case 'R':
-            e.preventDefault();
-            cycleRepeatMode();
-            break;
-    }
-});
-```
-
----
-
 ## 📊 Constants & Configuration
 
 ### Timing Constants
 
 ```javascript
+// In playbackManager.js
 const TIMING = {
-    AUTO_SAVE_INTERVAL: 5000,       // Save position every 5s
+    AUTO_SAVE_INTERVAL: 5000,      // Save playback position every 5s
+    PLAYBACK_RESUME_DELAY: 50      // Delay before resuming after restoration
+};
+
+// In uiSyncManager.js
+const TIMING = {
     UI_RESTORE_DELAY: 500,          // Delay before scrolling to restored track
-    HIGHLIGHT_DURATION: 3000,       // Track highlight duration
-    IOS_HELP_DISMISS: 10000,        // iOS help auto-dismiss
-    PLAYBACK_RESUME_DELAY: 50,      // Delay before resuming after quality change
-    AUTO_ADVANCE_RETRY_DELAY: 100   // Delay before retrying blocked auto-advance
+    HIGHLIGHT_DURATION: 3000        // Track highlight duration
+};
+
+// In autoAdvanceManager.js
+const AUTO_ADVANCE_TIMING = {
+    RETRY_DELAY_1: 50,              // First retry delay
+    RETRY_DELAY_2: 100,             // Second retry delay
+    RETRY_DELAY_3: 200,             // Third retry delay
+    MAX_RETRIES: 3                  // Maximum retry attempts
 };
 ```
 
-### Repeat Mode Constants
+### Quality Levels (QualityManager)
+
+```javascript
+const QUALITY_LEVELS = {
+    high: { label: 'High (256k)', bandwidth: 'high' },
+    medium: { label: 'Medium (192k)', bandwidth: 'medium' },
+    low: { label: 'Low (128k)', bandwidth: 'low' },
+    original: { label: 'Original', bandwidth: 'highest' }
+};
+```
+
+### Repeat Mode Constants (QueueManager)
 
 ```javascript
 const REPEAT_MODES = {
@@ -1152,12 +746,6 @@ const REPEAT_MODE_LABELS = {
     [REPEAT_MODES.ALL]: 'Repeat All',
     [REPEAT_MODES.ONE]: 'Repeat One'
 };
-
-const REPEAT_MODE_ICONS = {
-    [REPEAT_MODES.OFF]: 'bi-repeat',
-    [REPEAT_MODES.ALL]: 'bi-repeat',
-    [REPEAT_MODES.ONE]: 'bi-repeat-1'
-};
 ```
 
 ---
@@ -1169,52 +757,52 @@ const REPEAT_MODE_ICONS = {
 **Problem:** Track won't play
 
 - Check console for error messages
-- Verify audio URL is valid
+- Verify audio URL is valid (check `QualityManager`)
 - Check network connectivity
 - Try different quality setting
 - Error toast will show with "Skip Track" option
 
 **Problem:** Position not restored
 
-- Check if saved state exists in localStorage
+- Check if saved state exists (`StateManager`)
 - Verify state timestamp is within 24 hours
 - Check console for restoration logs
-- State now saves correctly when paused!
+- State saves correctly when paused
 
 ### Shuffle/Repeat Issues
 
 **Problem:** Repeat mode not working with 1 track
 
-- By design: Repeat mode normalized to OFF for 0-1 tracks
+- By design: `QueueManager` normalizes to OFF for 0-1 tracks
 - Check console for normalization log
 
 **Problem:** Prefetch not respecting modes
 
-- Fixed in v2.0: Prefetch now uses `getNextTrackWithRepeat()` with options
+- `QueueManager` handles this with `skipRepeatOne` option
 - Check console for prefetch logs showing correct mode
 
 ### Mobile Auto-Advance Issues
 
 **Problem:** Playback stops after each track on mobile
 
-- ✅ Fixed in v2.1: Enhanced auto-advance with Media Session fallback
-- Check console for "Auto-advance mode" logs
+- Check `AutoAdvanceManager` retry logs in console
 - Verify wake lock is acquired (look for "🔒 Wake lock acquired")
 - Ensure HTTPS is used (wake lock requires secure context)
+- Check for "📱 Auto-advance mode" logs
 
 **Problem:** Auto-advance works with screen on, fails when locked
 
-- Check wake lock status in console
+- Check `WakeLockManager` status in console
 - Verify Media Session is being set up correctly
 - On iOS, requires iOS 15+ for Media Session support
 - On Android, should work on Android 5.0+
 
 **Problem:** Browser shows "Autoplay prevented" errors
 
-- This is expected - the code handles this gracefully
-- Look for follow-up "Second play attempt" logs
-- Media Session API provides fallback for auto-advance
-- User can also use notification controls to resume
+- This is expected - `AutoAdvanceManager` handles this gracefully
+- Look for follow-up "Retry attempt" logs
+- Media Session API provides fallback
+- User can use notification controls to resume
 
 ### Wake Lock Issues
 
@@ -1222,7 +810,7 @@ const REPEAT_MODE_ICONS = {
 
 - Requires HTTPS (secure context)
 - Check browser support: Chrome 84+, Safari 16.4+, Firefox not supported
-- Check console for wake lock warnings
+- Check console for wake lock warnings via `WakeLockManager`
 - Gracefully degrades if unavailable
 
 **Problem:** Playback suspends when screen locks
@@ -1231,19 +819,6 @@ const REPEAT_MODE_ICONS = {
 - Check for "Page hidden" log when screen locks
 - Media Session should be reinforced on visibility change
 - May still require user interaction on first lock (browser policy)
-
-### Toast Notification Issues
-
-**Problem:** Toasts disappearing immediately
-
-- Check toast type: Errors don't auto-hide by default
-- Verify duration settings
-- Check for JavaScript errors
-
-**Problem:** Multiple toasts replacing each other
-
-- Ensure using queue system (v2.0+)
-- Toasts should show sequentially
 
 ---
 
@@ -1254,25 +829,25 @@ const REPEAT_MODE_ICONS = {
 1. **Prefetch Strategy**
    - Uses `requestIdleCallback` for low-priority
    - Checks cache before fetching
-   - Only prefetches actual next track
+   - Only prefetches actual next track via `QueueManager`
 
 2. **State Persistence**
-   - Auto-save throttled to every 5s
-   - Try-catch around localStorage calls
+   - Auto-save throttled to every 5s via `PlaybackManager`
+   - Try-catch around localStorage calls in `StateManager`
    - Validates data before saving
 
 3. **UI Updates**
-   - Debounced position updates (1s)
+   - Debounced position updates (1s) via `UISyncManager`
    - Minimal DOM manipulation
    - Event delegation where possible
 
 4. **Memory Management**
    - Guard flags prevent duplicate listeners
-   - Toast elements cleaned up after dismiss
    - Timeouts properly cleared
+   - Managers are lightweight and focused
 
 5. **Power Management**
-   - Wake lock only during active playback
+   - Wake lock only during active playback via `WakeLockManager`
    - Released immediately when paused
    - Automatically re-acquired if system releases it
    - Not held during casting (Chromecast handles this)
@@ -1283,14 +858,16 @@ const REPEAT_MODE_ICONS = {
 
 ### XSS Prevention
 
-- ✅ **No innerHTML usage** - All content uses `textContent` or DOM creation
+- ✅ **No innerHTML usage** - `UISyncManager` uses `textContent` or DOM creation
 - ✅ **Safe DOM manipulation** - createElement + appendChild pattern
 - ✅ **Input validation** - All user inputs validated
 
 ### Storage Safety
 
+All managers handle storage errors gracefully:
+
 ```javascript
-// All storage wrapped in try-catch
+// Example from StateManager
 try {
     localStorage.setItem(key, value);
 } catch (e) {
@@ -1305,16 +882,33 @@ try {
 
 ### Key Features
 
+✅ **Modular Architecture** - 8 focused managers, each under 310 lines
 ✅ **Unified Playback Control** across local, Chromecast, and Android Auto
-✅ **Shuffle & Repeat Modes** with persistent state
-✅ **Quality Management** with seamless switching
-✅ **State Persistence** - Resume playback across sessions
-✅ **Toast Queue System** - Non-blocking notifications
+✅ **Shuffle & Repeat Modes** via `QueueManager` with persistent state
+✅ **Quality Management** via `QualityManager` with seamless switching
+✅ **State Persistence** via `StateManager` - Resume playback across sessions
 ✅ **Error Recovery** - Automatic retries with user actions
 ✅ **Prefetch Intelligence** - Respects all playback modes
-✅ **Keyboard Shortcuts** - Full keyboard control
-✅ **Wake Lock Support** - Prevents app suspension during playback
-✅ **Mobile Auto-Advance** - Reliable track transitions on all devices
+✅ **Wake Lock Support** via `WakeLockManager` - Prevents app suspension
+✅ **Mobile Auto-Advance** via `AutoAdvanceManager` - Reliable track transitions
 ✅ **Memory Safe** - No leaks, proper cleanup
 ✅ **XSS Protected** - Safe DOM manipulation throughout
+✅ **Testable** - Each manager independently testable
 
+### Module Summary
+
+| Module | Lines | Purpose |
+|--------|-------|---------|
+| **playerControls.js** | 1,000 | Main orchestrator |
+| **queueManager.js** | 306 | Shuffle & repeat |
+| **playbackManager.js** | 192 | Core playback |
+| **uiSyncManager.js** | 178 | UI updates |
+| **autoAdvanceManager.js** | 137 | Auto-advance |
+| **qualityManager.js** | 93 | Quality selection |
+| **stateManager.js** | 88 | State persistence |
+| **wakeLockManager.js** | 75 | Wake lock |
+
+---
+
+**Status:** Production Ready
+**Dependencies:** Bootstrap 5, Chromecast SDK, Media Session API, Wake Lock API (optional)
