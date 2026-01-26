@@ -158,17 +158,25 @@ function initializeCastApi()
 **Starting a Session:**
 
 ```javascript
-export function castMixtapePlaylist()
+export function loadPlaylistAndCast(tracks, startIndex)
 ```
 
 **Process:**
 
 1. Check for existing session
 2. Request new session if none active
-3. Build queue from `window.__mixtapeData.tracks`
-4. Load queue to Chromecast
-5. Silence local player
-6. Update UI state
+3. Build queue items with metadata for each track
+4. Create `QueueLoadRequest` with all tracks
+5. Load queue to Chromecast (triggers automatic track detection)
+6. Silence local player
+7. Update UI state
+
+**Queue Item Structure:**
+
+```javascript
+const queueItem = new chrome.cast.media.QueueItem(mediaInfo);
+queueItem.itemId = index; // Critical for track change detection
+```
 
 **Stopping a Session:**
 
@@ -218,13 +226,51 @@ let castPlayState = 'IDLE';             // Current play state
 
 ```javascript
 let castControlCallbacks = {
+    onCastStart: null,
+    onCastEnd: null,
     onTrackChange: null,
     onPlayStateChange: null,
-    onTimeUpdate: null
+    onTimeUpdate: null,
+    onVolumeChange: null
 };
 
 export function setCastControlCallbacks(callbacks)
 ```
+
+**Callback Purposes:**
+
+- `onCastStart` - Called when cast session begins
+- `onCastEnd` - Called when cast session ends
+- `onTrackChange` - Called when track changes (via queue events)
+- `onPlayStateChange` - Called when play/pause state changes
+- `onTimeUpdate` - Called every second with playback position
+- `onVolumeChange` - Called when Chromecast volume changes
+
+#### Track Change Detection
+
+Track changes are detected via the Cast SDK's queue events:
+
+```javascript
+remotePlayerController.addEventListener(
+    cast.framework.RemotePlayerEventType.CURRENT_ITEM_CHANGED,
+    handleTrackChange
+);
+```
+
+**Detection Process:**
+
+1. `CURRENT_ITEM_CHANGED` event fires when track changes
+2. Get current `itemId` from media session
+3. Map `itemId` to track index in playlist
+4. Call `onTrackChange(index)` callback
+5. UI updates to show new track
+
+**Works with:**
+
+- Next/Previous buttons in your UI
+- Google Home app controls
+- Chromecast device controls
+- Voice commands ("Hey Google, next song")
 
 ### 2. Media Session Integration
 
@@ -1041,22 +1087,3 @@ if (window.__CHROMECAST_DEBUG__) {
 - [MDN Media Session API](https://developer.mozilla.org/en-US/docs/Web/API/Media_Session_API)
 - [Web Media Session Spec](https://w3c.github.io/mediasession/)
 
----
-
-## 🎯 Future Enhancements
-
-### Planned Improvements
-
-- **Custom receiver app** - Brand Mixtape Society receiver
-- **Lyrics display** - Show synchronized lyrics on TV
-- **Visualizer** - Audio visualizations during playback
-- **Multi-room audio** - Cast to multiple devices simultaneously
-- **Queue editing** - Reorder queue during casting
-- **Collaborative casting** - Multiple users control same session
-
-### Under Consideration
-
-- **AirPlay support** - Parallel support for Apple devices
-- **Spotify Connect style** - Persistent queue across devices
-- **Cast group support** - Speaker groups in Google Home app
-- **Background sync** - Offline queue preparation
