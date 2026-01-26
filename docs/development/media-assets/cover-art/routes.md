@@ -397,14 +397,14 @@ const url = `/covers/slug_256x256.jpg?t=${Date.now()}`;
 
 **Architecture:**
 
-- [Cover Art System Overview](../cover-art/overview.md) - System architecture
-- [Size Optimization](../cover-art/size-optimization.md) - Implementation details
+- [Cover Art System Overview](overview.md) - System architecture
+- [Size Optimization](optimization.md) - Implementation details
 - [API Reference](../cover-art/api.md) - Python/JavaScript API
 
 **Integration:**
 
-- [Android Auto Integration](../android-auto/backend-implementation.md) - Android Auto context
-- [Playback Routes](play/index.md) - Audio streaming context
+- [Android Auto Integration](../../device-integration/android-auto/overview.md) - Android Auto context
+- [Playback Routes](../../audio-playback/backend/audio-streaming.md) - Audio streaming context
 
 ---
 

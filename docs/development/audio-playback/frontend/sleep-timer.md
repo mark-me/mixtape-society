@@ -1,4 +1,4 @@
-![Sleep Timer](../../../../images/sleep.png){ align=right width="90" }
+![Sleep Timer](../../../images/sleep.png){ align=right width="90" }
 
 # Sleep Timer Module
 
@@ -1005,10 +1005,10 @@ window.addEventListener('beforeunload', () => {
 
 ## 🔗 Related Documentation
 
-- **[Player Controls](playerControls.md)** - Main playback orchestration
-- **[Toast System](../../common/toastSystem.md)** - Notification system
-- **[Player Utilities](playerUtils.md)** - Shared player utilities
-- **[Playback Routes](../index.md)** - Backend audio streaming
+- **[Player Controls](player-controls.md)** - Main playback orchestration
+- **[Toast System](../../web-application/ui-components/toast-system.md)** - Notification system
+- **[Player Utilities](player-utilities.md)** - Shared player utilities
+- **[Playback Routes](../backend/audio-streaming.md)** - Backend audio streaming
 
 ---
 

@@ -443,4 +443,4 @@ metadata.artwork.forEach(art => {
 
 ## Next Steps
 
-👉 **Continue to [Testing Guide](testing-guide.md)** to verify your integration works correctly.
+👉 **Continue to [Testing Guide](testing.md)** to verify your integration works correctly.

@@ -2,8 +2,6 @@
 
 ![Cache](../../../images/cache.png){ align=right width="90" }
 
-> Part of [Playback Routes](index.md) | Related: [Audio Streaming](audio-streaming.md)
-
 The quality and caching system allows clients to request different audio quality levels while the server manages transcoded file caching for optimal performance.
 
 ---
@@ -76,7 +74,7 @@ let currentQuality = localStorage.getItem('audioQuality') || 'medium';
 const url = `/play/${track.path}?quality=${currentQuality}`;
 ```
 
-See: [Player Controls](../play/modules/playerControls.md#quality-management)
+See: [Player Controls](../frontend/player-controls.md#qualitymanager-qualitymanagerjs)
 
 ---
 
@@ -580,7 +578,7 @@ See: [Docker Deployment](../../../user/creators/installation.md)
 
 - **[Audio Streaming](audio-streaming.md)** - Uses _get_serving_path()
 - **[Audio Caching](server-cache-system.md)** - Transcoding implementation
-- **[Player Controls](../play/modules/playerControls.md)** - Quality selector UI
+- **[Player Controls](../frontend/player-controls.md)** - Quality selector UI
 - **[Configuration](../../configuration.md)** - Cache directory settings
 
 ---

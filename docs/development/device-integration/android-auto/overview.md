@@ -1,4 +1,4 @@
-![Android Auto](../../images/car.png){ align=right width="90" }
+![Android Auto](../../../images/car.png){ align=right width="90" }
 
 # Android Auto Integration
 
@@ -455,7 +455,7 @@ GET /covers/{slug}_256x256.jpg
 GET /covers/{slug}_512x512.jpg
 ```
 
-**Implementation:** See [Backend Implementation Guide](backend-implementation.md)
+**Implementation:** See [Backend Implementation Guide](backend.md)
 
 ### No Special Server Requirements
 
@@ -512,7 +512,7 @@ Android Auto detection returns false, so it falls back to standard Media Session
 
 ## 🧪 Testing
 
-For complete testing procedures, see the [Testing Guide](testing-guide.md).
+For complete testing procedures, see the [Testing Guide](testing.md).
 
 **Quick checklist:**
 
@@ -591,18 +591,18 @@ navigator.mediaSession.setActionHandler('seekto', (details) => {
 
 ### Detailed Documentation
 
-- **[Frontend Integration](frontend-integration.md)**
+- **[Frontend Integration](frontend.md)**
   - JavaScript code changes
   - Platform detection
   - Metadata extraction
   - Action handler setup
 
-- **[Backend Implementation](backend-implementation.md)**
+- **[Backend Implementation](backend.md)**
   - Cover art optimization
   - Size generation
   - Endpoint configuration
 
-- **[Testing Guide](testing-guide.md)**
+- **[Testing Guide](testing.md)**
   - Test environment setup
   - Validation procedures
   - Common test cases
@@ -615,11 +615,11 @@ navigator.mediaSession.setActionHandler('seekto', (details) => {
   - Network-based playback
   - Different use case
 
-- **[Player Controls](../routes/play/modules/playerControls.md)**
+- **[Player Controls](../../audio-playback/frontend/player-controls.md)**
   - UI control coordination
   - State management
 
-- **[Cover Art System](../cover-art/overview.md)**
+- **[Cover Art System](../../media-assets/cover-art/overview.md)**
   - Size optimization
   - Image processing
 
@@ -641,4 +641,4 @@ navigator.mediaSession.setActionHandler('seekto', (details) => {
 
 ---
 
-*For implementation details, see the [Frontend Integration Guide](frontend-integration.md) and [Backend Implementation Guide](backend-implementation.md).*
+*For implementation details, see the [Frontend Integration Guide](frontend.md) and [Backend Implementation Guide](backend.md).*

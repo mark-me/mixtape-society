@@ -1,4 +1,4 @@
-![Flask](../../images/editor.png){ align=right width="90" }
+![Flask](../../../images/editor.png){ align=right width="90" }
 
 # API Reference - Cover Art Optimization
 

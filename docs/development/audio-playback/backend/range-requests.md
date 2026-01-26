@@ -1,8 +1,6 @@
-# HTTP Range Requests
-
 ![Seek](../../../images/player.png){ align=right width="90" }
 
-> Part of [Playback Routes](index.md) | Related: [Audio Streaming](audio-streaming.md)
+# HTTP Range Requests
 
 HTTP range requests enable seeking in audio files by allowing clients to request specific byte ranges instead of entire files. This is essential for Chromecast seeking and HTML5 audio scrubbing.
 
@@ -616,7 +614,7 @@ def test_invalid_range():
 
 - **[Audio Streaming](audio-streaming.md)** - Main streaming implementation
 - **[Chromecast Integration](../../device-integration/chromecast/integration.md)** - Cast requirements
-- **[Player Controls](../play/modules/playerControls.md)** - Frontend seeking
+- **[Player Controls](../frontend/player-controls.md)** - Frontend seeking
 
 ---
 

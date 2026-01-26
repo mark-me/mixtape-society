@@ -1,4 +1,4 @@
-![Audio cache](../images/cache.png){ align=right width="90" }
+![Audio cache](../../../images/cache.png){ align=right width="90" }
 
 # Audio Caching System
 

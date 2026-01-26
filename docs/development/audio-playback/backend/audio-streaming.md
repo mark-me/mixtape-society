@@ -2,8 +2,6 @@
 
 ![Audio](../../../images/player.png){ align=right width="90" }
 
-> Part of [Playback Routes](index.md)
-
 This page documents the core audio streaming implementation in Mixtape Society, including path validation, MIME type detection, file serving, and the public mixtape player page.
 
 ---
@@ -381,7 +379,7 @@ The template includes JavaScript that:
 - Configures Android Auto Media Session
 - Handles adaptive theming from cover art
 
-See: [Player Controls](../play/modules/playerControls.md)
+See: [Player Controls](../frontend/player-controls.md)
 
 ---
 
@@ -589,7 +587,7 @@ See [Range Requests](range-requests.md#-testing) for testing seeking functionali
 
 - **[Range Requests](range-requests.md)** - HTTP range support for seeking
 - **[Quality & Caching](quality-caching.md)** - Quality selection and cache logic
-- **[Media Integration](media-integration.md)** - How playback modes use these routes
+- **[Media Integration](../media-integration.md)** - How playback modes use these routes
 - **[Chromecast Integration](../../device-integration/chromecast/integration.md)** - CORS requirements
 - **[Audio Caching](server-cache-system.md)** - Cache implementation details
 

@@ -65,9 +65,9 @@ Standard HTML5 audio playback in the browser.
 
 **Server requirements:**
 
-- ✅ Audio streaming ([Audio Streaming](../audio-playback/backend/audio-streaming.md))
-- ✅ Quality parameter ([Quality & Caching](../audio-playback/backend/quality-caching.md))
-- ✅ Range requests optional ([Range Requests](../audio-playback/backend/range-requests.md))
+- ✅ Audio streaming ([Audio Streaming](backend/audio-streaming.md))
+- ✅ Quality parameter ([Quality & Caching](backend/quality-caching.md))
+- ✅ Range requests optional ([Range Requests](backend/range-requests.md))
 
 **Frontend:**
 
@@ -371,7 +371,7 @@ const mediaInfo = new chrome.cast.media.MediaInfo(
 );
 ```
 
-See: [Quality & Caching](../audio-playback/backend/quality-caching.md)
+See: [Quality & Caching](backend/quality-caching.md)
 
 ---
 
@@ -453,7 +453,7 @@ For complete implementation details, see:
   - Platform-specific guidance
   - Troubleshooting
 
-- **[Android Auto Overview](../../device-integration/android-auto/integration-overview.md)** - Enhanced Media Session guide
+- **[Android Auto Overview](../device-integration/android-auto/overview.md)** - Enhanced Media Session guide
   - Architecture and detection
   - Enhanced Media Session setup
   - Artwork optimization (5 sizes)
@@ -462,13 +462,13 @@ For complete implementation details, see:
 
 ### Frontend Integration
 
-- **[Player Controls](../play/modules/playerControls.md)** - Playback orchestration
+- **[Player Controls](frontend/player-controls.md)** - Playback orchestration
   - Mode coordination logic
   - Casting state management
   - Quality selector
   - Event handling
 
-- **[Player Utilities](../play/modules/playerUtils.md)** - Shared utilities
+- **[Player Utilities](frontend/player-utilities.md)** - Shared utilities
   - Device detection
   - Media Session management
   - Player state control
@@ -476,10 +476,10 @@ For complete implementation details, see:
 
 ### Backend Services
 
-- **[Audio Streaming](audio-streaming.md)** - Core streaming implementation
-- **[Range Requests](range-requests.md)** - Partial content support
-- **[Quality & Caching](quality-caching.md)** - Quality management
-- **[Cover Art System](../../cover-art/overview.md)** - Image optimization
+- **[Audio Streaming](backend/audio-streaming.md)** - Core streaming implementation
+- **[Range Requests](backend/range-requests.md)** - Partial content support
+- **[Quality & Caching](backend/quality-caching.md)** - Quality management
+- **[Cover Art System](../media-assets/cover-art/overview.md)** - Image optimization
 
 ---
 

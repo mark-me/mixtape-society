@@ -1,6 +1,6 @@
 # Playback Routes Overview
 
-![Mixtape playback](../../../images/player.png){ align=right width="90" }
+![Mixtape playback](../../images/player.png){ align=right width="90" }
 
 The playback system is the core of Mixtape Society's audio streaming infrastructure. It handles audio file delivery, quality management, range requests for seeking, and integrates with various playback technologies (Chromecast, Android Auto, AirPlay).
 
@@ -29,13 +29,13 @@ play = Blueprint("play", __name__)   # registered in the main Flask app
 
 | HTTP Method | URL Pattern | Handler | Description | Documentation |
 | ----------- | ----------- | ------- | ----------- | ------------- |
-| `GET` | `/play/<path:file_path>` | `stream_audio(file_path)` | Streams audio file with quality & range support | [Audio Streaming](audio-streaming.md) |
-| `GET` | `/share/<slug>` | `public_play(slug)` | Renders public mixtape player page | [Audio Streaming](audio-streaming.md#public-mixtape-page) |
-| `GET` | `/covers/<filename>` | `serve_cover(filename)` | Serves cover images | [Covers Route](../covers.md) |
-| `GET` | `/qr/<slug>.png` | `qr.generate_qr(slug)` | Simple QR code PNG | [QR Codes](../qr_codes.md) |
-| `GET` | `/qr/<slug>/download` | `qr.download_qr(slug)` | Enhanced QR with cover art | [QR Codes](../qr_codes.md) |
-| `GET` | `/admin/cache/stats` | `cache_stats()` | Returns cache statistics JSON | [Quality & Caching](quality-caching.md#admin-endpoints) |
-| `POST` | `/admin/cache/clear` | `clear_cache()` | Clears audio cache | [Quality & Caching](quality-caching.md#admin-endpoints) |
+| `GET` | `/play/<path:file_path>` | `stream_audio(file_path)` | Streams audio file with quality & range support | [Audio Streaming](backend/audio-streaming.md) |
+| `GET` | `/share/<slug>` | `public_play(slug)` | Renders public mixtape player page | [Audio Streaming](backend/audio-streaming.md#-public-mixtape-page) |
+| `GET` | `/covers/<filename>` | `serve_cover(filename)` | Serves cover images | [Covers Route](../media-assets/cover-art/routes.md) |
+| `GET` | `/qr/<slug>.png` | `qr.generate_qr(slug)` | Simple QR code PNG | [QR Codes](../web-application/routes/qr-codes.md) |
+| `GET` | `/qr/<slug>/download` | `qr.download_qr(slug)` | Enhanced QR with cover art | [QR Codes](../web-application/routes/qr-codes.md) |
+| `GET` | `/admin/cache/stats` | `cache_stats()` | Returns cache statistics JSON | [Quality & Caching](backend/quality-caching.md#admin-endpoints) |
+| `POST` | `/admin/cache/clear` | `clear_cache()` | Clears audio cache | [Quality & Caching](backend/quality-caching.md#admin-endpoints) |
 
 ---
 
@@ -80,7 +80,7 @@ sequenceDiagram
 
 ### Core Streaming
 
-**[Audio Streaming](audio-streaming.md)** - Complete audio streaming implementation
+**[Audio Streaming](backend/audio-streaming.md)** - Complete audio streaming implementation
 
 - Path validation and security
 - MIME type detection
@@ -92,14 +92,14 @@ sequenceDiagram
 
 ### Advanced Features
 
-**[Range Requests](range-requests.md)** - HTTP range support for seeking
+**[Range Requests](backend/range-requests.md)** - HTTP range support for seeking
 
 - Range header parsing
 - Partial content responses (206)
 - Chromecast requirements
 - Error handling (416)
 
-**[Quality & Caching](quality-caching.md)** - Quality selection and caching system
+**[Quality & Caching](backend/quality-caching.md)** - Quality selection and caching system
 
 - Quality levels (high, medium, low, original)
 - Cache lookup and serving
@@ -184,7 +184,7 @@ Handles audio transcoding and caching.
 - Automatic cache management
 - Size and age-based cleanup
 
-See: [Audio Caching Documentation](../../audio_caching.md)
+See: [Audio Caching Documentation](backend/quality-caching.md)
 
 ### Player Integration
 
@@ -203,22 +203,22 @@ Frontend JavaScript that consumes these routes.
 
 ### Backend Services
 
-- **[Audio Caching](../../audio_caching.md)** - Transcoding and cache management
-- **[Mixtape Manager](../../mixtape_manager.md)** - Mixtape CRUD operations
-- **[Cover Art System](../../cover-art/overview.md)** - Image optimization
-- **[QR Code Generation](../qr_codes.md)** - QR code routes
+- **[Audio Caching](backend/quality-caching.md)** - Transcoding and cache management
+- **[Mixtape Manager](../mixtape-system/manager-backend.md)** - Mixtape CRUD operations
+- **[Cover Art System](../media-assets/cover-art/overview.md)** - Image optimization
+- **[QR Code Generation](../web-application/routes/qr-codes.md)** - QR code routes
 
 ### Frontend Integration
 
-- **[Player Controls](modules/playerControls.md)** - Playback orchestration
-- **[Sleep Timer](modules/sleepTimer.md)** - Automatic playback shutdown
-- **[Player Utilities](modules/playerUtils.md)** - Uniforming platform experiences
-- **[Chromecast Integration](../../chromecast/integration.md)** - Cast SDK setup
-- **[Android Auto](../../android-auto/integration-overview.md)** - Enhanced Media Session
+- **[Player Controls](frontend/player-controls.md)** - Playback orchestration
+- **[Sleep Timer](frontend/sleep-timer.md)** - Automatic playback shutdown
+- **[Player Utilities](frontend/player-utilities.md)** - Uniforming platform experiences
+- **[Chromecast Integration](../device-integration/chromecast/integration.md)** - Cast SDK setup
+- **[Android Auto](../device-integration/android-auto/overview.md)** - Enhanced Media Session
 
 ### Configuration
 
-- **[Configuration](../../configuration.md)** - MUSIC_ROOT, DATA_ROOT, cache settings
+- **[Configuration](../configuration.md)** - MUSIC_ROOT, DATA_ROOT, cache settings
 
 ---
 
@@ -229,9 +229,9 @@ Frontend JavaScript that consumes these routes.
 **New to the codebase?** Read in this order:
 
 1. This overview (you are here)
-2. [Audio Streaming](audio-streaming.md) - Understand basic streaming
-3. [Quality & Caching](quality-caching.md) - Learn cache system
-4. [Range Requests](range-requests.md) - Understand seeking
+2. [Audio Streaming](backend/audio-streaming.md) - Understand basic streaming
+3. [Quality & Caching](backend/quality-caching.md) - Learn cache system
+4. [Range Requests](backend/range-requests.md) - Understand seeking
 5. [Media Integration](media-integration.md) - See how it all fits together
 
 ### Common Development Tasks
@@ -240,21 +240,21 @@ Frontend JavaScript that consumes these routes.
 
 - Update `QUALITY_LEVELS` in frontend
 - Update cache directory structure
-- See: [Quality & Caching](quality-caching.md)
+- See: [Quality & Caching](backend/quality-caching.md)
 
 **Debugging streaming issues:**
 
 - Check logs for path validation errors
 - Verify CORS headers for Chromecast
 - Test range requests with curl
-- See: [Audio Streaming](audio-streaming.md#logging)
+- See: [Audio Streaming](backend/audio-streaming.md#-logging)
 
 **Performance optimization:**
 
 - Monitor cache hit rates
 - Adjust cache cleanup schedule
 - Pre-populate cache for popular tracks
-- See: [Quality & Caching](quality-caching.md#performance-optimization)
+- See: [Quality & Caching](backend/quality-caching.md#-performance-optimization)
 
 ### Testing
 

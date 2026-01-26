@@ -81,7 +81,7 @@ See: [Authentication Routes](../web-application/routes/authentication.md)
 | `GET` | `/qr/<slug>.png` | `qr.generate_qr(slug)` | Simple QR code PNG |
 | `GET` | `/qr/<slug>/download` | `qr.download_qr(slug)` | Enhanced QR with cover and title |
 
-See: [QR Code Routes](../web-application/routes/qr_codes.md) for QR documentation
+See: [QR Code Routes](../web-application/routes/qr-codes.md) for QR documentation
 
 ---
 

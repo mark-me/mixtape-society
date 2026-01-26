@@ -104,7 +104,7 @@ Two Flask routes serve cover images:
 - Generates variants on-demand
 - Returns appropriate size or fallback
 
-See: [Cover Art Routes](../routes.md)
+See: [Cover Art Routes](routes.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # Player Controls - Complete Documentation
 
-![Player](../../../../images/player.png){ align=right width="90" }
+![Player](../../../images/player.png){ align=right width="90" }
 
 The Player Controls system is a modular architecture that manages all playback functionality in Mixtape Society. It consists of specialized managers coordinated by the main `playerControls.js` orchestrator, handling local playback, Chromecast casting, and Android Auto integration with a unified user experience.
 

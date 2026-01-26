@@ -531,6 +531,6 @@ After successful DHU testing:
 
 ## Related Documentation
 
-- [Backend Implementation](backend-implementation.md) - Server-side setup
-- [Frontend Integration](frontend-integration.md) - Client-side code
+- [Backend Implementation](backend.md) - Server-side setup
+- [Frontend Integration](frontend.md) - Client-side code
 - [Android Auto Developer Docs](https://developer.android.com/training/cars/testing) - Official Google docs

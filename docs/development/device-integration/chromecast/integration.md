@@ -1,6 +1,6 @@
 # Chromecast Integration
 
-![Cast](../../images/chromecast.png){ align=right width="90" }
+![Cast](../../../images/chromecast.png){ align=right width="90" }
 
 Mixtape Society supports casting entire mixtapes to Chromecast devices, enabling users to play their curated music collections on TVs and speakers throughout their home with seamless queue management and unified controls.
 
@@ -1077,10 +1077,10 @@ if (window.__CHROMECAST_DEBUG__) {
 
 ### Related Mixtape Society Documentation
 
-- [Playback Routes](../routes/play/index.md) - Audio streaming implementation
-- [Android Auto Integration](../android-auto/backend-implementation.md) - Alternative casting method
-- [Audio Caching](../audio_caching.md) - Quality management
-- [Player Controls](../routes/play/modules/playerControls.md) - UI controls integration
+- [Playback Routes](../../audio-playback/media-integration.md) - Audio streaming implementation
+- [Android Auto Integration](../android-auto/backend.md) - Alternative casting method
+- [Audio Caching](../../audio-playback/backend/quality-caching.md) - Quality management
+- [Player Controls](../../audio-playback/frontend/player-controls.md) - UI controls integration
 
 ### Media Session API
 

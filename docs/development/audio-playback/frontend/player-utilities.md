@@ -1,6 +1,6 @@
 # Player Utilities
 
-![Utilities](../../../../images/utilities.png){ align=right width="90" }
+![Utilities](../../../images/utilities.png){ align=right width="90" }
 
 The `playerUtils.js` module provides cross-cutting utilities for platform detection, Media Session management, player state control, and metadata extraction. It serves as a shared foundation for all player modules, enabling platform-specific optimizations and consistent behavior across different devices.
 
@@ -970,10 +970,10 @@ setupLocalMediaSession(newMetadata, controls);
 
 ## 📚 Related Documentation
 
-- **[Player Controls](playerControls.md)** - Main orchestration layer
-- **[Chromecast Integration](../../../chromecast/integration.md)** - Uses player control utilities
-- **[Android Auto](../../../android-auto/integration-overview.md)** - Enhanced Media Session setup
-- **[Playback Routes](../index.md)** - Backend audio streaming
+- **[Player Controls](player-controls.md)** - Main orchestration layer
+- **[Chromecast Integration](../../device-integration/chromecast/integration.md)** - Uses player control utilities
+- **[Android Auto](../../device-integration/android-auto/overview.md)** - Enhanced Media Session setup
+- **[Playback Routes](../backend/audio-streaming.md)** - Backend audio streaming
 
 ---
 
