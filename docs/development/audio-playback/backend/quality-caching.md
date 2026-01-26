@@ -283,7 +283,7 @@ def precache_mixtapes():
 - Track added to mixtape
 - Scheduled background task (nightly)
 
-See: [Audio Caching](../../audio_caching.md) for transcoding implementation
+See: [Audio Caching](server-cache-system.md) for transcoding implementation
 
 ### On-Demand Transcoding
 
@@ -579,7 +579,7 @@ See: [Docker Deployment](../../../user/creators/installation.md)
 ## 📚 Related Documentation
 
 - **[Audio Streaming](audio-streaming.md)** - Uses _get_serving_path()
-- **[Audio Caching](../../audio_caching.md)** - Transcoding implementation
+- **[Audio Caching](server-cache-system.md)** - Transcoding implementation
 - **[Player Controls](../play/modules/playerControls.md)** - Quality selector UI
 - **[Configuration](../../configuration.md)** - Cache directory settings
 

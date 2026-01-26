@@ -7,7 +7,6 @@ repo_name: mark-me/mixtape-society
 edit_uri: edit/main/docs/
 use_directory_urls: false
 
-# Copyright info (optional)
 copyright: Copyright &copy; 2025 Mark Zwart
 
 theme:
@@ -16,7 +15,6 @@ theme:
   logo: images/logo.svg
   language: en
   palette:
-    # Light mode
     - media: "(prefers-color-scheme: light)"
       scheme: default
       primary: custom
@@ -24,7 +22,6 @@ theme:
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
-    # Dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
       primary: custom
@@ -33,82 +30,40 @@ theme:
         icon: material/brightness-4
         name: Switch to light mode
   features:
-    # Navigation
     - navigation.tabs
-    - navigation.tabs.sticky        # Keep tabs visible when scrolling
+    - navigation.tabs.sticky
     - navigation.top
     - navigation.indexes
     - navigation.sections
-    - navigation.expand             # Expand all sections by default
-    - navigation.path               # Show breadcrumb path
-    - navigation.footer             # Add prev/next navigation at bottom
-    - navigation.tracking           # Update URL with active anchor
-    
-    # Table of contents
-    - toc.follow                    # Sidebar scrolls with page
-    - toc.integrate                 # Integrate TOC into left sidebar (optional)
-    
-    # Search
-    - search.suggest                # Search suggestions
-    - search.highlight              # Highlight search terms
-    - search.share                  # Share search results
-    
-    # Content features
-    - content.code.copy             # Copy button for code blocks
-    - content.code.select           # Select code on click
-    - content.code.annotate         # Add annotations to code
-    - content.action.edit           # Edit this page button
-    - content.action.view           # View source button
-    - content.tooltips              # Better tooltips
-    - content.tabs.link             # Link tabbed content
-    
-    # Header
-    - header.autohide               # Hide header on scroll (optional)
-    
-    # Announce bar (for important updates)
-    # - announce.dismiss
-  
+    - navigation.expand
+    - navigation.path
+    - navigation.footer
+    - navigation.tracking
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.select
+    - content.code.annotate
+    - content.action.edit
+    - content.action.view
+    - content.tooltips
+    - content.tabs.link
   icon:
     repo: fontawesome/brands/github
     edit: material/pencil
     view: material/eye
-    
-  # Custom fonts (optional)
-  # font:
-  #   text: Roboto
-  #   code: Roboto Mono
 
 extra_css:
   - stylesheets/extra.css
 
-# Extra features
 extra:
-  # Social links in footer
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/mark-me/mixtape-society
       name: GitHub Repository
-    # Add more social links as needed:
-    # - icon: fontawesome/brands/twitter
-    #   link: https://twitter.com/yourhandle
-  
-  # Analytics (optional - uncomment if needed)
-  # analytics:
-  #   provider: google
-  #   property: G-XXXXXXXXXX
-  
-  # Version selector (if you have multiple versions)
-  # version:
-  #   provider: mike
-  
-  # Generator notice (set to false to hide "Made with Material for MkDocs")
   generator: true
-  
-  # Consent for cookies/analytics (optional)
-  # consent:
-  #   title: Cookie consent
-  #   description: >-
-  #     We use cookies to recognize your repeated visits and preferences.
 
 nav:
   - Introduction: index.md
@@ -127,90 +82,69 @@ nav:
       - Player Guide: user/recipients/player.md
       - Streaming to Devices: user/recipients/streaming.md
       - Recipient FAQ: user/recipients/faq.md
-  
+
   - Architecture & Development:
     - Project Overview: development/intro.md
     - Deployment: development/deployment.md
     - Configuration: development/configuration.md
-    
-    # =================================================================
-    # MUSIC COLLECTION SYSTEM
-    # =================================================================
+
     - Music Collection:
-        - Overview: development/musiclib/intro.md
-        - Reading Library: development/musiclib/reading.md
-        - Loading & Indexing: development/musiclib/loading.md
-    
-    # =================================================================
-    # MIXTAPE MANAGEMENT
-    # =================================================================
+        - Overview: development/music-collection/overview.md
+        - Reading Library: development/music-collection/reading.md
+        - Loading & Indexing: development/music-collection/loading.md
+
     - Mixtape System:
-        - Mixtape Manager (Backend): development/mixtape_manager.md
-        - Editor (Frontend): development/routes/editor/frontend-modules.md
-        - Editor API (Backend): development/routes/editor/backend-api.md
-        - Editor Overview: development/routes/editor/index.md
-        - QR Code Generation: development/qr_generation.md
-    
-    # =================================================================
-    # AUDIO PLAYBACK SYSTEM
-    # =================================================================
+        - Overview: development/mixtape-system/overview.md
+        - Mixtape Manager (Backend): development/mixtape-system/manager-backend.md
+        - Editor (Frontend): development/mixtape-system/editor-frontend.md
+        - Editor API (Backend): development/mixtape-system/editor-api.md
+        - QR Code Generation: development/mixtape-system/qr-generation.md
+
     - Audio Playback:
-        - System Overview: development/routes/play/index.md
+        - System Overview: development/audio-playback/overview.md
         - Backend (Streaming):
-            - Audio Streaming: development/routes/play/audio-streaming.md
-            - Range Requests: development/routes/play/range-requests.md
-            - Quality & Caching: development/routes/play/quality-caching.md
-            - Server Cache System: development/audio_caching.md
+            - Audio Streaming: development/audio-playback/backend/audio-streaming.md
+            - Range Requests: development/audio-playback/backend/range-requests.md
+            - Quality & Caching: development/audio-playback/backend/quality-caching.md
+            - Server Cache System: development/audio-playback/backend/server-cache-system.md
         - Frontend (Player):
-            - Player Controls: development/routes/play/modules/playerControls.md
-            - Player Utilities: development/routes/play/modules/playerUtils.md
-            - Sleep Timer: development/routes/play/modules/sleepTimer.md
-        - Media Session Integration: development/routes/play/media-integration.md
-    
-    # =================================================================
-    # DEVICE INTEGRATIONS
-    # =================================================================
+            - Player Controls: development/audio-playback/frontend/player-controls.md
+            - Player Utilities: development/audio-playback/frontend/player-utilities.md
+            - Sleep Timer: development/audio-playback/frontend/sleep-timer.md
+        - Media Session Integration: development/audio-playback/media-integration.md
+
     - Device Integration:
         - Chromecast:
-            - Integration Guide: development/chromecast/integration.md
+            - Integration Guide: development/device-integration/chromecast/integration.md
         - Android Auto:
-            - Integration Overview: development/android-auto/integration-overview.md
-            - Frontend Implementation: development/android-auto/frontend-integration.md
-            - Backend Implementation: development/android-auto/backend-implementation.md
-            - Testing Guide: development/android-auto/testing-guide.md
-    
-    # =================================================================
-    # MEDIA ASSETS
-    # =================================================================
+            - Integration Overview: development/device-integration/android-auto/overview.md
+            - Frontend Implementation: development/device-integration/android-auto/frontend.md
+            - Backend Implementation: development/device-integration/android-auto/backend.md
+            - Testing Guide: development/device-integration/android-auto/testing.md
+
     - Media Assets:
         - Cover Art System:
-            - Overview: development/cover-art/overview.md
-            - Size Optimization: development/cover-art/size-optimization.md
-            - API Reference: development/cover-art/api.md
-            - Route Handler: development/routes/covers.md
-        - OpenGraph Images: development/routes/opengraph_images.md
-    
-    # =================================================================
-    # WEB APPLICATION
-    # =================================================================
+            - Overview: development/media-assets/cover-art/overview.md
+            - Size Optimization: development/media-assets/cover-art/optimization.md
+            - API Reference: development/media-assets/cover-art/api.md
+            - Route Handler: development/media-assets/cover-art/routes.md
+        - OpenGraph Images: development/media-assets/opengraph.md
+
     - Web Application:
-        - Flask App Structure: development/app.md
+        - Flask App Structure: development/web-application/flask-app.md
         - Progressive Web App (PWA):
-            - PWA Introduction: development/pwa/pwa.md
-            - PWA Optimizations: development/pwa/pwa-optimization.md
+            - PWA Introduction: development/web-application/pwa/introduction.md
+            - PWA Optimizations: development/web-application/pwa/optimizations.md
         - Routes & APIs:
-            - Browse Mixtapes: development/routes/browse_mixtapes.md
-            - Authentication: development/routes/authentication.md
-            - QR Code Routes: development/routes/qr_codes.md
+            - Browse Mixtapes: development/web-application/routes/browse.md
+            - Authentication: development/web-application/routes/authentication.md
+            - QR Code Routes: development/web-application/routes/qr-codes.md
         - UI Components:
-            - Toast Notification System: development/routes/toast_system.md
+            - Toast Notification System: development/web-application/ui-components/toast-system.md
         - Shared Utilities:
-            - Common Module: development/common.md
-            - Utilities: development/utilities.md
-  
-  # =================================================================
-  # PROJECT INFORMATION
-  # =================================================================
+            - Common Module: development/web-application/utilities/common.md
+            - Utilities: development/web-application/utilities/utilities.md
+
   - Project:
     - Overview: project/index.md
     - Changelog: project/changelog.md
@@ -225,12 +159,9 @@ plugins:
   - search:
       lang: en
       separator: '[\s\-\.]+'
-      
   - offline:
       enabled: true
-      
   - autorefs
-  
   - glightbox:
       touchNavigation: true
       loop: false
@@ -242,7 +173,6 @@ plugins:
       draggable: true
       auto_caption: true
       caption_position: bottom
-      
   - mkdocstrings:
       handlers:
         python:
@@ -261,29 +191,22 @@ plugins:
             show_if_no_docstring: false
             inherited_members: false
             merge_init_into_class: true
-            
   - panzoom:
       full_screen: true
-      
   - git-revision-date-localized:
       enable_creation_date: true
       type: timeago
       fallback_to_build_date: true
 
 markdown_extensions:
-  # Python Markdown
   - abbr
   - attr_list
   - def_list
   - footnotes
   - md_in_html
   - tables
-  
-  # Admonitions (callouts)
   - admonition
   - pymdownx.details
-  
-  # Code highlighting
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span
@@ -291,15 +214,11 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.snippets:
       check_paths: true
-  
-  # Superfences (code blocks, mermaid)
   - pymdownx.superfences:
       custom_fences:
         - name: mermaid
           class: mermaid
           format: !!python/name:pymdownx.superfences.fence_code_format
-  
-  # Table of contents
   - toc:
       permalink: true
       permalink_title: Anchor link to this section
@@ -307,25 +226,17 @@ markdown_extensions:
       slugify: !!python/object/apply:pymdownx.slugs.slugify
         kwds:
           case: lower
-  
-  # Tabs
   - pymdownx.tabbed:
       alternate_style: true
       slugify: !!python/object/apply:pymdownx.slugs.slugify
         kwds:
           case: lower
-  
-  # Task lists
   - pymdownx.tasklist:
       custom_checkbox: true
       clickable_checkbox: false
-  
-  # Icons & emoji
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
-  
-  # Formatting
   - pymdownx.betterem:
       smart_enable: all
   - pymdownx.caret
@@ -333,21 +244,7 @@ markdown_extensions:
   - pymdownx.tilde
   - pymdownx.keys
   - pymdownx.smartsymbols
-  
-  # Critics (track changes)
   - pymdownx.critic:
-      mode: view
-  
-  # Mathematics
+      mode: accept
   - pymdownx.arithmatex:
       generic: true
-
-# Extra JavaScript (for math rendering if needed)
-# extra_javascript:
-#   - javascripts/mathjax.js
-#   - https://polyfill.io/v3/polyfill.min.js?features=es6
-#   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
-
-# Watch additional files for live reload
-# watch:
-#   - src/

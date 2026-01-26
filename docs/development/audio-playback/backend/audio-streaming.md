@@ -292,7 +292,7 @@ This is safe because:
 - No authentication credentials in responses
 - Read-only operation (no state changes)
 
-See [Chromecast Integration](../../chromecast/integration.md#backend-requirements) for details.
+See [Chromecast Integration](../../device-integration/chromecast/integration.md#backend-requirements) for details.
 
 ### Why Accept-Ranges?
 
@@ -590,8 +590,8 @@ See [Range Requests](range-requests.md#testing) for testing seeking functionalit
 - **[Range Requests](range-requests.md)** - HTTP range support for seeking
 - **[Quality & Caching](quality-caching.md)** - Quality selection and cache logic
 - **[Media Integration](media-integration.md)** - How playback modes use these routes
-- **[Chromecast Integration](../../chromecast/integration.md)** - CORS requirements
-- **[Audio Caching](../../audio_caching.md)** - Cache implementation details
+- **[Chromecast Integration](../../device-integration/chromecast/integration.md)** - CORS requirements
+- **[Audio Caching](server-cache-system.md)** - Cache implementation details
 
 ---
 

@@ -317,13 +317,13 @@ Want to play on your TV or better speakers?
 
 - Look for the cast icon (📡)
 - Tap to select your device
-- [Full Chromecast guide →](streaming.md#chromecast)
+- [Full Chromecast guide →](streaming.md#-chromecast)
 
 **AirPlay** (iPhone/iPad/Mac)
 
 - Tap the AirPlay icon
 - Select your Apple TV or HomePod
-- [Full AirPlay guide →](streaming.md#airplay-apple-devices)
+- [Full AirPlay guide →](streaming.md#-airplay-apple-devices)
 
 **Android Auto** (in car)
 
