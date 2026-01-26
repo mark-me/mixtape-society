@@ -20,7 +20,7 @@ const STATIC_ASSETS = [
     '/static/js/player/linerNotes.js',
     '/static/js/player/adaptiveTheming.js',
     '/static/js/player/cassettePlayer.js',
-    '/static/images/logo.svg',
+    '/static/images/logo.png',
     '/static/images/favicon.png',
 ];
 
