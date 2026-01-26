@@ -6,7 +6,7 @@ extra:
   css_class: about-page
 ---
 
-![Mixtape Society Logo](../images/logo.svg){ align=right width="90" }
+![Mixtape Society Logo](../images/logo.png){ align=right width="90" }
 
 # About Mixtape Society
 

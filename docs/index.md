@@ -6,7 +6,7 @@ extra:
   css_class: home-page
 ---
 
-![Mixtape Society](images/favicon.svg){ align=right width="90" }
+![Mixtape Society](images/logo.png){ align=right width="90" }
 
 # Introduction
 
