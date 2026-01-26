@@ -53,62 +53,96 @@ nav:
       - Player Guide: user/recipients/player.md
       - Streaming to Devices: user/recipients/streaming.md
       - Recipient FAQ: user/recipients/faq.md
+  
   - Architecture & Development:
     - Project Overview: development/intro.md
     - Deployment: development/deployment.md
-    - Core Components:
-      - Music Library (musiclib):
+    - Configuration: development/configuration.md
+    
+    # =================================================================
+    # MUSIC COLLECTION SYSTEM
+    # =================================================================
+    - Music Collection:
         - Overview: development/musiclib/intro.md
-        - Reader: development/musiclib/reading.md
-        - Loader: development/musiclib/loading.md
-      - Cover Art System:
-        - Overview: development/cover-art/overview.md
-        - Size Optimization: development/cover-art/size-optimization.md
-        - API Reference: development/cover-art/api.md
-      - Android Auto:
-        - Overview: development/android-auto/integration-overview.md
-        - Front end: development/android-auto/frontend-integration.md
-        - Back-end: development/android-auto/backend-implementation.md
-        - Testing Guide: development/android-auto/testing-guide.md
-      - Chromecast: development/chromecast/integration.md
-      - Mixtape Manager: development/mixtape_manager.md
-      - Server Audio Caching: development/audio_caching.md
-      - QR Code creation: development/qr_generation.md
-      - Configuration: development/configuration.md
-      - Utilities: development/utilities.md
-    - Flask app:
-      - Main App: development/app.md
-      - Progressive Web App (PWA):
-        - Introduction PWA: development/pwa/pwa.md
-        - PWA Improvements: development/pwa/pwa-optimization.md
-      - Common: development/common.md
-      - Routes:
-        - Browser: development/routes/browse_mixtapes.md
-        - Editor:
-          - Overview: development/routes/editor/index.md
-          - Backend API: development/routes/editor/backend-api.md
-          - Frontend Modules: development/routes/editor/frontend-modules.md
-        - Playback:
-          - Overview: development/routes/play/index.md
-          - Media Integration: development/routes/play/media-integration.md
-          - Audio Streaming: development/routes/play/audio-streaming.md
-          - Range Requests: development/routes/play/range-requests.md
-          - Quality Caching: development/routes/play/quality-caching.md
-          - Player Modules:
+        - Reading Library: development/musiclib/reading.md
+        - Loading & Indexing: development/musiclib/loading.md
+    
+    # =================================================================
+    # MIXTAPE MANAGEMENT
+    # =================================================================
+    - Mixtape System:
+        - Mixtape Manager (Backend): development/mixtape_manager.md
+        - Editor (Frontend): development/routes/editor/frontend-modules.md
+        - Editor API (Backend): development/routes/editor/backend-api.md
+        - Editor Overview: development/routes/editor/index.md
+        - QR Code Generation: development/qr_generation.md
+    
+    # =================================================================
+    # AUDIO PLAYBACK SYSTEM
+    # =================================================================
+    - Audio Playback:
+        - System Overview: development/routes/play/index.md
+        - Backend (Streaming):
+            - Audio Streaming: development/routes/play/audio-streaming.md
+            - Range Requests: development/routes/play/range-requests.md
+            - Quality & Caching: development/routes/play/quality-caching.md
+            - Server Cache System: development/audio_caching.md
+        - Frontend (Player):
             - Player Controls: development/routes/play/modules/playerControls.md
             - Player Utilities: development/routes/play/modules/playerUtils.md
             - Sleep Timer: development/routes/play/modules/sleepTimer.md
-        - Cover Art: development/routes/covers.md
-        - Authentication: development/routes/authentication.md
-        - OpenGraph: development/routes/opengraph_images.md
-        - QR Codes: development/routes/qr_codes.md
-        - Toast system: development/routes/toast_system.md
+        - Media Session Integration: development/routes/play/media-integration.md
+    
+    # =================================================================
+    # DEVICE INTEGRATIONS
+    # =================================================================
+    - Device Integration:
+        - Chromecast:
+            - Integration Guide: development/chromecast/integration.md
+        - Android Auto:
+            - Integration Overview: development/android-auto/integration-overview.md
+            - Frontend Implementation: development/android-auto/frontend-integration.md
+            - Backend Implementation: development/android-auto/backend-implementation.md
+            - Testing Guide: development/android-auto/testing-guide.md
+    
+    # =================================================================
+    # MEDIA ASSETS
+    # =================================================================
+    - Media Assets:
+        - Cover Art System:
+            - Overview: development/cover-art/overview.md
+            - Size Optimization: development/cover-art/size-optimization.md
+            - API Reference: development/cover-art/api.md
+            - Route Handler: development/routes/covers.md
+        - OpenGraph Images: development/routes/opengraph_images.md
+    
+    # =================================================================
+    # WEB APPLICATION
+    # =================================================================
+    - Web Application:
+        - Flask App Structure: development/app.md
+        - Progressive Web App (PWA):
+            - PWA Introduction: development/pwa/pwa.md
+            - PWA Optimizations: development/pwa/pwa-optimization.md
+        - Routes & APIs:
+            - Browse Mixtapes: development/routes/browse_mixtapes.md
+            - Authentication: development/routes/authentication.md
+            - QR Code Routes: development/routes/qr_codes.md
+        - UI Components:
+            - Toast Notification System: development/routes/toast_system.md
+        - Shared Utilities:
+            - Common Module: development/common.md
+            - Utilities: development/utilities.md
+  
+  # =================================================================
+  # PROJECT INFORMATION
+  # =================================================================
   - Project:
     - Overview: project/index.md
     - Changelog: project/changelog.md
     - Roadmap: project/roadmap.md
     - Ideas:
-      - General: project/ideas/ideas.md
+      - General Ideas: project/ideas/ideas.md
       - Design & Implementation Map: project/ideas/design_implementation_map.md
     - Contributing: project/contributing.md
     - About: project/about.md
