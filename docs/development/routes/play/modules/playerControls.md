@@ -32,7 +32,7 @@ Modular architecture with specialized managers, each handling a specific concern
 
 The player controls system is organized into focused managers:
 
-```
+```bash
 player/
 ├── playerControls.js         Main orchestrator (1,000 lines)
 ├── queueManager.js           Shuffle & repeat logic (306 lines)
@@ -52,7 +52,7 @@ player/
 ```mermaid
 graph TB
     PlayerControls[playerControls.js<br/>Main Orchestrator]
-    
+
     PlayerControls --> QueueMgr[queueManager.js<br/>Shuffle & Repeat]
     PlayerControls --> PlaybackMgr[playbackManager.js<br/>Core Playback]
     PlayerControls --> UIMgr[uiSyncManager.js<br/>UI Updates]
@@ -60,7 +60,7 @@ graph TB
     PlayerControls --> QualityMgr[qualityManager.js<br/>Quality Selection]
     PlayerControls --> StateMgr[stateManager.js<br/>State Persistence]
     PlayerControls --> WakeLockMgr[wakeLockManager.js<br/>Wake Lock]
-    
+
     PlayerControls --> LocalPlayer[HTML5 Audio Element]
     PlayerControls --> Chromecast[chromecast.js]
     PlayerControls --> AndroidAuto[androidAuto.js]
@@ -70,7 +70,7 @@ graph TB
     PlaybackMgr --> QualityMgr
     PlaybackMgr --> StateMgr
     AutoAdvMgr --> WakeLockMgr
-    
+
     Chromecast --> CastSDK[Google Cast SDK]
     AndroidAuto --> MediaSession[Media Session API]
     PlayerUtils --> MediaSession
@@ -154,6 +154,7 @@ const autoAdvanceManager = new AutoAdvanceManager(player, wakeLockManager);
 **Purpose:** Manages track queue navigation with shuffle and repeat functionality.
 
 **Responsibilities:**
+
 - Generate and maintain shuffle order using Fisher-Yates algorithm
 - Handle repeat modes (Off, All, One)
 - Calculate next/previous track indices
@@ -172,6 +173,7 @@ saveState() / restoreState() // Persist state
 ```
 
 **Constants:**
+
 - `REPEAT_MODES` - Off, All, One
 - `REPEAT_MODE_LABELS` - UI labels
 - `REPEAT_MODE_ICONS` - Bootstrap icon classes
@@ -192,6 +194,7 @@ const nextIdx = queue.getNextTrack(5); // Get next after track 5
 **Purpose:** Manages core audio playback operations.
 
 **Responsibilities:**
+
 - Load tracks into HTML5 audio player
 - Control playback (play, pause, stop, seek)
 - Track current playback position
@@ -212,6 +215,7 @@ seekWhenReady(targetTime)              // Seek when metadata ready
 ```
 
 **Integration:**
+
 - Uses `QualityManager` to build audio URLs with quality parameters
 - Uses `StateManager` to save playback position every 5 seconds
 
@@ -229,6 +233,7 @@ await playbackManager.play();
 **Purpose:** Handles all UI updates and synchronization.
 
 **Responsibilities:**
+
 - Update bottom player info (title, artist, album, cover)
 - Sync play/pause icons across all track items
 - Update progress bar and time display
@@ -258,6 +263,7 @@ showPlayer() / hidePlayer()             // Show/hide player container
 **Purpose:** Handles mobile-optimized automatic track advancement.
 
 **Responsibilities:**
+
 - Manage track transition state
 - Implement retry logic for blocked autoplay
 - Handle Media Session API fallback
@@ -273,6 +279,7 @@ attemptStandardPlay(onSuccess, onFailure)    // Standard playback
 ```
 
 **Retry Strategy:**
+
 1. Immediate play attempt
 2. Update Media Session state if blocked
 3. Retry after 50ms
@@ -280,6 +287,7 @@ attemptStandardPlay(onSuccess, onFailure)    // Standard playback
 5. Retry after 200ms
 
 **Integration:**
+
 - Uses `WakeLockManager` to maintain wake lock during transitions
 - Prevents wake lock release between tracks
 
@@ -290,6 +298,7 @@ attemptStandardPlay(onSuccess, onFailure)    // Standard playback
 **Purpose:** Manages audio quality selection and URL building.
 
 **Responsibilities:**
+
 - Store current quality setting
 - Build audio URLs with quality parameters
 - Persist quality preference to localStorage
@@ -307,6 +316,7 @@ saveQuality() / restoreQuality()    // Persist preference
 ```
 
 **Quality Levels:**
+
 - `high` - 256kbps
 - `medium` - 192kbps (default)
 - `low` - 128kbps
@@ -319,6 +329,7 @@ saveQuality() / restoreQuality()    // Persist preference
 **Purpose:** Handles playback state persistence using localStorage.
 
 **Responsibilities:**
+
 - Save current playback position
 - Restore playback state on page load
 - Track last played position
@@ -333,11 +344,13 @@ clearPlaybackState()    // Clear saved position
 ```
 
 **Storage Keys:**
+
 - `mixtape_playback_position` - Full state object
 - `mixtape_current_track` - Track index
 - `mixtape_current_time` - Playback position
 
 **State Object:**
+
 ```javascript
 {
     track: 5,               // Track index
@@ -355,6 +368,7 @@ clearPlaybackState()    // Clear saved position
 **Purpose:** Manages Screen Wake Lock API to prevent app suspension.
 
 **Responsibilities:**
+
 - Acquire wake lock during playback
 - Release wake lock when paused
 - Handle system-initiated releases
@@ -370,12 +384,14 @@ release()             // Release wake lock
 ```
 
 **Why It's Critical:**
+
 - Prevents JavaScript suspension when phone is locked
 - Ensures auto-advance works with screen off
 - Maintains media notifications
 - Essential for background playback
 
 **Browser Support:**
+
 - Chrome 84+
 - Safari 16.4+ (iOS)
 - Requires HTTPS (secure context)
@@ -385,6 +401,7 @@ release()             // Release wake lock
 ## 🎮 Core Functions (Main Orchestrator)
 
 The main orchestrator (`playerControls.js`) coordinates all managers and handles:
+
 - Event routing
 - Casting integration
 - Media Session updates
@@ -395,6 +412,7 @@ The main orchestrator (`playerControls.js`) coordinates all managers and handles
 **Purpose:** Primary function to start playback of a track. Coordinates all managers to load and play audio.
 
 **Parameters:**
+
 - `index` - Track index to play
 - `isAutoAdvance` - (Optional) True if this is an automatic track transition (not user-initiated)
 
@@ -418,24 +436,24 @@ const playTrack = (index, isAutoAdvance = false) => {
     }
 
     const track = trackItems[index];
-    
+
     // Load track via PlaybackManager
     playbackManager.loadTrack(index, track.dataset.path, null);
-    
+
     // Update UI via UISyncManager
     uiManager.updateUIForTrack(index);
-    
+
     // Update Media Session
     const metadata = extractMetadataFromDOM(track);
     updateLocalMediaSession(metadata);
-    
+
     // Use appropriate playback strategy via AutoAdvanceManager
     if (isAutoAdvance) {
         autoAdvanceManager.attemptAutoAdvancePlay();
     } else {
         autoAdvanceManager.attemptStandardPlay();
     }
-    
+
     // Prefetch next track
     prefetchNextTrack(index);
 };
@@ -490,12 +508,12 @@ The `QueueManager` uses Fisher-Yates algorithm for true random shuffle:
 // Inside QueueManager
 _generateShuffleOrder() {
     const order = Array.from({ length: this.trackCount }, (_, i) => i);
-    
+
     for (let i = order.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [order[i], order[j]] = [order[j], order[i]];
     }
-    
+
     return order;
 }
 ```
@@ -562,6 +580,7 @@ const nextIndex = queueManager.getNextTrack(currentIndex, {
 ### Why Wake Lock is Critical
 
 Mobile devices aggressively suspend background apps to save battery. Without wake lock:
+
 - JavaScript execution may pause when screen locks
 - Auto-advance to next track fails
 - Media notifications disappear
@@ -588,14 +607,17 @@ player.addEventListener('pause', () => {
 ### Wake Lock Lifecycle
 
 **Acquire when:**
+
 - Playback starts (`play` event)
 - App is backgrounded while playing (`visibilitychange`)
 
 **Release when:**
+
 - Playback is explicitly paused by user
 - Playlist completes entirely
 
 **NOT released when:**
+
 - Auto-advancing between tracks
 - Quality changes mid-playback
 - Track fails and retries
@@ -607,7 +629,7 @@ document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
         if (player && !player.paused && !checkCastingState()) {
             wakeLockManager.acquire();
-            
+
             // Reinforce Media Session state
             if ('mediaSession' in navigator) {
                 navigator.mediaSession.playbackState = 'playing';
@@ -618,6 +640,7 @@ document.addEventListener('visibilitychange', () => {
 ```
 
 **Key Behaviors:**
+
 - ✅ Requires HTTPS (secure context)
 - ✅ Gracefully degrades if unavailable
 - ✅ Automatically re-requested if system releases it
@@ -639,7 +662,7 @@ player.addEventListener('ended', () => {
     syncPlayIcons();
     const currentIndex = playbackManager.getCurrentIndex();
     const trackTitle = trackItems[currentIndex]?.dataset.title;
-    
+
     if (!checkCastingState()) {
         // Save completion state via StateManager
         playbackManager.saveCurrentState(trackTitle);
@@ -650,7 +673,7 @@ player.addEventListener('ended', () => {
         if (nextIndex >= 0 && nextIndex < trackItems.length) {
             // CRITICAL: Pass isAutoAdvance=true
             playTrack(nextIndex, true);
-            
+
             // WakeLockManager keeps lock active during transition
         } else {
             stateManager.clearPlaybackState();
@@ -684,7 +707,7 @@ player.addEventListener('ended', () => {
 ### Browser Compatibility
 
 | Platform | Auto-Advance | Notes |
-|----------|--------------|-------|
+| -------- | ------------ | ----- |
 | **Android Chrome** | ✅ Full support | Wake lock + Media Session |
 | **Android Firefox** | ✅ Full support | Media Session fallback |
 | **iOS Safari 15+** | ✅ Full support | Media Session supported |
@@ -882,23 +905,23 @@ try {
 
 ### Key Features
 
-✅ **Modular Architecture** - 8 focused managers, each under 310 lines
-✅ **Unified Playback Control** across local, Chromecast, and Android Auto
-✅ **Shuffle & Repeat Modes** via `QueueManager` with persistent state
-✅ **Quality Management** via `QualityManager` with seamless switching
-✅ **State Persistence** via `StateManager` - Resume playback across sessions
-✅ **Error Recovery** - Automatic retries with user actions
-✅ **Prefetch Intelligence** - Respects all playback modes
-✅ **Wake Lock Support** via `WakeLockManager` - Prevents app suspension
-✅ **Mobile Auto-Advance** via `AutoAdvanceManager` - Reliable track transitions
-✅ **Memory Safe** - No leaks, proper cleanup
-✅ **XSS Protected** - Safe DOM manipulation throughout
-✅ **Testable** - Each manager independently testable
+- **Modular Architecture** - 8 focused managers, each under 310 lines
+- **Unified Playback Control** across local, Chromecast, and Android Auto
+- **Shuffle & Repeat Modes** via `QueueManager` with persistent state
+- **Quality Management** via `QualityManager` with seamless switching
+- **State Persistence** via `StateManager` - Resume playback across sessions
+- **Error Recovery** - Automatic retries with user actions
+- **Prefetch Intelligence** - Respects all playback modes
+- **Wake Lock Support** via `WakeLockManager` - Prevents app suspension
+- **Mobile Auto-Advance** via `AutoAdvanceManager` - Reliable track transitions
+- **Memory Safe** - No leaks, proper cleanup
+- **XSS Protected** - Safe DOM manipulation throughout
+- **Testable** - Each manager independently testable
 
 ### Module Summary
 
 | Module | Lines | Purpose |
-|--------|-------|---------|
+| ------ | ----- | ------- |
 | **playerControls.js** | 1,000 | Main orchestrator |
 | **queueManager.js** | 306 | Shuffle & repeat |
 | **playbackManager.js** | 192 | Core playback |
