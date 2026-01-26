@@ -1,12 +1,22 @@
 site_name: Mixtape Society
+site_description: 'Self-hosted mixtape sharing platform with music streaming, Chromecast support, and curated playlist management'
+site_author: 'Mark Zwart'
 # site_url: https://mixtape-society.org/
 repo_url: https://github.com/mark-me/mixtape-society
+repo_name: mark-me/mixtape-society
+edit_uri: edit/main/docs/
 use_directory_urls: false
+
+# Copyright info (optional)
+copyright: Copyright &copy; 2025 Mark Zwart
+
 theme:
   name: material
   favicon: images/favicon.svg
   logo: images/logo.svg
+  language: en
   palette:
+    # Light mode
     - media: "(prefers-color-scheme: light)"
       scheme: default
       primary: custom
@@ -14,27 +24,91 @@ theme:
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
+    # Dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
       primary: custom
       accent: custom
       toggle:
         icon: material/brightness-4
-        name: light mode
+        name: Switch to light mode
   features:
+    # Navigation
     - navigation.tabs
+    - navigation.tabs.sticky        # Keep tabs visible when scrolling
     - navigation.top
     - navigation.indexes
     - navigation.sections
-    - content.code.copy
-    - content.code.select
-    - content.action.edit
-    - content.tooltips
+    - navigation.expand             # Expand all sections by default
+    - navigation.path               # Show breadcrumb path
+    - navigation.footer             # Add prev/next navigation at bottom
+    - navigation.tracking           # Update URL with active anchor
+    
+    # Table of contents
+    - toc.follow                    # Sidebar scrolls with page
+    - toc.integrate                 # Integrate TOC into left sidebar (optional)
+    
+    # Search
+    - search.suggest                # Search suggestions
+    - search.highlight              # Highlight search terms
+    - search.share                  # Share search results
+    
+    # Content features
+    - content.code.copy             # Copy button for code blocks
+    - content.code.select           # Select code on click
+    - content.code.annotate         # Add annotations to code
+    - content.action.edit           # Edit this page button
+    - content.action.view           # View source button
+    - content.tooltips              # Better tooltips
+    - content.tabs.link             # Link tabbed content
+    
+    # Header
+    - header.autohide               # Hide header on scroll (optional)
+    
+    # Announce bar (for important updates)
+    # - announce.dismiss
+  
   icon:
     repo: fontawesome/brands/github
+    edit: material/pencil
+    view: material/eye
+    
+  # Custom fonts (optional)
+  # font:
+  #   text: Roboto
+  #   code: Roboto Mono
 
 extra_css:
   - stylesheets/extra.css
+
+# Extra features
+extra:
+  # Social links in footer
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/mark-me/mixtape-society
+      name: GitHub Repository
+    # Add more social links as needed:
+    # - icon: fontawesome/brands/twitter
+    #   link: https://twitter.com/yourhandle
+  
+  # Analytics (optional - uncomment if needed)
+  # analytics:
+  #   provider: google
+  #   property: G-XXXXXXXXXX
+  
+  # Version selector (if you have multiple versions)
+  # version:
+  #   provider: mike
+  
+  # Generator notice (set to false to hide "Made with Material for MkDocs")
+  generator: true
+  
+  # Consent for cookies/analytics (optional)
+  # consent:
+  #   title: Cookie consent
+  #   description: >-
+  #     We use cookies to recognize your repeated visits and preferences.
 
 nav:
   - Introduction: index.md
@@ -148,36 +222,132 @@ nav:
     - About: project/about.md
 
 plugins:
-  - search
-  - offline
+  - search:
+      lang: en
+      separator: '[\s\-\.]+'
+      
+  - offline:
+      enabled: true
+      
   - autorefs
+  
   - glightbox:
+      touchNavigation: true
+      loop: false
+      effect: zoom
+      slide_effect: slide
+      width: 100%
+      height: auto
+      zoomable: true
+      draggable: true
       auto_caption: true
+      caption_position: bottom
+      
   - mkdocstrings:
       handlers:
         python:
           options:
             show_bases: true
             show_root_heading: true
+            show_root_full_path: false
+            show_symbol_type_heading: true
             show_symbol_type_toc: true
+            show_source: true
+            members_order: source
+            heading_level: 2
             summary: true
+            docstring_style: google
+            docstring_section_style: table
+            show_if_no_docstring: false
+            inherited_members: false
+            merge_init_into_class: true
+            
   - panzoom:
       full_screen: true
-  - git-revision-date-localized
+      
+  - git-revision-date-localized:
+      enable_creation_date: true
+      type: timeago
+      fallback_to_build_date: true
 
 markdown_extensions:
+  # Python Markdown
+  - abbr
   - attr_list
+  - def_list
+  - footnotes
   - md_in_html
+  - tables
+  
+  # Admonitions (callouts)
   - admonition
-  - toc:
-      permalink: true
-      toc_depth: 2
-  - pymdownx.tabbed:
-      alternate_style: true
-  - pymdownx.tasklist:
-      custom_checkbox: true
+  - pymdownx.details
+  
+  # Code highlighting
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets:
+      check_paths: true
+  
+  # Superfences (code blocks, mermaid)
   - pymdownx.superfences:
       custom_fences:
         - name: mermaid
           class: mermaid
           format: !!python/name:pymdownx.superfences.fence_code_format
+  
+  # Table of contents
+  - toc:
+      permalink: true
+      permalink_title: Anchor link to this section
+      toc_depth: 3
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  
+  # Tabs
+  - pymdownx.tabbed:
+      alternate_style: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  
+  # Task lists
+  - pymdownx.tasklist:
+      custom_checkbox: true
+      clickable_checkbox: false
+  
+  # Icons & emoji
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  
+  # Formatting
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.mark
+  - pymdownx.tilde
+  - pymdownx.keys
+  - pymdownx.smartsymbols
+  
+  # Critics (track changes)
+  - pymdownx.critic:
+      mode: view
+  
+  # Mathematics
+  - pymdownx.arithmatex:
+      generic: true
+
+# Extra JavaScript (for math rendering if needed)
+# extra_javascript:
+#   - javascripts/mathjax.js
+#   - https://polyfill.io/v3/polyfill.min.js?features=es6
+#   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+# Watch additional files for live reload
+# watch:
+#   - src/
