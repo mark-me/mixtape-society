@@ -115,9 +115,19 @@ export function initPlayerControls() {
     const bottomArtistAlbum = document.getElementById('bottom-now-artist-album');
     const bottomCover = document.getElementById('bottom-now-cover');
     
-    // Initialize managers
-    const queueManager = new QueueManager(trackItems.length);
-    const stateManager = new StateManager('mixtape');
+    // Extract mixtape slug from URL for unique storage keys
+    // URL format: /play/share/mixtape-slug
+    const getMixtapeSlug = () => {
+        const match = window.location.pathname.match(/\/share\/([^\/]+)/);
+        return match ? match[1] : 'default';
+    };
+    
+    const mixtapeSlug = getMixtapeSlug();
+    console.log(`🎵 Mixtape slug: ${mixtapeSlug}`);
+    
+    // Initialize managers with mixtape-specific storage
+    const queueManager = new QueueManager(trackItems.length, mixtapeSlug);
+    const stateManager = new StateManager(mixtapeSlug);
     const wakeLockManager = new WakeLockManager();
     const qualityManager = new QualityManager('audioQuality');
     const uiManager = new UISyncManager(container, trackItems, bottomTitle, bottomArtistAlbum, bottomCover);
@@ -367,6 +377,35 @@ export function initPlayerControls() {
             (!checkCastingState() && !player.paused)
         );
         uiManager.syncPlayIcons(playbackManager.getCurrentIndex(), isPlaying);
+    };
+    
+    const updateCastVolume = (volume, muted) => {
+        // Update volume slider if it exists
+        const volumeSlider = document.getElementById('cast-volume-slider');
+        const volumeIcon = document.getElementById('cast-volume-icon');
+        const volumeValue = document.getElementById('cast-volume-value');
+        
+        if (volumeSlider) {
+            volumeSlider.value = volume * 100;
+        }
+        
+        if (volumeValue) {
+            volumeValue.textContent = `${Math.round(volume * 100)}%`;
+        }
+        
+        if (volumeIcon) {
+            // Update volume icon based on level
+            volumeIcon.className = 'bi ';
+            if (muted || volume === 0) {
+                volumeIcon.className += 'bi-volume-mute-fill';
+            } else if (volume < 0.3) {
+                volumeIcon.className += 'bi-volume-down-fill';
+            } else if (volume < 0.7) {
+                volumeIcon.className += 'bi-volume-up-fill';
+            } else {
+                volumeIcon.className += 'bi-volume-up-fill';
+            }
+        }
     };
     
     // =========================================================================
@@ -775,6 +814,9 @@ export function initPlayerControls() {
             playbackManager.startAutoSave(track?.dataset.title);
             
             wakeLockManager.acquire();
+            
+            // Update play/pause icons
+            syncPlayIcons();
         });
         
         // Pause event - save and consider wake lock release
@@ -789,6 +831,9 @@ export function initPlayerControls() {
             } else {
                 console.log('⏭️ Pause during transition - keeping wake lock');
             }
+            
+            // Update play/pause icons
+            syncPlayIcons();
         });
         
         const handlePositionUpdate = onlyWhenNotCasting(updatePositionState);
@@ -879,8 +924,20 @@ export function initPlayerControls() {
                 const currentIndex = playbackManager.getCurrentIndex();
                 if (currentIndex >= 0 && currentIndex < trackItems.length) {
                     const track = trackItems[currentIndex];
+                    
+                    // Reload track into local player
+                    console.log('📱 Reloading track into local player after casting');
+                    playbackManager.loadTrack(currentIndex, track.dataset.path, null);
+                    
+                    // Update Media Session
                     const metadata = extractMetadataFromDOM(track);
                     updateLocalMediaSession(metadata);
+                    
+                    // Resume playback (user was listening via cast, so continue locally)
+                    player.play().catch(err => {
+                        console.warn('Could not auto-resume after casting:', err);
+                        // Not critical - user can manually play
+                    });
                 }
                 
                 syncPlayIcons();
@@ -893,6 +950,14 @@ export function initPlayerControls() {
             onPlayStateChange: (isPlaying) => {
                 console.log(`▶️ Chromecast play state: ${isPlaying ? 'playing' : 'paused'}`);
                 syncPlayIcons();
+            },
+            onTimeUpdate: (currentTime, duration) => {
+                // Update progress bar while casting
+                uiManager.updateProgress(currentTime, duration);
+            },
+            onVolumeChange: (volume, muted) => {
+                console.log(`🔊 Cast volume: ${Math.round(volume * 100)}%${muted ? ' (muted)' : ''}`);
+                updateCastVolume(volume, muted);
             }
         });
     };
@@ -953,6 +1018,33 @@ export function initPlayerControls() {
     // 3. Restore playback position if available
     const savedState = stateManager.restorePlaybackState();
     if (savedState && savedState.track < trackItems.length) {
+        // Validate that the saved track title matches actual track at that index
+        const actualTrack = trackItems[savedState.track];
+        const savedTitle = savedState.title;
+        const actualTitle = actualTrack?.dataset.title;
+        
+        // Check if titles match (allowing for minor differences)
+        const titlesMatch = actualTitle && (
+            actualTitle === savedTitle ||
+            actualTitle.toLowerCase().includes(savedTitle.toLowerCase()) ||
+            savedTitle.toLowerCase().includes(actualTitle.toLowerCase())
+        );
+        
+        if (!titlesMatch) {
+            console.warn('⚠️ Saved state points to wrong track!');
+            console.warn(`   Expected: "${savedTitle}" at index ${savedState.track}`);
+            console.warn(`   Found: "${actualTitle}" at index ${savedState.track}`);
+            console.warn('   Clearing invalid state and starting fresh');
+            stateManager.clearPlaybackState();
+            playbackManager.setCurrentIndex(0);
+            handleAutoStart();
+            return {
+                playTrack,
+                syncPlayIcons,
+                changeQuality,
+            };
+        }
+        
         playbackManager.setCurrentIndex(savedState.track);
         
         const track = trackItems[savedState.track];

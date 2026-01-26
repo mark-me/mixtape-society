@@ -105,7 +105,7 @@ In Docker, data is stored in volumes:
 - Your original music files (read-only)
 - Not modified by Mixtape Society
 
-[Volume layout details →](installation.md#data-storage)
+[Volume layout details →](installation.md#-data-storage)
 
 ---
 
@@ -441,7 +441,7 @@ Gift links are the same URL as direct links, but displayed differently in your s
 **Recommended:** Use a reverse proxy (Traefik, Nginx, Caddy)
 
 **Example with Traefik:**
-[See installation guide →](installation.md#running-behind-a-reverse-proxy)
+[See installation guide →](installation.md#-running-behind-a-reverse-proxy)
 
 **Not recommended:**
 

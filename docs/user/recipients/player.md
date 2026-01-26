@@ -343,7 +343,7 @@ If connected to car:
 
 ### Desktop (Windows, Mac, Linux)
 
-**Works in any modern browser**
+**Works in any modern browser:**
 
 - Chrome
 - Firefox

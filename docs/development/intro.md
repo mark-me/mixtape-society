@@ -1,6 +1,6 @@
-# Development Guide – Mixtape Society
-
 ![Development](../images/development.png){ align=right width="90" }
+
+# Development Guide – Mixtape Society
 
 Welcome to the **Mixtape Society** development guide. This section explains how the project is organized, how to set up a local development environment, how to run tests, and where to find the architectural documentation.
 
@@ -11,8 +11,8 @@ Welcome to the **Mixtape Society** development guide. This section explains how 
 - 📁 **mixtape‑society/**
     - 👷‍♀️ **.github/**
         - ⚙️ **workflows/**
-            * `docker-image.yml` – Build Docker images on GHCR
-            * `docs.yml` – Publish GitHub Pages
+            - `docker-image.yml` – Build Docker images on GHCR
+            - `docs.yml` – Publish GitHub Pages
     - 🐳 **docker/** – Dockerfiles & Compose configs
     - 📚 **docs/** – MkDocs source (this folder)
     - 📂 **src/**
@@ -26,8 +26,8 @@ Welcome to the **Mixtape Society** development guide. This section explains how 
         - 📂 `musiclib/` – Music indexing (TinyTag + SQLite)
         - 📂 `routes/` – Flask blueprints (browser, editor, …)
         - 📂 `static/`
-            * 📂 `css/` – Stylesheets for Jinja2 templates
-            * 📂 `js/` – Front‑end scripts
+            - 📂 `css/` – Stylesheets for Jinja2 templates
+            - 📂 `js/` – Front‑end scripts
         - 📂 `templates/` – Jinja2 views
         - 📂 `utilities/` – Miscellaneous helper functions
     - 📄 `.gitignore` – Ignored files for Git
@@ -46,9 +46,9 @@ Welcome to the **Mixtape Society** development guide. This section explains how 
 ## 🛠️ Prerequisites
 
 | Tool | Minimum Version | Install Command |
-|------|----------------|-----------------|
+| ---- | --------------- | --------------- |
 | **Python** | 3.13+ (pinned in `.python-version`) | Use your system package manager or `pyenv` |
-| **uv** (modern Python package manager) | Latest | `curl -LsSf https://astral.sh/uv/install.sh | sh` |
+| **uv** (modern Python package manager) | Latest | `curl -LsSf <https://astral.sh/uv/install.sh> | sh` |
 | **Docker** (optional, for containerised dev) | Engine ≥ 20.10 | Follow Docker’s official install guide |
 
 **Why `uv`?** It resolves and installs dependencies **without a `requirements.txt`**, speeds up virtual‑environment creation, and produces a deterministic `uv.lock`.
@@ -92,7 +92,7 @@ The compose file mounts the source code into the container, so you can edit file
 ### Useful shortcuts
 
 | Command | What it does |
-|--------|---------------|
+| ------ | ------------- |
 | `docker compose logs -f mixtape` | Tail the Flask logs. |
 | `docker compose exec mixtape bash` | Drop into the container shell. |
 | `docker compose down -v` | Tear down and delete the persisted volume (useful for a clean start). |
@@ -106,29 +106,29 @@ This section dives into the inner workings of **Mixtape Society**. Each page foc
 ### Core Modules
 
 | Module | What it does |
-|--------|--------------|
-| **[Music Library (`musiclib`)](musiclib/intro.md)** | Handles scanning, indexing, and full‑text search of the audio collection (TinyTag + SQLite FTS5). |
-| **[Mixtape Manager](mixtape_manager.md)** | Persists mixtape JSON files, manages cover images, and provides CRUD operations. |
-| **[Audio Caching](audio_caching.md)** | Transcodes FLAC files to MP3/OGG on‑demand, stores them in a cache, and streams via HTTP range requests. |
-| **[Progressive Web App (PWA)](pwa/pwa.md)** | Enables offline playback for public shared mixtapes via service workers, smart caching, and installable app features. |
+| ------ | ------------ |
+| **[Music Library (`musiclib`)](music-collection/overview.md)** | Handles scanning, indexing, and full‑text search of the audio collection (TinyTag + SQLite FTS5). |
+| **[Mixtape Manager](mixtape-system/manager-backend.md)** | Persists mixtape JSON files, manages cover images, and provides CRUD operations. |
+| **[Audio Caching](audio-playback/backend/server-cache-system.md)** | Transcodes FLAC files to MP3/OGG on‑demand, stores them in a cache, and streams via HTTP range requests. |
+| **[Progressive Web App (PWA)](web-application/pwa/introduction.md)** | Enables offline playback for public shared mixtapes via service workers, smart caching, and installable app features. |
 | **[Configuration](configuration.md)** | Centralised environment‑variable handling, directory layout, and defaults. |
-| **[Utilities](utilities.md)** | Helper functions (logging, image processing, misc tools). |
+| **[Utilities](web-application/utilities/utilities.md)** | Helper functions (logging, image processing, misc tools). |
 
 ### Flask Application (Entry Point)
 
 The **`app.py`** file wires everything together:
 
-* Initializes the Flask app, CORS, and rate limiting.
-* Sets up core services (`MusicCollectionUI`, `MixtapeManager`, `AudioCache`).
-* Registers blueprints for **auth**, **browser**, **play**, **editor**, and **OG‑cover** routes.
-* Provides global error handling (e.g., `DatabaseCorruptionError`).
+- Initializes the Flask app, CORS, and rate limiting.
+- Sets up core services (`MusicCollectionUI`, `MixtapeManager`, `AudioCache`).
+- Registers blueprints for **auth**, **browser**, **play**, **editor**, and **OG‑cover** routes.
+- Provides global error handling (e.g., `DatabaseCorruptionError`).
 
-📄 [**Read the full walkthrough**](app.md)
+📄 [**Read the full walkthrough**](web-application/flask-app.md)
 
 ### Blueprint / Route Overview
 
 | Blueprint | URL Prefix | Primary Concern |
-|-----------|------------|-----------------|
+| --------- | ---------- | --------------- |
 | **Authentication** | `/auth` | Login / logout, session handling. |
 | **Browser** | `/mixtapes` | List, play, delete, and serve static mixtape files. |
 | **Play** | `/play` | Audio streaming endpoint (`/play/<slug>`), range requests, and public player page. |
@@ -137,11 +137,11 @@ The **`app.py`** file wires everything together:
 
 Each blueprint has its own Markdown file that details the routes, request flow, and any special middleware:
 
-* [Browser UI & mixtape management](routes/browse_mixtapes.md)
-* [Editor UI, save logic, and progress modal.](routes/editor/index.md)
-* [Streaming, MIME detection, and range handling.](routes/play/index.md)
-* [Session‑based login flow.](routes/authentication.md)
-* [OG image generation.](routes/opengraph_images.md)
+- [Browser UI & mixtape management](web-application/routes/browse.md)
+- [Editor UI, save logic, and progress modal.](mixtape-system/overview.md)
+- [Streaming, MIME detection, and range handling.](audio-playback/overview.md)
+- [Session‑based login flow.](web-application/routes/authentication.md)
+- [OG image generation.](media-assets/opengraph.md)
 
 ## 🔀 Data Flow Summary
 
@@ -182,17 +182,17 @@ flowchart TD
 3. Lint & format (`uv run ruff check . && uv run ruff format .`).
 4. Commit with a clear, conventional‑commit‑style message.
 5. Open a Pull Request targeting `master`. Include:
-    * A concise description of the change.
-    * Screenshots or diagrams if UI is affected.
-    * A reference to any related issue (Closes #123).
+    - A concise description of the change.
+    - Screenshots or diagrams if UI is affected.
+    - A reference to any related issue (Closes #123).
 
 !!! TIP
     Code Style – Follow the existing codebase: type hints everywhere, use `logtools.get_logger` for logging, and keep Flask‑specific code inside the `routes/` package.
 
 ## 🧭 Where to Go Next?
 
-* Deep dive into a module – Click any link in the tables above.
-* Explore the code – All source files live under `src/` (e.g., `src/musiclib/reader.py`).
-* Contribute – Follow the guidelines in this page and submit a PR.
+- Deep dive into a module – Click any link in the tables above.
+- Explore the code – All source files live under `src/` (e.g., `src/musiclib/reader.py`).
+- Contribute – Follow the guidelines in this page and submit a PR.
 
 Happy hacking! 🎧🚀
