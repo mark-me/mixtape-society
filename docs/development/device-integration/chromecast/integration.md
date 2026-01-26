@@ -61,7 +61,9 @@ sequenceDiagram
     participant Server as Flask Server
 
     User->>Browser: Click cast button
-    Browser->>ChromecastJS: castMixtapePlaylist()
+    Browser->>ChromecastJS: extractTracksFromDOM()
+    ChromecastJS-->>Browser: tracks array
+    Browser->>ChromecastJS: loadPlaylistAndCast(tracks, startIndex)
 
     alt Existing cast session
         ChromecastJS->>CastSDK: loadQueue(currentSession)
@@ -103,7 +105,7 @@ Main module handling all Chromecast interactions.
 #### Initialization
 
 ```javascript
-export function initChromecast()
+export function initializeCast()
 ```
 
 **Responsibilities:**
@@ -116,7 +118,7 @@ export function initChromecast()
 **Implementation:**
 
 ```javascript
-function initChromecast() {
+function initializeCast() {
     if (typeof chrome === 'undefined' || !chrome.cast) {
         console.warn('Chrome Cast API not available');
         return;
@@ -580,20 +582,42 @@ The cast button appears automatically when the Cast SDK loads successfully.
 **JavaScript initialization:**
 
 ```javascript
+import { 
+    initializeCast, 
+    loadPlaylistAndCast, 
+    extractTracksFromDOM,
+    stopCasting,
+    isCasting 
+} from './chromecast.js';
+
+// Initialize Chromecast
+initializeCast();
+
 document.addEventListener('cast:ready', () => {
     const castBtn = document.getElementById('cast-button');
     if (castBtn) {
         castBtn.hidden = false;
         castBtn.addEventListener('click', () => {
-            if (castBtn.classList.contains('connected')) {
-                stopCasting();
+            if (isCasting()) {
+                stopCasting();  // Stop if currently casting
             } else {
-                castMixtapePlaylist();
+                // Extract tracks and start casting
+                const tracks = extractTracksFromDOM();
+                const currentIndex = window.currentTrackIndex || 0;
+                loadPlaylistAndCast(tracks, currentIndex);
             }
         });
     }
 });
 ```
+
+**Key Functions:**
+
+- `initializeCast()` - Initialize Chromecast (replaces old `initChromecast()`)
+- `loadPlaylistAndCast(tracks, startIndex)` - Start casting (replaces old `castMixtapePlaylist()`)
+- `extractTracksFromDOM()` - Get track list from page
+- `isCasting()` - Check if currently casting
+- `stopCasting()` - End cast session
 
 **State classes:**
 

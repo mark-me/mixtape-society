@@ -135,15 +135,25 @@ export function initPlayerControls() {
 The main orchestrator creates and coordinates specialized managers:
 
 ```javascript
-// Initialize managers
-const queueManager = new QueueManager(trackItems.length);
-const stateManager = new StateManager('mixtape');
+// Extract mixtape slug from URL for unique storage keys
+const getMixtapeSlug = () => {
+    const match = window.location.pathname.match(/\/share\/([^\/]+)/);
+    return match ? match[1] : 'default';
+};
+
+const mixtapeSlug = getMixtapeSlug();  // e.g., "summer-vibes-2024"
+
+// Initialize managers with per-mixtape storage
+const queueManager = new QueueManager(trackItems.length, mixtapeSlug);
+const stateManager = new StateManager(mixtapeSlug);
 const wakeLockManager = new WakeLockManager();
 const qualityManager = new QualityManager('audioQuality');
 const uiManager = new UISyncManager(container, trackItems, bottomTitle, bottomArtistAlbum, bottomCover);
 const playbackManager = new PlaybackManager(player, qualityManager, stateManager);
 const autoAdvanceManager = new AutoAdvanceManager(player, wakeLockManager);
 ```
+
+**Note:** `QueueManager` and `StateManager` now require the mixtape slug for isolated storage per mixtape.
 
 ---
 
@@ -326,14 +336,15 @@ saveQuality() / restoreQuality()    // Persist preference
 
 ### StateManager (`stateManager.js`)
 
-**Purpose:** Handles playback state persistence using localStorage.
+**Purpose:** Handles playback state persistence using localStorage with **per-mixtape isolation**.
 
 **Responsibilities:**
 
-- Save current playback position
+- Save current playback position per mixtape
 - Restore playback state on page load
-- Track last played position
+- Track last played position for each mixtape
 - Validate state age (24-hour expiry)
+- Prevent cross-mixtape state pollution
 
 **Key Methods:**
 
@@ -343,23 +354,66 @@ restorePlaybackState()  // Returns saved state or null
 clearPlaybackState()    // Clear saved position
 ```
 
-**Storage Keys:**
+**Storage Keys (Per-Mixtape):**
 
-- `mixtape_playback_position` - Full state object
-- `mixtape_current_track` - Track index
-- `mixtape_current_time` - Playback position
+Storage keys are **unique per mixtape** using the slug from the URL:
+
+```javascript
+// Example for mixtape with slug "summer-vibes-2024"
+- summer-vibes-2024_playback_position  // Full state object
+- summer-vibes-2024_current_track      // Track index
+- summer-vibes-2024_current_time       // Playback position
+- summer-vibes-2024_shuffle_state      // Shuffle state
+- summer-vibes-2024_repeat_mode        // Repeat mode
+```
+
+**Initialization:**
+
+```javascript
+// Extract slug from URL: /play/share/summer-vibes-2024
+const getMixtapeSlug = () => {
+    const match = window.location.pathname.match(/\/share\/([^\/]+)/);
+    return match ? match[1] : 'default';
+};
+
+const mixtapeSlug = getMixtapeSlug();  // "summer-vibes-2024"
+const stateManager = new StateManager(mixtapeSlug);
+```
 
 **State Object:**
 
 ```javascript
 {
     track: 5,               // Track index
-    time: 123.45,           // Playback position
-    title: "Song Name",     // Track title
-    timestamp: 1234567890,  // Save timestamp
+    time: 123.45,           // Playback position in seconds
+    title: "Song Name",     // Track title for validation
+    timestamp: 1234567890,  // Save timestamp (ms)
     paused: false           // Playback state
 }
 ```
+
+**State Validation:**
+
+When restoring state, the system validates that the saved track title matches the actual track at that index to prevent issues when mixtapes are edited:
+
+```javascript
+const savedState = stateManager.restorePlaybackState();
+const actualTrack = trackItems[savedState.track];
+
+// Validate title matches
+if (savedState.title !== actualTrack.dataset.title) {
+    console.warn('⚠️ Saved state invalid, clearing');
+    stateManager.clearPlaybackState();
+    // Start fresh from beginning
+}
+```
+
+**Benefits of Per-Mixtape Storage:**
+
+- ✅ Each mixtape remembers its own position
+- ✅ Switching mixtapes doesn't cause confusion
+- ✅ Can resume multiple mixtapes independently
+- ✅ Prevents stale state from affecting wrong mixtape
 
 ---
 
