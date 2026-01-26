@@ -15,10 +15,12 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 ### 🔧 Changed
 
 - Refactored playerControl.js, split across more files
+- Restructuring documentation
 
 ### 🐛 Fixed
 
 - Playback stops on mobile
+- Reusing indexing for tracking playback across multiple mixtapes
 
 ---
 
