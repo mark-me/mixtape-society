@@ -775,6 +775,9 @@ export function initPlayerControls() {
             playbackManager.startAutoSave(track?.dataset.title);
             
             wakeLockManager.acquire();
+            
+            // Update play/pause icons
+            syncPlayIcons();
         });
         
         // Pause event - save and consider wake lock release
@@ -789,6 +792,9 @@ export function initPlayerControls() {
             } else {
                 console.log('⏭️ Pause during transition - keeping wake lock');
             }
+            
+            // Update play/pause icons
+            syncPlayIcons();
         });
         
         const handlePositionUpdate = onlyWhenNotCasting(updatePositionState);
