@@ -879,8 +879,20 @@ export function initPlayerControls() {
                 const currentIndex = playbackManager.getCurrentIndex();
                 if (currentIndex >= 0 && currentIndex < trackItems.length) {
                     const track = trackItems[currentIndex];
+                    
+                    // Reload track into local player
+                    console.log('📱 Reloading track into local player after casting');
+                    playbackManager.loadTrack(currentIndex, track.dataset.path, null);
+                    
+                    // Update Media Session
                     const metadata = extractMetadataFromDOM(track);
                     updateLocalMediaSession(metadata);
+                    
+                    // Resume playback (user was listening via cast, so continue locally)
+                    player.play().catch(err => {
+                        console.warn('Could not auto-resume after casting:', err);
+                        // Not critical - user can manually play
+                    });
                 }
                 
                 syncPlayIcons();
