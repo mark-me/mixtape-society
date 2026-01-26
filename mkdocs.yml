@@ -1,13 +1,13 @@
 site_name: Mixtape Society
 site_description: 'Self-hosted mixtape sharing platform with music streaming, Chromecast support, and curated playlist management'
 site_author: 'Mark Zwart'
-# site_url: https://mixtape-society.org/
+site_url: https://mixtape-society.org/
 repo_url: https://github.com/mark-me/mixtape-society
 repo_name: mark-me/mixtape-society
 edit_uri: edit/main/docs/
 use_directory_urls: false
 
-copyright: Copyright &copy; 2025 Mark Zwart
+copyright: Mark Zwart
 
 theme:
   name: material
@@ -30,12 +30,12 @@ theme:
         icon: material/brightness-4
         name: Switch to light mode
   features:
+    - navigation.instant
     - navigation.tabs
     - navigation.tabs.sticky
     - navigation.top
     - navigation.indexes
-    - navigation.sections
-    - navigation.expand
+    - navigation.prune
     - navigation.path
     - navigation.footer
     - navigation.tracking
@@ -64,6 +64,21 @@ extra:
       link: https://github.com/mark-me/mixtape-society
       name: GitHub Repository
   generator: true
+  analytics:
+    feedback:
+      title: Was this page helpful?
+      ratings:
+        - icon: material/emoticon-happy-outline
+          name: This page was helpful
+          data: 1
+          note: >-
+            Thanks for your feedback!
+        - icon: material/emoticon-sad-outline
+          name: This page could be improved
+          data: 0
+          note: >-
+            Thanks for your feedback! Help us improve by
+            <a href="https://github.com/mark-me/mixtape-society/issues/new" target="_blank" rel="noopener">opening an issue</a>.
 
 nav:
   - Introduction: index.md
@@ -156,7 +171,6 @@ nav:
     - About: project/about.md
 
 plugins:
-  - autorefs
   - search:
       lang: en
       separator: '[\s\-\.]+'
@@ -191,6 +205,7 @@ plugins:
             show_if_no_docstring: false
             inherited_members: false
             merge_init_into_class: true
+  - autorefs
   - panzoom:
       full_screen: true
   - git-revision-date-localized:
@@ -222,7 +237,7 @@ markdown_extensions:
   - toc:
       permalink: true
       permalink_title: Anchor link to this section
-      toc_depth: 3
+      toc_depth: 2
       slugify: !!python/object/apply:pymdownx.slugs.slugify
         kwds:
           case: lower

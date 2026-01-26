@@ -1,6 +1,6 @@
 ![Development](../images/development.png){ align=right width="90" }
 
-# Development Guide – Mixtape Society
+# Development Guide
 
 Welcome to the **Mixtape Society** development guide. This section explains how the project is organized, how to set up a local development environment, how to run tests, and where to find the architectural documentation.
 

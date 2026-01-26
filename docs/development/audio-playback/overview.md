@@ -1,6 +1,6 @@
-# Playback Routes Overview
-
 ![Mixtape playback](../../images/player.png){ align=right width="90" }
+
+# Playback Routes Overview
 
 The playback system is the core of Mixtape Society's audio streaming infrastructure. It handles audio file delivery, quality management, range requests for seeking, and integrates with various playback technologies (Chromecast, Android Auto, AirPlay).
 

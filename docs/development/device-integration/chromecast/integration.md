@@ -1,6 +1,6 @@
-# Chromecast Integration
-
 ![Cast](../../../images/chromecast.png){ align=right width="90" }
+
+# Chromecast Integration
 
 Mixtape Society supports casting entire mixtapes to Chromecast devices, enabling users to play their curated music collections on TVs and speakers throughout their home with seamless queue management and unified controls.
 
@@ -582,12 +582,12 @@ The cast button appears automatically when the Cast SDK loads successfully.
 **JavaScript initialization:**
 
 ```javascript
-import { 
-    initializeCast, 
-    loadPlaylistAndCast, 
+import {
+    initializeCast,
+    loadPlaylistAndCast,
     extractTracksFromDOM,
     stopCasting,
-    isCasting 
+    isCasting
 } from './chromecast.js';
 
 // Initialize Chromecast
