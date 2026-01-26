@@ -629,6 +629,12 @@ export function initPlayerControls() {
             
             if (!error) return;
             
+            // Don't show errors if we're casting - these are expected during cast transitions
+            if (checkCastingState()) {
+                console.log('Ignoring player error during casting');
+                return;
+            }
+            
             if (errorRetryCount >= MAX_RETRY_ATTEMPTS) {
                 if (!hasShownTerminalErrorToast) {
                     showPlaybackErrorToast(
