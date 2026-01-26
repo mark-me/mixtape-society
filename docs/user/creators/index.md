@@ -95,7 +95,7 @@ Share your creations:
 5. Click Save
 6. Copy the link and share!
 
-[Detailed walkthrough →](editor.md#how-to-create-a-mixtape)
+[Detailed walkthrough →](editor.md#-how-to-create-a-mixtape)
 
 ### Adding New Music
 
@@ -116,7 +116,7 @@ Share your creations:
 5. Copy the gift link
 6. Share with your recipient
 
-[Gift sharing details →](sharing.md#gift-experience-themed-landing-page)
+[Gift sharing details →](sharing.md#-gift-experience-themed-landing-page)
 
 ---
 
@@ -200,7 +200,7 @@ volumes:
 - Music directory path is correct
 - You have sufficient disk space
 
-[Detailed troubleshooting →](installation.md#troubleshooting)
+[Detailed troubleshooting →](installation.md#-troubleshooting)
 
 ### Music Not Appearing
 
@@ -211,7 +211,7 @@ volumes:
 - Check file formats are supported
 - Verify file permissions
 
-[Collection troubleshooting →](collection-management.md#troubleshooting)
+[Collection troubleshooting →](collection-management.md#-troubleshooting)
 
 ### Sharing Link Not Working
 
@@ -222,7 +222,7 @@ volumes:
 - Firewall allows inbound connections
 - HTTPS setup is correct (if using)
 
-[Sharing troubleshooting →](sharing.md#common-questions)
+[Sharing troubleshooting →](sharing.md#-common-questions)
 
 ---
 
