@@ -4,7 +4,7 @@ import { initLinerNotes } from './linerNotes.js';
 import { initAdaptiveTheming } from './adaptiveTheming.js';
 import { initCassettePlayer } from './cassettePlayer.js';
 import { initQRShare } from '../common/qrShare.js';
-import { initChromecast, castMixtapePlaylist, stopCasting } from './chromecast.js';
+import { initializeCast, loadPlaylistAndCast, extractTracksFromDOM, stopCasting } from './chromecast.js';
 import { initSleepTimer } from './sleepTimer.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -34,7 +34,8 @@ document.addEventListener('DOMContentLoaded', () => {
         autoShow: true  // Always visible on play page
     });
 
-    initChromecast();
+    // Initialize Chromecast
+    initializeCast();
 
     document.addEventListener('cast:ready', () => {
         const castBtn = document.getElementById('cast-button');
@@ -44,7 +45,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (castBtn.classList.contains('connected')) {
                     stopCasting();  // Stop if already casting
                 } else {
-                    castMixtapePlaylist();  // Start casting
+                    // Start casting with tracks from DOM
+                    const tracks = extractTracksFromDOM();
+                    loadPlaylistAndCast(tracks, 0);
                 }
             });
         }

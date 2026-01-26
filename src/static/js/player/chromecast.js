@@ -509,6 +509,23 @@ export function extractTracksFromDOM() {
     return tracks;
 }
 
+/**
+ * Stop casting and end the session
+ */
+export function stopCasting() {
+    console.log('🛑 Stopping cast session');
+    
+    const castContext = cast.framework.CastContext.getInstance();
+    const session = castContext.getCurrentSession();
+    
+    if (session) {
+        session.endSession(true);
+        console.log('✅ Cast session ended');
+    } else {
+        console.warn('⚠️ No active cast session to stop');
+    }
+}
+
 // =============================================================================
 // AUTO-INITIALIZE
 // =============================================================================
