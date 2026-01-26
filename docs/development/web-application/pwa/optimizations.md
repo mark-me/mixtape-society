@@ -1,4 +1,4 @@
-![PWA](../../images/app.png){ align=right width="90" }
+![PWA](../../../images/app.png){ align=right width="90" }
 
 # Progressive Web App (PWA) Optimization
 
@@ -32,7 +32,7 @@ When iOS users play a mixtape in Safari, they automatically get native AirPlay s
 ### Advantages Over Custom Implementation
 
 | Feature | Native AirPlay | Custom Integration |
-|---------|---------------|-------------------|
+| ------- | -------------- | ------------------ |
 | **Development effort** | ✅ Zero (already works) | ❌ Significant (server-side streaming) |
 | **Device compatibility** | ✅ All AirPlay devices | ⚠️ Requires device discovery |
 | **Audio quality** | ✅ Lossless (if supported) | ⚠️ Depends on implementation |
@@ -43,12 +43,14 @@ When iOS users play a mixtape in Safari, they automatically get native AirPlay s
 ### Where to Find AirPlay Controls
 
 **Safari on iPhone/iPad:**
+
 - Controls appear in the Now Playing widget
 - Available in Control Center
 - Lock screen media controls
 - Notification shade quick access
 
 **Safari on Mac:**
+
 - Menu bar audio icon
 - System audio controls
 - Touch Bar (if available)
@@ -72,6 +74,7 @@ The mixtape icon now appears on the home screen like a native app!
 ### Why Users Should Install
 
 **Enhanced Experience:**
+
 - 🚀 Launches instantly (no Safari UI)
 - 📺 Fullscreen immersive player
 - 🎨 Custom app icon with mixtape branding
@@ -80,6 +83,7 @@ The mixtape icon now appears on the home screen like a native app!
 - 🎵 Better audio controls and AirPlay access
 
 **Perfect for:**
+
 - Regular listeners of specific mixtapes
 - Party playlists used frequently
 - Gift mixtapes meant to be kept
@@ -92,6 +96,7 @@ The app uses the Media Session API to provide native OS controls. This works on 
 ### Features Provided
 
 **Lock Screen Controls:**
+
 ```javascript
 // Already implemented in playerUtils.js
 export function setupLocalMediaSession(metadata, playerControls) {
@@ -121,6 +126,7 @@ export function setupLocalMediaSession(metadata, playerControls) {
 ### iOS-Specific Optimizations
 
 **Artwork Optimization:**
+
 ```javascript
 // From playerUtils.js - iOS prefers specific sizes
 if (iOS) {
@@ -135,6 +141,7 @@ if (iOS) {
 iOS displays artwork most reliably at 512×512 pixels. The app automatically provides this optimization.
 
 **Version Detection:**
+
 ```javascript
 // Detect iOS version and capabilities
 export function detectiOS() {
@@ -169,6 +176,7 @@ The cassette player provides an immersive retro experience, especially on mobile
 4. **Restore on exit** – Returns to normal orientation when stopping
 
 **Implementation:**
+
 ```javascript
 // From cassettePlayer.js
 async function lockOrientationLandscape() {
@@ -199,6 +207,7 @@ async function enterFullscreenAndLock() {
 ### User Experience Flow
 
 **Starting Cassette Mode:**
+
 1. User taps cassette mode toggle button
 2. Cassette player appears with spinning reels
 3. On first interaction (play/pause), device enters fullscreen
@@ -206,12 +215,14 @@ async function enterFullscreenAndLock() {
 5. Immersive walkman experience begins
 
 **During Playback:**
+
 - Phone lock/unlock maintains playback
 - AirPlay controls available from lock screen
 - Physical buttons control playback
 - Screen stays awake (no sleep timeout)
 
 **Stopping:**
+
 - Stop button unlocks orientation
 - User can exit fullscreen anytime
 - Orientation returns to user preference
@@ -223,6 +234,7 @@ The PWA uses a service worker to enable offline playback and fast loading.
 ### Current Implementation
 
 **Service Worker Registration:**
+
 ```javascript
 // In base template
 if ('serviceWorker' in navigator) {
@@ -239,6 +251,7 @@ if ('serviceWorker' in navigator) {
 ```
 
 **What Gets Cached:**
+
 - Core HTML, CSS, and JavaScript files
 - App icons and branding
 - Mixtape metadata and track listings
@@ -258,6 +271,7 @@ if ('serviceWorker' in navigator) {
 ```
 
 **How It Works:**
+
 1. User loses internet connection
 2. Yellow banner appears at top
 3. Previously played tracks remain available
@@ -328,7 +342,7 @@ The app's `manifest.json` defines PWA behavior:
 ### Key Properties Explained
 
 | Property | Value | Purpose |
-|----------|-------|---------|
+| -------- | ----- | ------- |
 | `display: "standalone"` | Full screen, no browser UI | App-like experience |
 | `theme_color: "#198754"` | Green accent | Colors iOS status bar |
 | `orientation: "any"` | User choice default | Allows portrait and landscape |
@@ -351,11 +365,13 @@ These tags ensure iOS treats the PWA like a native app when added to home screen
 ### Touch-Friendly Controls
 
 **Large tap targets:**
+
 - All buttons minimum 44×44 pixels (Apple HIG recommendation)
 - Generous spacing between interactive elements
 - Visual feedback on tap (active states)
 
 **Responsive Design:**
+
 - Player adapts to screen size
 - Cover art scales appropriately
 - Track list optimized for scrolling
@@ -364,11 +380,13 @@ These tags ensure iOS treats the PWA like a native app when added to home screen
 ### Gesture Support
 
 **Swipe Gestures:**
+
 - Swipe left/right on track list to skip
 - Pull-to-refresh for mixtape updates (PWA mode)
 - Swipe down to dismiss modals
 
 **Haptic Feedback (iOS 10+):**
+
 ```javascript
 // Subtle vibration on button press
 if (navigator.vibrate) {
@@ -395,18 +413,21 @@ if not app.debug:
 ### Data Privacy
 
 **What's Stored Locally:**
+
 - User preferences (quality settings, theme)
 - Player mode (cassette vs. modern)
 - Cached audio files
 - Service worker cache
 
 **What's NOT Stored:**
+
 - User identity or login info
 - Listening history or analytics
 - Location data
 - Personal information
 
 **Cache Management:**
+
 ```javascript
 // Users can clear cache in browser settings
 // Or use the built-in cache clear option (if implemented)
@@ -421,11 +442,13 @@ caches.keys().then(names => {
 ### Lazy Loading
 
 **Images:**
+
 ```html
 <img src="cover.jpg" loading="lazy" alt="Cover art">
 ```
 
 **Audio:**
+
 - Only loads when user hits play
 - Preloads next track in queue (5 seconds ahead)
 - Quality-based streaming (lower bitrate on slow connections)
@@ -454,11 +477,13 @@ const quality = navigator.connection?.effectiveType === '4g'
 ### Planned Features
 
 **Background Sync:**
+
 - Queue mixtapes for offline download
 - Sync listening progress across devices
 - Pre-cache entire mixtapes automatically
 
 **Web Share API:**
+
 ```javascript
 // Share mixtapes directly from PWA
 if (navigator.share) {
@@ -471,6 +496,7 @@ if (navigator.share) {
 ```
 
 **Notification API:**
+
 ```javascript
 // Notify when new tracks added to followed mixtapes
 if (Notification.permission === 'granted') {
@@ -479,6 +505,7 @@ if (Notification.permission === 'granted') {
 ```
 
 **Install Prompt:**
+
 ```javascript
 // Smart prompt to install PWA at optimal moment
 let deferredPrompt;
@@ -526,12 +553,14 @@ window.addEventListener('beforeinstallprompt', (e) => {
 ### AirPlay Not Appearing (iOS)
 
 **Possible causes:**
+
 - Using Chrome instead of Safari (must use Safari)
 - Device and AirPlay receiver on different WiFi networks
 - AirPlay device turned off or unavailable
 - Audio hasn't started playing yet
 
 **Solution:**
+
 1. Confirm using Safari browser
 2. Check WiFi connection
 3. Start playing a track first
@@ -540,11 +569,13 @@ window.addEventListener('beforeinstallprompt', (e) => {
 ### PWA Won't Install
 
 **iOS:**
+
 - Must use Safari (not Chrome or Firefox)
 - Requires iOS 11.3 or later
 - Some enterprise MDM policies block PWA installation
 
 **Android:**
+
 - Requires Chrome 72+ or Edge 79+
 - Service worker must be registered
 - Site must be served over HTTPS
@@ -553,6 +584,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
 ### Lock Screen Controls Not Working
 
 **Check these:**
+
 ```javascript
 // Verify Media Session API support
 console.log('Media Session:', 'mediaSession' in navigator);
@@ -565,6 +597,7 @@ console.log('Actions:', navigator.mediaSession);
 ```
 
 **Common issues:**
+
 - Audio element must have started playback
 - Metadata must include title, artist, artwork
 - Action handlers must be set before playback
@@ -573,6 +606,7 @@ console.log('Actions:', navigator.mediaSession);
 ### Offline Mode Not Working
 
 **Verify service worker:**
+
 ```javascript
 // Check registration
 navigator.serviceWorker.getRegistration()
@@ -585,6 +619,7 @@ caches.keys()
 ```
 
 **Common issues:**
+
 - Service worker not registered
 - HTTPS required (doesn't work on http://)
 - Cache storage full or disabled
@@ -593,16 +628,19 @@ caches.keys()
 ## 📚 Resources
 
 **Apple Developer Documentation:**
+
 - [Configuring Web Applications](https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariWebContent/ConfiguringWebApplications/ConfiguringWebApplications.html)
 - [Media Session API](https://developer.apple.com/documentation/webkitjs/mediasession)
 - [AirPlay Overview](https://developer.apple.com/airplay/)
 
 **Web Standards:**
+
 - [PWA Builder](https://www.pwabuilder.com/)
 - [Media Session API Spec](https://w3c.github.io/mediasession/)
 - [Service Worker Spec](https://w3c.github.io/ServiceWorker/)
 
 **Testing Tools:**
+
 - [Lighthouse PWA Audit](https://developers.google.com/web/tools/lighthouse)
 - [Web.dev PWA Checklist](https://web.dev/pwa-checklist/)
 - [Safari Web Inspector](https://developer.apple.com/safari/tools/)

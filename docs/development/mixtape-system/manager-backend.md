@@ -1,4 +1,4 @@
-![Mixtape editor](../images/mixtape.png){ align=right width="90" }
+![Mixtape editor](../../images/mixtape.png){ align=right width="90" }
 
 # Mixtape Manager
 

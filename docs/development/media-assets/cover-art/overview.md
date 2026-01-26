@@ -1,6 +1,6 @@
-# Cover Art System - Overview
+![Cover Art](../../../images/cover-art.png){ align=right width="90" }
 
-![Cover Art](../../images/cover-art.png){ align=right width="90" }
+# Cover Art System - Overview
 
 ## Purpose
 
@@ -104,7 +104,7 @@ Two Flask routes serve cover images:
 - Generates variants on-demand
 - Returns appropriate size or fallback
 
-See: [Cover Art Routes](../routes/covers.md)
+See: [Cover Art Routes](../routes.md)
 
 ---
 
@@ -352,14 +352,14 @@ def serve_cover_by_size(release_dir):
 
 **Technical Details:**
 
-- [Size Optimization Implementation](size-optimization.md) - Code-level details
+- [Size Optimization Implementation](../../media-assets/cover-art/optimization.md) - Code-level details
 - [API Reference](api.md) - Complete API documentation
 
 **Integrated with:**
 
-- [Cover Art Routes](../routes/covers.md) - HTTP endpoint documentation
-- [Playback Routes](../routes/play/index.md) - Audio streaming context
-- [Android Auto](../android-auto/backend-implementation.md)
+- [Cover Art Routes](routes.md) - HTTP endpoint documentation
+- [Playback Routes](../../audio-playback/backend/audio-streaming.md) - Audio streaming context
+- [Android Auto](../../device-integration/android-auto/backend.md)
 
 ---
 

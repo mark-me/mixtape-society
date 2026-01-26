@@ -1,6 +1,6 @@
-# Android Auto Integration
-
 ![Android Auto](../../images/car.png){ align=right width="90" }
+
+# Android Auto Integration
 
 Mixtape Society supports Android Auto for seamless in-car playback through the Media Session API, providing steering wheel controls, dashboard integration, and voice command support.
 

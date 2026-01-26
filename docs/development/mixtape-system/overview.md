@@ -1,6 +1,6 @@
-# Mixtape Editor Overview
+![Mixtape editor](../../images/editor.png){ align=right width="90" }
 
-![Mixtape editor](../../../images/editor.png){ align=right width="90" }
+# Mixtape Editor Overview
 
 The Mixtape Editor is a full-featured web interface for creating and editing mixtapes. It combines a Flask backend for data persistence with a sophisticated JavaScript frontend for search, playlist management, and rich markdown editing.
 
@@ -24,7 +24,7 @@ All functionality is protected by authentication and persists mixtapes as JSON f
 ## ✨ Features
 
 | Feature | Description |
-|---------|-------------|
+| ------- | ----------- |
 | **Library Search** | Full-text search with highlighting powered by SQLite FTS5 |
 | **Playlist Management** | Drag-and-drop reordering, preview playback, track removal |
 | **Cover Handling** | Upload custom images or generate grid composites from track art |
@@ -99,7 +99,7 @@ graph TB
 ### Flask Routes
 
 | HTTP | URL Pattern | Handler | Purpose |
-|------|-------------|---------|---------|
+| ---- | ----------- | ------- | ------- |
 | `GET` | `/editor/` | `new_mixtape()` | Blank editor for new mixtape |
 | `GET` | `/editor/<slug>` | `edit_mixtape(slug)` | Load existing mixtape for editing |
 | `GET` | `/editor/search?q=` | `search()` | Search library (50 results max) |
@@ -109,12 +109,12 @@ graph TB
 | `GET` | `/editor/progress/<slug>` | `progress_stream(slug)` | SSE progress updates |
 | `POST` | `/editor/generate_composite` | `generate_composite()` | Create cover from track art |
 
-See: [Backend API Documentation](backend-api.md)
+See: [Backend API Documentation](editor-api.md)
 
 ### JavaScript Modules
 
 | Module | Responsibility |
-|--------|---------------|
+| ------ | -------------- |
 | `index.js` | Page initialization and bootstrapping |
 | `search.js` | Debounced search, results rendering |
 | `playlist.js` | Playlist state, drag-and-drop, track management |
@@ -123,7 +123,7 @@ See: [Backend API Documentation](backend-api.md)
 | `progressModal.js` | SSE connection, progress display |
 | `utils.js` | Helper functions, HTML escaping, dialogs |
 
-See: [Frontend Modules Documentation](frontend-modules.md)
+See: [Frontend Modules Documentation](editor-frontend.md)
 
 ---
 
@@ -224,7 +224,7 @@ flowchart TB
 
 **Understanding the API:**
 
-1. Read [Backend API Documentation](backend-api.md)
+1. Read [Backend API Documentation](editor-api.md)
 2. Focus on route handlers section
 3. Review API contracts (JSON schemas)
 4. Check authentication requirements
@@ -239,7 +239,7 @@ flowchart TB
 
 **Understanding the modules:**
 
-1. Read [Frontend Modules Documentation](frontend-modules.md)
+1. Read [Frontend Modules Documentation](editor-frontend.md)
 2. Understand module relationships
 3. Review state management (playlist array)
 4. Check event flow diagrams
@@ -255,7 +255,7 @@ flowchart TB
 **Full feature development:**
 
 1. Design data flow (frontend → backend → storage)
-2. Update API contract [backend](backend-api.md)
+2. Update API contract [backend](editor-api.md)
 3. Implement backend route handler
 4. Create/modify frontend module
 5. Update both documentation pages
@@ -331,7 +331,7 @@ showProgressModal(slug);
 
 ### Backend Development
 
-**[Backend API Documentation](backend-api.md)**
+**[Backend API Documentation](editor-api.md)**
 
 Complete guide to Flask routes, server-side logic, and API contracts:
 
@@ -346,7 +346,7 @@ Complete guide to Flask routes, server-side logic, and API contracts:
 
 ### Frontend Development
 
-**[Frontend Modules Documentation](frontend-modules.md)**
+**[Frontend Modules Documentation](editor-frontend.md)**
 
 Complete guide to JavaScript architecture and modules:
 
@@ -407,21 +407,21 @@ window.addEventListener('search:results', (e) => {
 
 ### Core Systems
 
-- **[Music Library](../../musiclib/intro.md)** - Search and metadata extraction
-- **[Mixtape Manager](../../mixtape_manager.md)** - JSON file persistence
-- **[Audio Caching](../../audio_caching.md)** - Background transcoding
-- **[Cover Art System](../../cover-art/overview.md)** - Image processing
+- **[Music Library](../music-collection/overview.md)** - Search and metadata extraction
+- **[Mixtape Manager](../mixtape-system/manager-backend.md)** - JSON file persistence
+- **[Audio Caching](../audio-playback/backend/server-cache-system.md)** - Background transcoding
+- **[Cover Art System](../media-assets/cover-art/overview.md)** - Image processing
 
 ### Routes
 
-- **[Browser Routes](../browse_mixtapes.md)** - Public mixtape browsing
-- **[Playback Routes](../play/index.md)** - Audio streaming
-- **[QR Code Routes](../qr_codes.md)** - QR generation
+- **[Browser Routes](../web-application/routes/browse.md)** - Public mixtape browsing
+- **[Playback Routes](../audio-playback/backend/audio-streaming.md)** - Audio streaming
+- **[QR Code Routes](../web-application/routes/qr-codes.md)** - QR generation
 
 ### Frontend
 
-- **[Player Controls](../play/modules/playerControls.md)** - Preview playback
-- **[PWA Features](../../pwa/pwa.md)** - Progressive web app
+- **[Player Controls](../audio-playback/frontend/player-controls.md)** - Preview playback
+- **[PWA Features](../web-application/pwa/introduction.md)** - Progressive web app
 
 ---
 
@@ -430,16 +430,15 @@ window.addEventListener('search:results', (e) => {
 **New to the editor?**
 
 1. **Start here** - This overview (you are here)
-2. **Backend focus** - Read [Backend API](backend-api.md)
-3. **Frontend focus** - Read [Frontend Modules](frontend-modules.md)
-4. **Hands-on** - Create a test mixtape
-5. **Deep dive** - Explore related systems
+2. **Backend focus** - Read [Backend API](editor-api.md)
+3. **Frontend focus** - Read [Frontend Modules](editor-frontend.md)
+4. **Hands-on** - [Create a test mixtape](../../user/creators/index.md)
 
 **Adding a feature?**
 
 1. **Design** - Plan data flow (frontend → backend → storage)
-2. **Backend** - Implement route handler (see [Backend API](backend-api.md))
-3. **Frontend** - Update or create module (see [Frontend Modules](frontend-modules.md))
+2. **Backend** - Implement route handler (see [Backend API](editor-api.md))
+3. **Frontend** - Update or create module (see [Frontend Modules](editor-frontend.md))
 4. **Test** - Manual testing + console debugging
 5. **Document** - Update both documentation pages
 

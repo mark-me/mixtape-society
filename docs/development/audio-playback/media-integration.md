@@ -1,8 +1,6 @@
+![Streaming](../../images/media-integration.png){ align=right width="90" }
+
 # Media Playback Integration
-
-![Streaming](../../../images/share.png){ align=right width="90" }
-
-> Part of [Playback Routes](index.md)
 
 This page provides an overview of how the playback routes support different media playback technologies (local playback, Chromecast, Android Auto, AirPlay) and how they coordinate with each other.
 
@@ -67,9 +65,9 @@ Standard HTML5 audio playback in the browser.
 
 **Server requirements:**
 
-- ✅ Audio streaming ([Audio Streaming](audio-streaming.md))
-- ✅ Quality parameter ([Quality & Caching](quality-caching.md))
-- ✅ Range requests optional ([Range Requests](range-requests.md))
+- ✅ Audio streaming ([Audio Streaming](../audio-playback/backend/audio-streaming.md))
+- ✅ Quality parameter ([Quality & Caching](../audio-playback/backend/quality-caching.md))
+- ✅ Range requests optional ([Range Requests](../audio-playback/backend/range-requests.md))
 
 **Frontend:**
 
@@ -139,7 +137,7 @@ response.headers["Access-Control-Expose-Headers"] = \
 response.headers["Accept-Ranges"] = "bytes"
 ```
 
-See: [Chromecast Integration](../../chromecast/integration.md)
+See: [Chromecast Integration](../device-integration/chromecast/integration.md)
 
 ### Advantages
 
@@ -208,7 +206,7 @@ graph LR
 | Artwork | 1 size | 5 sizes |
 | Complexity | High (SDK + server) | Medium (Media Session only) |
 
-See: [Android Auto Integration](../../android-auto/integration-overview.md)
+See: [Android Auto Integration](../device-integration/android-auto/overview.md)
 
 ### Advantages
 
@@ -373,7 +371,7 @@ const mediaInfo = new chrome.cast.media.MediaInfo(
 );
 ```
 
-See: [Quality & Caching](quality-caching.md)
+See: [Quality & Caching](../audio-playback/backend/quality-caching.md)
 
 ---
 
@@ -447,7 +445,7 @@ For complete implementation details, see:
 
 ### Casting Technologies
 
-- **[Chromecast Integration](../../chromecast/integration.md)** - Complete Cast SDK guide
+- **[Chromecast Integration](../device-integration/chromecast/integration.md)** - Complete Cast SDK guide
   - SDK setup and initialization
   - Queue management
   - Media Session synchronization
@@ -455,7 +453,7 @@ For complete implementation details, see:
   - Platform-specific guidance
   - Troubleshooting
 
-- **[Android Auto Overview](../../android-auto/integration-overview.md)** - Enhanced Media Session guide
+- **[Android Auto Overview](../../device-integration/android-auto/integration-overview.md)** - Enhanced Media Session guide
   - Architecture and detection
   - Enhanced Media Session setup
   - Artwork optimization (5 sizes)

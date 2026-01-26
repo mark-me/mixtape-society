@@ -1,4 +1,4 @@
-![QR Codes](../../images/qr-code.png){ align=right width="90" }
+![QR Codes](../../../images/qr-code.png){ align=right width="90" }
 
 # QR Codes
 

@@ -1,4 +1,4 @@
-![Browse Mixtapes](../../images/browser.png){ align=right width="90" }
+![Browse Mixtapes](../../../images/browser.png){ align=right width="90" }
 
 # Browse Mixtapes
 
@@ -29,26 +29,29 @@ All routes are wrapped with `@require_auth` (except the `before_request` hook, w
 ### Query Parameters
 
 **Sort Parameters:**
+
 - `sort_by`: Field to sort by (`updated_at`, `created_at`, `title`, `track_count`)
 - `sort_order`: Sort direction (`asc`, `desc`)
 - Default: `sort_by=updated_at&sort_order=desc` (most recently modified first)
 
 **Search Parameters:**
+
 - `search`: Search query string
 - `deep`: Boolean (`true`/`false`) indicating deep search mode
   - `false` or absent: Client-side title filtering only
   - `true`: Server-side search through tracks, artists, albums, and liner notes
 
 **Examples:**
-```
+
+```bash
 /mixtapes/?sort_by=title&sort_order=asc
 /mixtapes/?search=rock&deep=true&sort_by=track_count&sort_order=desc
 ```
 
 ## 🔒 Authentication & Access Control
 
-* **Decorator** — `@require_auth` (imported from `auth.py`) checks the session for a valid user. If the check fails, the decorator returns a redirect to the login page.
-* **Blueprint-wide guard** — `@browser.before_request` executes `check_auth()` for every request hitting this blueprint. This is a defensive second line; even if a route is accidentally left undecorated, the guard will still enforce authentication.
+- **Decorator** — `@require_auth` (imported from `auth.py`) checks the session for a valid user. If the check fails, the decorator returns a redirect to the login page.
+- **Blueprint-wide guard** — `@browser.before_request` executes `check_auth()` for every request hitting this blueprint. This is a defensive second line; even if a route is accidentally left undecorated, the guard will still enforce authentication.
 
 **Result**: Only logged-in users can view the mixtape list, play a mixtape, download files, or delete a mixtape.
 
@@ -58,33 +61,35 @@ All routes are wrapped with `@require_auth` (except the `before_request` hook, w
 
 The browse page implements a two-tier search system:
 
-**1. Instant Title Search (Client-Side)**
-- Filters mixtapes by title as you type
-- No server round-trip required
-- Instant visual feedback
-- Implemented in `static/js/browser/search.js`
+1. Instant Title Search (Client-Side)
+    - Filters mixtapes by title as you type
+    - No server round-trip required
+    - Instant visual feedback
+    - Implemented in `static/js/browser/search.js`
 
-**2. Deep Search (Server-Side)**
-- Click "Tracks" button to search within:
-  - Track names (song titles)
-  - Artist names
-  - Album names
-  - Mixtape titles
-  - Liner notes
-- Implemented in `_deep_search_mixtapes()` helper function
-- Returns filtered list to template
+2. Deep Search (Server-Side)
+    - Click "Tracks" button to search within:
+      - Track names (song titles)
+      - Artist names
+      - Album names
+      - Mixtape titles
+      - Liner notes
+    - Implemented in `_deep_search_mixtapes()` helper function
+    - Returns filtered list to template
 
 ### Sorting System
 
 Users can sort by 8 different combinations via a single dropdown:
 
 **Date Options:**
+
 - 📅 Recent First (updated_at desc)
 - 📅 Oldest First (updated_at asc)
 - 📅 Newest Created (created_at desc)
 - 📅 Oldest Created (created_at asc)
 
 **Name & Size Options:**
+
 - 🔤 A → Z (title asc)
 - 🔤 Z → A (title desc)
 - 🎵 Most Tracks (track_count desc)
@@ -100,18 +105,19 @@ Sorting is applied **after** search filtering, so search results respect the sel
 2. **Parse parameters** — Extract `sort_by`, `sort_order`, `search`, and `deep` from query string.
 3. **Mixtape retrieval** — `mixtape_manager.list_all()` reads every `*.json` file in `app.config["MIXTAPE_DIR"]` and returns a list of dicts.
 4. **Apply search** — If `search` and `deep=true`, filter mixtapes using `_deep_search_mixtapes()`:
+
     ```python
     def _deep_search_mixtapes(mixtapes: list[dict], query: str) -> list[dict]:
         """Searches across mixtape metadata and all tracks"""
         query_lower = query.lower()
         results = []
-        
+
         for mixtape in mixtapes:
             # Check title, liner notes
             if query_lower in mixtape.get('title', '').lower():
                 results.append(mixtape)
                 continue
-            
+
             # Check all tracks (name, artist, album)
             for track in mixtape.get('tracks', []):
                 if (query_lower in track.get('track', '').lower() or
@@ -119,34 +125,39 @@ Sorting is applied **after** search filtering, so search results respect the sel
                     query_lower in track.get('album', '').lower()):
                     results.append(mixtape)
                     break
-        
+
         return results
     ```
+
 5. **Apply sorting** — Sort the filtered list based on `sort_by` and `sort_order`:
+
     ```python
     if sort_by == 'title':
-        mixtapes.sort(key=lambda x: x.get('title', '').lower(), 
+        mixtapes.sort(key=lambda x: x.get('title', '').lower(),
                      reverse=(sort_order == 'desc'))
     elif sort_by == 'track_count':
-        mixtapes.sort(key=lambda x: len(x.get('tracks', [])), 
+        mixtapes.sort(key=lambda x: len(x.get('tracks', [])),
                      reverse=(sort_order == 'desc'))
     # ... etc
     ```
+
 6. **Template rendering** — Pass `mixtapes`, `sort_by`, `sort_order`, `search_query`, and `search_deep` to template.
 7. **HTML output** — Renders search/sort controls and filtered mixtape cards.
 
 ### Playing a Mixtape (`GET` `/mixtapes/play/<slug>`)
 
-* The view simply redirects to the public player route defined elsewhere (e.g. play.public_play).
+- The view simply redirects to the public player route defined elsewhere (e.g. play.public_play).
+
     ```python
     return redirect(url_for("public_play", slug=slug))
     ```
-* The client ends up on `/play/<slug>#play`, where the full mixtape UI is rendered.
+
+- The client ends up on `/play/<slug>#play`, where the full mixtape UI is rendered.
 
 ### Serving Files (`GET` `/mixtapes/files/<filename>`)
 
-* Uses Flask's `send_from_directory` to serve any file under `app.config["MIXTAPE_DIR"]`.
-* This includes the JSON file (`<slug>.json`) and cover images (`covers/<slug>.jpg`).
+- Uses Flask's `send_from_directory` to serve any file under `app.config["MIXTAPE_DIR"]`.
+- This includes the JSON file (`<slug>.json`) and cover images (`covers/<slug>.jpg`).
 
 ### Deleting a Mixtape (`POST` `/mixtapes/delete/<slug>`)
 
@@ -156,8 +167,8 @@ Sorting is applied **after** search filtering, so search results respect the sel
 
 ### Error Handling
 
-* All routes catch generic `Exception` and log the traceback via the injected `logger`.
-* Errors are reported to the client as JSON with a descriptive `error` field and an appropriate HTTP status code (`400`, `404`, `500`).
+- All routes catch generic `Exception` and log the traceback via the injected `logger`.
+- Errors are reported to the client as JSON with a descriptive `error` field and an appropriate HTTP status code (`400`, `404`, `500`).
 
 ## 🖥️ UI Layout (Jinja Template — `browse_mixtapes.html`)
 
@@ -177,22 +188,26 @@ All UI elements use **Bootstrap 5** utilities and custom CSS variables (`--bs-bo
 ### Compact Search/Sort Bar Features
 
 **Space Efficiency:**
+
 - 60%+ vertical space reduction compared to separate cards
 - Single card with all controls
 - Mobile-optimized with reduced padding
 
 **Responsive Layout:**
+
 - **Desktop (≥992px):** Search input expands to fill space, Tracks + Sort align right
 - **Tablet (768-991px):** Two-row layout with natural wrapping
 - **Mobile (<768px):** Stacked controls, full-width inputs
 - **Tiny (<576px):** Extra compact sizing
 
 **Theming:**
+
 - Search icon respects Bootstrap color variables
 - No hardcoded colors (works in light/dark mode)
 - Proper contrast in all themes
 
 **Tooltips:**
+
 - Tracks button has tooltip: "Search within song names, artists, and albums"
 - Works on both enabled and disabled states
 - Helps users understand deep search feature
@@ -202,6 +217,7 @@ All UI elements use **Bootstrap 5** utilities and custom CSS variables (`--bs-bo
 ### `browse_mixtapes.css`
 
 **Search & Sort Styling:**
+
 - Compact card with minimal padding (`p-2` on mobile, `p-md-3` on desktop)
 - Theme-aware colors using CSS variables
 - Input group styling with seamless borders
@@ -209,11 +225,13 @@ All UI elements use **Bootstrap 5** utilities and custom CSS variables (`--bs-bo
 - Responsive adjustments for all screen sizes
 
 **Mixtape Cards:**
+
 - **Responsive card layout** — Flexbox with wrapping, subtle shadows, and a hover lift effect
 - **Action buttons** — Circular, color-coded (edit=primary, play=success, share=info, delete=danger). Hover scales the button
 - **Mobile adjustments** — Smaller cover size, reduced button dimensions, and a stacked layout for very narrow viewports (`max-width: 480px`)
 
 **Animations:**
+
 - Slide-down animation for search result banner
 - Smooth hover transitions on cards and buttons
 - Subtle lift effect on card hover
@@ -228,6 +246,7 @@ All UI elements use **Bootstrap 5** utilities and custom CSS variables (`--bs-bo
 | `index.js` | — | Imports and initializes all modules on `DOMContentLoaded`: search, sorting, delete, QR share, and Bootstrap tooltips. |
 
 **Common Module (Shared):**
+
 - `../common/qrShare.js` - Provides QR code generation, modal display, copy-to-clipboard, and download functionality. Used across browser, editor, and player pages.
 
 All scripts are ES6 modules (`type="module"`), ensuring they are loaded after the DOM is ready and that they don't pollute the global namespace.
@@ -235,11 +254,12 @@ All scripts are ES6 modules (`type="module"`), ensuring they are loaded after th
 ### Search Implementation Details
 
 **Client-Side Title Search:**
+
 ```javascript
 function filterByTitle(query) {
     // Skip if on deep search results page
     if (isDeepSearchActive) return;
-    
+
     mixtapeItems.forEach(item => {
         const title = item.querySelector('.mixtape-title').textContent;
         if (title.toLowerCase().includes(query.toLowerCase())) {
@@ -252,6 +272,7 @@ function filterByTitle(query) {
 ```
 
 **Deep Search Navigation:**
+
 ```javascript
 deepSearchBtn.addEventListener('click', () => {
     const url = new URL(window.location.href);
@@ -263,6 +284,7 @@ deepSearchBtn.addEventListener('click', () => {
 ```
 
 **Key Features:**
+
 - Instant filtering respects search state (doesn't interfere with server-side results)
 - Clear button removes both client-side filters and navigates away from deep search
 - Enter key triggers deep search
@@ -318,7 +340,7 @@ sequenceDiagram
 
     User->>BrowserJS: Types in search box
     BrowserJS->>BrowserJS: Filter by title (instant)
-    
+
     User->>BrowserJS: Clicks "Tracks" button
     BrowserJS->>FlaskApp: GET /mixtapes/?search=rock&deep=true&sort_by=title&sort_order=asc
     FlaskApp->>Blueprint: browse(search='rock', deep='true', ...)
@@ -415,16 +437,19 @@ The browse functionality relies on the following configuration values:
 ### Modifying Search Behavior
 
 **Client-side (Title Search):**
+
 - Edit `static/js/browser/search.js`
 - Modify `filterByTitle()` function
 
 **Server-side (Deep Search):**
+
 - Edit `_deep_search_mixtapes()` in `routes/browse_mixtapes.py`
 - Add or modify search fields
 
 ### Theming
 
 All colors use CSS custom properties:
+
 ```css
 .input-group-text {
     background-color: var(--bs-body-bg);

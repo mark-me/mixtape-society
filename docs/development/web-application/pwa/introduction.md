@@ -1,4 +1,4 @@
-![PWA Features](../../images/mobile.png){ align=right width="90" }
+![PWA Features](../../../images/mobile.png){ align=right width="90" }
 
 **Purpose** — This document describes the **Progressive Web App (PWA) capabilities** of Mixtape Society's public sharing feature.
 It explains how the service worker enables offline playback, how audio caching works with range requests, the installation flow, and how the manifest scopes the PWA to public routes only.
@@ -132,12 +132,12 @@ def mixtape_manifest(slug: str) -> Response:
     mixtape = mixtape_manager.get(slug)
     if not mixtape:
         abort(404)
-    
+
     # Use mixtape cover as PWA icon
     icon_url = f"/play/covers/{mixtape['cover'].split('/')[-1]}" \
                if mixtape.get('cover') \
                else "/static/icons/icon-512.png"
-    
+
     manifest = {
         "name": mixtape.get('title', 'Mixtape'),
         "short_name": mixtape.get('title', 'Mixtape')[:12],
@@ -154,7 +154,7 @@ def mixtape_manifest(slug: str) -> Response:
             "purpose": "any maskable"
         }]
     }
-    
+
     return Response(json.dumps(manifest, indent=2),
                    mimetype='application/manifest+json',
                    headers={'Cache-Control': 'public, max-age=3600'})
@@ -432,12 +432,14 @@ Each shared mixtape can be installed as its own standalone app with a unique ico
 ### Installation Benefits
 
 **Before (Static Manifest):**
+
 - ❌ 404 errors when launching from home screen
 - ❌ Generic "Mixtape Society" icon
 - ❌ Opens to main page, user has to navigate
 - ❌ Confusing if multiple mixtapes installed
 
 **After (Dynamic Manifests):**
+
 - ✅ Direct launch to specific mixtape
 - ✅ Unique cover art as icon
 - ✅ Clear mixtape title as app name
@@ -448,7 +450,7 @@ Each shared mixtape can be installed as its own standalone app with a unique ico
 
 Users can install as many mixtapes as they want:
 
-```
+```text
 Home Screen:
 ┌────────────┬────────────┬────────────┐
 │ Summer     │ Road Trip  │ Chill      │
@@ -564,9 +566,9 @@ The `/play/` scope ensures authenticated routes cannot be hijacked or cached ina
 
 ## 📚 Related Documentation
 
-- [Audio Streaming & Range Requests](../routes/play/index.md) - How audio streaming works
-- [Mixtape Manager](../mixtape_manager.md) - Mixtape data persistence
-- [Configuration](../configuration.md) - Environment setup
+- [Audio Streaming](../../audio-playback/backend/audio-streaming.md) - How audio streaming works
+- [Mixtape Manager](../../mixtape-system/manager-backend.md) - Mixtape data persistence
+- [Configuration](../../configuration.md) - Environment setup
 
 ## 🔗 External Resources
 

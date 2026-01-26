@@ -329,7 +329,7 @@ Want to play on your TV or better speakers?
 
 - Connect phone to car
 - Mixtape appears automatically
-- [Full Android Auto guide →](streaming.md#android-auto)
+- [Full Android Auto guide →](streaming.md#-android-auto)
 
 ---
 

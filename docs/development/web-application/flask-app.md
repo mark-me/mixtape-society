@@ -1,4 +1,4 @@
-![modules](../images/app.png){ align=right width="90" }
+![modules](../../images/app.png){ align=right width="90" }
 
 # App
 
@@ -42,19 +42,19 @@ The selected class is instantiated, its `ensure_dirs()` method creates required 
   CORS(app)  # adds Access‑Control‑Allow‑Origin: *
   ```
 
-2. **Rate limiting** – flask_limiter with defaults `1000/day` and `300/hour`.
-3. **Logging** – Calls `logger_setup(config)` (creates `logs/app.log`), then mirrors Gunicorn’s logger if running under Gunicorn.
-4. **Core services**
+1. **Rate limiting** – flask_limiter with defaults `1000/day` and `300/hour`.
+2. **Logging** – Calls `logger_setup(config)` (creates `logs/app.log`), then mirrors Gunicorn’s logger if running under Gunicorn.
+3. **Core services**
     * `MusicCollectionUI` – watches the music root, builds the SQLite FTS5 DB, and exposes search/high‑level APIs.
     * `AudioCache` – instantiated with `app.config["AUDIO_CACHE_DIR"]`. Stored on `app.audio_cache` for later blueprint access.
     * `MixtapeManager` – points at `config_cls.MIXTAPE_DIR` and receives the collection instance.
-5. **Error handler** – Catches `DatabaseCorruptionError` and returns either JSON (for AJAX) or a rendered `database_error.html`.
-6. **`@app.before_request`** – Checks whether an indexing job (`rebuilding` / `resyncing`) is in progress; if so, renders `indexing.html` for authenticated users.
-7. **Route definitions** – Landing page, indexing‑status JSON, collection‑stats JSON, resync trigger, robots.txt, cover serving, DB reset, health check.
-8. **Context processors** – Inject `app_version`, `now` (UTC), `is_authenticated`, and `is_indexing` into every template.
-9. **Jinja filter** – `to_datetime` parses ISO strings or custom formats for display.
-10. **Blueprint registration** – Auth, Browser, Play, Editor, OG Cover are attached with their respective URL prefixes.
-11. **Return** – The fully configured `app` object.
+4. **Error handler** – Catches `DatabaseCorruptionError` and returns either JSON (for AJAX) or a rendered `database_error.html`.
+5. **`@app.before_request`** – Checks whether an indexing job (`rebuilding` / `resyncing`) is in progress; if so, renders `indexing.html` for authenticated users.
+6. **Route definitions** – Landing page, indexing‑status JSON, collection‑stats JSON, resync trigger, robots.txt, cover serving, DB reset, health check.
+7. **Context processors** – Inject `app_version`, `now` (UTC), `is_authenticated`, and `is_indexing` into every template.
+8. **Jinja filter** – `to_datetime` parses ISO strings or custom formats for display.
+9. **Blueprint registration** – Auth, Browser, Play, Editor, OG Cover are attached with their respective URL prefixes.
+10. **Return** – The fully configured `app` object.
 
 ## 🔌 Core Services & Dependency Wiring
 
@@ -123,7 +123,7 @@ def handle_database_corruption(e):
 ## 🎨 Template Context Processors
 
 | Processor | Injected Variable | Use Cases |
-| --------- | --------------- | --------- |
+| --------- | ----------------- | --------- |
 | `inject_version` | `app_version` (from `utils.get_version()`) | Displayed in the footer (`vX.Y.Z`). |
 | `inject_now` | `now` (UTC datetime) | Used for timestamps in templates (`{{ now }}`). |
 | `inject_auth_status` | `is_authenticated` (bool) | Conditional UI (login/logout links). |
@@ -193,6 +193,7 @@ def serve(debug: bool = True) -> None:
 if __name__ == "__main__":
     serve(debug=True)
 ```
+
 *Running python `app.py` starts the development server on **port 5000** (accessible from any interface). In production you would typically use Gunicorn or another WSGI server.*
 
 ## 🗂️ Base Layout (`base.html`)

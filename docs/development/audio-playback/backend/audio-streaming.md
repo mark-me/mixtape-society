@@ -292,7 +292,7 @@ This is safe because:
 - No authentication credentials in responses
 - Read-only operation (no state changes)
 
-See [Chromecast Integration](../../device-integration/chromecast/integration.md#backend-requirements) for details.
+See [Chromecast Integration](../../device-integration/chromecast/integration.md#-backend-requirements) for details.
 
 ### Why Accept-Ranges?
 
@@ -581,7 +581,7 @@ curl -I http://localhost:5000/play/artist/album/missing.mp3
 
 ### Integration Testing
 
-See [Range Requests](range-requests.md#testing) for testing seeking functionality.
+See [Range Requests](range-requests.md#-testing) for testing seeking functionality.
 
 ---
 

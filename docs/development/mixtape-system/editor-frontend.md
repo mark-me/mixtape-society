@@ -1,8 +1,6 @@
 # Editor Frontend Modules
 
-![JavaScript](../../../images/editor.png){ align=right width="90" }
-
-> Part of [Mixtape Editor](index.md)
+![JavaScript](../../images/editor.png){ align=right width="90" }
 
 This page documents the client-side JavaScript architecture for the Mixtape Editor. All modules use ES6 imports/exports and communicate via a shared playlist state and callback system.
 
@@ -61,12 +59,14 @@ graph TD
 **Purpose:** Bootstrap the entire editor page
 
 **Responsibilities:**
+
 - Load preloaded mixtape data from `window.PRELOADED_MIXTAPE`
 - Initialize all other modules
 - Set up initial state (playlist, cover, title)
 - Activate appropriate liner notes tab
 
 **Key code:**
+
 ```javascript
 document.addEventListener("DOMContentLoaded", () => {
     // 1. Load preloaded data
@@ -100,11 +100,13 @@ document.addEventListener("DOMContentLoaded", () => {
 **Purpose:** Library search with debounced input and lazy loading
 
 **Exports:**
+
 ```javascript
 export function initSearch()
 ```
 
 **Features:**
+
 - 300ms debounce on search input
 - Minimum 3 character query length
 - Grouped results by type (artist, album, track)
@@ -136,6 +138,7 @@ sequenceDiagram
 ```
 
 **Key functions:**
+
 ```javascript
 // Debounced search
 function performSearch(query) {
@@ -170,6 +173,7 @@ function loadArtistDetails(artist) {
 **Purpose:** Central playlist state management
 
 **Exports:**
+
 ```javascript
 export const playlist = [];  // Shared state
 export function initPlaylist()
@@ -256,11 +260,13 @@ function playPreview(index) {
 **Purpose:** Markdown editor with track reference expansion
 
 **Exports:**
+
 ```javascript
 export function initEditorNotes(initialNotes)
 ```
 
 **Features:**
+
 - EasyMDE markdown editor
 - Custom preview rendering
 - Track reference expansion (#1, #2-4)
@@ -328,12 +334,14 @@ function initEditorNotes(initialNotes) {
 **Purpose:** UI interactions and state management
 
 **Exports:**
+
 ```javascript
 export function initUI()
 export function activateInitialNotesTab(hasNotes)
 ```
 
 **Responsibilities:**
+
 - Cover upload and composite modal
 - Save button with client-id handling
 - Floating buttons (mobile)
@@ -414,6 +422,7 @@ function handleCoverUpload(file) {
 **Purpose:** Display background caching progress via SSE
 
 **Exports:**
+
 ```javascript
 export function showProgressModal(slug)
 ```
@@ -475,6 +484,7 @@ function updateProgress(data) {
 **Purpose:** Shared helper functions
 
 **Exports:**
+
 ```javascript
 export function escapeHtml(text)
 export function escapeRegExp(text)
@@ -614,6 +624,7 @@ export const playlist = [
 ```
 
 **All modules read from this shared array:**
+
 - search.js - Checks for duplicates before adding
 - editorNotes.js - Expands track references
 - ui.js - Builds save payload
@@ -646,6 +657,7 @@ function checkForChanges() {
 ### Manual Testing
 
 **Search:**
+
 1. Type in search box
 2. Verify debounce (300ms delay)
 3. Check grouped results
@@ -653,17 +665,20 @@ function checkForChanges() {
 5. Add track to playlist
 
 **Playlist:**
+
 1. Drag track to reorder
 2. Click preview button
 3. Remove track
 4. Verify unsaved changes indicator
 
 **Notes:**
+
 1. Write markdown with track references
 2. Switch to Preview tab
 3. Verify references expand correctly
 
 **Save:**
+
 1. Make changes
 2. Click Save
 3. Verify progress modal
@@ -688,10 +703,10 @@ window.addEventListener('unsaved-changes', (e) => {
 
 ## 📚 Related Documentation
 
-- **[Backend API](backend-api.md)** - Flask routes and server logic
-- **[Editor Overview](index.md)** - Complete system architecture
-- **[Player Controls](../play/modules/playerControls.md)** - Preview playback
-- **[QR Share](../../qr_generation.md)** - Shared QR functionality
+- **[Backend API](editor-api.md)** - Flask routes and server logic
+- **[Editor Overview](overview.md)** - Complete system architecture
+- **[Player Controls](../audio-playback/frontend/player-controls.md)** - Preview playback
+- **[QR Share](../web-application/routes/qr-codes.md)** - Shared QR functionality
 
 ---
 

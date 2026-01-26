@@ -1,8 +1,6 @@
+![Flask](../../images/editor.png){ align=right width="90" }
+
 # Editor Backend API
-
-![Flask](../../../images/editor.png){ align=right width="90" }
-
-> Part of [Mixtape Editor](index.md)
 
 This page documents the Flask backend routes, server-side logic, and API contracts for the Mixtape Editor. All routes are protected by authentication and handle mixtape creation, editing, search, and cover generation.
 
@@ -47,7 +45,7 @@ def new_mixtape():
 - Sets `next` parameter for post-login redirect
 - Returns to requested page after login
 
-See: [Authentication Routes](../authentication.md)
+See: [Authentication Routes](../web-application/routes/authentication.md)
 
 ---
 
@@ -83,7 +81,7 @@ See: [Authentication Routes](../authentication.md)
 | `GET` | `/qr/<slug>.png` | `qr.generate_qr(slug)` | Simple QR code PNG |
 | `GET` | `/qr/<slug>/download` | `qr.download_qr(slug)` | Enhanced QR with cover and title |
 
-See: [QR Code Routes](../qr_codes.md) for QR documentation
+See: [QR Code Routes](../web-application/routes/qr_codes.md) for QR documentation
 
 ---
 
@@ -725,7 +723,7 @@ def progress_stream(slug):
 - `failed` - Error occurred
 - `skipped` - Not needed
 
-See: [Frontend Modules](frontend-modules.md#progressmodaljs) for client implementation
+See: [Frontend Modules](editor-frontend.md#progressmodaljs) for client implementation
 
 ---
 
@@ -1020,11 +1018,11 @@ def test_save_mixtape(client, auth):
 
 ## 📚 Related Documentation
 
-- **[Frontend Modules](frontend-modules.md)** - JavaScript implementation
-- **[Mixtape Manager](../../mixtape_manager.md)** - Data persistence
-- **[Music Library](../../musiclib/intro.md)** - Search integration
-- **[Audio Caching](../../audio_caching.md)** - Background transcoding
-- **[Authentication](../authentication.md)** - `@require_auth` decorator
+- **[Frontend Modules](editor-frontend.md)** - JavaScript implementation
+- **[Mixtape Manager](../mixtape-system/manager-backend.md)** - Data persistence
+- **[Music Library](../music-collection/overview.md)** - Search integration
+- **[Audio Caching](../audio-playback/backend/server-cache-system.md)** - Background transcoding
+- **[Authentication](../web-application/routes/authentication.md)** - `@require_auth` decorator
 
 ---
 

@@ -156,12 +156,12 @@ nav:
     - About: project/about.md
 
 plugins:
+  - autorefs
   - search:
       lang: en
       separator: '[\s\-\.]+'
   - offline:
       enabled: true
-  - autorefs
   - glightbox:
       touchNavigation: true
       loop: false

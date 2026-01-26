@@ -1,4 +1,4 @@
-![Toast System](../../images/toast.png){ align=right width="90" }
+![Toast System](../../../images/toast.png){ align=right width="90" }
 
 # Toast System Quick Reference
 

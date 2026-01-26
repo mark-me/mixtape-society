@@ -1,4 +1,4 @@
-![modules](../images/abstract.png){ align=right width="90" }
+![modules](../../../images/abstract.png){ align=right width="90" }
 
 # Common
 

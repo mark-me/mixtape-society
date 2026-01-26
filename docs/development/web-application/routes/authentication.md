@@ -1,4 +1,4 @@
-![Authentication](../../images/authentication.png){ align=right width="90" }
+![Authentication](../../../images/authentication.png){ align=right width="90" }
 
 # Authentication
 
