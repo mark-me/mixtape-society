@@ -41,7 +41,7 @@ class MixtapeManager:
     def __init__(
         self,
         path_mixtapes: Path,
-        collection: MusicCollection,
+        collection_manager,
         logger: Logger | None = None,
     ) -> None:
         """Initializes the MixtapeManager with paths for mixtapes and covers.
@@ -50,7 +50,8 @@ class MixtapeManager:
 
         Args:
             path_mixtapes (Path): Path to the directory where mixtapes are stored.
-            collection (MusicCollection): Access to the collection's metadata
+            collection_manager: CollectionManager instance for multi-collection support,
+                            or MusicCollection for backward compatibility
             logger (Logger): Optional logger instance for logging actions.
         """
         self._logger: Logger = logger or NullLogger()
@@ -58,7 +59,7 @@ class MixtapeManager:
         self.path_cover: Path = path_mixtapes / "covers"
         self.path_mixtapes.mkdir(exist_ok=True)
         self.path_cover.mkdir(exist_ok=True)
-        self.collection = collection
+        self.collection_manager = collection_manager
 
     def _sanitize_title(self, title: str) -> str:
         """Convert title to a URL-safe slug."""
@@ -66,16 +67,16 @@ class MixtapeManager:
         slug = title.lower()
 
         # Replace spaces and underscores with hyphens
-        slug = re.sub(r'[\s_]+', '-', slug)
+        slug = re.sub(r"[\s_]+", "-", slug)
 
         # Remove non-alphanumeric characters (except hyphens)
-        slug = re.sub(r'[^a-z0-9-]', '', slug)
+        slug = re.sub(r"[^a-z0-9-]", "", slug)
 
         # Remove duplicate hyphens
-        slug = re.sub(r'-+', '-', slug)
+        slug = re.sub(r"-+", "-", slug)
 
         # Strip leading/trailing hyphens
-        slug = slug.strip('-')
+        slug = slug.strip("-")
 
         return slug or "untitled"
 
@@ -485,20 +486,29 @@ class MixtapeManager:
     def _verify_against_collection(self, data: dict) -> tuple[dict, bool | None]:
         """Verifies and refreshes mixtape track metadata against the music collection.
 
-        Compares each track entry with current collection data and updates fields when differences are detected.
+        Now supports multi-collection setups by using the collection_id field in the mixtape.
+        Falls back to default collection for legacy mixtapes without collection_id.
 
         Args:
             data (dict): The mixtape data dictionary containing a "tracks" list to validate.
+                        May contain optional "collection_id" field.
 
         Returns:
-            tuple[dict, bool | None]: A tuple of the updated tracks list and a flag indicating whether any changes
-            were made, or (False, None) if there are no tracks to verify.
+            tuple[dict, bool | None]: A tuple of the updated tracks list and a flag indicating
+            whether any changes were made, or (False, None) if there are no tracks to verify.
         """
         if not (tracks := data["tracks"]):
             return False, None
+
+        # Get the appropriate collection
+        collection = self._get_collection_for_mixtape(data)
+        if not collection:
+            self._logger.warning("No collection available for mixtape verification")
+            return data, None
+
         has_changes = False
         for track in tracks:
-            track_collection = self.collection.get_track(path=Path(track["path"]))
+            track_collection = collection.get_track(path=Path(track["path"]))
             keys = [
                 "filename",
                 "artist",
@@ -512,6 +522,31 @@ class MixtapeManager:
                     has_changes = True
                     track[key] = track_collection.get(key)
         return data, has_changes
+
+    def _get_collection_for_mixtape(self, data: dict):
+        """Get the appropriate MusicCollection for a mixtape.
+
+        Handles both multi-collection (CollectionManager) and single-collection setups.
+
+        Args:
+            data: Mixtape data dictionary (may contain collection_id)
+
+        Returns:
+            MusicCollection instance, or None if collection not found
+        """
+        if not hasattr(self.collection_manager, 'get'):
+            return self.collection_manager
+        if collection_id := data.get('collection_id'):
+            collection = self.collection_manager.get(collection_id)
+            if not collection:
+                self._logger.error(f"Collection '{collection_id}' not found")
+                return None
+            return collection
+        else:
+            self._logger.info(
+                "Mixtape missing collection_id, using default collection"
+            )
+            return self.collection_manager.get_default()
 
     def _verify_mixtape_metadata(self, data: dict) -> dict:
         """Normalizes and completes metadata fields for a mixtape.

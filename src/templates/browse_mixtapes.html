@@ -14,6 +14,37 @@
         </button>
     </div>
 
+    <!-- Collection Filter (shown only if multiple collections) -->
+    {% if collections|length > 1 %}
+    <div class="card mb-3 shadow-sm">
+        <div class="card-body p-2">
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-muted small">
+                    <i class="bi bi-collection"></i> Collection:
+                </span>
+                <div class="btn-group btn-group-sm" role="group">
+                    <input type="radio" class="btn-check" name="collectionFilter"
+                        id="filter-all" value="" autocomplete="off" checked>
+                    <label class="btn btn-outline-primary" for="filter-all">
+                        All ({{ mixtapes|length }})
+                    </label>
+
+                    {% for collection in collections %}
+                    <input type="radio" class="btn-check" name="collectionFilter"
+                        id="filter-{{ collection.id }}"
+                        value="{{ collection.id }}"
+                        autocomplete="off">
+                    <label class="btn btn-outline-primary"
+                        for="filter-{{ collection.id }}">
+                        {{ collection.name }} ({{ collection.count }})
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Compact Search & Sort Bar -->
     <div class="card mb-3 shadow-sm">
         <div class="card-body p-2 p-md-3">
@@ -25,14 +56,14 @@
                         <span class="input-group-text">
                             <i class="bi bi-search"></i>
                         </span>
-                        <input type="text" 
-                               id="searchInput" 
-                               class="form-control form-control-sm" 
+                        <input type="text"
+                               id="searchInput"
+                               class="form-control form-control-sm"
                                placeholder="Search..."
                                value="{{ search_query }}"
                                autocomplete="off">
-                        <button class="btn btn-outline-secondary btn-sm" 
-                                type="button" 
+                        <button class="btn btn-outline-secondary btn-sm"
+                                type="button"
                                 id="clearSearch"
                                 style="display: {{ 'block' if search_query else 'none' }};">
                             <i class="bi bi-x-lg"></i>
@@ -42,12 +73,12 @@
 
                 <!-- Deep Search Button with Tooltip -->
                 <div class="col-lg-auto col-md-auto col-6">
-                    <span class="d-inline-block w-100" 
-                          data-bs-toggle="tooltip" 
-                          data-bs-placement="top" 
+                    <span class="d-inline-block w-100"
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
                           data-bs-title="Search within song names, artists, and albums"
                           tabindex="0">
-                        <button id="deepSearchBtn" 
+                        <button id="deepSearchBtn"
                                 class="btn btn-primary btn-sm w-100"
                                 {% if not search_query %}disabled{% endif %}>
                             <i class="bi bi-music-note-list"></i>
@@ -81,7 +112,7 @@
     <div class="alert alert-info d-flex justify-content-between align-items-center mb-4">
         <span>
             {% if search_deep %}
-                <i class="bi bi-music-note-list"></i> Deep search results for: <strong>"{{ search_query }}"</strong> 
+                <i class="bi bi-music-note-list"></i> Deep search results for: <strong>"{{ search_query }}"</strong>
                 ({{ mixtapes|length }} mixtape{{ 's' if mixtapes|length != 1 else '' }} found in tracks/artists/albums)
             {% else %}
                 <i class="bi bi-funnel"></i> Showing mixtapes with titles matching: <strong>"{{ search_query }}"</strong>

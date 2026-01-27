@@ -90,7 +90,7 @@
     .card-body.p-2 {
         padding: 0.5rem !important;
     }
-    
+
     /* Smaller inputs on mobile */
     .input-group-sm .form-control,
     .input-group-sm .btn,
@@ -105,7 +105,7 @@
         font-size: 0.8rem;
         padding: 0.25rem 0.5rem;
     }
-    
+
     #sortByWithOrder {
         font-size: 0.8rem;
     }
@@ -145,6 +145,21 @@
     flex-wrap: wrap;
     border: 1px solid var(--bs-border-color); /* Subtle border that adapts */
 }
+
+.mixtape-item .badges {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.badge.bg-primary {
+    background-color: #0d6efd !important;
+}
+
+/* Different colors for different collections (optional) */
+.badge.collection-main { background-color: #0d6efd; }
+.badge.collection-jazz { background-color: #6f42c1; }
+.badge.collection-classical { background-color: #d63384; }
 
 /* Cover image */
 .mixtape-cover {

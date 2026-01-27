@@ -1,0 +1,116 @@
+# docker-compose.yml - Multi-collection setup example
+#
+# This example shows how to set up multiple music collections in Docker.
+# Each collection is mounted as a separate volume with its own database.
+
+services:
+  mixtape:
+    image: ghcr.io/mark-me/mixtape-society:latest
+    # build:
+    #   context: .
+    #   dockerfile: docker/Dockerfile
+    container_name: mixtape-society
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    
+    volumes:
+      # ============================================================
+      # MUSIC COLLECTIONS
+      # ============================================================
+      # Mount each collection's music directory
+      # Pattern: /host/path:/container/path:ro (read-only)
+      
+      # Main collection (required - backward compatible)
+      - /home/mark/Music:/music:ro
+      
+      # Additional collections (optional)
+      # Uncomment and customize for your setup:
+      
+      # Jazz collection
+      # - /home/mark/Music/Jazz:/music/jazz:ro
+      
+      # Classical collection
+      # - /mnt/nas/classical:/music/classical:ro
+      
+      # High-res audio collection
+      # - /mnt/external/hires:/music/hires:ro
+      
+      # ============================================================
+      # DATA & CONFIGURATION
+      # ============================================================
+      # All app-generated data goes in collection-data
+      - ../collection-data:/app/collection-data
+      
+      # Collections configuration (maps IDs to paths)
+      # Create this file first with: cp collections.yml.example collections.yml
+      # Then customize the paths to match your volumes above
+      - ./collections.yml:/app/collection-data/collections.yml:ro
+    
+    environment:
+      - APP_ENV=production
+      - LOG_LEVEL=INFO
+
+      # These override everything – required in production
+      - MUSIC_ROOT=/music  # Default for "main" collection
+      - DATA_ROOT=/app/collection-data
+
+      # Strong password!
+      - PASSWORD=supergeheim123
+
+
+# ============================================================================
+# MULTI-COLLECTION SETUP INSTRUCTIONS
+# ============================================================================
+#
+# 1. Create your collections.yml file:
+#    cp collections.yml.example collections.yml
+#
+# 2. Edit collections.yml to define your collections:
+#    - Use container paths (e.g., /music, /music/jazz)
+#    - Database paths should be in /app/collection-data
+#
+# 3. Update the volumes section above to mount your music:
+#    - Add volume mounts for each collection
+#    - Use read-only (:ro) for safety
+#
+# 4. Example collections.yml for this setup:
+#
+#    version: 1
+#    default_collection: "main"
+#    collections:
+#      - id: "main"
+#        name: "Main Collection"
+#        music_root: "/music"
+#        db_path: "/app/collection-data/main.db"
+#      
+#      - id: "jazz"
+#        name: "Jazz Archive"
+#        music_root: "/music/jazz"
+#        db_path: "/app/collection-data/jazz.db"
+#
+# 5. Start the container:
+#    docker compose up -d
+#
+# 6. Check logs for collection loading:
+#    docker compose logs mixtape
+#
+# ============================================================================
+# SYNCING COLLECTIONS ACROSS DEVICES
+# ============================================================================
+#
+# To sync a collection between devices:
+#
+# 1. Copy the music files:
+#    rsync -av /source/music/jazz/ user@target:/target/music/jazz/
+#
+# 2. Copy the database:
+#    rsync -av /source/collection-data/jazz.db user@target:/target/collection-data/
+#
+# 3. Update collections.yml on the target device:
+#    - Keep the same collection ID ("jazz")
+#    - Update paths to match the target device
+#
+# The same collection ID with different paths = portable collections!
+#
+# ============================================================================

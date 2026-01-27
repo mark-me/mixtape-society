@@ -15,11 +15,15 @@ class BaseConfig:
 
     This configuration defines paths, credentials, and caching settings that
     control how the app accesses music, stores data, and manages audio cache.
+    
+    NOTE: For multi-collection support, MUSIC_ROOT and DB_PATH are now defaults
+    for the "main" collection only. The actual collections are defined in
+    collections.yml within DATA_ROOT.
     """
-    # 1. Music library location
+    # 1. Music library location (default for single collection or "main" collection)
     MUSIC_ROOT = Path(os.getenv("MUSIC_ROOT", "/music"))
 
-    # 2. NEW: Single data root for everything the app writes
+    # 2. Single data root for everything the app writes
     DATA_ROOT = Path(
         os.getenv(
             "DATA_ROOT",
@@ -28,11 +32,14 @@ class BaseConfig:
         )
     )
 
-    # Derived paths — never override these directly
-    DB_PATH = DATA_ROOT / "collection.db"
+    # Derived paths – never override these directly
+    DB_PATH = DATA_ROOT / "collection.db"  # Default/main collection DB
     MIXTAPE_DIR = DATA_ROOT / "mixtapes"
     COVER_DIR = MIXTAPE_DIR / "covers"
 
+    # Collections configuration
+    COLLECTIONS_CONFIG = DATA_ROOT / "collections.yml"
+    
     # Cache directory audio
     AUDIO_CACHE_DIR = DATA_ROOT / "cache" / "audio"
 

@@ -1,0 +1,78 @@
+# collections.yml - Multi-collection configuration for Mixtape Society
+#
+# This file defines all available music collections. Each collection has:
+# - id: Unique identifier (stable across devices)
+# - name: Human-readable name
+# - description: Optional description
+# - music_root: Path to music files (device-specific)
+# - db_path: Path to SQLite database (device-specific)
+#
+# The paths can differ on each device - only the collection IDs must match
+# across devices for mixtapes to work correctly.
+
+version: 1
+
+# Default collection to use when none is specified
+default_collection: "main"
+
+collections:
+  # Main collection - backward compatible with single-collection setups
+  - id: "main"
+    name: "Main Collection"
+    description: "Primary music library"
+    music_root: "/music"
+    db_path: "/data/collection.db"
+  
+  # Example: Jazz collection
+  # Uncomment and customize for your setup
+  # - id: "jazz-archive"
+  #   name: "Jazz Archive"
+  #   description: "Complete jazz collection (1920s-present)"
+  #   music_root: "/music/jazz"
+  #   db_path: "/data/jazz.db"
+  
+  # Example: Classical collection
+  # - id: "classical"
+  #   name: "Classical Music"
+  #   description: "Classical recordings and compositions"
+  #   music_root: "/music/classical"
+  #   db_path: "/data/classical.db"
+  
+  # Example: High-resolution audio collection
+  # - id: "hires"
+  #   name: "Hi-Res Audio"
+  #   description: "FLAC and DSD high-resolution recordings"
+  #   music_root: "/music/hires"
+  #   db_path: "/data/hires.db"
+
+
+# ============================================================================
+# Device-specific configuration examples
+# ============================================================================
+#
+# Laptop (development):
+# --------------------
+# version: 1
+# default_collection: "main"
+# collections:
+#   - id: "main"
+#     music_root: "/home/user/Music"
+#     db_path: "/home/user/.mixtape/main.db"
+#   - id: "jazz"
+#     music_root: "/home/user/Music/Jazz"
+#     db_path: "/home/user/.mixtape/jazz.db"
+#
+# NAS (production):
+# -----------------
+# version: 1
+# default_collection: "main"
+# collections:
+#   - id: "main"
+#     music_root: "/mnt/storage/music/main"
+#     db_path: "/mnt/storage/mixtape/main.db"
+#   - id: "jazz"
+#     music_root: "/mnt/storage/music/jazz"
+#     db_path: "/mnt/storage/mixtape/jazz.db"
+#
+# Key insight: Same collection IDs, different paths per device!
+# ============================================================================
