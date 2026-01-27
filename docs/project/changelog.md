@@ -22,6 +22,8 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 - Playback stops on mobile
 - Reusing indexing for tracking playback across multiple mixtapes
 
+[Changes since last version](https://github.com/mark-me/mixtape-society/compare/v0.7.4...v0.7.5)
+
 ---
 
 ## 📦 v0.7.4
@@ -42,6 +44,8 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 - Bottom player play button doesn't resume track after page reload
 - Playback stops on mobile
 
+[Changes since last version](https://github.com/mark-me/mixtape-society/compare/v0.7.3...v0.7.4)
+
 ---
 
 ## 📦 v0.7.3
@@ -57,6 +61,8 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 ### 🐛 Fixed
 
 - Some Android devices stopped playback when track ended
+
+[Changes since last version](https://github.com/mark-me/mixtape-society/compare/v0.7.2...v0.7.3)
 
 ---
 
@@ -79,6 +85,8 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 - Chromecasting
 - Android Auto
 
+[Changes since last version](https://github.com/mark-me/mixtape-society/compare/v0.7.1...v0.7.2)
+
 ---
 
 ## 📦 v0.7.1
@@ -95,6 +103,8 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 ### 🗑️ Removed
 
 - Onboarding tooltips (too little under control to be useful)
+
+[Changes since last version](https://github.com/mark-me/mixtape-society/compare/v0.7.0...v0.7.1)
 
 ---
 
@@ -114,6 +124,8 @@ Each release rewinds and fast-forwards your mixtape experience—just like a rea
 
 - Made playback more resistant against temporary network failures
 - Play button on bottom didn't properly show on mobile devices with a light theme
+
+[Changes since last version](https://github.com/mark-me/mixtape-society/compare/v0.6.0...v0.7.0)
 
 ---
 
