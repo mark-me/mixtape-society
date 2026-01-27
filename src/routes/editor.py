@@ -26,10 +26,11 @@ from mixtape_manager import MixtapeManager
 from musiclib import MusicCollectionUI
 from preferences import PreferencesManager
 from utils import CoverCompositor
+from collection_manager import CollectionManager
 
 
 def create_editor_blueprint(
-    collection: MusicCollectionUI, logger: Logger | None = None
+    collection_manager: CollectionManager, logger: Logger | None = None
 ) -> Blueprint:
     """
     Creates and configures the Flask blueprint for the mixtape editor.
@@ -46,6 +47,9 @@ def create_editor_blueprint(
     editor = Blueprint("editor", __name__)
 
     logger: Logger = logger or NullLogger()
+
+    has_manager = hasattr(collection_manager, 'list_collections')
+    default_collection = collection_manager.get_default() if has_manager else collection_manager
 
     # Initialize preferences manager
     def get_preferences_manager():
@@ -168,6 +172,15 @@ def create_editor_blueprint(
 
             # Log the search query for debugging
             logger.debug(f"Search query: {query}")
+
+            collection_id = request.args.get("collection_id")
+
+            if has_manager and collection_id:
+                collection = collection_manager.get(collection_id)
+                if not collection:
+                    return jsonify({"error": "Collection not found"}), 404
+            else:
+                collection = default_collection
 
             results = collection.search_highlighting(query, limit=50)
             return jsonify(results)

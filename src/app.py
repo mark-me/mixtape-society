@@ -31,6 +31,7 @@ from collection_manager import CollectionManager, CollectionNotFoundError
 
 from routes import (
     create_authentication_blueprint,
+    create_collections_blueprint,
     create_browser_blueprint,
     create_editor_blueprint,
     create_og_cover_blueprint,
