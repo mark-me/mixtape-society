@@ -1,13 +1,58 @@
 // static/js/editor/index.js
+/**
+ * UPDATED: Now includes collection manager initialization
+ */
+
 import { initSearch } from "./search.js";
 import { initEditorNotes } from "./editorNotes.js";
 import { initUI, activateInitialNotesTab } from "./ui.js";
 import { initPlaylist, setPlaylist } from "./playlist.js";
 import { initQRShare } from '../common/qrShare.js';
+import { initCollectionManager } from './collectionManager.js';  // NEW
 
 const preloadMixtape = window.PRELOADED_MIXTAPE;
 
 document.addEventListener("DOMContentLoaded", () => {
+    // ---------------------------------------------------------------
+    // 🆕 0️⃣ Initialize Collection Manager FIRST
+    // ---------------------------------------------------------------
+    // Get collection configuration from body data attributes or preloaded mixtape
+    const hasMultiple = document.body.dataset.hasMultipleCollections === 'true';
+    const isEditing = document.body.dataset.editingMode === 'true';
+    const defaultCollectionId = document.body.dataset.defaultCollection;
+    const mixtapeCollectionId = preloadMixtape?.collection_id;
+    
+    // Determine which collection to use
+    const collectionId = mixtapeCollectionId || defaultCollectionId;
+    
+    // Get collection name from the selector if available
+    let collectionName = null;
+    if (hasMultiple) {
+        const collectionSelect = document.getElementById('collectionSelect');
+        if (collectionSelect && collectionId) {
+            const option = collectionSelect.querySelector(`option[value="${collectionId}"]`);
+            if (option) {
+                collectionName = option.dataset.name;
+            }
+        }
+    }
+    
+    // Initialize collection manager
+    initCollectionManager({
+        defaultCollectionId: collectionId,
+        defaultCollectionName: collectionName,
+        hasMultiple: hasMultiple,
+        isEditing: isEditing,
+        shouldLock: isEditing || (preloadMixtape?.tracks?.length > 0)
+    });
+    
+    console.log('Collection manager initialized:', {
+        collectionId,
+        collectionName,
+        hasMultiple,
+        isEditing
+    });
+    
     // ---------------------------------------------------------------
     // 1️⃣  Populate playlist, cover, title … (needs the DOM)
     // ---------------------------------------------------------------

@@ -3,6 +3,7 @@ import { showAlert, showConfirm } from "./utils.js";
 import { playlist, registerUnsavedCallback, registerTrackAddedCallback, registerTrackRemovedCallback } from "./playlist.js";
 import { easyMDE } from "./editorNotes.js";
 import { showProgressModal } from './progressModal.js';
+import { getSelectedCollectionId } from "./collectionManager.js";
 
 export let hasUnsavedChanges = false;
 let isSaving = false;
@@ -165,7 +166,8 @@ export function initUI() {
                 cover: t.cover
             })),
             slug: editingSlug || null,
-            client_id: clientId
+            client_id: clientId,
+            collection_id: getSelectedCollectionId()  // Multi-collection support
         };
 
         isSaving = true;

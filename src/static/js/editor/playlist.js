@@ -1,5 +1,6 @@
 // static/js/editor/playlist.js
 import { escapeHtml, showConfirm } from "./utils.js";
+import { lockCollection, unlockCollection } from "./collectionManager.js";
 
 const { Sortable } = window;
 
@@ -80,6 +81,11 @@ export function addToPlaylist(item) {
     const exists = playlist.some(t => t.path === item.path);
     if (exists) return;
 
+    // Lock collection on first track (multi-collection support)
+    if (playlist.length === 0) {
+        lockCollection();
+    }
+
     // Add to playlist and refresh UI
     playlist.push(normalized);
     renderPlaylist();
@@ -106,6 +112,10 @@ function attachPlaylistEvents() {
 
             if (confirmed) {
                 playlist.length = 0;
+                
+                // Unlock collection when playlist cleared (multi-collection support)
+                unlockCollection();
+                
                 renderPlaylist();
                 unsavedCallback();
             }
@@ -300,6 +310,12 @@ export function renderPlaylist() {
         btn.onclick = () => {
             const index = Number(btn.dataset.index);
             playlist.splice(index, 1);
+            
+            // Unlock collection if all tracks removed (multi-collection support)
+            if (playlist.length === 0) {
+                unlockCollection();
+            }
+            
             renderPlaylist();
             trackRemovedCallback();
             unsavedCallback();

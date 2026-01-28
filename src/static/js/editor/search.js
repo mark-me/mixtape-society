@@ -1,6 +1,6 @@
 // static/js/editor/search.js
-import { escapeHtml } from "./utils.js";
 import { addToPlaylist } from "./playlist.js";
+import { getSelectedCollectionId } from "./collectionManager.js";
 
 const searchInput = document.getElementById("searchInput");
 const resultsDiv = document.getElementById("results");
@@ -18,36 +18,36 @@ const STORAGE_KEY = "mixtape_editor_search_query";
  */
 function createElement(tag, options = {}) {
     const element = document.createElement(tag);
-    
+
     if (options.className) {
         element.className = options.className;
     }
-    
+
     if (options.textContent) {
         element.textContent = options.textContent;
     }
-    
+
     if (options.innerHTML) {
         // Only allow innerHTML for static, trusted content
         element.innerHTML = options.innerHTML;
     }
-    
+
     if (options.attributes) {
         Object.entries(options.attributes).forEach(([key, value]) => {
             element.setAttribute(key, value);
         });
     }
-    
+
     if (options.children) {
         options.children.forEach(child => {
             if (child) element.appendChild(child);
         });
     }
-    
+
     if (options.onclick) {
         element.onclick = options.onclick;
     }
-    
+
     return element;
 }
 
@@ -67,11 +67,11 @@ function createButton(options = {}) {
         attributes: options.attributes || {},
         onclick: options.onclick
     });
-    
+
     if (options.icon) {
         button.appendChild(createIcon(options.icon));
     }
-    
+
     if (options.textContent) {
         if (options.icon) {
             button.appendChild(document.createTextNode(' ' + options.textContent));
@@ -79,7 +79,7 @@ function createButton(options = {}) {
             button.textContent = options.textContent;
         }
     }
-    
+
     return button;
 }
 
@@ -149,8 +149,18 @@ function performSearch() {
         return;
     }
 
+    // Get collection ID if in multi-collection mode
+    const collectionId = getSelectedCollectionId();
+
+    // Build URL with collection parameter
+    const url = new URL('/editor/search', window.location.origin);
+    url.searchParams.set('q', query);
+    if (collectionId) {
+        url.searchParams.set('collection_id', collectionId);
+    }
+
     document.getElementById("loading").classList.remove("visually-hidden");
-    fetch(`/editor/search?q=${encodeURIComponent(query)}`)
+    fetch(url)
         .then(async response => {
             // Check if the response is actually JSON
             const contentType = response.headers.get("content-type");
@@ -168,7 +178,7 @@ function performSearch() {
         .catch(error => {
             console.error("Search error:", error);
             resultsDiv.textContent = '';
-            
+
             const errorDiv = createElement('div', {
                 className: 'alert alert-danger m-3',
                 attributes: { role: 'alert' },
@@ -177,12 +187,12 @@ function performSearch() {
                     createElement('strong', { textContent: 'Search failed:' }),
                     document.createTextNode(' ' + error.message),
                     createElement('br'),
-                    createElement('small', { 
+                    createElement('small', {
                         textContent: 'Try a different search term or report an issue if this persists.'
                     })
                 ]
             });
-            
+
             resultsDiv.appendChild(errorDiv);
         })
         .finally(() => document.getElementById("loading").classList.add("visually-hidden"));
@@ -216,21 +226,21 @@ function formatDuration(duration) {
  */
 function createArtistAccordion(entry) {
     const safeArtist = safeId(entry.raw_artist || entry.artist);
-    
+
     const accordion = createElement('div', {
         className: 'accordion mb-3',
         attributes: { id: `accordion-artist-${safeArtist}` }
     });
-    
+
     const accordionItem = createElement('div', { className: 'accordion-item' });
-    
+
     const header = createElement('h2', { className: 'accordion-header' });
-    
+
     const artistNameSpan = createElement('span', {
         className: 'flex-grow-1'
     });
     artistNameSpan.innerHTML = entry.artist;  // May contain <mark> tags from search
-    
+
     const button = createElement('button', {
         className: 'accordion-button collapsed bg-artist',
         attributes: {
@@ -251,9 +261,9 @@ function createArtistAccordion(entry) {
             })
         ]
     });
-    
+
     header.appendChild(button);
-    
+
     const collapse = createElement('div', {
         className: 'accordion-collapse collapse',
         attributes: {
@@ -261,18 +271,18 @@ function createArtistAccordion(entry) {
             'data-artist': entry.raw_artist || entry.artist
         }
     });
-    
+
     const body = createElement('div', {
         className: 'accordion-body',
         attributes: { 'data-loading': 'true' },
         innerHTML: '<p class="text-muted">Loading…</p>'
     });
-    
+
     collapse.appendChild(body);
     accordionItem.appendChild(header);
     accordionItem.appendChild(collapse);
     accordion.appendChild(accordionItem);
-    
+
     return accordion;
 }
 
@@ -281,18 +291,18 @@ function createArtistAccordion(entry) {
  */
 function createAlbumAccordion(entry) {
     const safeReleaseDir = safeId(entry.release_dir);
-    
+
     const accordion = createElement('div', {
         className: 'accordion mb-3',
         attributes: { id: `accordion-album-${safeReleaseDir}` }
     });
-    
+
     const accordionItem = createElement('div', { className: 'accordion-item' });
-    
+
     const header = createElement('h2', { className: 'accordion-header' });
-    
+
     const buttonChildren = [];
-    
+
     // Add cover thumbnail if available
     if (entry.cover) {
         const thumbDiv = createElement('div', {
@@ -308,25 +318,25 @@ function createAlbumAccordion(entry) {
         thumbDiv.appendChild(img);
         buttonChildren.push(thumbDiv);
     }
-    
+
     // Add album title and artist
     // These may contain highlighting markup from search results
     const albumTitleDiv = createElement('div', {
         className: 'album-title text-truncate'
     });
     albumTitleDiv.innerHTML = entry.album;  // May contain <mark> tags
-    
+
     const artistDiv = createElement('div', {
         className: 'album-artist text-truncate small text-muted'
     });
     artistDiv.innerHTML = entry.artist;  // May contain <mark> tags
-    
+
     const textDiv = createElement('div', {
         className: 'flex-grow-1 min-w-0',
         children: [albumTitleDiv, artistDiv]
     });
     buttonChildren.push(textDiv);
-    
+
     // Add track count
     buttonChildren.push(
         createElement('span', {
@@ -337,7 +347,7 @@ function createAlbumAccordion(entry) {
             ]
         })
     );
-    
+
     const button = createElement('button', {
         className: 'accordion-button collapsed bg-album',
         attributes: {
@@ -349,9 +359,9 @@ function createAlbumAccordion(entry) {
         },
         children: buttonChildren
     });
-    
+
     header.appendChild(button);
-    
+
     const collapse = createElement('div', {
         className: 'accordion-collapse collapse',
         attributes: {
@@ -360,18 +370,18 @@ function createAlbumAccordion(entry) {
             'data-cover': entry.cover || ''
         }
     });
-    
+
     const body = createElement('div', {
         className: 'accordion-body',
         attributes: { 'data-loading': 'true' },
         innerHTML: '<p class="text-muted">Loading…</p>'
     });
-    
+
     collapse.appendChild(body);
     accordionItem.appendChild(header);
     accordionItem.appendChild(collapse);
     accordion.appendChild(accordionItem);
-    
+
     return accordion;
 }
 
@@ -380,15 +390,15 @@ function createAlbumAccordion(entry) {
  */
 function createTrackListItem(entry) {
     const track = entry.tracks[0];
-    
+
     const li = createElement('li', {
         className: 'list-group-item d-flex justify-content-between align-items-center mb-2 border rounded'
     });
-    
+
     const leftDiv = createElement('div', {
         className: 'd-flex align-items-center flex-grow-1 gap-3 min-w-0'
     });
-    
+
     // Add cover if available
     if (track.cover) {
         const img = createElement('img', {
@@ -401,22 +411,22 @@ function createTrackListItem(entry) {
         });
         leftDiv.appendChild(img);
     }
-    
+
     const infoDiv = createElement('div', {
         className: 'flex-grow-1 min-w-0'
     });
-    
+
     const titleDiv = createElement('div', {
         className: 'd-flex align-items-center gap-2 mb-1',
         children: [
             createIcon('bi bi-music-note-beamed text-track flex-shrink-0')
         ]
     });
-    
+
     const trackTitle = createElement('strong', {
         className: 'text-truncate'
     });
-    
+
     // Handle highlighted tracks
     // Note: highlighted content comes from the server's search highlighting function
     // It contains safe <mark> tags for highlighting search terms
@@ -429,28 +439,28 @@ function createTrackListItem(entry) {
         // No highlighting - use safe textContent
         trackTitle.textContent = track.track;
     }
-    
+
     titleDiv.appendChild(trackTitle);
     infoDiv.appendChild(titleDiv);
-    
+
     // Artist and album may also contain highlighting from search
     // Use innerHTML to preserve <mark> tags
     const artistSmall = createElement('small', {
         className: 'text-muted d-block text-truncate'
     });
     artistSmall.innerHTML = entry.artist;  // May contain <mark> tags
-    
+
     const albumSmall = createElement('small', {
         className: 'text-muted d-block text-truncate'
     });
     albumSmall.innerHTML = entry.album;  // May contain <mark> tags
-    
+
     infoDiv.appendChild(artistSmall);
     infoDiv.appendChild(albumSmall);
-    
+
     leftDiv.appendChild(infoDiv);
     li.appendChild(leftDiv);
-    
+
     const rightDiv = createElement('div', {
         className: 'd-flex align-items-center gap-2 flex-shrink-0 ms-2',
         children: [
@@ -479,9 +489,9 @@ function createTrackListItem(entry) {
             })
         ]
     });
-    
+
     li.appendChild(rightDiv);
-    
+
     return li;
 }
 
@@ -490,7 +500,7 @@ function createTrackListItem(entry) {
  */
 function renderResults(data) {
     resultsDiv.textContent = '';
-    
+
     if (data.length === 0) {
         resultsDiv.innerHTML = '<p class="text-center text-muted my-5">No results.</p>';
         return;
@@ -515,7 +525,7 @@ function renderResults(data) {
             textContent: 'Artists'
         });
         resultsDiv.appendChild(heading);
-        
+
         grouped.artists.forEach(entry => {
             resultsDiv.appendChild(createArtistAccordion(entry));
         });
@@ -528,7 +538,7 @@ function renderResults(data) {
             textContent: 'Albums'
         });
         resultsDiv.appendChild(heading);
-        
+
         grouped.albums.forEach(entry => {
             resultsDiv.appendChild(createAlbumAccordion(entry));
         });
@@ -541,7 +551,7 @@ function renderResults(data) {
             textContent: 'Tracks'
         });
         resultsDiv.appendChild(heading);
-        
+
         const trackList = createElement('ul', { className: 'list-group' });
         grouped.tracks.forEach(entry => {
             trackList.appendChild(createTrackListItem(entry));
@@ -551,10 +561,10 @@ function renderResults(data) {
 
     attachAddButtons();
     attachPreviewButtons();
-    
+
     // Attach artist accordion loaders
     attachArtistAccordionLoaders();
-    
+
     // Attach standalone album accordion loaders
     attachAlbumAccordionLoaders();
 }
@@ -574,9 +584,17 @@ function attachArtistAccordionLoaders() {
                 body,
                 emptyMessage: 'No albums found.',
                 load: async () => {
-                    const res = await fetch(
-                        `/editor/artist_details?artist=${encodeURIComponent(artist)}`
-                    );
+                    // Get collection ID
+                    const collectionId = getSelectedCollectionId();
+
+                    // Build URL with collection parameter
+                    const url = new URL('/editor/artist_details', window.location.origin);
+                    url.searchParams.set('artist', artist);
+                    if (collectionId) {
+                        url.searchParams.set('collection_id', collectionId);
+                    }
+
+                    const res = await fetch(url);
                     const details = await res.json();
 
                     if (!details.albums || details.albums.length === 0) {
@@ -590,13 +608,13 @@ function attachArtistAccordionLoaders() {
 
                     details.albums.forEach((album, index) => {
                         const albumId = safeId(album.album + '-' + index);
-                        
+
                         const item = createElement('div', { className: 'accordion-item' });
-                        
+
                         const header = createElement('h2', { className: 'accordion-header' });
-                        
+
                         const buttonChildren = [];
-                        
+
                         // Cover thumbnail
                         if (album.cover) {
                             const thumbDiv = createElement('div', {
@@ -608,26 +626,26 @@ function attachArtistAccordionLoaders() {
                             }));
                             buttonChildren.push(thumbDiv);
                         }
-                        
+
                         // Album title
                         const textDiv = createElement('div', {
                             className: 'flex-grow-1 min-w-0'
                         });
-                        
+
                         textDiv.appendChild(createElement('strong', {
                             className: 'd-block text-truncate',
                             textContent: album.album
                         }));
-                        
+
                         if (album.is_compilation) {
                             textDiv.appendChild(createElement('div', {
                                 className: 'album-artist small text-muted',
                                 textContent: 'Various Artists'
                             }));
                         }
-                        
+
                         buttonChildren.push(textDiv);
-                        
+
                         // Track count
                         buttonChildren.push(createElement('span', {
                             className: 'ms-auto small',
@@ -636,7 +654,7 @@ function attachArtistAccordionLoaders() {
                                 document.createTextNode(String(album.tracks.length))
                             ]
                         }));
-                        
+
                         const button = createElement('button', {
                             className: 'accordion-button collapsed bg-album',
                             attributes: {
@@ -645,16 +663,16 @@ function attachArtistAccordionLoaders() {
                             },
                             children: buttonChildren
                         });
-                        
+
                         header.appendChild(button);
-                        
+
                         const collapseDiv = createElement('div', {
                             className: 'accordion-collapse collapse',
                             attributes: { 'id': `collapse-album-${albumId}` }
                         });
-                        
+
                         const bodyDiv = createElement('div', { className: 'accordion-body' });
-                        
+
                         // Album cover (large)
                         if (album.cover) {
                             bodyDiv.appendChild(createElement('img', {
@@ -662,7 +680,7 @@ function attachArtistAccordionLoaders() {
                                 attributes: { 'src': '/' + album.cover }
                             }));
                         }
-                        
+
                         // Add all button
                         bodyDiv.appendChild(createButton({
                             className: 'btn btn-success btn-sm mb-3 add-album-btn',
@@ -672,20 +690,20 @@ function attachArtistAccordionLoaders() {
                                 'data-tracks': JSON.stringify(album.tracks)
                             }
                         }));
-                        
+
                         // Track list
                         const trackList = createElement('ul', { className: 'list-group' });
-                        
+
                         album.tracks.forEach(track => {
                             const trackLi = createElement('li', {
                                 className: 'list-group-item d-flex justify-content-between'
                             });
-                            
+
                             trackLi.appendChild(createElement('span', {
                                 className: 'text-truncate',
                                 textContent: track.track
                             }));
-                            
+
                             const buttonGroup = createElement('div', {
                                 className: 'd-flex gap-2',
                                 children: [
@@ -709,11 +727,11 @@ function attachArtistAccordionLoaders() {
                                     })
                                 ]
                             });
-                            
+
                             trackLi.appendChild(buttonGroup);
                             trackList.appendChild(trackLi);
                         });
-                        
+
                         bodyDiv.appendChild(trackList);
                         collapseDiv.appendChild(bodyDiv);
                         item.appendChild(header);
@@ -747,9 +765,17 @@ function attachAlbumAccordionLoaders() {
                 collapse,
                 body,
                 load: async () => {
-                    const res = await fetch(
-                        `/editor/album_details?release_dir=${encodeURIComponent(releaseDir)}`
-                    );
+                    // Get collection ID
+                    const collectionId = getSelectedCollectionId();
+
+                    // Build URL with collection parameter
+                    const url = new URL('/editor/album_details', window.location.origin);
+                    url.searchParams.set('release_dir', releaseDir);
+                    if (collectionId) {
+                        url.searchParams.set('collection_id', collectionId);
+                    }
+
+                    const res = await fetch(url);
                     const details = await res.json();
 
                     body.textContent = '';
@@ -773,11 +799,11 @@ function attachAlbumAccordionLoaders() {
                     const headerDiv = createElement('div', {
                         className: 'd-flex justify-content-between mb-3'
                     });
-                    
+
                     headerDiv.appendChild(createElement('h6', {
                         textContent: `${details.num_tracks} tracks`
                     }));
-                    
+
                     headerDiv.appendChild(createButton({
                         className: 'btn btn-success btn-sm add-album-btn',
                         icon: 'bi bi-plus-circle',
@@ -786,22 +812,22 @@ function attachAlbumAccordionLoaders() {
                             'data-tracks': JSON.stringify(details.tracks)
                         }
                     }));
-                    
+
                     body.appendChild(headerDiv);
 
                     // Track list
                     const trackList = createElement('ul', { className: 'list-group' });
-                    
+
                     const isVariousArtists = details.artist === 'Various Artists';
-                    
+
                     details.tracks.forEach((track, i) => {
                         const trackLi = createElement('li', {
                             className: 'list-group-item d-flex justify-content-between'
                         });
-                        
+
                         const trackSpan = createElement('span');
                         trackSpan.textContent = `${i + 1}. ${track.track}`;
-                        
+
                         // For Various Artists albums, show the individual track artist
                         if (isVariousArtists && track.artist) {
                             trackSpan.appendChild(document.createTextNode(' '));
@@ -811,9 +837,9 @@ function attachAlbumAccordionLoaders() {
                             });
                             trackSpan.appendChild(artistSpan);
                         }
-                        
+
                         trackLi.appendChild(trackSpan);
-                        
+
                         const buttonGroup = createElement('div', {
                             className: 'd-flex gap-2',
                             children: [
@@ -841,11 +867,11 @@ function attachAlbumAccordionLoaders() {
                                 })
                             ]
                         });
-                        
+
                         trackLi.appendChild(buttonGroup);
                         trackList.appendChild(trackLi);
                     });
-                    
+
                     body.appendChild(trackList);
                     attachAddButtons();
                     attachPreviewButtons();

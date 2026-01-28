@@ -31,12 +31,12 @@ from collection_manager import CollectionManager, CollectionNotFoundError
 
 from routes import (
     create_authentication_blueprint,
-    create_collections_blueprint,
     create_browser_blueprint,
     create_editor_blueprint,
     create_og_cover_blueprint,
     create_play_blueprint,
     create_qr_blueprint,
+    create_collections_blueprint,
 )
 from utils import get_version
 
@@ -116,7 +116,7 @@ def create_app() -> Flask:
         collection_manager = CollectionManager(
             config_path=config_cls.COLLECTIONS_CONFIG,
             logger=logger,
-            use_ui_layer=True  # Wrap collections in MusicCollectionUI for UI features
+            use_ui_layer=True,  # Wrap collections in MusicCollectionUI for UI features
         )
     except Exception as e:
         logger.error(f"Failed to initialize CollectionManager: {e}", exc_info=True)
@@ -154,7 +154,7 @@ def create_app() -> Flask:
     mixtape_manager = MixtapeManager(
         path_mixtapes=config_cls.MIXTAPE_DIR,
         collection_manager=collection_manager,  # CHANGED: was collection=collection
-        logger=logger
+        logger=logger,
     )
 
     # Store on app for access in blueprints and routes
@@ -282,7 +282,7 @@ def create_app() -> Flask:
         """
         try:
             # Optional: Get collection_id from query parameter
-            collection_id = request.args.get('collection_id')
+            collection_id = request.args.get("collection_id")
 
             if collection_id:
                 collection = collection_manager.get(collection_id)
@@ -332,17 +332,19 @@ def create_app() -> Flask:
             # Get collection_id from request
             collection_id = None
             if request.is_json:
-                collection_id = request.json.get('collection_id')
+                collection_id = request.json.get("collection_id")
 
             # Get the appropriate collection
             if collection_id:
                 logger.info(f"Resync requested for collection: {collection_id}")
                 collection = collection_manager.get(collection_id)
                 if not collection:
-                    return jsonify({
-                        "success": False,
-                        "error": f"Collection '{collection_id}' not found"
-                    }), 404
+                    return jsonify(
+                        {
+                            "success": False,
+                            "error": f"Collection '{collection_id}' not found",
+                        }
+                    ), 404
             else:
                 logger.info("Resync requested for default collection")
                 collection = default_collection
@@ -361,19 +363,27 @@ def create_app() -> Flask:
             def run_resync():
                 try:
                     collection.resync()
-                    logger.info(f"Music library resync completed for collection '{collection_id}'")
+                    logger.info(
+                        f"Music library resync completed for collection '{collection_id}'"
+                    )
                 except Exception as e:
-                    logger.exception(f"Error during resync of collection '{collection_id}': {e}")
+                    logger.exception(
+                        f"Error during resync of collection '{collection_id}': {e}"
+                    )
 
             thread = threading.Thread(target=run_resync, daemon=True)
             thread.start()
 
-            logger.info(f"Music library resync initiated for collection '{collection_id}'")
-            return jsonify({
-                "success": True,
-                "collection_id": collection_id,
-                "message": f"Resync started for collection '{collection_id}'"
-            })
+            logger.info(
+                f"Music library resync initiated for collection '{collection_id}'"
+            )
+            return jsonify(
+                {
+                    "success": True,
+                    "collection_id": collection_id,
+                    "message": f"Resync started for collection '{collection_id}'",
+                }
+            )
 
         except Exception as e:
             logger.exception(f"Error initiating resync: {e}")
@@ -398,11 +408,11 @@ def create_app() -> Flask:
             abort(404)
 
         response = send_from_directory(covers_dir, filename)
-        response.headers['Access-Control-Allow-Origin'] = '*'
-        response.headers['Access-Control-Allow-Methods'] = 'GET, OPTIONS'
-        response.headers['Access-Control-Max-Age'] = '3600'
-        response.headers['Cache-Control'] = 'public, max-age=86400'
-        response.headers['Cross-Origin-Resource-Policy'] = 'cross-origin'
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+        response.headers["Access-Control-Max-Age"] = "3600"
+        response.headers["Cache-Control"] = "public, max-age=86400"
+        response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
 
         return response
 
@@ -421,8 +431,8 @@ def create_app() -> Flask:
         from urllib.parse import unquote
 
         release_dir = unquote(release_dir_encoded)
-        requested_size = request.args.get('size', '').lower()
-        collection_id = request.args.get('collection_id')
+        requested_size = request.args.get("size", "").lower()
+        collection_id = request.args.get("collection_id")
 
         # Get appropriate collection
         if collection_id:
@@ -432,23 +442,22 @@ def create_app() -> Flask:
         else:
             collection = default_collection
 
-        valid_sizes = ['96x96', '128x128', '192x192', '256x256', '384x384', '512x512']
+        valid_sizes = ["96x96", "128x128", "192x192", "256x256", "384x384", "512x512"]
         covers_dir = app.config["DATA_ROOT"] / "cache" / "covers"
 
         if not requested_size:
             # No size specified, return main cover
             cover_url = collection.get_cover(release_dir)
             if cover_url:
-                filename = cover_url.split('/')[-1]
+                filename = cover_url.split("/")[-1]
                 return send_from_directory(covers_dir, filename)
             abort(404)
 
         # Validate size parameter
         if requested_size not in valid_sizes:
-            return jsonify({
-                "error": "Invalid size parameter",
-                "valid_sizes": valid_sizes
-            }), 400
+            return jsonify(
+                {"error": "Invalid size parameter", "valid_sizes": valid_sizes}
+            ), 400
 
         # Get or generate size-specific cover
         slug = collection._sanitize_release_dir(release_dir)
@@ -507,7 +516,7 @@ def create_app() -> Flask:
             # Get collection_id from request
             collection_id = None
             if request.is_json:
-                collection_id = request.json.get('collection_id')
+                collection_id = request.json.get("collection_id")
 
             # Check if indexing already in progress
             status = get_indexing_status(config_cls.DATA_ROOT, logger=app.logger)
@@ -516,7 +525,9 @@ def create_app() -> Flask:
                     {"success": False, "error": "Indexing already in progress"}
                 ), 409
 
-            logger.warning(f"Database reset requested for collection: {collection_id or 'default'}")
+            logger.warning(
+                f"Database reset requested for collection: {collection_id or 'default'}"
+            )
 
             # Determine which collections to reset
             if collection_id == "all":
@@ -530,10 +541,12 @@ def create_app() -> Flask:
                 # Reset specific collection
                 collection = collection_manager.get(collection_id)
                 if not collection:
-                    return jsonify({
-                        "success": False,
-                        "error": f"Collection '{collection_id}' not found"
-                    }), 404
+                    return jsonify(
+                        {
+                            "success": False,
+                            "error": f"Collection '{collection_id}' not found",
+                        }
+                    ), 404
                 collections_to_reset = [(collection_id, collection)]
             else:
                 # Reset default collection (backward compatible)
@@ -555,7 +568,7 @@ def create_app() -> Flask:
 
                 # Get database path for this collection
                 coll_info = collection_manager.get_info(coll_id)
-                db_path = Path(coll_info['db_path'])
+                db_path = Path(coll_info["db_path"])
 
                 # Delete database files
                 deleted_files = []
@@ -568,10 +581,12 @@ def create_app() -> Flask:
                             logger.debug(f"Deleted: {file_path}")
                         except Exception as e:
                             logger.exception(f"Failed to delete {file_path}: {e}")
-                            return jsonify({
-                                "success": False,
-                                "error": f"Failed to delete {file_path}: {e}",
-                            }), 500
+                            return jsonify(
+                                {
+                                    "success": False,
+                                    "error": f"Failed to delete {file_path}: {e}",
+                                }
+                            ), 500
 
                 all_deleted_files.extend(deleted_files)
 
@@ -587,12 +602,16 @@ def create_app() -> Flask:
             thread = threading.Thread(target=reinitialize, daemon=True)
             thread.start()
 
-            return jsonify({
-                "success": True,
-                "message": f"Database reset. Rebuild started for {len(collections_to_reset)} collection(s).",
-                "collections_reset": [coll_id for coll_id, _ in collections_to_reset],
-                "deleted_files": all_deleted_files,
-            })
+            return jsonify(
+                {
+                    "success": True,
+                    "message": f"Database reset. Rebuild started for {len(collections_to_reset)} collection(s).",
+                    "collections_reset": [
+                        coll_id for coll_id, _ in collections_to_reset
+                    ],
+                    "deleted_files": all_deleted_files,
+                }
+            )
 
         except Exception as e:
             logger.error(f"Error during reset: {e}", exc_info=True)
@@ -613,7 +632,7 @@ def create_app() -> Flask:
             JSON with health status, track count, and check result
         """
         try:
-            collection_id = request.args.get('collection_id')
+            collection_id = request.args.get("collection_id")
 
             if collection_id:
                 collection = collection_manager.get(collection_id)
@@ -629,25 +648,54 @@ def create_app() -> Flask:
                 result = conn.execute("PRAGMA quick_check").fetchone()[0]
                 is_healthy = result == "ok"
 
-            return jsonify({
-                "healthy": is_healthy,
-                "track_count": count,
-                "check_result": result,
-                "collection_id": collection_id
-            })
+            return jsonify(
+                {
+                    "healthy": is_healthy,
+                    "track_count": count,
+                    "check_result": result,
+                    "collection_id": collection_id,
+                }
+            )
 
         except DatabaseCorruptionError:
-            return jsonify({
-                "healthy": False,
-                "error": "Database corruption detected",
-                "requires_reset": True,
-                "collection_id": collection_id
-            })
+            return jsonify(
+                {
+                    "healthy": False,
+                    "error": "Database corruption detected",
+                    "requires_reset": True,
+                    "collection_id": collection_id,
+                }
+            )
         except Exception as e:
             logger.error(f"Error checking health: {e}")
             return jsonify({"healthy": False, "error": str(e)}), 500
 
     # === Context Processors ===
+
+    @app.context_processor
+    def inject_now() -> dict:
+        """
+        Injects the current UTC datetime into the template context.
+
+        This allows templates to access the current time using the 'now' variable.
+
+        Returns:
+            dict: A dictionary with the current UTC datetime under the key 'now'.
+        """
+        return {"now": datetime.now(timezone.utc)}
+
+    @app.context_processor
+    def inject_auth_status() -> dict:
+        """
+        Injects the authentication status into the template context.
+
+        This allows templates to conditionally render content based on whether
+        the user is authenticated.
+
+        Returns:
+            dict: A dictionary with the authentication status under 'is_authenticated'.
+        """
+        return {"is_authenticated": check_auth()}
 
     @app.context_processor
     def inject_version() -> dict:
@@ -658,6 +706,43 @@ def create_app() -> Flask:
     def inject_copyright() -> dict:
         """Injects the current year for copyright notices."""
         return {"current_year": datetime.now(timezone.utc).year}
+
+    @app.context_processor
+    def inject_indexing_status() -> dict:
+        """
+        Injects the current indexing status into the template context.
+
+        This allows templates to know if indexing is in progress and conditionally
+        disable UI elements.
+
+        Returns:
+            dict: A dictionary with the indexing status flag under 'is_indexing'.
+        """
+        status = get_indexing_status(config_cls.DATA_ROOT, logger=app.logger)
+        is_indexing = status and status["status"] in ("rebuilding", "resyncing")
+        return {"is_indexing": is_indexing}
+
+    @app.template_filter("to_datetime")
+    def to_datetime_filter(s, fmt="%Y-%m-%d %H:%M:%S"):
+        """
+        Converts a string timestamp into a datetime object for template usage. Provides a robust parser that supports a custom format and ISO 8601 strings.
+
+        Attempts to parse the input string using the provided format first, then falls back to ISO format parsing if needed. Returns None when the input is empty or falsy.
+
+        Args:
+            s: The input timestamp string to convert.
+            fmt: The expected datetime format string used for initial parsing.
+
+        Returns:
+            datetime | None: A datetime object if parsing succeeds, otherwise None for empty input.
+        """
+        if not s:
+            return None
+        try:
+            return datetime.strptime(s, fmt)
+        except ValueError:
+            # Fallback: try ISO format
+            return datetime.fromisoformat(s.replace("Z", "+00:00"))
 
     # ========================================================================
     # BLUEPRINT REGISTRATION
@@ -691,7 +776,7 @@ def create_app() -> Flask:
     app.register_blueprint(
         create_editor_blueprint(
             collection_manager=collection_manager,  # CHANGED: was collection=collection
-            logger=logger
+            logger=logger,
         ),
         url_prefix="/editor",
     )
@@ -699,7 +784,7 @@ def create_app() -> Flask:
     app.register_blueprint(
         create_og_cover_blueprint(
             path_logo=Path(__file__).parent / "static" / "images" / "logo.svg",
-            logger=logger
+            logger=logger,
         ),
         url_prefix="/og",
     )
@@ -708,15 +793,12 @@ def create_app() -> Flask:
         create_qr_blueprint(mixtape_manager=mixtape_manager, logger=logger)
     )
 
-    # NEW: Collections API blueprint (optional - add when needed)
-    # from routes.collections import create_collections_blueprint
-    # app.register_blueprint(
-    #     create_collections_blueprint(
-    #         collection_manager=collection_manager,
-    #         logger=logger
-    #     ),
-    #     url_prefix="/api/collections"
-    # )
+    app.register_blueprint(
+        create_collections_blueprint(
+            collection_manager=collection_manager, logger=logger
+        ),
+        url_prefix="/api/collections",
+    )
 
     return app
 
