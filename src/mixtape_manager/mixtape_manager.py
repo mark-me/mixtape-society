@@ -248,9 +248,8 @@ class MixtapeManager:
             dict: The mixtape data with allowed fields updated.
         """
         for field in self.ALLOWED_UPDATE_FIELDS:
-            if field in updated_data:
-                if updated_data[field] is not None or field == "cover":
-                    existing_data[field] = updated_data[field]
+            if field in updated_data and (updated_data[field] is not None or field == "cover"):
+                existing_data[field] = updated_data[field]
         return existing_data
 
     def _ensure_required_fields(self, existing_data: dict) -> dict:

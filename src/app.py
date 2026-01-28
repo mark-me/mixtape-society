@@ -750,6 +750,7 @@ def create_app() -> Flask:
 
     app.register_blueprint(
         create_authentication_blueprint(limiter=limiter, logger=logger),
+        url_prefix="/auth"
     )
 
     # Browser blueprint - unchanged, still gets mixtape_manager
@@ -762,7 +763,7 @@ def create_app() -> Flask:
         url_prefix="/mixtapes",
     )
 
-    # Play blueprint - unchanged
+    # Play blueprint
     app.register_blueprint(
         create_play_blueprint(
             mixtape_manager=mixtape_manager,
