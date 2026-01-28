@@ -1,0 +1,2182 @@
+<!DOCTYPE html><html lang="en" class="no-js"><head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Self-hosted mixtape sharing platform with music streaming, Chromecast support, and curated playlist management">
+      
+      
+        <meta name="author" content="Mark Zwart">
+      
+      
+        <link rel="canonical" href="https://mixtape-society.org/user/recipients/player.html">
+      
+      
+        <link rel="prev" href="getting-started.html">
+      
+      
+        <link rel="next" href="streaming.html">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../images/logo.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+    
+    
+      
+        <title>Player Guide - Mixtape Society</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.618322db.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+        <script src="https://unpkg.com/iframe-worker/shim"></script>
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../css/timeago.css">
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/panzoom.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+    
+    
+  <link href="../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style><meta name="panzoom-theme" content="material">
+<meta name="panzoom-data" content='{"selectors": [".mermaid", ".d2"], "initial_zoom_level": 1.0}'> </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#player-guide-for-recipients" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../index.html" title="Mixtape Society" class="md-header__button md-logo" aria-label="Mixtape Society" data-md-component="logo">
+      
+  <img src="../../images/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Mixtape Society
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Player Guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"></path></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/mark-me/mixtape-society" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    mark-me/mixtape-society
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../index.html" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Introduction
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../getting-started.html" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../development/intro.html" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Architecture &amp; Development
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../project/index.html" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Project
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../index.html" title="Mixtape Society" class="md-nav__button md-logo" aria-label="Mixtape Society" data-md-component="logo">
+      
+  <img src="../../images/logo.png" alt="logo">
+
+    </a>
+    Mixtape Society
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/mark-me/mixtape-society" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    mark-me/mixtape-society
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../creators/index.html" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    For Creators
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_3" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="index.html" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    For Recipients
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    For Recipients
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="getting-started.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Player Guide
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="player.html" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Player Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#-basic-controls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎮 Basic Controls
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-advanced-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎵 Advanced Features
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-audio-quality-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📊 Audio Quality Settings
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-keyboard-shortcuts-desktop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⌨️ Keyboard Shortcuts (Desktop)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-mobile--desktop-experience" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📱 Mobile &amp; Desktop Experience
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-visual-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎨 Visual Features
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-playback-states" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔄 Playback States
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-best-listening-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎧 Best Listening Practices
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-sound-quality-tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔊 Sound Quality Tips
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-offline-listening" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📱 Offline Listening
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-common-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ❓ Common Issues
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-related-guides" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📚 Related Guides
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="streaming.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Streaming to Devices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="faq.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recipient FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../development/intro.html" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture &amp; Development
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../project/index.html" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#-basic-controls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎮 Basic Controls
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-advanced-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎵 Advanced Features
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-audio-quality-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📊 Audio Quality Settings
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-keyboard-shortcuts-desktop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⌨️ Keyboard Shortcuts (Desktop)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-mobile--desktop-experience" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📱 Mobile &amp; Desktop Experience
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-visual-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎨 Visual Features
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-playback-states" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔄 Playback States
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-best-listening-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎧 Best Listening Practices
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-sound-quality-tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔊 Sound Quality Tips
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-offline-listening" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📱 Offline Listening
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-common-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ❓ Common Issues
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-related-guides" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📚 Related Guides
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="Navigation">
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href="../../index.html" class="md-path__link">
+        
+  <span class="md-ellipsis">
+    Introduction
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="../getting-started.html" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    Getting Started
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="index.html" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    For Recipients
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/mark-me/mixtape-society/edit/main/docs/user/recipients/player.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75z"></path></svg>
+    </a>
+  
+  
+    
+      
+    
+    <a href="https://github.com/mark-me/mixtape-society/raw/main/docs/user/recipients/player.md" title="View source of this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0 8a5 5 0 0 1-5-5 5 5 0 0 1 5-5 5 5 0 0 1 5 5 5 5 0 0 1-5 5m0-12.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5"></path></svg>
+    </a>
+  
+
+
+<p><a class="glightbox" data-type="image" data-width="100%" data-height="auto" href="../../images/walkman.png" data-title="Player" data-desc-position="bottom"><img align="right" alt="Player" src="../../images/walkman.png" width="90"></a></p>
+<h1 id="player-guide-for-recipients">Player Guide for Recipients<a class="headerlink" href="#player-guide-for-recipients" title="Anchor link to this section">¶</a></h1>
+<p>Master the mixtape player to get the best listening experience. Whether you're on your phone, computer, or casting to a TV, this guide covers everything you need to know.</p>
+<hr>
+<h2 id="-basic-controls">🎮 Basic Controls<a class="headerlink" href="#-basic-controls" title="Anchor link to this section">¶</a></h2>
+<h3 id="play--pause">Play &amp; Pause<a class="headerlink" href="#play--pause" title="Anchor link to this section">¶</a></h3>
+<p><strong>Desktop:</strong></p>
+<ul>
+<li>Click the <strong>▶️ Play</strong> button</li>
+<li>Click again (now <strong>⏸️ Pause</strong>) to pause</li>
+<li>Press <strong>Space bar</strong> for quick play/pause</li>
+</ul>
+<p><strong>Mobile:</strong></p>
+<ul>
+<li>Tap the play button</li>
+<li>Tap again to pause</li>
+<li>Use lock screen controls</li>
+</ul>
+<h3 id="skip-tracks">Skip Tracks<a class="headerlink" href="#skip-tracks" title="Anchor link to this section">¶</a></h3>
+<p><strong>Next Track:</strong></p>
+<ul>
+<li>Desktop: Click <strong>⏭️</strong> or press <strong>→ Right Arrow</strong></li>
+<li>Mobile: Tap <strong>⏭️</strong> or use lock screen controls</li>
+</ul>
+<p><strong>Previous Track:</strong></p>
+<ul>
+<li>Desktop: Click <strong>⏮️</strong> or press <strong>← Left Arrow</strong></li>
+<li>Mobile: Tap <strong>⏮️</strong> or use lock screen controls</li>
+</ul>
+<h3 id="seek-within-a-track">Seek Within a Track<a class="headerlink" href="#seek-within-a-track" title="Anchor link to this section">¶</a></h3>
+<p><strong>Desktop:</strong></p>
+<ul>
+<li>Click anywhere on the progress bar</li>
+<li>Drag the position handle</li>
+<li>Use arrow keys for fine control</li>
+</ul>
+<p><strong>Mobile:</strong></p>
+<ul>
+<li>Tap on the progress bar</li>
+<li>Drag the progress handle</li>
+</ul>
+<hr>
+<h2 id="-advanced-features">🎵 Advanced Features<a class="headerlink" href="#-advanced-features" title="Anchor link to this section">¶</a></h2>
+<h3 id="shuffle-mode">Shuffle Mode<a class="headerlink" href="#shuffle-mode" title="Anchor link to this section">¶</a></h3>
+<p>Play tracks in random order instead of the mixtape's sequence.</p>
+<p><strong>How to enable:</strong></p>
+<ol>
+<li>Find the <strong>🔀 Shuffle</strong> button next to the prev/next controls</li>
+<li>Click/tap to toggle on (button lights up)</li>
+<li>Click/tap again to return to normal order</li>
+</ol>
+<p><strong>What happens:</strong></p>
+<ul>
+<li>Tracks play in a random sequence</li>
+<li>Next/Previous buttons follow the shuffled order</li>
+<li>Your shuffle order stays the same even if you reload the page</li>
+</ul>
+<p><strong>Visual indicator:</strong></p>
+<ul>
+<li><strong>Off:</strong> Button is outlined (⚪ 🔀)</li>
+<li><strong>On:</strong> Button is filled (⚫ 🔀)</li>
+</ul>
+<p><strong>When it's useful:</strong></p>
+<ul>
+<li>You've listened through already and want variety</li>
+<li>Long mixtapes (20+ tracks)</li>
+<li>Background music where order doesn't matter</li>
+<li>Discovering tracks you might have skipped</li>
+</ul>
+<p><strong>Getting a new shuffle:</strong>
+Click shuffle off, then on again to get a different random order.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The creator carefully ordered the tracks—shuffle changes the intended experience! Best for repeat listens.</p>
+</div>
+<h3 id="repeat-mode">Repeat Mode<a class="headerlink" href="#repeat-mode" title="Anchor link to this section">¶</a></h3>
+<p>Loop the entire mixtape or a single track.</p>
+<p><strong>How to use:</strong></p>
+<ol>
+<li>Find the <strong>🔁 Repeat</strong> button next to shuffle</li>
+<li>Click/tap to cycle through modes</li>
+<li>Watch the button change to show which mode is active</li>
+</ol>
+<p><strong>The three modes:</strong></p>
+<h4 id="-repeat-off-default">🔁 Repeat Off (default)<a class="headerlink" href="#-repeat-off-default" title="Anchor link to this section">¶</a></h4>
+<ul>
+<li>Button is outlined</li>
+<li>Mixtape plays through once and stops</li>
+<li>Normal listening experience</li>
+</ul>
+<h4 id="-repeat-all">🔁 Repeat All<a class="headerlink" href="#-repeat-all" title="Anchor link to this section">¶</a></h4>
+<ul>
+<li>Button is filled/solid white</li>
+<li>Mixtape loops back to the beginning after the last track</li>
+<li>Great for background music or extended listening</li>
+</ul>
+<h4 id="₁-repeat-one">🔁₁ Repeat One<a class="headerlink" href="#₁-repeat-one" title="Anchor link to this section">¶</a></h4>
+<ul>
+<li>Button turns blue with a "1" icon</li>
+<li>Current track plays over and over</li>
+<li>Perfect for learning lyrics or focusing on one song</li>
+</ul>
+<p><strong>What happens:</strong></p>
+<ul>
+<li>Your repeat setting saves automatically</li>
+<li>Works with shuffle (loops through the shuffled order)</li>
+<li>Click any track to play it, repeat mode stays active</li>
+</ul>
+<p><strong>When it's useful:</strong></p>
+<ul>
+<li><strong>Repeat All:</strong> Long car rides, work sessions, parties</li>
+<li><strong>Repeat One:</strong> Practicing a song, meditation, focus</li>
+</ul>
+<p><strong>Getting back to normal:</strong>
+Click the repeat button until it's outlined again (Repeat Off).</p>
+<div class="admonition tip">
+<p class="admonition-title">Repeat + Shuffle</p>
+<p>Enable both for endless variety! The playlist will keep looping through the same shuffle order.</p>
+</div>
+<h3 id="sleep-timer">Sleep Timer<a class="headerlink" href="#sleep-timer" title="Anchor link to this section">¶</a></h3>
+<p>Automatically stop playback after a set duration—perfect for falling asleep or timed listening sessions.</p>
+<p><strong>How to use:</strong></p>
+<ol>
+<li>Find the <strong>⏰ Sleep Timer</strong> button next to shuffle and repeat</li>
+<li>Click/tap to open the timer settings</li>
+<li>Choose a duration or use quick presets</li>
+<li>Optional: Enable "Wait until current track ends"</li>
+<li>Click <strong>Start Timer</strong></li>
+</ol>
+<p><strong>Setting the duration:</strong></p>
+<ul>
+<li><strong>Quick presets:</strong> 15, 30, 45, or 60 minutes</li>
+<li><strong>Custom time:</strong> Use the slider for any duration (5-120 minutes)</li>
+<li><strong>Visual display:</strong> Large timer shows your selected duration</li>
+</ul>
+<p><strong>Wait until track ends:</strong>
+When enabled, playback stops gracefully after the current track finishes instead of cutting off mid-song.</p>
+<p><strong>Visual indicator:</strong></p>
+<ul>
+<li><strong>Off:</strong> Button is outlined (⚪ ⏰)</li>
+<li><strong>Active:</strong> Button turns yellow and pulses (🟡 ⏰)</li>
+</ul>
+<p><strong>What happens:</strong></p>
+<ul>
+<li>Timer counts down in the background</li>
+<li>You'll see notifications at 30min, 15min, 10min, 5min, and 1min remaining</li>
+<li>Each notification includes options to extend or cancel</li>
+<li>When time expires, playback stops automatically</li>
+<li>Your preferred duration is remembered for next time</li>
+</ul>
+<p><strong>Managing active timer:</strong></p>
+<ul>
+<li><strong>Modify:</strong> Click the pulsing timer button to adjust time</li>
+<li><strong>Cancel:</strong> Use the cancel button in settings or notifications</li>
+<li><strong>Extend:</strong> Click "Extend" in countdown notifications</li>
+</ul>
+<p><strong>When it's useful:</strong></p>
+<ul>
+<li>Falling asleep to music</li>
+<li>Timed meditation or focus sessions</li>
+<li>Conserving battery on mobile</li>
+<li>Limiting listening time</li>
+<li>Background music for specific activities</li>
+</ul>
+<div class="admonition tip">
+<p class="admonition-title">Perfect for Sleep</p>
+<p>Set 30-45 minutes with "wait until track ends" enabled. The music fades naturally as your last track finishes, instead of jarring silence mid-song.</p>
+</div>
+<h3 id="volume-control">Volume Control<a class="headerlink" href="#volume-control" title="Anchor link to this section">¶</a></h3>
+<p>Adjust playback volume independent of your device volume.</p>
+<p><strong>Desktop:</strong></p>
+<ul>
+<li>Click <strong>🔊 Volume</strong> icon</li>
+<li>Drag slider up/down</li>
+<li>Or use your keyboard volume keys</li>
+</ul>
+<p><strong>Mobile:</strong></p>
+<ul>
+<li>Use device volume buttons</li>
+<li>Player respects system volume</li>
+</ul>
+<hr>
+<h2 id="-audio-quality-settings">📊 Audio Quality Settings<a class="headerlink" href="#-audio-quality-settings" title="Anchor link to this section">¶</a></h2>
+<p>Adjust streaming quality to match your connection and data plan.</p>
+<h3 id="quality-options">Quality Options<a class="headerlink" href="#quality-options" title="Anchor link to this section">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Quality</th>
+<th>Bitrate</th>
+<th>File Size/Song</th>
+<th>Best For</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Original</strong></td>
+<td>Variable</td>
+<td>~10MB</td>
+<td>WiFi, best audio</td>
+</tr>
+<tr>
+<td><strong>High</strong></td>
+<td>256 kbps</td>
+<td>~7MB</td>
+<td>WiFi, great audio</td>
+</tr>
+<tr>
+<td><strong>Medium</strong></td>
+<td>192 kbps</td>
+<td>~5MB</td>
+<td>Default, balanced</td>
+</tr>
+<tr>
+<td><strong>Low</strong></td>
+<td>128 kbps</td>
+<td>~3MB</td>
+<td>Mobile data, slow connections</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Default:</strong> Medium (192 kbps)</p>
+<h3 id="how-to-change-quality">How to Change Quality<a class="headerlink" href="#how-to-change-quality" title="Anchor link to this section">¶</a></h3>
+<ol>
+<li>Look for the <strong>⚙️ Settings</strong> or <strong>Quality</strong> button</li>
+<li>Select your preferred quality</li>
+<li>Current track will restart at new quality</li>
+<li>Setting persists for this mixtape session</li>
+</ol>
+<h3 id="when-to-adjust">When to Adjust<a class="headerlink" href="#when-to-adjust" title="Anchor link to this section">¶</a></h3>
+<p><strong>Use Higher Quality (Original/High) when:</strong></p>
+<ul>
+<li>✅ Connected to WiFi</li>
+<li>✅ Using unlimited data plan</li>
+<li>✅ Want best possible sound</li>
+<li>✅ Using good headphones or speakers</li>
+<li>✅ Connection is fast and stable</li>
+</ul>
+<p><strong>Use Lower Quality (Low) when:</strong></p>
+<ul>
+<li>✅ On limited mobile data plan</li>
+<li>✅ Connection is slow or unstable</li>
+<li>✅ Playback keeps buffering</li>
+<li>✅ In area with weak signal</li>
+<li>✅ Want to conserve data</li>
+</ul>
+<div class="admonition tip">
+<p class="admonition-title">Connection Issues?</p>
+<p>If playback stutters or stops frequently, try switching to a lower quality setting. The difference is often imperceptible with standard headphones.</p>
+</div>
+<hr>
+<h2 id="-keyboard-shortcuts-desktop">⌨️ Keyboard Shortcuts (Desktop)<a class="headerlink" href="#-keyboard-shortcuts-desktop" title="Anchor link to this section">¶</a></h2>
+<p>Master these shortcuts for effortless control:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Space</strong></td>
+<td>Play/Pause</td>
+</tr>
+<tr>
+<td><strong>→</strong></td>
+<td>Next track</td>
+</tr>
+<tr>
+<td><strong>←</strong></td>
+<td>Previous track</td>
+</tr>
+<tr>
+<td><strong>↑</strong></td>
+<td>Volume up</td>
+</tr>
+<tr>
+<td><strong>↓</strong></td>
+<td>Volume down</td>
+</tr>
+<tr>
+<td><strong>M</strong></td>
+<td>Mute/Unmute</td>
+</tr>
+<tr>
+<td><strong>S</strong></td>
+<td>Toggle shuffle</td>
+</tr>
+<tr>
+<td><strong>R</strong></td>
+<td>Cycle repeat modes</td>
+</tr>
+<tr>
+<td><strong>T</strong></td>
+<td>Open sleep timer</td>
+</tr>
+<tr>
+<td><strong>0-9</strong></td>
+<td>Jump to position (0%=start, 5=50%, 9=90%)</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">Power User</p>
+<p>Once you learn the shortcuts, you can control playback without touching your mouse!</p>
+</div>
+<hr>
+<h2 id="-mobile--desktop-experience">📱 Mobile &amp; Desktop Experience<a class="headerlink" href="#-mobile--desktop-experience" title="Anchor link to this section">¶</a></h2>
+<h3 id="iphone--ipad">iPhone &amp; iPad<a class="headerlink" href="#iphone--ipad" title="Anchor link to this section">¶</a></h3>
+<p><strong>Best Browser:</strong> Safari (required for AirPlay)</p>
+<p><strong>Features:</strong></p>
+<ul>
+<li>✅ Lock screen controls</li>
+<li>✅ Control Center access</li>
+<li>✅ Background playback</li>
+<li>✅ AirPlay support</li>
+<li>✅ Apple Watch controls (if paired)</li>
+<li>✅ CarPlay support (iOS 14.5+)</li>
+<li>✅ Sleep timer with notifications</li>
+</ul>
+<p><strong>Lock Screen Controls:</strong>
+When playing, you'll see:</p>
+<ul>
+<li>Album art</li>
+<li>Track title and artist</li>
+<li>Play/Pause button</li>
+<li>Next/Previous buttons</li>
+<li>Progress bar</li>
+<li>AirPlay icon</li>
+</ul>
+<p><strong>Control Center:</strong>
+Swipe down from top-right (iPhone X+) or swipe up (older iPhones) to access quick controls.</p>
+<p><strong>Add to Home Screen:</strong></p>
+<ol>
+<li>Tap <strong>Share</strong> button in Safari</li>
+<li>Select <strong>"Add to Home Screen"</strong></li>
+<li>Name it (e.g., "Sarah's Mixtape")</li>
+<li>Tap <strong>Add</strong></li>
+<li>Access from home screen like an app</li>
+</ol>
+<div class="admonition tip">
+<p class="admonition-title">Best Experience</p>
+<p>Adding to home screen gives you a dedicated icon and faster access. The player works perfectly as a "web app"!</p>
+</div>
+<h3 id="android">Android<a class="headerlink" href="#android" title="Anchor link to this section">¶</a></h3>
+<p><strong>Best Browser:</strong> Chrome</p>
+<p><strong>Features:</strong></p>
+<ul>
+<li>✅ Lock screen controls</li>
+<li>✅ Notification controls</li>
+<li>✅ Background playback</li>
+<li>✅ Chromecast support</li>
+<li>✅ Android Auto support</li>
+<li>✅ Media key support</li>
+<li>✅ Sleep timer with notifications</li>
+</ul>
+<p><strong>Lock Screen:</strong>
+Full media controls appear automatically when playing.</p>
+<p><strong>Notification Shade:</strong>
+Pull down to access playback controls without opening the browser.</p>
+<p><strong>Add to Home Screen:</strong></p>
+<ol>
+<li>Tap <strong>⋮ Menu</strong> in Chrome</li>
+<li>Select <strong>"Add to Home screen"</strong></li>
+<li>Name it and confirm</li>
+<li>Access from app drawer</li>
+</ol>
+<p><strong>Android Auto:</strong>
+If connected to car:</p>
+<ol>
+<li>Mixtape appears in Android Auto</li>
+<li>Use dashboard or voice controls</li>
+<li>Safe, hands-free operation</li>
+</ol>
+<h3 id="desktop-windows-mac-linux">Desktop (Windows, Mac, Linux)<a class="headerlink" href="#desktop-windows-mac-linux" title="Anchor link to this section">¶</a></h3>
+<p><strong>Works in any modern browser:</strong></p>
+<ul>
+<li>Chrome</li>
+<li>Firefox</li>
+<li>Safari</li>
+<li>Edge</li>
+<li>Opera</li>
+</ul>
+<p><strong>Features:</strong></p>
+<ul>
+<li>✅ Large album art display</li>
+<li>✅ Full track listing always visible</li>
+<li>✅ Keyboard shortcuts</li>
+<li>✅ Media key support</li>
+<li>✅ Better for long sessions</li>
+</ul>
+<p><strong>Media Keys:</strong>
+Hardware media keys on your keyboard work automatically:</p>
+<ul>
+<li>Play/Pause key</li>
+<li>Next/Previous track keys</li>
+<li>Volume keys</li>
+</ul>
+<p><strong>Window Control:</strong>
+Minimize the browser and controls work from background:</p>
+<ul>
+<li>Lock screen (Windows/Mac)</li>
+<li>Notification area</li>
+<li>Media popup</li>
+</ul>
+<hr>
+<h2 id="-visual-features">🎨 Visual Features<a class="headerlink" href="#-visual-features" title="Anchor link to this section">¶</a></h2>
+<h3 id="album-art-display">Album Art Display<a class="headerlink" href="#album-art-display" title="Anchor link to this section">¶</a></h3>
+<p><strong>Desktop:</strong></p>
+<ul>
+<li>Large, prominent display</li>
+<li>Click to expand (if supported)</li>
+<li>Shows during playback</li>
+</ul>
+<p><strong>Mobile:</strong></p>
+<ul>
+<li>Optimized for screen size</li>
+<li>Visible on lock screen</li>
+<li>Shows in notifications</li>
+</ul>
+<h3 id="track-listing">Track Listing<a class="headerlink" href="#track-listing" title="Anchor link to this section">¶</a></h3>
+<p><strong>Desktop:</strong></p>
+<ul>
+<li>Full tracklist always visible</li>
+<li>Current track highlighted</li>
+<li>Click any track to jump to it</li>
+<li>Shows track numbers, titles, artists</li>
+</ul>
+<p><strong>Mobile:</strong></p>
+<ul>
+<li>Swipe or scroll to see full list</li>
+<li>Current track highlighted</li>
+<li>Tap any track to jump to it</li>
+<li>Compact view for small screens</li>
+</ul>
+<h3 id="liner-notes">Liner Notes<a class="headerlink" href="#liner-notes" title="Anchor link to this section">¶</a></h3>
+<p>If the creator added liner notes (personal message):</p>
+<ul>
+<li><strong>Gift links:</strong> Displayed on landing page</li>
+<li><strong>Direct links:</strong> Usually in expandable section</li>
+<li><strong>May include:</strong> Track references (#1, #1-4 converted to titles)</li>
+</ul>
+<hr>
+<h2 id="-playback-states">🔄 Playback States<a class="headerlink" href="#-playback-states" title="Anchor link to this section">¶</a></h2>
+<h3 id="playing-">Playing ▶️<a class="headerlink" href="#playing-" title="Anchor link to this section">¶</a></h3>
+<p><strong>Visual indicators:</strong></p>
+<ul>
+<li>Play button shows pause icon</li>
+<li>Progress bar advances</li>
+<li>Track time updates</li>
+<li>Waveform animation (if present)</li>
+</ul>
+<p><strong>While playing:</strong></p>
+<ul>
+<li>Screen can turn off (mobile)</li>
+<li>Can switch apps (background playback)</li>
+<li>Lock screen controls available</li>
+</ul>
+<h3 id="paused-">Paused ⏸️<a class="headerlink" href="#paused-" title="Anchor link to this section">¶</a></h3>
+<p><strong>Visual indicators:</strong></p>
+<ul>
+<li>Pause button shows play icon</li>
+<li>Progress bar stopped</li>
+<li>Animation frozen</li>
+</ul>
+<p><strong>While paused:</strong></p>
+<ul>
+<li>Position saved</li>
+<li>Resume from same point</li>
+<li>Battery-friendly</li>
+</ul>
+<h3 id="buffering-">Buffering ⏳<a class="headerlink" href="#buffering-" title="Anchor link to this section">¶</a></h3>
+<p><strong>What's happening:</strong></p>
+<ul>
+<li>Loading next segment</li>
+<li>Usually brief</li>
+<li>Normal on first load</li>
+</ul>
+<p><strong>If buffering frequently:</strong></p>
+<ul>
+<li>Switch to lower quality</li>
+<li>Check internet connection</li>
+<li>Move closer to WiFi router</li>
+</ul>
+<h3 id="loadingseeking-">Loading/Seeking ⌛<a class="headerlink" href="#loadingseeking-" title="Anchor link to this section">¶</a></h3>
+<p><strong>What's happening:</strong></p>
+<ul>
+<li>Loading new track</li>
+<li>Jumping to different position</li>
+<li>Switching quality</li>
+</ul>
+<p><strong>Usually quick</strong> - should resolve in 1-2 seconds</p>
+<hr>
+<h2 id="-best-listening-practices">🎧 Best Listening Practices<a class="headerlink" href="#-best-listening-practices" title="Anchor link to this section">¶</a></h2>
+<h3 id="for-first-listen">For First Listen<a class="headerlink" href="#for-first-listen" title="Anchor link to this section">¶</a></h3>
+<ol>
+<li><strong>Find quiet time</strong> - Appreciate the creator's work</li>
+<li><strong>Read liner notes</strong> - Understand their message</li>
+<li><strong>Listen in order</strong> - Experience the intended flow</li>
+<li><strong>No distractions</strong> - Give it your full attention</li>
+</ol>
+<h3 id="for-repeated-listening">For Repeated Listening<a class="headerlink" href="#for-repeated-listening" title="Anchor link to this section">¶</a></h3>
+<ul>
+<li>Try shuffle mode for variety</li>
+<li>Different contexts (workout, relaxation, driving)</li>
+<li>Cast to different speakers/rooms</li>
+<li>Share with others</li>
+</ul>
+<h3 id="battery-life-mobile">Battery Life (Mobile)<a class="headerlink" href="#battery-life-mobile" title="Anchor link to this section">¶</a></h3>
+<p><strong>To maximize battery:</strong></p>
+<ul>
+<li>✅ Use lower quality settings</li>
+<li>✅ Download for offline (if available in future)</li>
+<li>✅ Close other apps</li>
+<li>✅ Reduce screen brightness</li>
+<li>✅ Use battery saver mode</li>
+</ul>
+<hr>
+<h2 id="-sound-quality-tips">🔊 Sound Quality Tips<a class="headerlink" href="#-sound-quality-tips" title="Anchor link to this section">¶</a></h2>
+<h3 id="get-the-best-audio">Get the Best Audio<a class="headerlink" href="#get-the-best-audio" title="Anchor link to this section">¶</a></h3>
+<p><strong>Headphones/Earbuds:</strong></p>
+<ul>
+<li>Use good quality headphones</li>
+<li>Wired often better than Bluetooth</li>
+<li>Ensure proper fit and seal</li>
+</ul>
+<p><strong>Speakers:</strong></p>
+<ul>
+<li>Cast to quality speakers when possible</li>
+<li>Position speakers properly</li>
+<li>Adjust room acoustics</li>
+</ul>
+<p><strong>Settings:</strong></p>
+<ul>
+<li>Use highest quality your connection allows</li>
+<li>Disable other bandwidth-heavy apps</li>
+<li>Close unnecessary browser tabs</li>
+</ul>
+<hr>
+<h2 id="-offline-listening">📱 Offline Listening<a class="headerlink" href="#-offline-listening" title="Anchor link to this section">¶</a></h2>
+<p><strong>Currently:</strong> Mixtapes require internet connection</p>
+<p><strong>Future possibilities:</strong></p>
+<ul>
+<li>Offline mode for saved mixtapes</li>
+<li>Background sync when on WiFi</li>
+<li>Full offline playback</li>
+</ul>
+<p>Check with the creator about their server's features.</p>
+<hr>
+<h2 id="-common-issues">❓ Common Issues<a class="headerlink" href="#-common-issues" title="Anchor link to this section">¶</a></h2>
+<h3 id="playback-wont-start">Playback Won't Start<a class="headerlink" href="#playback-wont-start" title="Anchor link to this section">¶</a></h3>
+<p><strong>Solutions:</strong></p>
+<ol>
+<li>Refresh the page</li>
+<li>Check internet connection</li>
+<li>Try different browser</li>
+<li>Clear browser cache</li>
+<li>Disable browser extensions</li>
+</ol>
+<h3 id="stuttering-or-buffering">Stuttering or Buffering<a class="headerlink" href="#stuttering-or-buffering" title="Anchor link to this section">¶</a></h3>
+<p><strong>Solutions:</strong></p>
+<ol>
+<li>Switch to lower quality</li>
+<li>Pause and let it buffer</li>
+<li>Close other apps/tabs</li>
+<li>Move closer to router</li>
+<li>Restart your router</li>
+</ol>
+<h3 id="controls-not-working">Controls Not Working<a class="headerlink" href="#controls-not-working" title="Anchor link to this section">¶</a></h3>
+<p><strong>Solutions:</strong></p>
+<ol>
+<li>Refresh the page</li>
+<li>Check if browser is up to date</li>
+<li>Try different browser</li>
+<li>Disable ad blockers</li>
+<li>Check if JavaScript is enabled</li>
+</ol>
+<h3 id="audio-cutting-out">Audio Cutting Out<a class="headerlink" href="#audio-cutting-out" title="Anchor link to this section">¶</a></h3>
+<p><strong>Solutions:</strong></p>
+<ol>
+<li>Check Bluetooth connection</li>
+<li>Restart Bluetooth</li>
+<li>Use wired headphones</li>
+<li>Close battery-draining apps</li>
+<li>Disable battery saver temporarily</li>
+</ol>
+<h3 id="shuffle-not-saving">Shuffle Not Saving<a class="headerlink" href="#shuffle-not-saving" title="Anchor link to this section">¶</a></h3>
+<p><strong>Solutions:</strong></p>
+<ol>
+<li>Check if you're in private/incognito mode (shuffle won't save)</li>
+<li>Make sure browser allows cookies and storage</li>
+<li>To get a new random order: toggle shuffle off then on again</li>
+</ol>
+<h3 id="repeat-not-working">Repeat Not Working<a class="headerlink" href="#repeat-not-working" title="Anchor link to this section">¶</a></h3>
+<p><strong>Solutions:</strong></p>
+<ol>
+<li><strong>Not looping:</strong> Make sure repeat mode is on (button should be filled or blue)</li>
+<li><strong>Can't change modes:</strong> Refresh the page</li>
+<li><strong>Repeat lost on reload:</strong> Check if browser allows storage (like with shuffle)</li>
+<li><strong>Track won't stop repeating:</strong> Click repeat button to cycle to "Off" (outlined button)</li>
+</ol>
+<h3 id="sleep-timer-not-working">Sleep Timer Not Working<a class="headerlink" href="#sleep-timer-not-working" title="Anchor link to this section">¶</a></h3>
+<p><strong>Solutions:</strong></p>
+<ol>
+<li><strong>Timer won't start:</strong> Refresh the page and try again</li>
+<li><strong>Not seeing notifications:</strong> Check browser notification permissions</li>
+<li><strong>Timer doesn't stop playback:</strong> Make sure browser tab stays open</li>
+<li><strong>Duration not saving:</strong> Check if browser allows cookies and storage</li>
+<li><strong>Timer stopped unexpectedly:</strong> Check if device went to sleep or lost connection</li>
+</ol>
+<hr>
+<h2 id="-related-guides">📚 Related Guides<a class="headerlink" href="#-related-guides" title="Anchor link to this section">¶</a></h2>
+<ul>
+<li><strong><a href="getting-started.html">Getting Started</a></strong> - Opening your mixtape</li>
+<li><strong><a href="streaming.html">Streaming Guide</a></strong> - Cast to TVs and speakers</li>
+<li><strong><a href="faq.html">FAQ</a></strong> - Common questions and troubleshooting</li>
+</ul>
+<hr>
+<p>Enjoy every track! 🎵</p>
+
+
+
+
+
+
+
+  
+    
+  
+  
+    
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"></path></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="January 28, 2026 06:18:31 UTC"><span class="timeago" datetime="2026-01-28T06:18:31+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="January 28, 2026 06:18:31 UTC">2026-01-28</span>
+  </span>
+
+    
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Created">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"></path></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="January 28, 2026 06:18:31 UTC"><span class="timeago" datetime="2026-01-28T06:18:31+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="January 28, 2026 06:18:31 UTC">2026-01-28</span>
+  </span>
+
+    
+    
+    
+  </aside>
+
+
+  
+
+
+
+  <form class="md-feedback" name="feedback" hidden>
+    <fieldset>
+      <legend class="md-feedback__title">
+        Was this page helpful?
+      </legend>
+      <div class="md-feedback__inner">
+        <div class="md-feedback__list">
+          
+            <button class="md-feedback__icon md-icon" type="submit" title="This page was helpful" data-md-value="1">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 12a8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8 8 8 0 0 0 8-8m2 0a10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2a10 10 0 0 1 10 10M10 9.5c0 .8-.7 1.5-1.5 1.5S7 10.3 7 9.5 7.7 8 8.5 8s1.5.7 1.5 1.5m7 0c0 .8-.7 1.5-1.5 1.5S14 10.3 14 9.5 14.7 8 15.5 8s1.5.7 1.5 1.5m-5 7.73c-1.75 0-3.29-.73-4.19-1.81L9.23 14c.45.72 1.52 1.23 2.77 1.23s2.32-.51 2.77-1.23l1.42 1.42c-.9 1.08-2.44 1.81-4.19 1.81"></path></svg>
+            </button>
+          
+            <button class="md-feedback__icon md-icon" type="submit" title="This page could be improved" data-md-value="0">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 12a8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8 8 8 0 0 0 8-8m2 0a10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2a10 10 0 0 1 10 10m-6.5-4c.8 0 1.5.7 1.5 1.5s-.7 1.5-1.5 1.5-1.5-.7-1.5-1.5.7-1.5 1.5-1.5M10 9.5c0 .8-.7 1.5-1.5 1.5S7 10.3 7 9.5 7.7 8 8.5 8s1.5.7 1.5 1.5m2 4.5c1.75 0 3.29.72 4.19 1.81l-1.42 1.42C14.32 16.5 13.25 16 12 16s-2.32.5-2.77 1.23l-1.42-1.42C8.71 14.72 10.25 14 12 14"></path></svg>
+            </button>
+          
+        </div>
+        <div class="md-feedback__note">
+          
+            <div data-md-value="1" hidden>
+              
+              
+                
+              
+              
+              
+                
+                
+              
+              Thanks for your feedback!
+            </div>
+          
+            <div data-md-value="0" hidden>
+              
+              
+                
+              
+              
+              
+                
+                
+              
+              Thanks for your feedback! Help us improve by <a href="https://github.com/mark-me/mixtape-society/issues/new" target="_blank" rel="noopener">opening an issue</a>.
+            </div>
+          
+        </div>
+      </div>
+    </fieldset>
+  </form>
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer">
+        
+          
+          <a href="getting-started.html" class="md-footer__link md-footer__link--prev" aria-label="Previous: Getting Started">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Getting Started
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="streaming.html" class="md-footer__link md-footer__link--next" aria-label="Next: Streaming to Devices">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Streaming to Devices
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"></path></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Mark Zwart
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://github.com/mark-me/mixtape-society" target="_blank" rel="noopener" title="GitHub Repository" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.indexes", "navigation.prune", "navigation.path", "navigation.footer", "navigation.tracking", "toc.follow", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.select", "content.code.annotate", "content.action.edit", "content.action.view", "content.tooltips", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      
+        <script src="../../js/timeago.min.js"></script>
+      
+        <script src="../../js/timeago_mkdocs_material.js"></script>
+      
+        <script src="../../assets/javascripts/panzoom.min.js"></script>
+      
+        <script src="../../assets/javascripts/zoompan.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>

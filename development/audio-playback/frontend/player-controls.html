@@ -1,0 +1,3004 @@
+<!DOCTYPE html><html lang="en" class="no-js"><head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Self-hosted mixtape sharing platform with music streaming, Chromecast support, and curated playlist management">
+      
+      
+        <meta name="author" content="Mark Zwart">
+      
+      
+        <link rel="canonical" href="https://mixtape-society.org/development/audio-playback/frontend/player-controls.html">
+      
+      
+        <link rel="prev" href="../backend/server-cache-system.html">
+      
+      
+        <link rel="next" href="player-utilities.html">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../images/logo.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+    
+    
+      
+        <title>Player Controls - Mixtape Society</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.618322db.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+        <script src="https://unpkg.com/iframe-worker/shim"></script>
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../css/timeago.css">
+    
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/panzoom.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+    
+    
+  <link href="../../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style><meta name="panzoom-theme" content="material">
+<meta name="panzoom-data" content='{"selectors": [".mermaid", ".d2"], "initial_zoom_level": 1.0}'> </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#player-controls---complete-documentation" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../../index.html" title="Mixtape Society" class="md-header__button md-logo" aria-label="Mixtape Society" data-md-component="logo">
+      
+  <img src="../../../images/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Mixtape Society
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Player Controls
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"></path></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/mark-me/mixtape-society" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    mark-me/mixtape-society
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../index.html" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Introduction
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../user/getting-started.html" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../intro.html" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Architecture &amp; Development
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../project/index.html" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Project
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../index.html" title="Mixtape Society" class="md-nav__button md-logo" aria-label="Mixtape Society" data-md-component="logo">
+      
+  <img src="../../../images/logo.png" alt="logo">
+
+    </a>
+    Mixtape Society
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/mark-me/mixtape-society" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    mark-me/mixtape-society
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../../user/getting-started.html" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture &amp; Development
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture &amp; Development
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../intro.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../deployment.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../configuration.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../music-collection/overview.html" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Music Collection
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../mixtape-system/overview.html" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mixtape System
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Audio Playback
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Audio Playback
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../overview.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    System Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../backend/audio-streaming.html" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backend (Streaming)
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3_6_3" id="__nav_3_6_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Frontend (Player)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_6_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_6_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Frontend (Player)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Player Controls
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="player-controls.html" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Player Controls
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#-purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎯 Purpose
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🏗️ Architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-initialization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 Initialization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-manager-modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📦 Manager Modules
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-core-functions-main-orchestrator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎮 Core Functions (Main Orchestrator)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-playback-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎵 Playback Modes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-wake-lock-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔒 Wake Lock Management
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-track-auto-advance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔄 Track Auto-Advance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-constants--configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📊 Constants &amp; Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔧 Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-performance-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📈 Performance Considerations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-security-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔐 Security Considerations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📝 Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="player-utilities.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Player Utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="sleep-timer.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sleep Timer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../media-integration.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Media Session Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    
+  
+  
+  
+    <a href="../../device-integration/chromecast/integration.html" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Device Integration
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+  
+
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    
+  
+  
+  
+    <a href="../../media-assets/cover-art/overview.html" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Media Assets
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+  
+
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../web-application/flask-app.html" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Web Application
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../../project/index.html" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#-purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎯 Purpose
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🏗️ Architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-initialization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 Initialization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-manager-modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📦 Manager Modules
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-core-functions-main-orchestrator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎮 Core Functions (Main Orchestrator)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-playback-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎵 Playback Modes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-wake-lock-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔒 Wake Lock Management
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-track-auto-advance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔄 Track Auto-Advance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-constants--configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📊 Constants &amp; Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔧 Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-performance-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📈 Performance Considerations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-security-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔐 Security Considerations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📝 Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="Navigation">
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href="../../../index.html" class="md-path__link">
+        
+  <span class="md-ellipsis">
+    Introduction
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="../../intro.html" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    Architecture &amp; Development
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="../overview.html" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    Audio Playback
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="player-controls.html" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    Frontend (Player)
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/mark-me/mixtape-society/edit/main/docs/development/audio-playback/frontend/player-controls.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75z"></path></svg>
+    </a>
+  
+  
+    
+      
+    
+    <a href="https://github.com/mark-me/mixtape-society/raw/main/docs/development/audio-playback/frontend/player-controls.md" title="View source of this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0 8a5 5 0 0 1-5-5 5 5 0 0 1 5-5 5 5 0 0 1 5 5 5 5 0 0 1-5 5m0-12.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5"></path></svg>
+    </a>
+  
+
+
+<h1 id="player-controls---complete-documentation">Player Controls - Complete Documentation<a class="headerlink" href="#player-controls---complete-documentation" title="Anchor link to this section">¶</a></h1>
+<p><a class="glightbox" data-type="image" data-width="100%" data-height="auto" href="../../../images/player.png" data-title="Player" data-desc-position="bottom"><img align="right" alt="Player" src="../../../images/player.png" width="90"></a></p>
+<p>The Player Controls system is a modular architecture that manages all playback functionality in Mixtape Society. It consists of specialized managers coordinated by the main <code>playerControls.js</code> orchestrator, handling local playback, Chromecast casting, and Android Auto integration with a unified user experience.</p>
+<hr>
+<h2 id="-purpose">🎯 Purpose<a class="headerlink" href="#-purpose" title="Anchor link to this section">¶</a></h2>
+<p><strong>Primary Responsibilities:</strong></p>
+<ul>
+<li>Coordinate playback across multiple modes (local, Chromecast, Android Auto)</li>
+<li>Manage track selection and queue navigation with shuffle and repeat modes</li>
+<li>Handle quality settings and preferences</li>
+<li>Synchronize UI state across all controls</li>
+<li>Route user actions to appropriate playback system</li>
+<li>Prevent conflicting playback states</li>
+<li>Manage playback state persistence (resume on reload)</li>
+<li>Handle errors gracefully with recovery options</li>
+<li>Maintain wake lock during playback to prevent app suspension</li>
+<li>Ensure seamless auto-advance on mobile devices with autoplay restrictions</li>
+</ul>
+<p><strong>Key Design Principle:</strong>
+Modular architecture with specialized managers, each handling a specific concern, coordinated by a central orchestrator.</p>
+<hr>
+<h2 id="-architecture">🏗️ Architecture<a class="headerlink" href="#-architecture" title="Anchor link to this section">¶</a></h2>
+<h3 id="modular-structure">Modular Structure<a class="headerlink" href="#modular-structure" title="Anchor link to this section">¶</a></h3>
+<p>The player controls system is organized into focused managers:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>player/
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├──<span class="w"> </span>playerControls.js<span class="w">         </span>Main<span class="w"> </span>orchestrator<span class="w"> </span><span class="o">(</span><span class="m">1</span>,000<span class="w"> </span>lines<span class="o">)</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>├──<span class="w"> </span>queueManager.js<span class="w">           </span>Shuffle<span class="w"> </span><span class="p">&amp;</span><span class="w"> </span>repeat<span class="w"> </span>logic<span class="w"> </span><span class="o">(</span><span class="m">306</span><span class="w"> </span>lines<span class="o">)</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>├──<span class="w"> </span>playbackManager.js<span class="w">        </span>Core<span class="w"> </span>playback<span class="w"> </span>operations<span class="w"> </span><span class="o">(</span><span class="m">192</span><span class="w"> </span>lines<span class="o">)</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>├──<span class="w"> </span>uiSyncManager.js<span class="w">          </span>UI<span class="w"> </span>updates<span class="w"> </span><span class="p">&amp;</span><span class="w"> </span>synchronization<span class="w"> </span><span class="o">(</span><span class="m">178</span><span class="w"> </span>lines<span class="o">)</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>├──<span class="w"> </span>autoAdvanceManager.js<span class="w">     </span>Mobile<span class="w"> </span>auto-advance<span class="w"> </span><span class="o">(</span><span class="m">137</span><span class="w"> </span>lines<span class="o">)</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>├──<span class="w"> </span>qualityManager.js<span class="w">         </span>Audio<span class="w"> </span>quality<span class="w"> </span>selection<span class="w"> </span><span class="o">(</span><span class="m">93</span><span class="w"> </span>lines<span class="o">)</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>├──<span class="w"> </span>stateManager.js<span class="w">           </span>Playback<span class="w"> </span>state<span class="w"> </span>persistence<span class="w"> </span><span class="o">(</span><span class="m">88</span><span class="w"> </span>lines<span class="o">)</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>├──<span class="w"> </span>wakeLockManager.js<span class="w">        </span>Wake<span class="w"> </span>lock<span class="w"> </span>management<span class="w"> </span><span class="o">(</span><span class="m">75</span><span class="w"> </span>lines<span class="o">)</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>├──<span class="w"> </span>playerUtils.js<span class="w">            </span>Platform<span class="w"> </span>utilities
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>├──<span class="w"> </span>androidAuto.js<span class="w">            </span>Android<span class="w"> </span>Auto<span class="w"> </span>integration
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>└──<span class="w"> </span>chromecast.js<span class="w">             </span>Chromecast<span class="w"> </span>integration
+</span></code></pre></div>
+<h3 id="component-relationships">Component Relationships<a class="headerlink" href="#component-relationships" title="Anchor link to this section">¶</a></h3>
+<div class="panzoom-box" data-key="alt" id="panzoom0" oncontextmenu="return false;">
+    
+    <nav class="panzoom-nav">
+    <button class="panzoom-info panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M464 256A208 208 0 1 0 48 256a208 208 0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm169.8-90.7c7.9-22.3 29.1-37.3 52.8-37.3l58.3 0c34.9 0 63.1 28.3 63.1 63.1c0 22.6-12.1 43.5-31.7 54.8L280 264.4c-.2 13-10.9 23.6-24 23.6c-13.3 0-24-10.7-24-24l0-13.5c0-8.6 4.6-16.5 12.1-20.8l44.3-25.4c4.7-2.7 7.6-7.7 7.6-13.1c0-8.4-6.8-15.1-15.1-15.1l-58.3 0c-3.4 0-6.4 2.1-7.5 5.3l-.4 1.2c-4.4 12.5-18.2 19-30.6 14.6s-19-18.2-14.6-30.6l.4-1.2zM224 352a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z"></path>
+    </svg>
+</button><button class="panzoom-reset panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M125.7 160l50.3 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L48 224c-17.7 0-32-14.3-32-32L16 64c0-17.7 14.3-32 32-32s32 14.3 32 32l0 51.2L97.6 97.6c87.5-87.5 229.3-87.5 316.8 0s87.5 229.3 0 316.8s-229.3 87.5-316.8 0c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0c62.5 62.5 163.8 62.5 226.3 0s62.5-163.8 0-226.3s-163.8-62.5-226.3 0L125.7 160z"></path>
+    </svg>
+</button><button class="panzoom-max panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M32 32C14.3 32 0 46.3 0 64l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L32 32zM64 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 32c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM448 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96z"></path>
+    </svg>
+</button><button class="panzoom-min panzoom-button panzoom-hidden">
+    <svg class="panzoom-icon" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M160 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96zM32 320c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM352 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 320c-17.7 0-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0z"></path>
+    </svg>
+</button>
+    </nav>
+    <pre class="mermaid"><code>graph TB
+    PlayerControls[playerControls.js&lt;br/&gt;Main Orchestrator]
+
+    PlayerControls --&gt; QueueMgr[queueManager.js&lt;br/&gt;Shuffle &amp; Repeat]
+    PlayerControls --&gt; PlaybackMgr[playbackManager.js&lt;br/&gt;Core Playback]
+    PlayerControls --&gt; UIMgr[uiSyncManager.js&lt;br/&gt;UI Updates]
+    PlayerControls --&gt; AutoAdvMgr[autoAdvanceManager.js&lt;br/&gt;Auto-Advance]
+    PlayerControls --&gt; QualityMgr[qualityManager.js&lt;br/&gt;Quality Selection]
+    PlayerControls --&gt; StateMgr[stateManager.js&lt;br/&gt;State Persistence]
+    PlayerControls --&gt; WakeLockMgr[wakeLockManager.js&lt;br/&gt;Wake Lock]
+
+    PlayerControls --&gt; LocalPlayer[HTML5 Audio Element]
+    PlayerControls --&gt; Chromecast[chromecast.js]
+    PlayerControls --&gt; AndroidAuto[androidAuto.js]
+    PlayerControls --&gt; PlayerUtils[playerUtils.js]
+
+    PlaybackMgr --&gt; LocalPlayer
+    PlaybackMgr --&gt; QualityMgr
+    PlaybackMgr --&gt; StateMgr
+    AutoAdvMgr --&gt; WakeLockMgr
+
+    Chromecast --&gt; CastSDK[Google Cast SDK]
+    AndroidAuto --&gt; MediaSession[Media Session API]
+    PlayerUtils --&gt; MediaSession
+
+    LocalPlayer --&gt; Audio[Audio Playback]
+    CastSDK --&gt; ChromecastDevice[Chromecast Device]
+    MediaSession --&gt; CarDashboard[Car Dashboard/Lock Screen]
+
+    style PlayerControls fill:#4a6fa5,color:#fff
+    style QueueMgr fill:#5a8fa5,color:#fff
+    style PlaybackMgr fill:#5a8fa5,color:#fff
+    style UIMgr fill:#5a8fa5,color:#fff
+    style AutoAdvMgr fill:#5a8fa5,color:#fff
+    style QualityMgr fill:#5a8fa5,color:#fff
+    style StateMgr fill:#5a8fa5,color:#fff
+    style WakeLockMgr fill:#5a8fa5,color:#fff
+    style Chromecast fill:#c65d5d,color:#fff
+    style AndroidAuto fill:#4a8c5f,color:#fff</code></pre> 
+    <div class="panzoom-info-box panzoom-info-box-bottom panzoom-hidden">
+Hold "Alt" / "Option" to enable pan &amp; zoom
+</div>
+</div>
+<h3 id="state-flow">State Flow<a class="headerlink" href="#state-flow" title="Anchor link to this section">¶</a></h3>
+<div class="panzoom-box" data-key="alt" id="panzoom0" oncontextmenu="return false;">
+    
+    <nav class="panzoom-nav">
+    <button class="panzoom-info panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M464 256A208 208 0 1 0 48 256a208 208 0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm169.8-90.7c7.9-22.3 29.1-37.3 52.8-37.3l58.3 0c34.9 0 63.1 28.3 63.1 63.1c0 22.6-12.1 43.5-31.7 54.8L280 264.4c-.2 13-10.9 23.6-24 23.6c-13.3 0-24-10.7-24-24l0-13.5c0-8.6 4.6-16.5 12.1-20.8l44.3-25.4c4.7-2.7 7.6-7.7 7.6-13.1c0-8.4-6.8-15.1-15.1-15.1l-58.3 0c-3.4 0-6.4 2.1-7.5 5.3l-.4 1.2c-4.4 12.5-18.2 19-30.6 14.6s-19-18.2-14.6-30.6l.4-1.2zM224 352a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z"></path>
+    </svg>
+</button><button class="panzoom-reset panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M125.7 160l50.3 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L48 224c-17.7 0-32-14.3-32-32L16 64c0-17.7 14.3-32 32-32s32 14.3 32 32l0 51.2L97.6 97.6c87.5-87.5 229.3-87.5 316.8 0s87.5 229.3 0 316.8s-229.3 87.5-316.8 0c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0c62.5 62.5 163.8 62.5 226.3 0s62.5-163.8 0-226.3s-163.8-62.5-226.3 0L125.7 160z"></path>
+    </svg>
+</button><button class="panzoom-max panzoom-button">
+    <svg class="panzoom-icon" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M32 32C14.3 32 0 46.3 0 64l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L32 32zM64 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 32c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM448 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96z"></path>
+    </svg>
+</button><button class="panzoom-min panzoom-button panzoom-hidden">
+    <svg class="panzoom-icon" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M160 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96zM32 320c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM352 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 320c-17.7 0-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0z"></path>
+    </svg>
+</button>
+    </nav>
+    <pre class="mermaid"><code>stateDiagram-v2
+    [*] --&gt; Initialized
+    Initialized --&gt; Local: Local Playback
+    Initialized --&gt; Casting: Cast Connected
+    Local --&gt; Casting: Cast Button
+    Casting --&gt; Local: Cast Disconnected
+    Local --&gt; Paused: Pause
+    Paused --&gt; Local: Resume
+    Local --&gt; Error: Playback Error
+    Error --&gt; Retry: Auto Retry
+    Error --&gt; Skip: User Skip
+    Retry --&gt; Local: Success
+    Retry --&gt; Error: Failed
+    Skip --&gt; Local: Next Track</code></pre> 
+    <div class="panzoom-info-box panzoom-info-box-bottom panzoom-hidden">
+Hold "Alt" / "Option" to enable pan &amp; zoom
+</div>
+</div>
+<hr>
+<h2 id="-initialization">🚀 Initialization<a class="headerlink" href="#-initialization" title="Anchor link to this section">¶</a></h2>
+<h3 id="entry-point">Entry Point<a class="headerlink" href="#entry-point" title="Anchor link to this section">¶</a></h3>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">export</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">initPlayerControls</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="c1">// Initialization sequence:</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="c1">// 1. Get DOM elements</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="c1">// 2. Initialize managers (queue, state, wake lock, quality, UI, playback, auto-advance)</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="c1">// 3. Set up audio control interception</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="c1">// 4. Initialize cast listeners</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">    </span><span class="c1">// 5. Initialize event listeners</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">    </span><span class="c1">// 6. Restore queue state (shuffle &amp; repeat)</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">    </span><span class="c1">// 7. Restore playback state (if available)</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">    </span><span class="c1">// 8. Set up Media Session</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="p">}</span>
+</span></code></pre></div>
+<h3 id="manager-initialization">Manager Initialization<a class="headerlink" href="#manager-initialization" title="Anchor link to this section">¶</a></h3>
+<p>The main orchestrator creates and coordinates specialized managers:</p>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1">// Extract mixtape slug from URL for unique storage keys</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">getMixtapeSlug</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">match</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">window</span><span class="p">.</span><span class="nx">location</span><span class="p">.</span><span class="nx">pathname</span><span class="p">.</span><span class="nx">match</span><span class="p">(</span><span class="sr">/\/share\/([^\/]+)/</span><span class="p">);</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">match</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="nx">match</span><span class="p">[</span><span class="mf">1</span><span class="p">]</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s1">'default'</span><span class="p">;</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="p">};</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="kd">const</span><span class="w"> </span><span class="nx">mixtapeSlug</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">getMixtapeSlug</span><span class="p">();</span><span class="w">  </span><span class="c1">// e.g., "summer-vibes-2024"</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="c1">// Initialize managers with per-mixtape storage</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="kd">const</span><span class="w"> </span><span class="nx">queueManager</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">QueueManager</span><span class="p">(</span><span class="nx">trackItems</span><span class="p">.</span><span class="nx">length</span><span class="p">,</span><span class="w"> </span><span class="nx">mixtapeSlug</span><span class="p">);</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="kd">const</span><span class="w"> </span><span class="nx">stateManager</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">StateManager</span><span class="p">(</span><span class="nx">mixtapeSlug</span><span class="p">);</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="kd">const</span><span class="w"> </span><span class="nx">wakeLockManager</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">WakeLockManager</span><span class="p">();</span>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="kd">const</span><span class="w"> </span><span class="nx">qualityManager</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">QualityManager</span><span class="p">(</span><span class="s1">'audioQuality'</span><span class="p">);</span>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="kd">const</span><span class="w"> </span><span class="nx">uiManager</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">UISyncManager</span><span class="p">(</span><span class="nx">container</span><span class="p">,</span><span class="w"> </span><span class="nx">trackItems</span><span class="p">,</span><span class="w"> </span><span class="nx">bottomTitle</span><span class="p">,</span><span class="w"> </span><span class="nx">bottomArtistAlbum</span><span class="p">,</span><span class="w"> </span><span class="nx">bottomCover</span><span class="p">);</span>
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="kd">const</span><span class="w"> </span><span class="nx">playbackManager</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">PlaybackManager</span><span class="p">(</span><span class="nx">player</span><span class="p">,</span><span class="w"> </span><span class="nx">qualityManager</span><span class="p">,</span><span class="w"> </span><span class="nx">stateManager</span><span class="p">);</span>
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="kd">const</span><span class="w"> </span><span class="nx">autoAdvanceManager</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">AutoAdvanceManager</span><span class="p">(</span><span class="nx">player</span><span class="p">,</span><span class="w"> </span><span class="nx">wakeLockManager</span><span class="p">);</span>
+</span></code></pre></div>
+<p><strong>Note:</strong> <code>QueueManager</code> and <code>StateManager</code> now require the mixtape slug for isolated storage per mixtape.</p>
+<hr>
+<h2 id="-manager-modules">📦 Manager Modules<a class="headerlink" href="#-manager-modules" title="Anchor link to this section">¶</a></h2>
+<h3 id="queuemanager-queuemanagerjs">QueueManager (<code>queueManager.js</code>)<a class="headerlink" href="#queuemanager-queuemanagerjs" title="Anchor link to this section">¶</a></h3>
+<p><strong>Purpose:</strong> Manages track queue navigation with shuffle and repeat functionality.</p>
+<p><strong>Responsibilities:</strong></p>
+<ul>
+<li>Generate and maintain shuffle order using Fisher-Yates algorithm</li>
+<li>Handle repeat modes (Off, All, One)</li>
+<li>Calculate next/previous track indices</li>
+<li>Persist queue state to localStorage</li>
+</ul>
+<p><strong>Key Methods:</strong></p>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nx">enableShuffle</span><span class="p">()</span><span class="w">              </span><span class="c1">// Enable shuffle mode</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nx">disableShuffle</span><span class="p">()</span><span class="w">             </span><span class="c1">// Disable shuffle mode</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="nx">toggleShuffle</span><span class="p">()</span><span class="w">              </span><span class="c1">// Toggle shuffle on/off</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="nx">cycleRepeatMode</span><span class="p">()</span><span class="w">            </span><span class="c1">// Cycle through repeat modes</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="nx">getNextTrack</span><span class="p">(</span><span class="nx">index</span><span class="p">,</span><span class="w"> </span><span class="nx">options</span><span class="p">)</span><span class="w"> </span><span class="c1">// Get next track respecting shuffle/repeat</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="nx">getPreviousTrack</span><span class="p">(</span><span class="nx">index</span><span class="p">)</span><span class="w">      </span><span class="c1">// Get previous track</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="nx">saveState</span><span class="p">()</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nx">restoreState</span><span class="p">()</span><span class="w"> </span><span class="c1">// Persist state</span>
+</span></code></pre></div>
+<p><strong>Constants:</strong></p>
+<ul>
+<li><code>REPEAT_MODES</code> - Off, All, One</li>
+<li><code>REPEAT_MODE_LABELS</code> - UI labels</li>
+<li><code>REPEAT_MODE_ICONS</code> - Bootstrap icon classes</li>
+<li><code>REPEAT_MODE_STYLES</code> - Button style classes</li>
+</ul>
+<p><strong>Example Usage:</strong></p>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">queue</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">QueueManager</span><span class="p">(</span><span class="mf">20</span><span class="p">);</span><span class="w"> </span><span class="c1">// 20 tracks</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nx">queue</span><span class="p">.</span><span class="nx">enableShuffle</span><span class="p">();</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="kd">const</span><span class="w"> </span><span class="nx">nextIdx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">queue</span><span class="p">.</span><span class="nx">getNextTrack</span><span class="p">(</span><span class="mf">5</span><span class="p">);</span><span class="w"> </span><span class="c1">// Get next after track 5</span>
+</span></code></pre></div>
+<hr>
+<h3 id="playbackmanager-playbackmanagerjs">PlaybackManager (<code>playbackManager.js</code>)<a class="headerlink" href="#playbackmanager-playbackmanagerjs" title="Anchor link to this section">¶</a></h3>
+<p><strong>Purpose:</strong> Manages core audio playback operations.</p>
+<p><strong>Responsibilities:</strong></p>
+<ul>
+<li>Load tracks into HTML5 audio player</li>
+<li>Control playback (play, pause, stop, seek)</li>
+<li>Track current playback position</li>
+<li>Auto-save playback state</li>
+<li>Manage playback timing</li>
+</ul>
+<p><strong>Key Methods:</strong></p>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nx">loadTrack</span><span class="p">(</span><span class="nx">index</span><span class="p">,</span><span class="w"> </span><span class="nx">trackPath</span><span class="p">,</span><span class="w"> </span><span class="nx">metadata</span><span class="p">)</span><span class="w"> </span><span class="c1">// Load track into player</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nx">play</span><span class="p">()</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nx">pause</span><span class="p">()</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nx">stop</span><span class="p">()</span><span class="w">              </span><span class="c1">// Playback controls</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="nx">seek</span><span class="p">(</span><span class="nx">time</span><span class="p">)</span><span class="w">                             </span><span class="c1">// Seek to position</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="nx">getCurrentTime</span><span class="p">()</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nx">getDuration</span><span class="p">()</span><span class="w">       </span><span class="c1">// Get playback info</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="nx">getCurrentIndex</span><span class="p">()</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nx">setCurrentIndex</span><span class="p">()</span><span class="w">  </span><span class="c1">// Track index management</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="nx">hasSource</span><span class="p">()</span><span class="w">                            </span><span class="c1">// Check if track loaded</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="nx">startAutoSave</span><span class="p">()</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nx">stopAutoSave</span><span class="p">()</span><span class="w">       </span><span class="c1">// State persistence</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="nx">seekWhenReady</span><span class="p">(</span><span class="nx">targetTime</span><span class="p">)</span><span class="w">              </span><span class="c1">// Seek when metadata ready</span>
+</span></code></pre></div>
+<p><strong>Integration:</strong></p>
+<ul>
+<li>Uses <code>QualityManager</code> to build audio URLs with quality parameters</li>
+<li>Uses <code>StateManager</code> to save playback position every 5 seconds</li>
+</ul>
+<p><strong>Example Usage:</strong></p>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nx">playbackManager</span><span class="p">.</span><span class="nx">loadTrack</span><span class="p">(</span><span class="mf">5</span><span class="p">,</span><span class="w"> </span><span class="s1">'path/to/song.flac'</span><span class="p">,</span><span class="w"> </span><span class="nx">metadata</span><span class="p">);</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="k">await</span><span class="w"> </span><span class="nx">playbackManager</span><span class="p">.</span><span class="nx">play</span><span class="p">();</span>
+</span></code></pre></div>
+<hr>
+<h3 id="uisyncmanager-uisyncmanagerjs">UISyncManager (<code>uiSyncManager.js</code>)<a class="headerlink" href="#uisyncmanager-uisyncmanagerjs" title="Anchor link to this section">¶</a></h3>
+<p><strong>Purpose:</strong> Handles all UI updates and synchronization.</p>
+<p><strong>Responsibilities:</strong></p>
+<ul>
+<li>Update bottom player info (title, artist, album, cover)</li>
+<li>Sync play/pause icons across all track items</li>
+<li>Update progress bar and time display</li>
+<li>Scroll to active track</li>
+<li>Highlight restored tracks</li>
+</ul>
+<p><strong>Key Methods:</strong></p>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nx">updateBottomPlayerInfo</span><span class="p">(</span><span class="nx">track</span><span class="p">)</span><span class="w">           </span><span class="c1">// Update bottom player display</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nx">setActiveTrack</span><span class="p">(</span><span class="nx">track</span><span class="p">)</span><span class="w">                   </span><span class="c1">// Mark track as active</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="nx">scrollToCurrentTrack</span><span class="p">(</span><span class="nx">element</span><span class="p">)</span><span class="w">           </span><span class="c1">// Scroll track into view</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="nx">syncPlayIcons</span><span class="p">(</span><span class="nx">currentIndex</span><span class="p">,</span><span class="w"> </span><span class="nx">isPlaying</span><span class="p">)</span><span class="w">  </span><span class="c1">// Update all play icons</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="nx">updateUIForTrack</span><span class="p">(</span><span class="nx">index</span><span class="p">)</span><span class="w">                 </span><span class="c1">// Complete UI update</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="nx">updateProgress</span><span class="p">(</span><span class="nx">currentTime</span><span class="p">,</span><span class="w"> </span><span class="nx">duration</span><span class="p">)</span><span class="w">   </span><span class="c1">// Update progress bar</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="nx">formatTime</span><span class="p">(</span><span class="nx">seconds</span><span class="p">)</span><span class="w">                     </span><span class="c1">// Format time as mm:ss</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="nx">applyRestoredUIState</span><span class="p">(</span><span class="nx">trackIndex</span><span class="p">)</span><span class="w">        </span><span class="c1">// Restore with highlight</span>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="nx">showPlayer</span><span class="p">()</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nx">hidePlayer</span><span class="p">()</span><span class="w">             </span><span class="c1">// Show/hide player container</span>
+</span></code></pre></div>
+<p><strong>No Dependencies:</strong> Pure DOM manipulation, no business logic.</p>
+<hr>
+<h3 id="autoadvancemanager-autoadvancemanagerjs">AutoAdvanceManager (<code>autoAdvanceManager.js</code>)<a class="headerlink" href="#autoadvancemanager-autoadvancemanagerjs" title="Anchor link to this section">¶</a></h3>
+<p><strong>Purpose:</strong> Handles mobile-optimized automatic track advancement.</p>
+<p><strong>Responsibilities:</strong></p>
+<ul>
+<li>Manage track transition state</li>
+<li>Implement retry logic for blocked autoplay</li>
+<li>Handle Media Session API fallback</li>
+<li>Coordinate with wake lock during transitions</li>
+</ul>
+<p><strong>Key Methods:</strong></p>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nx">isTransitioningTracks</span><span class="p">()</span><span class="w">                      </span><span class="c1">// Check transition state</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="nx">setTransitioning</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span><span class="w">                      </span><span class="c1">// Set transition flag</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="nx">attemptAutoAdvancePlay</span><span class="p">(</span><span class="nx">onSuccess</span><span class="p">,</span><span class="w"> </span><span class="nx">onFailure</span><span class="p">)</span><span class="w"> </span><span class="c1">// Auto-advance with retries</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="nx">attemptStandardPlay</span><span class="p">(</span><span class="nx">onSuccess</span><span class="p">,</span><span class="w"> </span><span class="nx">onFailure</span><span class="p">)</span><span class="w">    </span><span class="c1">// Standard playback</span>
+</span></code></pre></div>
+<p><strong>Retry Strategy:</strong></p>
+<ol>
+<li>Immediate play attempt</li>
+<li>Update Media Session state if blocked</li>
+<li>Retry after 50ms</li>
+<li>Retry after 100ms</li>
+<li>Retry after 200ms</li>
+</ol>
+<p><strong>Integration:</strong></p>
+<ul>
+<li>Uses <code>WakeLockManager</code> to maintain wake lock during transitions</li>
+<li>Prevents wake lock release between tracks</li>
+</ul>
+<hr>
+<h3 id="qualitymanager-qualitymanagerjs">QualityManager (<code>qualityManager.js</code>)<a class="headerlink" href="#qualitymanager-qualitymanagerjs" title="Anchor link to this section">¶</a></h3>
+<p><strong>Purpose:</strong> Manages audio quality selection and URL building.</p>
+<p><strong>Responsibilities:</strong></p>
+<ul>
+<li>Store current quality setting</li>
+<li>Build audio URLs with quality parameters</li>
+<li>Persist quality preference to localStorage</li>
+<li>Provide quality level metadata</li>
+</ul>
+<p><strong>Key Methods:</strong></p>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nx">getQuality</span><span class="p">()</span><span class="w">                        </span><span class="c1">// Get current quality</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="nx">setQuality</span><span class="p">(</span><span class="nx">quality</span><span class="p">)</span><span class="w">                 </span><span class="c1">// Set quality level</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="nx">getQualityLevels</span><span class="p">()</span><span class="w">                  </span><span class="c1">// Get available levels</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="nx">getQualityLabel</span><span class="p">(</span><span class="nx">quality</span><span class="p">)</span><span class="w">            </span><span class="c1">// Get quality label</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="nx">buildAudioUrl</span><span class="p">(</span><span class="nx">basePath</span><span class="p">,</span><span class="w"> </span><span class="nx">quality</span><span class="p">)</span><span class="w">    </span><span class="c1">// Build URL with quality param</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="nx">saveQuality</span><span class="p">()</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nx">restoreQuality</span><span class="p">()</span><span class="w">    </span><span class="c1">// Persist preference</span>
+</span></code></pre></div>
+<p><strong>Quality Levels:</strong></p>
+<ul>
+<li><code>high</code> - 256kbps</li>
+<li><code>medium</code> - 192kbps (default)</li>
+<li><code>low</code> - 128kbps</li>
+<li><code>original</code> - No transcoding</li>
+</ul>
+<hr>
+<h3 id="statemanager-statemanagerjs">StateManager (<code>stateManager.js</code>)<a class="headerlink" href="#statemanager-statemanagerjs" title="Anchor link to this section">¶</a></h3>
+<p><strong>Purpose:</strong> Handles playback state persistence using localStorage with <strong>per-mixtape isolation</strong>.</p>
+<p><strong>Responsibilities:</strong></p>
+<ul>
+<li>Save current playback position per mixtape</li>
+<li>Restore playback state on page load</li>
+<li>Track last played position for each mixtape</li>
+<li>Validate state age (24-hour expiry)</li>
+<li>Prevent cross-mixtape state pollution</li>
+</ul>
+<p><strong>Key Methods:</strong></p>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nx">savePlaybackState</span><span class="p">(</span><span class="nx">trackIndex</span><span class="p">,</span><span class="w"> </span><span class="nx">currentTime</span><span class="p">,</span><span class="w"> </span><span class="nx">paused</span><span class="p">,</span><span class="w"> </span><span class="nx">title</span><span class="p">)</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="nx">restorePlaybackState</span><span class="p">()</span><span class="w">  </span><span class="c1">// Returns saved state or null</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="nx">clearPlaybackState</span><span class="p">()</span><span class="w">    </span><span class="c1">// Clear saved position</span>
+</span></code></pre></div>
+<p><strong>Storage Keys (Per-Mixtape):</strong></p>
+<p>Storage keys are <strong>unique per mixtape</strong> using the slug from the URL:</p>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1">// Example for mixtape with slug "summer-vibes-2024"</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="o">-</span><span class="w"> </span><span class="nx">summer</span><span class="o">-</span><span class="nx">vibes</span><span class="o">-</span><span class="mf">2024</span><span class="nx">_playback_position</span><span class="w">  </span><span class="c1">// Full state object</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="o">-</span><span class="w"> </span><span class="nx">summer</span><span class="o">-</span><span class="nx">vibes</span><span class="o">-</span><span class="mf">2024</span><span class="nx">_current_track</span><span class="w">      </span><span class="c1">// Track index</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="o">-</span><span class="w"> </span><span class="nx">summer</span><span class="o">-</span><span class="nx">vibes</span><span class="o">-</span><span class="mf">2024</span><span class="nx">_current_time</span><span class="w">       </span><span class="c1">// Playback position</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="o">-</span><span class="w"> </span><span class="nx">summer</span><span class="o">-</span><span class="nx">vibes</span><span class="o">-</span><span class="mf">2024</span><span class="nx">_shuffle_state</span><span class="w">      </span><span class="c1">// Shuffle state</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="o">-</span><span class="w"> </span><span class="nx">summer</span><span class="o">-</span><span class="nx">vibes</span><span class="o">-</span><span class="mf">2024</span><span class="nx">_repeat_mode</span><span class="w">        </span><span class="c1">// Repeat mode</span>
+</span></code></pre></div>
+<p><strong>Initialization:</strong></p>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1">// Extract slug from URL: /play/share/summer-vibes-2024</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">getMixtapeSlug</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">match</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">window</span><span class="p">.</span><span class="nx">location</span><span class="p">.</span><span class="nx">pathname</span><span class="p">.</span><span class="nx">match</span><span class="p">(</span><span class="sr">/\/share\/([^\/]+)/</span><span class="p">);</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">match</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="nx">match</span><span class="p">[</span><span class="mf">1</span><span class="p">]</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s1">'default'</span><span class="p">;</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="p">};</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="kd">const</span><span class="w"> </span><span class="nx">mixtapeSlug</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">getMixtapeSlug</span><span class="p">();</span><span class="w">  </span><span class="c1">// "summer-vibes-2024"</span>
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="kd">const</span><span class="w"> </span><span class="nx">stateManager</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">StateManager</span><span class="p">(</span><span class="nx">mixtapeSlug</span><span class="p">);</span>
+</span></code></pre></div>
+<p><strong>State Object:</strong></p>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="p">{</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">    </span><span class="nx">track</span><span class="o">:</span><span class="w"> </span><span class="mf">5</span><span class="p">,</span><span class="w">               </span><span class="c1">// Track index</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">    </span><span class="nx">time</span><span class="o">:</span><span class="w"> </span><span class="mf">123.45</span><span class="p">,</span><span class="w">           </span><span class="c1">// Playback position in seconds</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">    </span><span class="nx">title</span><span class="o">:</span><span class="w"> </span><span class="s2">"Song Name"</span><span class="p">,</span><span class="w">     </span><span class="c1">// Track title for validation</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="w">    </span><span class="nx">timestamp</span><span class="o">:</span><span class="w"> </span><span class="mf">1234567890</span><span class="p">,</span><span class="w">  </span><span class="c1">// Save timestamp (ms)</span>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="w">    </span><span class="nx">paused</span><span class="o">:</span><span class="w"> </span><span class="kc">false</span><span class="w">           </span><span class="c1">// Playback state</span>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="p">}</span>
+</span></code></pre></div>
+<p><strong>State Validation:</strong></p>
+<p>When restoring state, the system validates that the saved track title matches the actual track at that index to prevent issues when mixtapes are edited:</p>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">savedState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">stateManager</span><span class="p">.</span><span class="nx">restorePlaybackState</span><span class="p">();</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">actualTrack</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">trackItems</span><span class="p">[</span><span class="nx">savedState</span><span class="p">.</span><span class="nx">track</span><span class="p">];</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="c1">// Validate title matches</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">savedState</span><span class="p">.</span><span class="nx">title</span><span class="w"> </span><span class="o">!==</span><span class="w"> </span><span class="nx">actualTrack</span><span class="p">.</span><span class="nx">dataset</span><span class="p">.</span><span class="nx">title</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">warn</span><span class="p">(</span><span class="s1">'⚠️ Saved state invalid, clearing'</span><span class="p">);</span>
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="w">    </span><span class="nx">stateManager</span><span class="p">.</span><span class="nx">clearPlaybackState</span><span class="p">();</span>
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="w">    </span><span class="c1">// Start fresh from beginning</span>
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="p">}</span>
+</span></code></pre></div>
+<p><strong>Benefits of Per-Mixtape Storage:</strong></p>
+<ul>
+<li>✅ Each mixtape remembers its own position</li>
+<li>✅ Switching mixtapes doesn't cause confusion</li>
+<li>✅ Can resume multiple mixtapes independently</li>
+<li>✅ Prevents stale state from affecting wrong mixtape</li>
+</ul>
+<hr>
+<h3 id="wakelockmanager-wakelockmanagerjs">WakeLockManager (<code>wakeLockManager.js</code>)<a class="headerlink" href="#wakelockmanager-wakelockmanagerjs" title="Anchor link to this section">¶</a></h3>
+<p><strong>Purpose:</strong> Manages Screen Wake Lock API to prevent app suspension.</p>
+<p><strong>Responsibilities:</strong></p>
+<ul>
+<li>Acquire wake lock during playback</li>
+<li>Release wake lock when paused</li>
+<li>Handle system-initiated releases</li>
+<li>Check browser support</li>
+</ul>
+<p><strong>Key Methods:</strong></p>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nx">isWakeLockSupported</span><span class="p">()</span><span class="w"> </span><span class="c1">// Check API availability</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="nx">isActive</span><span class="p">()</span><span class="w">            </span><span class="c1">// Check if wake lock held</span>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="nx">acquire</span><span class="p">()</span><span class="w">             </span><span class="c1">// Request wake lock</span>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="nx">release</span><span class="p">()</span><span class="w">             </span><span class="c1">// Release wake lock</span>
+</span></code></pre></div>
+<p><strong>Why It's Critical:</strong></p>
+<ul>
+<li>Prevents JavaScript suspension when phone is locked</li>
+<li>Ensures auto-advance works with screen off</li>
+<li>Maintains media notifications</li>
+<li>Essential for background playback</li>
+</ul>
+<p><strong>Browser Support:</strong></p>
+<ul>
+<li>Chrome 84+</li>
+<li>Safari 16.4+ (iOS)</li>
+<li>Requires HTTPS (secure context)</li>
+</ul>
+<hr>
+<h2 id="-core-functions-main-orchestrator">🎮 Core Functions (Main Orchestrator)<a class="headerlink" href="#-core-functions-main-orchestrator" title="Anchor link to this section">¶</a></h2>
+<p>The main orchestrator (<code>playerControls.js</code>) coordinates all managers and handles:</p>
+<ul>
+<li>Event routing</li>
+<li>Casting integration</li>
+<li>Media Session updates</li>
+<li>DOM event listeners</li>
+</ul>
+<h3 id="playtrackindex-isautoadvance--false">playTrack(index, isAutoAdvance = false)<a class="headerlink" href="#playtrackindex-isautoadvance--false" title="Anchor link to this section">¶</a></h3>
+<p><strong>Purpose:</strong> Primary function to start playback of a track. Coordinates all managers to load and play audio.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>index</code> - Track index to play</li>
+<li><code>isAutoAdvance</code> - (Optional) True if this is an automatic track transition (not user-initiated)</li>
+</ul>
+<p><strong>Behavior:</strong></p>
+<ul>
+<li>Routes to Chromecast if casting</li>
+<li>Uses <code>PlaybackManager</code> to load track with quality settings</li>
+<li>Uses <code>UISyncManager</code> to update UI</li>
+<li>Uses <code>AutoAdvanceManager</code> for playback strategy</li>
+<li>Prefetches next track for smooth transitions</li>
+</ul>
+<p><strong>Implementation:</strong></p>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">playTrack</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="nx">index</span><span class="p">,</span><span class="w"> </span><span class="nx">isAutoAdvance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">checkCastingState</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="w">        </span><span class="nx">castJumpToTrack</span><span class="p">(</span><span class="nx">index</span><span class="p">);</span>
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="w">        </span><span class="nx">uiManager</span><span class="p">.</span><span class="nx">updateUIForTrack</span><span class="p">(</span><span class="nx">index</span><span class="p">);</span>
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="w">        </span><span class="nx">playbackManager</span><span class="p">.</span><span class="nx">setCurrentIndex</span><span class="p">(</span><span class="nx">index</span><span class="p">);</span>
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="w">        </span><span class="k">return</span><span class="p">;</span>
+</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>
+</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">track</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">trackItems</span><span class="p">[</span><span class="nx">index</span><span class="p">];</span>
+</span><span id="__span-16-10"><a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a>
+</span><span id="__span-16-11"><a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a><span class="w">    </span><span class="c1">// Load track via PlaybackManager</span>
+</span><span id="__span-16-12"><a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a><span class="w">    </span><span class="nx">playbackManager</span><span class="p">.</span><span class="nx">loadTrack</span><span class="p">(</span><span class="nx">index</span><span class="p">,</span><span class="w"> </span><span class="nx">track</span><span class="p">.</span><span class="nx">dataset</span><span class="p">.</span><span class="nx">path</span><span class="p">,</span><span class="w"> </span><span class="kc">null</span><span class="p">);</span>
+</span><span id="__span-16-13"><a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a>
+</span><span id="__span-16-14"><a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a><span class="w">    </span><span class="c1">// Update UI via UISyncManager</span>
+</span><span id="__span-16-15"><a id="__codelineno-16-15" name="__codelineno-16-15" href="#__codelineno-16-15"></a><span class="w">    </span><span class="nx">uiManager</span><span class="p">.</span><span class="nx">updateUIForTrack</span><span class="p">(</span><span class="nx">index</span><span class="p">);</span>
+</span><span id="__span-16-16"><a id="__codelineno-16-16" name="__codelineno-16-16" href="#__codelineno-16-16"></a>
+</span><span id="__span-16-17"><a id="__codelineno-16-17" name="__codelineno-16-17" href="#__codelineno-16-17"></a><span class="w">    </span><span class="c1">// Update Media Session</span>
+</span><span id="__span-16-18"><a id="__codelineno-16-18" name="__codelineno-16-18" href="#__codelineno-16-18"></a><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">metadata</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">extractMetadataFromDOM</span><span class="p">(</span><span class="nx">track</span><span class="p">);</span>
+</span><span id="__span-16-19"><a id="__codelineno-16-19" name="__codelineno-16-19" href="#__codelineno-16-19"></a><span class="w">    </span><span class="nx">updateLocalMediaSession</span><span class="p">(</span><span class="nx">metadata</span><span class="p">);</span>
+</span><span id="__span-16-20"><a id="__codelineno-16-20" name="__codelineno-16-20" href="#__codelineno-16-20"></a>
+</span><span id="__span-16-21"><a id="__codelineno-16-21" name="__codelineno-16-21" href="#__codelineno-16-21"></a><span class="w">    </span><span class="c1">// Use appropriate playback strategy via AutoAdvanceManager</span>
+</span><span id="__span-16-22"><a id="__codelineno-16-22" name="__codelineno-16-22" href="#__codelineno-16-22"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">isAutoAdvance</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-16-23"><a id="__codelineno-16-23" name="__codelineno-16-23" href="#__codelineno-16-23"></a><span class="w">        </span><span class="nx">autoAdvanceManager</span><span class="p">.</span><span class="nx">attemptAutoAdvancePlay</span><span class="p">();</span>
+</span><span id="__span-16-24"><a id="__codelineno-16-24" name="__codelineno-16-24" href="#__codelineno-16-24"></a><span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-16-25"><a id="__codelineno-16-25" name="__codelineno-16-25" href="#__codelineno-16-25"></a><span class="w">        </span><span class="nx">autoAdvanceManager</span><span class="p">.</span><span class="nx">attemptStandardPlay</span><span class="p">();</span>
+</span><span id="__span-16-26"><a id="__codelineno-16-26" name="__codelineno-16-26" href="#__codelineno-16-26"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-16-27"><a id="__codelineno-16-27" name="__codelineno-16-27" href="#__codelineno-16-27"></a>
+</span><span id="__span-16-28"><a id="__codelineno-16-28" name="__codelineno-16-28" href="#__codelineno-16-28"></a><span class="w">    </span><span class="c1">// Prefetch next track</span>
+</span><span id="__span-16-29"><a id="__codelineno-16-29" name="__codelineno-16-29" href="#__codelineno-16-29"></a><span class="w">    </span><span class="nx">prefetchNextTrack</span><span class="p">(</span><span class="nx">index</span><span class="p">);</span>
+</span><span id="__span-16-30"><a id="__codelineno-16-30" name="__codelineno-16-30" href="#__codelineno-16-30"></a><span class="p">};</span>
+</span></code></pre></div>
+<p><strong>Auto-Advance Strategy:</strong></p>
+<p>When a track ends naturally on mobile devices, browsers may block auto-playing. The <code>AutoAdvanceManager</code> handles this with retry logic:</p>
+<ol>
+<li><strong>Immediate play attempt</strong></li>
+<li><strong>Update Media Session state</strong> if blocked</li>
+<li><strong>Retry attempts</strong> with delays: 50ms, 100ms, 200ms</li>
+<li><strong>Media Session fallback</strong> - Keeps controls active for user</li>
+</ol>
+<p><strong>Error Handling:</strong></p>
+<ul>
+<li>Retries up to 3 times automatically with exponential backoff</li>
+<li>Shows non-blocking error toast</li>
+<li>Provides "Skip Track" action button</li>
+<li>Saves state before handling error</li>
+</ul>
+<hr>
+<h2 id="-playback-modes">🎵 Playback Modes<a class="headerlink" href="#-playback-modes" title="Anchor link to this section">¶</a></h2>
+<h3 id="shuffle-mode">Shuffle Mode<a class="headerlink" href="#shuffle-mode" title="Anchor link to this section">¶</a></h3>
+<p><strong>Purpose:</strong> Randomize playback order</p>
+<p><strong>Implementation via QueueManager:</strong></p>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1">// Toggle shuffle</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">toggleShuffle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="w">    </span><span class="nx">queueManager</span><span class="p">.</span><span class="nx">toggleShuffle</span><span class="p">();</span>
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="w">    </span><span class="nx">updateShuffleButton</span><span class="p">();</span>
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="p">};</span>
+</span></code></pre></div>
+<p><strong>Key Features:</strong></p>
+<ul>
+<li>Fisher-Yates shuffle algorithm</li>
+<li>Preserves current track position</li>
+<li>Persistent across sessions</li>
+<li>Works seamlessly with repeat modes</li>
+</ul>
+<p><strong>Shuffle Order Generation:</strong></p>
+<p>The <code>QueueManager</code> uses Fisher-Yates algorithm for true random shuffle:</p>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1">// Inside QueueManager</span>
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="nx">_generateShuffleOrder</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">order</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">Array</span><span class="p">.</span><span class="kr">from</span><span class="p">({</span><span class="w"> </span><span class="nx">length</span><span class="o">:</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">trackCount</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="p">(</span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">i</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">i</span><span class="p">);</span>
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>
+</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kd">let</span><span class="w"> </span><span class="nx">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">order</span><span class="p">.</span><span class="nx">length</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mf">1</span><span class="p">;</span><span class="w"> </span><span class="nx">i</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mf">0</span><span class="p">;</span><span class="w"> </span><span class="nx">i</span><span class="o">--</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-18-6"><a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="w">        </span><span class="kd">const</span><span class="w"> </span><span class="nx">j</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">Math</span><span class="p">.</span><span class="nx">floor</span><span class="p">(</span><span class="nb">Math</span><span class="p">.</span><span class="nx">random</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="nx">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mf">1</span><span class="p">));</span>
+</span><span id="__span-18-7"><a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a><span class="w">        </span><span class="p">[</span><span class="nx">order</span><span class="p">[</span><span class="nx">i</span><span class="p">],</span><span class="w"> </span><span class="nx">order</span><span class="p">[</span><span class="nx">j</span><span class="p">]]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="nx">order</span><span class="p">[</span><span class="nx">j</span><span class="p">],</span><span class="w"> </span><span class="nx">order</span><span class="p">[</span><span class="nx">i</span><span class="p">]];</span>
+</span><span id="__span-18-8"><a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-18-9"><a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a>
+</span><span id="__span-18-10"><a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">order</span><span class="p">;</span>
+</span><span id="__span-18-11"><a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a><span class="p">}</span>
+</span></code></pre></div>
+<h3 id="repeat-mode">Repeat Mode<a class="headerlink" href="#repeat-mode" title="Anchor link to this section">¶</a></h3>
+<p><strong>Purpose:</strong> Control playlist looping behavior</p>
+<p><strong>Modes:</strong></p>
+<ul>
+<li><strong>🔁 Repeat Off</strong> - Play once, stop at end</li>
+<li><strong>🔁 Repeat All</strong> - Loop entire playlist</li>
+<li><strong>🔁₁ Repeat One</strong> - Loop current track</li>
+</ul>
+<p><strong>Implementation via QueueManager:</strong></p>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="c1">// Cycle through repeat modes</span>
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">cycleRepeatMode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="w">    </span><span class="nx">queueManager</span><span class="p">.</span><span class="nx">cycleRepeatMode</span><span class="p">();</span>
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="w">    </span><span class="nx">updateRepeatButton</span><span class="p">();</span>
+</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="p">};</span>
+</span></code></pre></div>
+<p><strong>Context Normalization:</strong></p>
+<p>The <code>QueueManager</code> automatically normalizes repeat mode based on context:</p>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="c1">// Inside QueueManager</span>
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="nx">_normalizeRepeatMode</span><span class="p">(</span><span class="nx">mode</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="w">    </span><span class="c1">// Force OFF when 0-1 tracks (repeat doesn't make sense)</span>
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">trackCount</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="mf">1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">REPEAT_MODES</span><span class="p">.</span><span class="nx">OFF</span><span class="p">;</span>
+</span><span id="__span-20-6"><a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-20-7"><a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">mode</span><span class="p">;</span>
+</span><span id="__span-20-8"><a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a><span class="p">}</span>
+</span></code></pre></div>
+<p><strong>Next Track Logic:</strong></p>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="c1">// QueueManager handles all navigation logic</span>
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">nextIndex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">queueManager</span><span class="p">.</span><span class="nx">getNextTrack</span><span class="p">(</span><span class="nx">currentIndex</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="w">    </span><span class="nx">skipRepeatOne</span><span class="o">:</span><span class="w"> </span><span class="kc">false</span><span class="w">  </span><span class="c1">// For prefetch, set to true</span>
+</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="p">});</span>
+</span></code></pre></div>
+<p><strong>Key Features:</strong></p>
+<ul>
+<li>✅ Centralized constants for modes</li>
+<li>✅ Data-driven button updates</li>
+<li>✅ Defensive programming with validation</li>
+<li>✅ Context-aware restoration</li>
+<li>✅ Persistent across sessions via <code>QueueManager</code></li>
+<li>✅ Works seamlessly with shuffle</li>
+</ul>
+<hr>
+<h2 id="-wake-lock-management">🔒 Wake Lock Management<a class="headerlink" href="#-wake-lock-management" title="Anchor link to this section">¶</a></h2>
+<p><strong>Purpose:</strong> Prevent app suspension during playback, especially when phone is locked</p>
+<h3 id="why-wake-lock-is-critical">Why Wake Lock is Critical<a class="headerlink" href="#why-wake-lock-is-critical" title="Anchor link to this section">¶</a></h3>
+<p>Mobile devices aggressively suspend background apps to save battery. Without wake lock:</p>
+<ul>
+<li>JavaScript execution may pause when screen locks</li>
+<li>Auto-advance to next track fails</li>
+<li>Media notifications disappear</li>
+<li>Playback interrupts unexpectedly</li>
+</ul>
+<h3 id="implementation-via-wakelockmanager">Implementation via WakeLockManager<a class="headerlink" href="#implementation-via-wakelockmanager" title="Anchor link to this section">¶</a></h3>
+<p>The <code>WakeLockManager</code> encapsulates all wake lock logic:</p>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="c1">// Acquire wake lock</span>
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="nx">player</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s1">'play'</span><span class="p">,</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a><span class="w">    </span><span class="nx">wakeLockManager</span><span class="p">.</span><span class="nx">acquire</span><span class="p">();</span>
+</span><span id="__span-22-4"><a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="p">});</span>
+</span><span id="__span-22-5"><a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a>
+</span><span id="__span-22-6"><a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a><span class="c1">// Release wake lock (only when truly paused, not during transitions)</span>
+</span><span id="__span-22-7"><a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a><span class="nx">player</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s1">'pause'</span><span class="p">,</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-22-8"><a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nx">autoAdvanceManager</span><span class="p">.</span><span class="nx">isTransitioningTracks</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-22-9"><a id="__codelineno-22-9" name="__codelineno-22-9" href="#__codelineno-22-9"></a><span class="w">        </span><span class="nx">wakeLockManager</span><span class="p">.</span><span class="nx">release</span><span class="p">();</span>
+</span><span id="__span-22-10"><a id="__codelineno-22-10" name="__codelineno-22-10" href="#__codelineno-22-10"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-22-11"><a id="__codelineno-22-11" name="__codelineno-22-11" href="#__codelineno-22-11"></a><span class="p">});</span>
+</span></code></pre></div>
+<h3 id="wake-lock-lifecycle">Wake Lock Lifecycle<a class="headerlink" href="#wake-lock-lifecycle" title="Anchor link to this section">¶</a></h3>
+<p><strong>Acquire when:</strong></p>
+<ul>
+<li>Playback starts (<code>play</code> event)</li>
+<li>App is backgrounded while playing (<code>visibilitychange</code>)</li>
+</ul>
+<p><strong>Release when:</strong></p>
+<ul>
+<li>Playback is explicitly paused by user</li>
+<li>Playlist completes entirely</li>
+</ul>
+<p><strong>NOT released when:</strong></p>
+<ul>
+<li>Auto-advancing between tracks</li>
+<li>Quality changes mid-playback</li>
+<li>Track fails and retries</li>
+</ul>
+<h3 id="visibility-change-handling">Visibility Change Handling<a class="headerlink" href="#visibility-change-handling" title="Anchor link to this section">¶</a></h3>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="nb">document</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s1">'visibilitychange'</span><span class="p">,</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">document</span><span class="p">.</span><span class="nx">hidden</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">player</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">!</span><span class="nx">player</span><span class="p">.</span><span class="nx">paused</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">!</span><span class="nx">checkCastingState</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-23-4"><a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="w">            </span><span class="nx">wakeLockManager</span><span class="p">.</span><span class="nx">acquire</span><span class="p">();</span>
+</span><span id="__span-23-5"><a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a>
+</span><span id="__span-23-6"><a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a><span class="w">            </span><span class="c1">// Reinforce Media Session state</span>
+</span><span id="__span-23-7"><a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a><span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="s1">'mediaSession'</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="nx">navigator</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-23-8"><a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a><span class="w">                </span><span class="nx">navigator</span><span class="p">.</span><span class="nx">mediaSession</span><span class="p">.</span><span class="nx">playbackState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'playing'</span><span class="p">;</span>
+</span><span id="__span-23-9"><a id="__codelineno-23-9" name="__codelineno-23-9" href="#__codelineno-23-9"></a><span class="w">            </span><span class="p">}</span>
+</span><span id="__span-23-10"><a id="__codelineno-23-10" name="__codelineno-23-10" href="#__codelineno-23-10"></a><span class="w">        </span><span class="p">}</span>
+</span><span id="__span-23-11"><a id="__codelineno-23-11" name="__codelineno-23-11" href="#__codelineno-23-11"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-23-12"><a id="__codelineno-23-12" name="__codelineno-23-12" href="#__codelineno-23-12"></a><span class="p">});</span>
+</span></code></pre></div>
+<p><strong>Key Behaviors:</strong></p>
+<ul>
+<li>✅ Requires HTTPS (secure context)</li>
+<li>✅ Gracefully degrades if unavailable</li>
+<li>✅ Automatically re-requested if system releases it</li>
+<li>✅ Essential for locked-screen playback</li>
+<li>✅ Works with both Android and iOS (iOS 16.4+)</li>
+</ul>
+<hr>
+<h2 id="-track-auto-advance">🔄 Track Auto-Advance<a class="headerlink" href="#-track-auto-advance" title="Anchor link to this section">¶</a></h2>
+<h3 id="overview">Overview<a class="headerlink" href="#overview" title="Anchor link to this section">¶</a></h3>
+<p>Auto-advance ensures seamless transitions between tracks. This is challenging on mobile devices due to autoplay restrictions, which is why the <code>AutoAdvanceManager</code> uses sophisticated retry logic.</p>
+<h3 id="ended-event-handler">'ended' Event Handler<a class="headerlink" href="#ended-event-handler" title="Anchor link to this section">¶</a></h3>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="nx">player</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s1">'ended'</span><span class="p">,</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="w">    </span><span class="nx">syncPlayIcons</span><span class="p">();</span>
+</span><span id="__span-24-3"><a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">currentIndex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">playbackManager</span><span class="p">.</span><span class="nx">getCurrentIndex</span><span class="p">();</span>
+</span><span id="__span-24-4"><a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">trackTitle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">trackItems</span><span class="p">[</span><span class="nx">currentIndex</span><span class="p">]</span><span class="o">?</span><span class="p">.</span><span class="nx">dataset</span><span class="p">.</span><span class="nx">title</span><span class="p">;</span>
+</span><span id="__span-24-5"><a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a>
+</span><span id="__span-24-6"><a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nx">checkCastingState</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-24-7"><a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a><span class="w">        </span><span class="c1">// Save completion state via StateManager</span>
+</span><span id="__span-24-8"><a id="__codelineno-24-8" name="__codelineno-24-8" href="#__codelineno-24-8"></a><span class="w">        </span><span class="nx">playbackManager</span><span class="p">.</span><span class="nx">saveCurrentState</span><span class="p">(</span><span class="nx">trackTitle</span><span class="p">);</span>
+</span><span id="__span-24-9"><a id="__codelineno-24-9" name="__codelineno-24-9" href="#__codelineno-24-9"></a>
+</span><span id="__span-24-10"><a id="__codelineno-24-10" name="__codelineno-24-10" href="#__codelineno-24-10"></a><span class="w">        </span><span class="c1">// Get next track via QueueManager</span>
+</span><span id="__span-24-11"><a id="__codelineno-24-11" name="__codelineno-24-11" href="#__codelineno-24-11"></a><span class="w">        </span><span class="kd">const</span><span class="w"> </span><span class="nx">nextIndex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">queueManager</span><span class="p">.</span><span class="nx">getNextTrack</span><span class="p">(</span><span class="nx">currentIndex</span><span class="p">);</span>
+</span><span id="__span-24-12"><a id="__codelineno-24-12" name="__codelineno-24-12" href="#__codelineno-24-12"></a>
+</span><span id="__span-24-13"><a id="__codelineno-24-13" name="__codelineno-24-13" href="#__codelineno-24-13"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">nextIndex</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mf">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">nextIndex</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="nx">trackItems</span><span class="p">.</span><span class="nx">length</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-24-14"><a id="__codelineno-24-14" name="__codelineno-24-14" href="#__codelineno-24-14"></a><span class="w">            </span><span class="c1">// CRITICAL: Pass isAutoAdvance=true</span>
+</span><span id="__span-24-15"><a id="__codelineno-24-15" name="__codelineno-24-15" href="#__codelineno-24-15"></a><span class="w">            </span><span class="nx">playTrack</span><span class="p">(</span><span class="nx">nextIndex</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">);</span>
+</span><span id="__span-24-16"><a id="__codelineno-24-16" name="__codelineno-24-16" href="#__codelineno-24-16"></a>
+</span><span id="__span-24-17"><a id="__codelineno-24-17" name="__codelineno-24-17" href="#__codelineno-24-17"></a><span class="w">            </span><span class="c1">// WakeLockManager keeps lock active during transition</span>
+</span><span id="__span-24-18"><a id="__codelineno-24-18" name="__codelineno-24-18" href="#__codelineno-24-18"></a><span class="w">        </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-24-19"><a id="__codelineno-24-19" name="__codelineno-24-19" href="#__codelineno-24-19"></a><span class="w">            </span><span class="nx">stateManager</span><span class="p">.</span><span class="nx">clearPlaybackState</span><span class="p">();</span>
+</span><span id="__span-24-20"><a id="__codelineno-24-20" name="__codelineno-24-20" href="#__codelineno-24-20"></a><span class="w">            </span><span class="nx">wakeLockManager</span><span class="p">.</span><span class="nx">release</span><span class="p">();</span><span class="w"> </span><span class="c1">// Playlist finished</span>
+</span><span id="__span-24-21"><a id="__codelineno-24-21" name="__codelineno-24-21" href="#__codelineno-24-21"></a><span class="w">        </span><span class="p">}</span>
+</span><span id="__span-24-22"><a id="__codelineno-24-22" name="__codelineno-24-22" href="#__codelineno-24-22"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-24-23"><a id="__codelineno-24-23" name="__codelineno-24-23" href="#__codelineno-24-23"></a><span class="p">});</span>
+</span></code></pre></div>
+<h3 id="mobile-auto-advance-strategy">Mobile Auto-Advance Strategy<a class="headerlink" href="#mobile-auto-advance-strategy" title="Anchor link to this section">¶</a></h3>
+<p><strong>Problem:</strong> Mobile browsers block automatic playback after track ends</p>
+<p><strong>Solution:</strong> Multi-layered approach via <code>AutoAdvanceManager</code></p>
+<ol>
+<li><strong>Flag auto-advance</strong> - <code>playTrack(nextIndex, true)</code> enables special handling</li>
+<li><strong>Immediate attempt</strong> - Try standard <code>player.play()</code></li>
+<li><strong>Media Session update</strong> - If blocked, update Media Session state</li>
+<li><strong>Delayed retries</strong> - Wait and try again (50ms, 100ms, 200ms)</li>
+<li><strong>Notification controls</strong> - User can resume from lock screen if needed</li>
+</ol>
+<h3 id="key-behaviors">Key Behaviors<a class="headerlink" href="#key-behaviors" title="Anchor link to this section">¶</a></h3>
+<p>✅ <strong>Wake lock maintained</strong> - <code>WakeLockManager</code> keeps lock during transitions
+✅ <strong>Respects repeat modes</strong> - <code>QueueManager</code> handles All/One/Off
+✅ <strong>Respects shuffle</strong> - Uses shuffle order if enabled
+✅ <strong>Prefetch ready</strong> - Next track likely already cached
+✅ <strong>State saved</strong> - <code>StateManager</code> saves position before advancing
+✅ <strong>Works offline</strong> - Service worker serves cached audio</p>
+<h3 id="browser-compatibility">Browser Compatibility<a class="headerlink" href="#browser-compatibility" title="Anchor link to this section">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Platform</th>
+<th>Auto-Advance</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Android Chrome</strong></td>
+<td>✅ Full support</td>
+<td>Wake lock + Media Session</td>
+</tr>
+<tr>
+<td><strong>Android Firefox</strong></td>
+<td>✅ Full support</td>
+<td>Media Session fallback</td>
+</tr>
+<tr>
+<td><strong>iOS Safari 15+</strong></td>
+<td>✅ Full support</td>
+<td>Media Session supported</td>
+</tr>
+<tr>
+<td><strong>iOS Safari &lt;15</strong></td>
+<td>⚠️ Limited</td>
+<td>May require user action</td>
+</tr>
+<tr>
+<td><strong>Desktop Chrome</strong></td>
+<td>✅ Full support</td>
+<td>No restrictions</td>
+</tr>
+<tr>
+<td><strong>Desktop Firefox</strong></td>
+<td>✅ Full support</td>
+<td>No restrictions</td>
+</tr>
+<tr>
+<td><strong>Desktop Safari</strong></td>
+<td>✅ Full support</td>
+<td>No restrictions</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="-constants--configuration">📊 Constants &amp; Configuration<a class="headerlink" href="#-constants--configuration" title="Anchor link to this section">¶</a></h2>
+<h3 id="timing-constants">Timing Constants<a class="headerlink" href="#timing-constants" title="Anchor link to this section">¶</a></h3>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="c1">// In playbackManager.js</span>
+</span><span id="__span-25-2"><a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">TIMING</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-25-3"><a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="w">    </span><span class="nx">AUTO_SAVE_INTERVAL</span><span class="o">:</span><span class="w"> </span><span class="mf">5000</span><span class="p">,</span><span class="w">      </span><span class="c1">// Save playback position every 5s</span>
+</span><span id="__span-25-4"><a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a><span class="w">    </span><span class="nx">PLAYBACK_RESUME_DELAY</span><span class="o">:</span><span class="w"> </span><span class="mf">50</span><span class="w">      </span><span class="c1">// Delay before resuming after restoration</span>
+</span><span id="__span-25-5"><a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a><span class="p">};</span>
+</span><span id="__span-25-6"><a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a>
+</span><span id="__span-25-7"><a id="__codelineno-25-7" name="__codelineno-25-7" href="#__codelineno-25-7"></a><span class="c1">// In uiSyncManager.js</span>
+</span><span id="__span-25-8"><a id="__codelineno-25-8" name="__codelineno-25-8" href="#__codelineno-25-8"></a><span class="kd">const</span><span class="w"> </span><span class="nx">TIMING</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-25-9"><a id="__codelineno-25-9" name="__codelineno-25-9" href="#__codelineno-25-9"></a><span class="w">    </span><span class="nx">UI_RESTORE_DELAY</span><span class="o">:</span><span class="w"> </span><span class="mf">500</span><span class="p">,</span><span class="w">          </span><span class="c1">// Delay before scrolling to restored track</span>
+</span><span id="__span-25-10"><a id="__codelineno-25-10" name="__codelineno-25-10" href="#__codelineno-25-10"></a><span class="w">    </span><span class="nx">HIGHLIGHT_DURATION</span><span class="o">:</span><span class="w"> </span><span class="mf">3000</span><span class="w">        </span><span class="c1">// Track highlight duration</span>
+</span><span id="__span-25-11"><a id="__codelineno-25-11" name="__codelineno-25-11" href="#__codelineno-25-11"></a><span class="p">};</span>
+</span><span id="__span-25-12"><a id="__codelineno-25-12" name="__codelineno-25-12" href="#__codelineno-25-12"></a>
+</span><span id="__span-25-13"><a id="__codelineno-25-13" name="__codelineno-25-13" href="#__codelineno-25-13"></a><span class="c1">// In autoAdvanceManager.js</span>
+</span><span id="__span-25-14"><a id="__codelineno-25-14" name="__codelineno-25-14" href="#__codelineno-25-14"></a><span class="kd">const</span><span class="w"> </span><span class="nx">AUTO_ADVANCE_TIMING</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-25-15"><a id="__codelineno-25-15" name="__codelineno-25-15" href="#__codelineno-25-15"></a><span class="w">    </span><span class="nx">RETRY_DELAY_1</span><span class="o">:</span><span class="w"> </span><span class="mf">50</span><span class="p">,</span><span class="w">              </span><span class="c1">// First retry delay</span>
+</span><span id="__span-25-16"><a id="__codelineno-25-16" name="__codelineno-25-16" href="#__codelineno-25-16"></a><span class="w">    </span><span class="nx">RETRY_DELAY_2</span><span class="o">:</span><span class="w"> </span><span class="mf">100</span><span class="p">,</span><span class="w">             </span><span class="c1">// Second retry delay</span>
+</span><span id="__span-25-17"><a id="__codelineno-25-17" name="__codelineno-25-17" href="#__codelineno-25-17"></a><span class="w">    </span><span class="nx">RETRY_DELAY_3</span><span class="o">:</span><span class="w"> </span><span class="mf">200</span><span class="p">,</span><span class="w">             </span><span class="c1">// Third retry delay</span>
+</span><span id="__span-25-18"><a id="__codelineno-25-18" name="__codelineno-25-18" href="#__codelineno-25-18"></a><span class="w">    </span><span class="nx">MAX_RETRIES</span><span class="o">:</span><span class="w"> </span><span class="mf">3</span><span class="w">                  </span><span class="c1">// Maximum retry attempts</span>
+</span><span id="__span-25-19"><a id="__codelineno-25-19" name="__codelineno-25-19" href="#__codelineno-25-19"></a><span class="p">};</span>
+</span></code></pre></div>
+<h3 id="quality-levels-qualitymanager">Quality Levels (QualityManager)<a class="headerlink" href="#quality-levels-qualitymanager" title="Anchor link to this section">¶</a></h3>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">QUALITY_LEVELS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a><span class="w">    </span><span class="nx">high</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s1">'High (256k)'</span><span class="p">,</span><span class="w"> </span><span class="nx">bandwidth</span><span class="o">:</span><span class="w"> </span><span class="s1">'high'</span><span class="w"> </span><span class="p">},</span>
+</span><span id="__span-26-3"><a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a><span class="w">    </span><span class="nx">medium</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s1">'Medium (192k)'</span><span class="p">,</span><span class="w"> </span><span class="nx">bandwidth</span><span class="o">:</span><span class="w"> </span><span class="s1">'medium'</span><span class="w"> </span><span class="p">},</span>
+</span><span id="__span-26-4"><a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a><span class="w">    </span><span class="nx">low</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s1">'Low (128k)'</span><span class="p">,</span><span class="w"> </span><span class="nx">bandwidth</span><span class="o">:</span><span class="w"> </span><span class="s1">'low'</span><span class="w"> </span><span class="p">},</span>
+</span><span id="__span-26-5"><a id="__codelineno-26-5" name="__codelineno-26-5" href="#__codelineno-26-5"></a><span class="w">    </span><span class="nx">original</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s1">'Original'</span><span class="p">,</span><span class="w"> </span><span class="nx">bandwidth</span><span class="o">:</span><span class="w"> </span><span class="s1">'highest'</span><span class="w"> </span><span class="p">}</span>
+</span><span id="__span-26-6"><a id="__codelineno-26-6" name="__codelineno-26-6" href="#__codelineno-26-6"></a><span class="p">};</span>
+</span></code></pre></div>
+<h3 id="repeat-mode-constants-queuemanager">Repeat Mode Constants (QueueManager)<a class="headerlink" href="#repeat-mode-constants-queuemanager" title="Anchor link to this section">¶</a></h3>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">REPEAT_MODES</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-27-2"><a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a><span class="w">    </span><span class="nx">OFF</span><span class="o">:</span><span class="w"> </span><span class="s1">'off'</span><span class="p">,</span>
+</span><span id="__span-27-3"><a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a><span class="w">    </span><span class="nx">ALL</span><span class="o">:</span><span class="w"> </span><span class="s1">'all'</span><span class="p">,</span>
+</span><span id="__span-27-4"><a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a><span class="w">    </span><span class="nx">ONE</span><span class="o">:</span><span class="w"> </span><span class="s1">'one'</span>
+</span><span id="__span-27-5"><a id="__codelineno-27-5" name="__codelineno-27-5" href="#__codelineno-27-5"></a><span class="p">};</span>
+</span><span id="__span-27-6"><a id="__codelineno-27-6" name="__codelineno-27-6" href="#__codelineno-27-6"></a>
+</span><span id="__span-27-7"><a id="__codelineno-27-7" name="__codelineno-27-7" href="#__codelineno-27-7"></a><span class="kd">const</span><span class="w"> </span><span class="nx">REPEAT_MODE_LABELS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-27-8"><a id="__codelineno-27-8" name="__codelineno-27-8" href="#__codelineno-27-8"></a><span class="w">    </span><span class="p">[</span><span class="nx">REPEAT_MODES</span><span class="p">.</span><span class="nx">OFF</span><span class="p">]</span><span class="o">:</span><span class="w"> </span><span class="s1">'Repeat Off'</span><span class="p">,</span>
+</span><span id="__span-27-9"><a id="__codelineno-27-9" name="__codelineno-27-9" href="#__codelineno-27-9"></a><span class="w">    </span><span class="p">[</span><span class="nx">REPEAT_MODES</span><span class="p">.</span><span class="nx">ALL</span><span class="p">]</span><span class="o">:</span><span class="w"> </span><span class="s1">'Repeat All'</span><span class="p">,</span>
+</span><span id="__span-27-10"><a id="__codelineno-27-10" name="__codelineno-27-10" href="#__codelineno-27-10"></a><span class="w">    </span><span class="p">[</span><span class="nx">REPEAT_MODES</span><span class="p">.</span><span class="nx">ONE</span><span class="p">]</span><span class="o">:</span><span class="w"> </span><span class="s1">'Repeat One'</span>
+</span><span id="__span-27-11"><a id="__codelineno-27-11" name="__codelineno-27-11" href="#__codelineno-27-11"></a><span class="p">};</span>
+</span></code></pre></div>
+<hr>
+<h2 id="-troubleshooting">🔧 Troubleshooting<a class="headerlink" href="#-troubleshooting" title="Anchor link to this section">¶</a></h2>
+<h3 id="playback-issues">Playback Issues<a class="headerlink" href="#playback-issues" title="Anchor link to this section">¶</a></h3>
+<p><strong>Problem:</strong> Track won't play</p>
+<ul>
+<li>Check console for error messages</li>
+<li>Verify audio URL is valid (check <code>QualityManager</code>)</li>
+<li>Check network connectivity</li>
+<li>Try different quality setting</li>
+<li>Error toast will show with "Skip Track" option</li>
+</ul>
+<p><strong>Problem:</strong> Position not restored</p>
+<ul>
+<li>Check if saved state exists (<code>StateManager</code>)</li>
+<li>Verify state timestamp is within 24 hours</li>
+<li>Check console for restoration logs</li>
+<li>State saves correctly when paused</li>
+</ul>
+<h3 id="shufflerepeat-issues">Shuffle/Repeat Issues<a class="headerlink" href="#shufflerepeat-issues" title="Anchor link to this section">¶</a></h3>
+<p><strong>Problem:</strong> Repeat mode not working with 1 track</p>
+<ul>
+<li>By design: <code>QueueManager</code> normalizes to OFF for 0-1 tracks</li>
+<li>Check console for normalization log</li>
+</ul>
+<p><strong>Problem:</strong> Prefetch not respecting modes</p>
+<ul>
+<li><code>QueueManager</code> handles this with <code>skipRepeatOne</code> option</li>
+<li>Check console for prefetch logs showing correct mode</li>
+</ul>
+<h3 id="mobile-auto-advance-issues">Mobile Auto-Advance Issues<a class="headerlink" href="#mobile-auto-advance-issues" title="Anchor link to this section">¶</a></h3>
+<p><strong>Problem:</strong> Playback stops after each track on mobile</p>
+<ul>
+<li>Check <code>AutoAdvanceManager</code> retry logs in console</li>
+<li>Verify wake lock is acquired (look for "🔒 Wake lock acquired")</li>
+<li>Ensure HTTPS is used (wake lock requires secure context)</li>
+<li>Check for "📱 Auto-advance mode" logs</li>
+</ul>
+<p><strong>Problem:</strong> Auto-advance works with screen on, fails when locked</p>
+<ul>
+<li>Check <code>WakeLockManager</code> status in console</li>
+<li>Verify Media Session is being set up correctly</li>
+<li>On iOS, requires iOS 15+ for Media Session support</li>
+<li>On Android, should work on Android 5.0+</li>
+</ul>
+<p><strong>Problem:</strong> Browser shows "Autoplay prevented" errors</p>
+<ul>
+<li>This is expected - <code>AutoAdvanceManager</code> handles this gracefully</li>
+<li>Look for follow-up "Retry attempt" logs</li>
+<li>Media Session API provides fallback</li>
+<li>User can use notification controls to resume</li>
+</ul>
+<h3 id="wake-lock-issues">Wake Lock Issues<a class="headerlink" href="#wake-lock-issues" title="Anchor link to this section">¶</a></h3>
+<p><strong>Problem:</strong> Wake lock not acquired</p>
+<ul>
+<li>Requires HTTPS (secure context)</li>
+<li>Check browser support: Chrome 84+, Safari 16.4+, Firefox not supported</li>
+<li>Check console for wake lock warnings via <code>WakeLockManager</code></li>
+<li>Gracefully degrades if unavailable</li>
+</ul>
+<p><strong>Problem:</strong> Playback suspends when screen locks</p>
+<ul>
+<li>Verify wake lock acquired before locking screen</li>
+<li>Check for "Page hidden" log when screen locks</li>
+<li>Media Session should be reinforced on visibility change</li>
+<li>May still require user interaction on first lock (browser policy)</li>
+</ul>
+<hr>
+<h2 id="-performance-considerations">📈 Performance Considerations<a class="headerlink" href="#-performance-considerations" title="Anchor link to this section">¶</a></h2>
+<h3 id="optimizations">Optimizations<a class="headerlink" href="#optimizations" title="Anchor link to this section">¶</a></h3>
+<ol>
+<li><strong>Prefetch Strategy</strong></li>
+<li>Uses <code>requestIdleCallback</code> for low-priority</li>
+<li>Checks cache before fetching</li>
+<li>
+<p>Only prefetches actual next track via <code>QueueManager</code></p>
+</li>
+<li>
+<p><strong>State Persistence</strong></p>
+</li>
+<li>Auto-save throttled to every 5s via <code>PlaybackManager</code></li>
+<li>Try-catch around localStorage calls in <code>StateManager</code></li>
+<li>
+<p>Validates data before saving</p>
+</li>
+<li>
+<p><strong>UI Updates</strong></p>
+</li>
+<li>Debounced position updates (1s) via <code>UISyncManager</code></li>
+<li>Minimal DOM manipulation</li>
+<li>
+<p>Event delegation where possible</p>
+</li>
+<li>
+<p><strong>Memory Management</strong></p>
+</li>
+<li>Guard flags prevent duplicate listeners</li>
+<li>Timeouts properly cleared</li>
+<li>
+<p>Managers are lightweight and focused</p>
+</li>
+<li>
+<p><strong>Power Management</strong></p>
+</li>
+<li>Wake lock only during active playback via <code>WakeLockManager</code></li>
+<li>Released immediately when paused</li>
+<li>Automatically re-acquired if system releases it</li>
+<li>Not held during casting (Chromecast handles this)</li>
+</ol>
+<hr>
+<h2 id="-security-considerations">🔐 Security Considerations<a class="headerlink" href="#-security-considerations" title="Anchor link to this section">¶</a></h2>
+<h3 id="xss-prevention">XSS Prevention<a class="headerlink" href="#xss-prevention" title="Anchor link to this section">¶</a></h3>
+<ul>
+<li>✅ <strong>No innerHTML usage</strong> - <code>UISyncManager</code> uses <code>textContent</code> or DOM creation</li>
+<li>✅ <strong>Safe DOM manipulation</strong> - createElement + appendChild pattern</li>
+<li>✅ <strong>Input validation</strong> - All user inputs validated</li>
+</ul>
+<h3 id="storage-safety">Storage Safety<a class="headerlink" href="#storage-safety" title="Anchor link to this section">¶</a></h3>
+<p>All managers handle storage errors gracefully:</p>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="c1">// Example from StateManager</span>
+</span><span id="__span-28-2"><a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-28-3"><a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a><span class="w">    </span><span class="nx">localStorage</span><span class="p">.</span><span class="nx">setItem</span><span class="p">(</span><span class="nx">key</span><span class="p">,</span><span class="w"> </span><span class="nx">value</span><span class="p">);</span>
+</span><span id="__span-28-4"><a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="nx">e</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-28-5"><a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a><span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">warn</span><span class="p">(</span><span class="s1">'Storage failed:'</span><span class="p">,</span><span class="w"> </span><span class="nx">e</span><span class="p">);</span>
+</span><span id="__span-28-6"><a id="__codelineno-28-6" name="__codelineno-28-6" href="#__codelineno-28-6"></a><span class="w">    </span><span class="c1">// Graceful degradation</span>
+</span><span id="__span-28-7"><a id="__codelineno-28-7" name="__codelineno-28-7" href="#__codelineno-28-7"></a><span class="p">}</span>
+</span></code></pre></div>
+<hr>
+<h2 id="-summary">📝 Summary<a class="headerlink" href="#-summary" title="Anchor link to this section">¶</a></h2>
+<h3 id="key-features">Key Features<a class="headerlink" href="#key-features" title="Anchor link to this section">¶</a></h3>
+<ul>
+<li><strong>Modular Architecture</strong> - 8 focused managers, each under 310 lines</li>
+<li><strong>Unified Playback Control</strong> across local, Chromecast, and Android Auto</li>
+<li><strong>Shuffle &amp; Repeat Modes</strong> via <code>QueueManager</code> with persistent state</li>
+<li><strong>Quality Management</strong> via <code>QualityManager</code> with seamless switching</li>
+<li><strong>State Persistence</strong> via <code>StateManager</code> - Resume playback across sessions</li>
+<li><strong>Error Recovery</strong> - Automatic retries with user actions</li>
+<li><strong>Prefetch Intelligence</strong> - Respects all playback modes</li>
+<li><strong>Wake Lock Support</strong> via <code>WakeLockManager</code> - Prevents app suspension</li>
+<li><strong>Mobile Auto-Advance</strong> via <code>AutoAdvanceManager</code> - Reliable track transitions</li>
+<li><strong>Memory Safe</strong> - No leaks, proper cleanup</li>
+<li><strong>XSS Protected</strong> - Safe DOM manipulation throughout</li>
+<li><strong>Testable</strong> - Each manager independently testable</li>
+</ul>
+<h3 id="module-summary">Module Summary<a class="headerlink" href="#module-summary" title="Anchor link to this section">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Module</th>
+<th>Lines</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>playerControls.js</strong></td>
+<td>1,000</td>
+<td>Main orchestrator</td>
+</tr>
+<tr>
+<td><strong>queueManager.js</strong></td>
+<td>306</td>
+<td>Shuffle &amp; repeat</td>
+</tr>
+<tr>
+<td><strong>playbackManager.js</strong></td>
+<td>192</td>
+<td>Core playback</td>
+</tr>
+<tr>
+<td><strong>uiSyncManager.js</strong></td>
+<td>178</td>
+<td>UI updates</td>
+</tr>
+<tr>
+<td><strong>autoAdvanceManager.js</strong></td>
+<td>137</td>
+<td>Auto-advance</td>
+</tr>
+<tr>
+<td><strong>qualityManager.js</strong></td>
+<td>93</td>
+<td>Quality selection</td>
+</tr>
+<tr>
+<td><strong>stateManager.js</strong></td>
+<td>88</td>
+<td>State persistence</td>
+</tr>
+<tr>
+<td><strong>wakeLockManager.js</strong></td>
+<td>75</td>
+<td>Wake lock</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<p><strong>Status:</strong> Production Ready
+<strong>Dependencies:</strong> Bootstrap 5, Chromecast SDK, Media Session API, Wake Lock API (optional)</p>
+
+
+
+
+
+
+
+  
+    
+  
+  
+    
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"></path></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="January 28, 2026 06:18:31 UTC"><span class="timeago" datetime="2026-01-28T06:18:31+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="January 28, 2026 06:18:31 UTC">2026-01-28</span>
+  </span>
+
+    
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Created">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"></path></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="January 28, 2026 06:18:31 UTC"><span class="timeago" datetime="2026-01-28T06:18:31+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="January 28, 2026 06:18:31 UTC">2026-01-28</span>
+  </span>
+
+    
+    
+    
+  </aside>
+
+
+  
+
+
+
+  <form class="md-feedback" name="feedback" hidden>
+    <fieldset>
+      <legend class="md-feedback__title">
+        Was this page helpful?
+      </legend>
+      <div class="md-feedback__inner">
+        <div class="md-feedback__list">
+          
+            <button class="md-feedback__icon md-icon" type="submit" title="This page was helpful" data-md-value="1">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 12a8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8 8 8 0 0 0 8-8m2 0a10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2a10 10 0 0 1 10 10M10 9.5c0 .8-.7 1.5-1.5 1.5S7 10.3 7 9.5 7.7 8 8.5 8s1.5.7 1.5 1.5m7 0c0 .8-.7 1.5-1.5 1.5S14 10.3 14 9.5 14.7 8 15.5 8s1.5.7 1.5 1.5m-5 7.73c-1.75 0-3.29-.73-4.19-1.81L9.23 14c.45.72 1.52 1.23 2.77 1.23s2.32-.51 2.77-1.23l1.42 1.42c-.9 1.08-2.44 1.81-4.19 1.81"></path></svg>
+            </button>
+          
+            <button class="md-feedback__icon md-icon" type="submit" title="This page could be improved" data-md-value="0">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 12a8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8 8 8 0 0 0 8-8m2 0a10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2a10 10 0 0 1 10 10m-6.5-4c.8 0 1.5.7 1.5 1.5s-.7 1.5-1.5 1.5-1.5-.7-1.5-1.5.7-1.5 1.5-1.5M10 9.5c0 .8-.7 1.5-1.5 1.5S7 10.3 7 9.5 7.7 8 8.5 8s1.5.7 1.5 1.5m2 4.5c1.75 0 3.29.72 4.19 1.81l-1.42 1.42C14.32 16.5 13.25 16 12 16s-2.32.5-2.77 1.23l-1.42-1.42C8.71 14.72 10.25 14 12 14"></path></svg>
+            </button>
+          
+        </div>
+        <div class="md-feedback__note">
+          
+            <div data-md-value="1" hidden>
+              
+              
+                
+              
+              
+              
+                
+                
+              
+              Thanks for your feedback!
+            </div>
+          
+            <div data-md-value="0" hidden>
+              
+              
+                
+              
+              
+              
+                
+                
+              
+              Thanks for your feedback! Help us improve by <a href="https://github.com/mark-me/mixtape-society/issues/new" target="_blank" rel="noopener">opening an issue</a>.
+            </div>
+          
+        </div>
+      </div>
+    </fieldset>
+  </form>
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer">
+        
+          
+          <a href="../backend/server-cache-system.html" class="md-footer__link md-footer__link--prev" aria-label="Previous: Server Cache System">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Server Cache System
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="player-utilities.html" class="md-footer__link md-footer__link--next" aria-label="Next: Player Utilities">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Player Utilities
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"></path></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Mark Zwart
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://github.com/mark-me/mixtape-society" target="_blank" rel="noopener" title="GitHub Repository" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.instant", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.indexes", "navigation.prune", "navigation.path", "navigation.footer", "navigation.tracking", "toc.follow", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.select", "content.code.annotate", "content.action.edit", "content.action.view", "content.tooltips", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      
+        <script src="../../../js/timeago.min.js"></script>
+      
+        <script src="../../../js/timeago_mkdocs_material.js"></script>
+      
+        <script src="../../../assets/javascripts/panzoom.min.js"></script>
+      
+        <script src="../../../assets/javascripts/zoompan.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>
