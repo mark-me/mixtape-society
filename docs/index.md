@@ -8,7 +8,7 @@ extra:
 
 ![Mixtape Society](images/logo.png){ align=right width="90" }
 
-# Introduction
+# Welcome to Mixtape Society
 
 Mixtape Society is a private, self‑hosted web app to create and share beautiful, ad-free music — the way mixtapes were exchanged on paper, but with today's digital convenience.
 
