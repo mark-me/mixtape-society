@@ -1,3 +1,27 @@
+/* === 0. Collection related items === */
+.collection-selector-card {
+    margin-bottom: 1.5rem;
+}
+
+#collectionLockNotice {
+    display: none;
+    margin-top: 0.5rem;
+}
+
+#selectedCollectionInfo {
+    display: none;
+}
+
+.collection-locked {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+#collectionSelect:disabled {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+}
+
 /* === 1. Compact Search Bar === */
 
 /* Search input - theme aware */

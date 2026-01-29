@@ -17,7 +17,6 @@
 
 {% block content %}
 <div class="container py-4 pb-5">
-
     <h1 class="mb-4">
     {% if preload_mixtape and preload_mixtape.title %}
         Edit: {{ preload_mixtape.title }}
@@ -27,6 +26,111 @@
         Create Mixtape
     {% endif %}
     </h1>
+
+    <!-- Collection Selector (only shown if multiple collections) -->
+    {% if has_multiple_collections %}
+    <div class="card mb-3 shadow-sm" id="collectionSelectorCard">
+        <div class="card-body p-3">
+            <label for="collectionSelect" class="form-label mb-2">
+                <i class="bi bi-collection"></i> <strong>Select Collection</strong>
+            </label>
+
+            <select id="collectionSelect"
+                    class="form-select"
+                    {% if editing_mode %}disabled{% endif %}
+                    required>
+                <option value="" disabled {% if not preload_mixtape.collection_id %}selected{% endif %}>
+                    Choose a music collection...
+                </option>
+                {% for collection in collections %}
+                <option value="{{ collection.id }}"
+                        data-name="{{ collection.name }}"
+                        data-track-count="{{ collection.stats.track_count }}"
+                        data-artist-count="{{ collection.stats.artist_count }}"
+                        {% if preload_mixtape.collection_id == collection.id or (not preload_mixtape.collection_id and collection.id == default_collection) %}
+                        selected
+                        {% endif %}>
+                    {{ collection.name }}
+                    ({{ collection.stats.track_count }} tracks, {{ collection.stats.artist_count }} artists)
+                </option>
+                {% endfor %}
+            </select>
+
+            <!-- Add stats button below dropdown -->
+            <button type="button"
+                    class="btn btn-sm btn-outline-info mt-2"
+                    id="viewStatsBtn"
+                    data-bs-toggle="modal"
+                    data-bs-target="#collectionStatsModal"
+                    style="display: none;">
+                <i class="bi bi-bar-chart-fill"></i> View Detailed Statistics
+            </button>
+
+            <script>
+            // Show stats button when collection selected
+            document.getElementById('collectionSelect')?.addEventListener('change', function(e) {
+                const statsBtn = document.getElementById('viewStatsBtn');
+                if (statsBtn) {
+                    statsBtn.style.display = 'inline-block';
+                    statsBtn.setAttribute('data-collection-id', e.target.value);
+                    statsBtn.setAttribute('data-collection-name', e.target.selectedOptions[0].dataset.name);
+                }
+            });
+            </script>
+
+            <!-- Collection Info Panel (shown after selection) -->
+            <div id="selectedCollectionInfo" class="alert alert-info mt-3"
+                 {% if preload_mixtape.collection_id or editing_mode %}style="display: block;"{% else %}style="display: none;"{% endif %}>
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="alert-heading mb-1">
+                            <i class="bi bi-info-circle"></i> Using Collection:
+                            <span id="selectedCollectionName">
+                                {% for c in collections if c.id == (preload_mixtape.collection_id or default_collection) %}
+                                    {{ c.name }}
+                                {% endfor %}
+                            </span>
+                        </h6>
+                        <small id="selectedCollectionStats" class="text-muted">
+                            {% for c in collections if c.id == (preload_mixtape.collection_id or default_collection) %}
+                                {{ c.stats.track_count }} tracks, {{ c.stats.artist_count }} artists
+                            {% endfor %}
+                        </small>
+                    </div>
+                    {% if not editing_mode %}
+                    <button type="button" class="btn btn-sm btn-outline-primary"
+                            id="changeCollectionBtn"
+                            style="display: {% if preload_mixtape.tracks|length > 0 %}none{% else %}inline-block{% endif %};">
+                        Change
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Lock Notice (shown when tracks are added or in editing mode) -->
+            <div id="collectionLockNotice" class="alert alert-warning mt-2 mb-0"
+                 {% if editing_mode or preload_mixtape.tracks|length > 0 %}style="display: block;"{% else %}style="display: none;"{% endif %}>
+                <i class="bi bi-lock-fill"></i>
+                <small>
+                    Collection locked to <strong id="lockedCollectionName">
+                        {% for c in collections if c.id == (preload_mixtape.collection_id or default_collection) %}
+                            {{ c.name }}
+                        {% endfor %}
+                    </strong>
+                    {% if editing_mode %}
+                        (editing existing mixtape)
+                    {% else %}
+                        (tracks already added from this collection)
+                    {% endif %}
+                </small>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Hidden field to store collection ID for saving -->
+    <input type="hidden" id="mixtapeCollectionId"
+           value="{{ preload_mixtape.collection_id or default_collection }}">
 
     <!-- Search bar -->
     <div class="card mb-3 shadow-sm">
@@ -40,7 +144,8 @@
                         <input id="searchInput"
                                type="text"
                                class="form-control form-control-sm"
-                               placeholder="Search library..."
+                               placeholder="{% if has_multiple_collections and not preload_mixtape.collection_id %}Select a collection first...{% else %}Search library...{% endif %}"
+                               {% if has_multiple_collections and not preload_mixtape.collection_id %}disabled{% endif %}
                                autocomplete="off" />
                         <button class="btn btn-outline-secondary btn-sm"
                                 type="button"
@@ -185,6 +290,7 @@
             </div>
         </div>
     </div>
+    {% include 'collection_stats_modal.html' %}
 </div>
 
     <!-- Floating buttons for mobile only -->
@@ -305,11 +411,20 @@
                 slug: {{ preload_mixtape.slug | default(null) | tojson | safe }},
                 created_at: {{ preload_mixtape.created_at | default(null) | tojson | safe }},
                 updated_at: {{ preload_mixtape.updated_at | default(null) | tojson | safe }},
+                collection_id: {{ preload_mixtape.collection_id | default(default_collection) | tojson | safe }},
                 creator_name: {{ preload_mixtape.creator_name | default('') | tojson | safe }},
                 gift_flow_enabled: {{ preload_mixtape.gift_flow_enabled | default(false) | tojson | safe }},
                 unwrap_style: {{ preload_mixtape.unwrap_style | default('playful') | tojson | safe }},
                 show_tracklist_after_completion: {{ preload_mixtape.show_tracklist_after_completion | default(true) | tojson | safe }}
             };
+
+        // Add collection configuration to document for JavaScript access
+        document.documentElement.setAttribute('data-has-multiple-collections', '{{ "true" if has_multiple_collections else "false" }}');
+        document.documentElement.setAttribute('data-default-collection', '{{ default_collection }}');
+        document.documentElement.setAttribute('data-editing-mode', '{{ "true" if editing_mode else "false" }}');
+        {% if preload_mixtape.collection_id %}
+        document.documentElement.setAttribute('data-mixtape-collection', '{{ preload_mixtape.collection_id }}');
+        {% endif %}
     </script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>

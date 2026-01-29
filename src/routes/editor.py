@@ -39,7 +39,7 @@ def create_editor_blueprint(
 ) -> Blueprint:
     """
     Creates and configures the Flask blueprint for the mixtape editor.
-    
+
     UPDATED: Now accepts collection_manager instead of single collection.
     Supports searching within specific collections and stores collection_id
     in mixtape metadata.
@@ -53,19 +53,19 @@ def create_editor_blueprint(
     """
     editor = Blueprint("editor", __name__)
     logger = logger or NullLogger()
-    
+
     # ========================================================================
     # Detect if we have CollectionManager or single collection
     # ========================================================================
     has_collection_manager = hasattr(collection_manager, 'list_collections')
-    
+
     if has_collection_manager:
         logger.info("Editor initialized with CollectionManager (multi-collection mode)")
         default_collection = collection_manager.get_default()
     else:
         logger.info("Editor initialized with single collection (backward compatible mode)")
         default_collection = collection_manager
-    
+
     # Initialize preferences manager
     def get_preferences_manager():
         """Get PreferencesManager instance using current app config."""
@@ -90,7 +90,7 @@ def create_editor_blueprint(
     def update_preferences() -> Response:
         """
         Update user preferences.
-        
+
         Accepts JSON with any of:
         - creator_name
         - default_gift_flow_enabled
@@ -117,10 +117,10 @@ def create_editor_blueprint(
     def get_collections() -> Response:
         """
         Get list of available collections for the collection selector UI.
-        
+
         Returns:
             JSON array of collections with id, name, description, and stats
-        
+
         Example response:
             {
                 "collections": [
@@ -145,7 +145,7 @@ def create_editor_blueprint(
             if has_collection_manager:
                 collections = collection_manager.list_collections()
                 default_id = collection_manager._default_id
-                
+
                 return jsonify({
                     "collections": collections,
                     "default_collection": default_id,
@@ -172,7 +172,7 @@ def create_editor_blueprint(
     def new_mixtape() -> str:
         """
         Render the page for creating a new mixtape.
-        
+
         UPDATED: Now passes collection information to template.
         """
         # Get user preferences for defaults
@@ -195,21 +195,24 @@ def create_editor_blueprint(
                 "default_show_tracklist", True
             ),
         }
-        
+
         # Pass collection info to template
         if has_collection_manager:
             collections = collection_manager.list_collections()
-            default_collection_id = collection_manager._default_id
+            collections=collections,
+            default_collection_id = collection_manager._default_id,
+            has_multiple = len(collections) > 1
         else:
             collections = [{"id": "main", "name": "Main Collection"}]
             default_collection_id = "main"
-        
+
         return render_template(
             "editor.html",
             preload_mixtape=empty_mixtape,
             collections=collections,
             default_collection=default_collection_id,
-            has_multiple_collections=has_collection_manager and len(collections) > 1
+            has_multiple=has_multiple,
+            editing_mode=False
         )
 
     @editor.route("/<slug>")
@@ -217,7 +220,7 @@ def create_editor_blueprint(
     def edit_mixtape(slug: str) -> str:
         """
         Loads and renders the page for editing an existing mixtape.
-        
+
         UPDATED: Now passes collection information and locks to the mixtape's collection.
         """
         mixtape_manager = MixtapeManager(
@@ -225,7 +228,7 @@ def create_editor_blueprint(
             collection_manager=collection_manager  # CHANGED: was collection=collection
         )
         mixtape = mixtape_manager.get(slug)
-        
+
         # Get collection info
         if has_collection_manager:
             collections = collection_manager.list_collections()
@@ -233,7 +236,7 @@ def create_editor_blueprint(
         else:
             collections = [{"id": "main", "name": "Main Collection"}]
             mixtape_collection_id = "main"
-        
+
         return render_template(
             "editor.html",
             preload_mixtape=mixtape,
@@ -252,14 +255,14 @@ def create_editor_blueprint(
     def search() -> Response:
         """
         Searches the music collection and returns the results.
-        
+
         UPDATED: Now accepts optional collection_id parameter to search
         within a specific collection.
-        
+
         Query Parameters:
             q: Search query (required, min 2 characters)
             collection_id: Collection to search (optional, defaults to default collection)
-        
+
         Returns:
             JSON array of search results with highlighted matches
         """
@@ -267,10 +270,10 @@ def create_editor_blueprint(
             query = request.args.get("q", "").strip()
             if len(query) < 2:
                 return jsonify([])
-            
+
             # NEW: Get collection_id parameter
             collection_id = request.args.get("collection_id")
-            
+
             # Get appropriate collection
             if has_collection_manager and collection_id:
                 # Multi-collection mode with specific collection
@@ -286,15 +289,15 @@ def create_editor_blueprint(
                 # Single collection mode or no specific collection
                 collection = default_collection
                 logger.debug(f"Searching default collection for: {query}")
-            
+
             # Perform search
             results = collection.search_highlighting(query, limit=50)
-            
+
             # NEW: Add collection_id to each result for UI display
             if has_collection_manager and collection_id:
                 for result in results:
                     result['collection_id'] = collection_id
-            
+
             return jsonify(results)
 
         except Exception as e:
@@ -313,9 +316,9 @@ def create_editor_blueprint(
     def artist_details() -> Response:
         """
         Get detailed information about an artist.
-        
+
         UPDATED: Now accepts optional collection_id parameter.
-        
+
         Query Parameters:
             artist: Artist name (required)
             collection_id: Collection to query (optional)
@@ -324,9 +327,9 @@ def create_editor_blueprint(
             artist = request.args.get("artist", "").strip()
             if not artist:
                 return jsonify({"error": "Missing artist"}), 400
-            
+
             collection_id = request.args.get("collection_id")
-            
+
             # Get appropriate collection
             if has_collection_manager and collection_id:
                 collection = collection_manager.get(collection_id)
@@ -334,10 +337,10 @@ def create_editor_blueprint(
                     return jsonify({"error": "Collection not found"}), 404
             else:
                 collection = default_collection
-            
+
             details = collection.get_artist_details(artist)
             return jsonify(details)
-            
+
         except Exception as e:
             logger.error(f"Error getting artist details: {e}", exc_info=True)
             return jsonify({"error": str(e)}), 500
@@ -347,9 +350,9 @@ def create_editor_blueprint(
     def album_details() -> Response:
         """
         Get detailed information about an album.
-        
+
         UPDATED: Now accepts optional collection_id parameter.
-        
+
         Query Parameters:
             release_dir: Release directory (required)
             collection_id: Collection to query (optional)
@@ -358,9 +361,9 @@ def create_editor_blueprint(
             release_dir = request.args.get("release_dir", "").strip()
             if not release_dir:
                 return jsonify({"error": "Missing release_dir"}), 400
-            
+
             collection_id = request.args.get("collection_id")
-            
+
             # Get appropriate collection
             if has_collection_manager and collection_id:
                 collection = collection_manager.get(collection_id)
@@ -368,10 +371,10 @@ def create_editor_blueprint(
                     return jsonify({"error": "Collection not found"}), 404
             else:
                 collection = default_collection
-            
+
             details = collection.get_album_details(release_dir)
             return jsonify(details)
-            
+
         except Exception as e:
             logger.error(f"Error getting album details: {e}", exc_info=True)
             return jsonify({"error": str(e)}), 500
@@ -384,9 +387,9 @@ def create_editor_blueprint(
     def save_mixtape() -> Response:
         """
         Saves a new or edited mixtape.
-        
+
         UPDATED: Now stores collection_id in mixtape metadata.
-        
+
         Request body must include:
             - title: Mixtape title
             - tracks: Array of track objects
@@ -401,7 +404,7 @@ def create_editor_blueprint(
             title = data.get("title", "").strip() or "Unnamed Mixtape"
             liner_notes = data.get("liner_notes", "")
             slug = data.get("slug")  # Present only when editing
-            
+
             # NEW: Get collection_id
             collection_id = data.get("collection_id")
             if not collection_id:
@@ -480,12 +483,12 @@ def create_editor_blueprint(
                 # Extract base64 data
                 import base64
                 import re
-                
+
                 match = re.match(r'data:image/(\w+);base64,(.+)', cover_data)
                 if match:
                     image_format = match.group(1)
                     image_data = match.group(2)
-                    
+
                     # Decode base64
                     try:
                         image_bytes = base64.b64decode(image_data)

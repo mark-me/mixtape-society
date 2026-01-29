@@ -1,0 +1,336 @@
+<!-- Collection Statistics Modal -->
+<!-- Add this to your editor.html template, before the closing </div> of the content block -->
+
+<!-- Collection Statistics Modal -->
+<div class="modal fade" id="collectionStatsModal" tabindex="-1" aria-labelledby="collectionStatsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="collectionStatsModalLabel">
+                    <i class="bi bi-bar-chart-fill"></i> Collection Statistics
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="collectionStatsContent">
+                    <!-- Stats will be loaded here -->
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Loading statistics...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Collection Statistics Modal Styles */
+.stat-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+    padding: 1.5rem;
+    color: white;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card.stat-tracks {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.stat-card.stat-artists {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.stat-card.stat-albums {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.stat-card.stat-duration {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+
+.stat-value {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin: 0.5rem 0;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.collection-info-badge {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: #e9ecef;
+    border-radius: 20px;
+    margin: 0.25rem;
+}
+
+.collection-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+}
+
+.genre-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background: #6c757d;
+    color: white;
+    border-radius: 15px;
+    font-size: 0.85rem;
+    margin: 0.25rem;
+}
+
+.top-artists-list {
+    list-style: none;
+    padding: 0;
+}
+
+.top-artists-list li {
+    padding: 0.75rem;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.top-artists-list li:last-child {
+    border-bottom: none;
+}
+
+.artist-rank {
+    background: #6c757d;
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-right: 1rem;
+}
+
+.artist-rank.rank-1 { background: #ffd700; color: #000; }
+.artist-rank.rank-2 { background: #c0c0c0; color: #000; }
+.artist-rank.rank-3 { background: #cd7f32; color: #fff; }
+</style>
+
+<script>
+// Collection Statistics Modal JavaScript
+(function() {
+    const statsModal = document.getElementById('collectionStatsModal');
+    
+    if (statsModal) {
+        statsModal.addEventListener('show.bs.modal', async function(event) {
+            // Get collection ID from button that triggered modal
+            const button = event.relatedTarget;
+            const collectionId = button?.getAttribute('data-collection-id');
+            
+            if (!collectionId) {
+                console.error('No collection ID provided');
+                return;
+            }
+            
+            // Update modal title
+            const modalTitle = statsModal.querySelector('.modal-title');
+            const collectionName = button?.getAttribute('data-collection-name') || collectionId;
+            modalTitle.innerHTML = `<i class="bi bi-bar-chart-fill"></i> ${collectionName} Statistics`;
+            
+            // Show loading state
+            const contentDiv = document.getElementById('collectionStatsContent');
+            contentDiv.innerHTML = `
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Loading statistics...</p>
+                </div>
+            `;
+            
+            try {
+                // Fetch collection statistics
+                const response = await fetch(`/api/collections/${collectionId}/stats`);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load statistics');
+                }
+                
+                const stats = await response.json();
+                
+                // Render statistics
+                renderCollectionStats(stats, collectionName, collectionId);
+                
+            } catch (error) {
+                console.error('Error loading collection stats:', error);
+                contentDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        Failed to load collection statistics. Please try again.
+                    </div>
+                `;
+            }
+        });
+    }
+    
+    function renderCollectionStats(stats, collectionName, collectionId) {
+        const contentDiv = document.getElementById('collectionStatsContent');
+        
+        // Format duration
+        const totalSeconds = stats.total_duration || 0;
+        const days = Math.floor(totalSeconds / 86400);
+        const hours = Math.floor((totalSeconds % 86400) / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const durationText = `${days}d ${hours}h ${minutes}m`;
+        
+        // Format file size
+        const totalBytes = stats.total_size || 0;
+        const sizeGB = (totalBytes / (1024 ** 3)).toFixed(2);
+        const sizeText = `${sizeGB} GB`;
+        
+        const html = `
+            <!-- Collection Header -->
+            <div class="collection-header text-center">
+                <h3>${collectionName}</h3>
+                <p class="mb-0">${stats.description || 'Music Collection'}</p>
+                <div class="mt-2">
+                    <span class="collection-info-badge">
+                        <i class="bi bi-folder"></i> ${collectionId}
+                    </span>
+                    <span class="collection-info-badge">
+                        <i class="bi bi-hdd"></i> ${stats.music_root || 'N/A'}
+                    </span>
+                </div>
+            </div>
+            
+            <!-- Main Statistics Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3 col-6">
+                    <div class="stat-card stat-tracks">
+                        <div class="stat-label">Tracks</div>
+                        <div class="stat-value">${stats.track_count?.toLocaleString() || 0}</div>
+                        <i class="bi bi-music-note-list" style="font-size: 2rem; opacity: 0.3;"></i>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 col-6">
+                    <div class="stat-card stat-artists">
+                        <div class="stat-label">Artists</div>
+                        <div class="stat-value">${stats.artist_count?.toLocaleString() || 0}</div>
+                        <i class="bi bi-person-fill" style="font-size: 2rem; opacity: 0.3;"></i>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 col-6">
+                    <div class="stat-card stat-albums">
+                        <div class="stat-label">Albums</div>
+                        <div class="stat-value">${stats.album_count?.toLocaleString() || 0}</div>
+                        <i class="bi bi-disc-fill" style="font-size: 2rem; opacity: 0.3;"></i>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 col-6">
+                    <div class="stat-card stat-duration">
+                        <div class="stat-label">Duration</div>
+                        <div class="stat-value" style="font-size: 1.5rem;">${durationText}</div>
+                        <i class="bi bi-clock-fill" style="font-size: 2rem; opacity: 0.3;"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Additional Info -->
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h6 class="mb-0"><i class="bi bi-info-circle"></i> Storage Info</h6>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-2">
+                                <strong>Total Size:</strong> ${sizeText}
+                            </p>
+                            <p class="mb-2">
+                                <strong>Average Track Size:</strong> 
+                                ${((totalBytes / stats.track_count) / (1024 ** 2)).toFixed(2)} MB
+                            </p>
+                            <p class="mb-0">
+                                <strong>Database:</strong> ${stats.db_path || 'N/A'}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h6 class="mb-0"><i class="bi bi-music-note-beamed"></i> Average Info</h6>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-2">
+                                <strong>Tracks per Album:</strong> 
+                                ${(stats.track_count / stats.album_count).toFixed(1)}
+                            </p>
+                            <p class="mb-2">
+                                <strong>Albums per Artist:</strong> 
+                                ${(stats.album_count / stats.artist_count).toFixed(1)}
+                            </p>
+                            <p class="mb-0">
+                                <strong>Average Track Duration:</strong> 
+                                ${Math.floor(totalSeconds / stats.track_count / 60)}:${String(Math.floor((totalSeconds / stats.track_count) % 60)).padStart(2, '0')}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            ${stats.genres && stats.genres.length > 0 ? `
+            <div class="card mt-3">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="bi bi-tags-fill"></i> Genres</h6>
+                </div>
+                <div class="card-body">
+                    ${stats.genres.map(genre => `<span class="genre-badge">${genre}</span>`).join('')}
+                </div>
+            </div>
+            ` : ''}
+            
+            ${stats.top_artists && stats.top_artists.length > 0 ? `
+            <div class="card mt-3">
+                <div class="card-header bg-warning">
+                    <h6 class="mb-0"><i class="bi bi-star-fill"></i> Top Artists</h6>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="top-artists-list">
+                        ${stats.top_artists.slice(0, 10).map((artist, index) => `
+                            <li>
+                                <div class="d-flex align-items-center">
+                                    <span class="artist-rank rank-${index + 1}">${index + 1}</span>
+                                    <strong>${artist.name}</strong>
+                                </div>
+                                <span class="badge bg-secondary">${artist.track_count} tracks</span>
+                            </li>
+                        `).join('')}
+                    </ul>
+                </div>
+            </div>
+            ` : ''}
+        `;
+        
+        contentDiv.innerHTML = html;
+    }
+})();
+</script>
