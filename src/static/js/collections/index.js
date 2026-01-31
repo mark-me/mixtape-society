@@ -4,7 +4,7 @@
  * Handles add, edit, delete, and resync operations for collections
  */
 
-import { showAlert, showConfirm } from '../editor/utils.js';
+import { showAlert, showConfirm } from '../common/modalsStandard.js';
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
@@ -140,7 +140,7 @@ function updateDbPathPreview() {
     // ------------------------------------------------------------------
     // loadPath – fetch a directory listing and render breadcrumb + entries
     // ------------------------------------------------------------------
-    async function loadPath(dirPath) {
+    const loadPath = async (dirPath) => {
         entriesList.innerHTML = '<li class="list-group-item text-center text-muted"><span class="spinner-border spinner-border-sm"></span></li>';
 
         try {
@@ -163,7 +163,7 @@ function updateDbPathPreview() {
     // ------------------------------------------------------------------
     // renderBreadcrumb – clickable path segments
     // ------------------------------------------------------------------
-    function renderBreadcrumb(path) {
+    const renderBreadcrumb = (path) => {
         // Split "/music/Jazz/Sub" → ["", "music", "Jazz", "Sub"]
         const parts = path.split('/');
         let html = '';
@@ -207,7 +207,7 @@ function updateDbPathPreview() {
     // ------------------------------------------------------------------
     // renderEntries – directory rows + optional "select this folder" row
     // ------------------------------------------------------------------
-    function renderEntries(entries) {
+    const renderEntries = (entries) => {
         let html = '';
 
         // "Select current folder" option at the top
@@ -335,7 +335,7 @@ async function handleAddCollection() {
  * Handle edit collection button click
  */
 function handleEditCollectionClick(e) {
-    const collectionId = e.currentTarget.dataset.collectionId;
+    const {collectionId} = e.currentTarget.dataset;
 
     // Find collection data in the page
     const card = document.querySelector(`[data-collection-id="${collectionId}"]`);
@@ -423,8 +423,7 @@ async function handleSaveEdit() {
  * Handle delete collection button click
  */
 function handleDeleteCollectionClick(e) {
-    const collectionId = e.currentTarget.dataset.collectionId;
-    const collectionName = e.currentTarget.dataset.collectionName;
+    const {collectionId, collectionName} = e.currentTarget.dataset;
 
     // Populate delete modal
     document.getElementById('deleteCollectionId').value = collectionId;
@@ -490,8 +489,7 @@ async function handleConfirmDelete() {
  * Handle resync collection
  */
 async function handleResyncCollection(e) {
-    const collectionId = e.currentTarget.dataset.collectionId;
-    const collectionName = e.currentTarget.dataset.collectionName;
+    const {collectionId, collectionName} = e.currentTarget.dataset;
 
     const confirmed = await showConfirm({
         title: 'Resync Collection',
@@ -539,8 +537,7 @@ async function handleResyncCollection(e) {
  * Handle view stats button click
  */
 function handleViewStats(e) {
-    const collectionId = e.currentTarget.dataset.collectionId;
-    const collectionName = e.currentTarget.dataset.collectionName;
+    const {collectionId, collectionName} = e.currentTarget.dataset;
 
     // Set data attributes on modal for JavaScript in base.html to use
     const modal = document.getElementById('collectionStatsModal');

@@ -1,6 +1,6 @@
 site_name: Mixtape Society
-site_description: 'Self-hosted mixtape sharing platform with music streaming, Chromecast support, and curated playlist management'
-site_author: 'Mark Zwart'
+site_description: "Self-hosted mixtape sharing platform with music streaming, Chromecast support, and curated playlist management"
+site_author: "Mark Zwart"
 site_url: https://mixtape-society.org/
 repo_url: https://github.com/mark-me/mixtape-society
 repo_name: mark-me/mixtape-society
@@ -10,256 +10,241 @@ use_directory_urls: false
 copyright: Mark Zwart
 
 theme:
-  name: material
-  favicon: images/logo.png
-  logo: images/logo.png
-  language: en
-  palette:
-    - media: "(prefers-color-scheme: light)"
-      scheme: default
-      primary: custom
-      accent: custom
-      toggle:
-        icon: material/brightness-7
-        name: Switch to dark mode
-    - media: "(prefers-color-scheme: dark)"
-      scheme: slate
-      primary: custom
-      accent: custom
-      toggle:
-        icon: material/brightness-4
-        name: Switch to light mode
-  features:
-    - navigation.instant
-    - navigation.tabs
-    - navigation.tabs.sticky
-    - navigation.top
-    - navigation.indexes
-    - navigation.prune
-    - navigation.path
-    - navigation.footer
-    - navigation.tracking
-    - toc.follow
-    - search.suggest
-    - search.highlight
-    - search.share
-    - content.code.copy
-    - content.code.select
-    - content.code.annotate
-    - content.action.edit
-    - content.action.view
-    - content.tooltips
-    - content.tabs.link
-  icon:
-    repo: fontawesome/brands/github
-    edit: material/pencil
-    view: material/eye
+    name: material
+    favicon: images/logo.png
+    logo: images/logo.png
+    language: en
+    palette:
+        - media: "(prefers-color-scheme: light)"
+          scheme: default
+          primary: custom
+          accent: custom
+          toggle:
+              icon: material/brightness-7
+              name: Switch to dark mode
+        - media: "(prefers-color-scheme: dark)"
+          scheme: slate
+          primary: custom
+          accent: custom
+          toggle:
+              icon: material/brightness-4
+              name: Switch to light mode
+    features:
+        - navigation.instant
+        - navigation.tabs
+        - navigation.tabs.sticky
+        - navigation.top
+        - navigation.indexes
+        - navigation.prune
+        - navigation.path
+        - navigation.footer
+        - navigation.tracking
+        - toc.follow
+        - search.suggest
+        - search.highlight
+        - search.share
+        - content.code.copy
+        - content.code.select
+        - content.code.annotate
+        - content.action.edit
+        - content.action.view
+        - content.tooltips
+        - content.tabs.link
+    icon:
+        repo: fontawesome/brands/github
+        edit: material/pencil
+        view: material/eye
 
 extra_css:
-  - stylesheets/extra.css
+    - stylesheets/extra.css
 
 extra:
-  social:
-    - icon: fontawesome/brands/github
-      link: https://github.com/mark-me/mixtape-society
-      name: GitHub Repository
-  generator: true
-  analytics:
-    feedback:
-      title: Was this page helpful?
-      ratings:
-        - icon: material/emoticon-happy-outline
-          name: This page was helpful
-          data: 1
-          note: >-
-            Thanks for your feedback!
-        - icon: material/emoticon-sad-outline
-          name: This page could be improved
-          data: 0
-          note: >-
-            Thanks for your feedback! Help us improve by
-            <a href="https://github.com/mark-me/mixtape-society/issues/new" target="_blank" rel="noopener">opening an issue</a>.
+    social:
+        - icon: fontawesome/brands/github
+          link: https://github.com/mark-me/mixtape-society
+          name: GitHub Repository
+    generator: false
 
 nav:
-  - Introduction: index.md
-  - Getting Started:
-    - Overview: user/getting-started.md
-    - For Creators:
-      - Creator's Guide: user/creators/index.md
-      - Installation: user/creators/installation.md
-      - Creating Mixtapes: user/creators/editor.md
-      - Collection Management: user/creators/collection-management.md
-      - Sharing Mixtapes: user/creators/sharing.md
-      - Creator FAQ: user/creators/faq.md
-    - For Recipients:
-      - Recipient's Guide: user/recipients/index.md
-      - Getting Started: user/recipients/getting-started.md
-      - Player Guide: user/recipients/player.md
-      - Streaming to Devices: user/recipients/streaming.md
-      - Recipient FAQ: user/recipients/faq.md
+    - Introduction: index.md
+    - Getting Started:
+          - Overview: user/getting-started.md
+          - For Creators:
+                - Creator's Guide: user/creators/index.md
+                - Installation: user/creators/installation.md
+                - Creating Mixtapes: user/creators/editor.md
+                - Collection Management: user/creators/collection-management.md
+                - Sharing Mixtapes: user/creators/sharing.md
+                - Creator FAQ: user/creators/faq.md
+          - For Recipients:
+                - Recipient's Guide: user/recipients/index.md
+                - Getting Started: user/recipients/getting-started.md
+                - Player Guide: user/recipients/player.md
+                - Streaming to Devices: user/recipients/streaming.md
+                - Recipient FAQ: user/recipients/faq.md
 
-  - Architecture & Development:
-    - Project Overview: development/intro.md
-    - Deployment: development/deployment.md
-    - Configuration: development/configuration.md
+    - Architecture & Development:
+          - Project Overview: development/intro.md
+          - Deployment: development/deployment.md
+          - Configuration: development/configuration.md
 
-    - Music Collection:
-        - Overview: development/music-collection/overview.md
-        - Reading Library: development/music-collection/reading.md
-        - Loading & Indexing: development/music-collection/loading.md
+          - Music Collection:
+                - Overview: development/music-collection/overview.md
+                - Reading Library: development/music-collection/reading.md
+                - Loading & Indexing: development/music-collection/loading.md
 
-    - Mixtape System:
-        - Overview: development/mixtape-system/overview.md
-        - Mixtape Manager (Backend): development/mixtape-system/manager-backend.md
-        - Editor (Frontend): development/mixtape-system/editor-frontend.md
-        - Editor API (Backend): development/mixtape-system/editor-api.md
-        - QR Code Generation: development/mixtape-system/qr-generation.md
+          - Mixtape System:
+                - Overview: development/mixtape-system/overview.md
+                - Mixtape Manager (Backend): development/mixtape-system/manager-backend.md
+                - Editor (Frontend): development/mixtape-system/editor-frontend.md
+                - Editor API (Backend): development/mixtape-system/editor-api.md
+                - QR Code Generation: development/mixtape-system/qr-generation.md
 
-    - Audio Playback:
-        - System Overview: development/audio-playback/overview.md
-        - Backend (Streaming):
-            - Audio Streaming: development/audio-playback/backend/audio-streaming.md
-            - Range Requests: development/audio-playback/backend/range-requests.md
-            - Quality & Caching: development/audio-playback/backend/quality-caching.md
-            - Server Cache System: development/audio-playback/backend/server-cache-system.md
-        - Frontend (Player):
-            - Player Controls: development/audio-playback/frontend/player-controls.md
-            - Player Utilities: development/audio-playback/frontend/player-utilities.md
-            - Sleep Timer: development/audio-playback/frontend/sleep-timer.md
-        - Media Session Integration: development/audio-playback/media-integration.md
+          - Audio Playback:
+                - System Overview: development/audio-playback/overview.md
+                - Backend (Streaming):
+                      - Audio Streaming: development/audio-playback/backend/audio-streaming.md
+                      - Range Requests: development/audio-playback/backend/range-requests.md
+                      - Quality & Caching: development/audio-playback/backend/quality-caching.md
+                      - Server Cache System: development/audio-playback/backend/server-cache-system.md
+                - Frontend (Player):
+                      - Player Controls: development/audio-playback/frontend/player-controls.md
+                      - Player Utilities: development/audio-playback/frontend/player-utilities.md
+                      - Sleep Timer: development/audio-playback/frontend/sleep-timer.md
+                - Media Session Integration: development/audio-playback/media-integration.md
 
-    - Device Integration:
-        - Chromecast:
-            - Integration Guide: development/device-integration/chromecast/integration.md
-        - Android Auto:
-            - Integration Overview: development/device-integration/android-auto/overview.md
-            - Frontend Implementation: development/device-integration/android-auto/frontend.md
-            - Backend Implementation: development/device-integration/android-auto/backend.md
-            - Testing Guide: development/device-integration/android-auto/testing.md
+          - Device Integration:
+                - Chromecast:
+                      - Integration Guide: development/device-integration/chromecast/integration.md
+                - Android Auto:
+                      - Integration Overview: development/device-integration/android-auto/overview.md
+                      - Frontend Implementation: development/device-integration/android-auto/frontend.md
+                      - Backend Implementation: development/device-integration/android-auto/backend.md
+                      - Testing Guide: development/device-integration/android-auto/testing.md
 
-    - Media Assets:
-        - Cover Art System:
-            - Overview: development/media-assets/cover-art/overview.md
-            - Size Optimization: development/media-assets/cover-art/optimization.md
-            - API Reference: development/media-assets/cover-art/api.md
-            - Route Handler: development/media-assets/cover-art/routes.md
-        - OpenGraph Images: development/media-assets/opengraph.md
+          - Media Assets:
+                - Cover Art System:
+                      - Overview: development/media-assets/cover-art/overview.md
+                      - Size Optimization: development/media-assets/cover-art/optimization.md
+                      - API Reference: development/media-assets/cover-art/api.md
+                      - Route Handler: development/media-assets/cover-art/routes.md
+                - OpenGraph Images: development/media-assets/opengraph.md
 
-    - Web Application:
-        - Flask App Structure: development/web-application/flask-app.md
-        - Progressive Web App (PWA):
-            - PWA Introduction: development/web-application/pwa/introduction.md
-            - PWA Optimizations: development/web-application/pwa/optimizations.md
-        - Routes & APIs:
-            - Browse Mixtapes: development/web-application/routes/browse.md
-            - Authentication: development/web-application/routes/authentication.md
-            - QR Code Routes: development/web-application/routes/qr-codes.md
-        - UI Components:
-            - Toast Notification System: development/web-application/ui-components/toast-system.md
-        - Shared Utilities:
-            - Common Module: development/web-application/utilities/common.md
-            - Utilities: development/web-application/utilities/utilities.md
+          - Web Application:
+                - Flask App Structure: development/web-application/flask-app.md
+                - Progressive Web App (PWA):
+                      - PWA Introduction: development/web-application/pwa/introduction.md
+                      - PWA Optimizations: development/web-application/pwa/optimizations.md
+                - Routes & APIs:
+                      - Browse Mixtapes: development/web-application/routes/browse.md
+                      - Authentication: development/web-application/routes/authentication.md
+                      - QR Code Routes: development/web-application/routes/qr-codes.md
+                - UI Components:
+                      - Toast Notification System: development/web-application/ui-components/toast-system.md
+                - Shared Utilities:
+                      - Common Module: development/web-application/utilities/common.md
+                      - Utilities: development/web-application/utilities/utilities.md
 
-  - Project:
-    - Overview: project/index.md
-    - Changelog: project/changelog.md
-    - Roadmap: project/roadmap.md
-    - Ideas:
-      - General Ideas: project/ideas/ideas.md
-      - Design & Implementation Map: project/ideas/design_implementation_map.md
-    - Contributing: project/contributing.md
-    - About: project/about.md
+    - Project:
+          - Overview: project/index.md
+          - Changelog: project/changelog.md
+          - Roadmap: project/roadmap.md
+          - Ideas:
+                - General Ideas: project/ideas/ideas.md
+                - Design & Implementation Map: project/ideas/design_implementation_map.md
+          - Contributing: project/contributing.md
+          - About: project/about.md
 
 plugins:
-  - search:
-      lang: en
-      separator: '[\s\-\.]+'
-  - offline:
-      enabled: true
-  - glightbox:
-      touchNavigation: true
-      loop: false
-      effect: zoom
-      slide_effect: slide
-      width: 100%
-      height: auto
-      zoomable: true
-      draggable: true
-      auto_caption: true
-      caption_position: bottom
-  - mkdocstrings:
-      handlers:
-        python:
-          options:
-            show_bases: true
-            show_root_heading: true
-            show_root_full_path: false
-            show_symbol_type_heading: true
-            show_symbol_type_toc: true
-            show_source: true
-            members_order: source
-            heading_level: 2
-            summary: true
-            docstring_style: google
-            docstring_section_style: table
-            show_if_no_docstring: false
-            inherited_members: false
-            merge_init_into_class: true
-  - autorefs
-  - panzoom:
-      full_screen: true
-  - git-revision-date-localized:
-      enable_creation_date: true
-      type: timeago
-      fallback_to_build_date: true
+    - search:
+          lang: en
+          separator: '[\s\-\.]+'
+    - offline:
+          enabled: true
+    - glightbox:
+          touchNavigation: true
+          loop: false
+          effect: zoom
+          slide_effect: slide
+          width: 100%
+          height: auto
+          zoomable: true
+          draggable: true
+          auto_caption: true
+          caption_position: bottom
+    - mkdocstrings:
+          handlers:
+              python:
+                  options:
+                      show_bases: true
+                      show_root_heading: true
+                      show_root_full_path: false
+                      show_symbol_type_heading: true
+                      show_symbol_type_toc: true
+                      show_source: true
+                      members_order: source
+                      heading_level: 2
+                      summary: true
+                      docstring_style: google
+                      docstring_section_style: table
+                      show_if_no_docstring: false
+                      inherited_members: false
+                      merge_init_into_class: true
+    - autorefs
+    - git-revision-date-localized:
+          enable_creation_date: true
+          type: timeago
+          fallback_to_build_date: true
+    - panzoom:
+          full_screen: true
 
 markdown_extensions:
-  - abbr
-  - attr_list
-  - def_list
-  - footnotes
-  - md_in_html
-  - tables
-  - admonition
-  - pymdownx.details
-  - pymdownx.highlight:
-      anchor_linenums: true
-      line_spans: __span
-      pygments_lang_class: true
-  - pymdownx.inlinehilite
-  - pymdownx.snippets:
-      check_paths: true
-  - pymdownx.superfences:
-      custom_fences:
-        - name: mermaid
-          class: mermaid
-          format: !!python/name:pymdownx.superfences.fence_code_format
-  - toc:
-      permalink: true
-      permalink_title: Anchor link to this section
-      toc_depth: 2
-      slugify: !!python/object/apply:pymdownx.slugs.slugify
-        kwds:
-          case: lower
-  - pymdownx.tabbed:
-      alternate_style: true
-      slugify: !!python/object/apply:pymdownx.slugs.slugify
-        kwds:
-          case: lower
-  - pymdownx.tasklist:
-      custom_checkbox: true
-      clickable_checkbox: false
-  - pymdownx.emoji:
-      emoji_index: !!python/name:material.extensions.emoji.twemoji
-      emoji_generator: !!python/name:material.extensions.emoji.to_svg
-  - pymdownx.betterem:
-      smart_enable: all
-  - pymdownx.caret
-  - pymdownx.mark
-  - pymdownx.tilde
-  - pymdownx.keys
-  - pymdownx.smartsymbols
-  - pymdownx.critic:
-      mode: accept
-  - pymdownx.arithmatex:
-      generic: true
+    - abbr
+    - attr_list
+    - def_list
+    - footnotes
+    - md_in_html
+    - tables
+    - admonition
+    - pymdownx.details
+    - pymdownx.superfences:
+        custom_fences:
+            - name: mermaid
+              class: mermaid
+              format: !!python/name:pymdownx.superfences.fence_code_format
+    - pymdownx.highlight:
+        anchor_linenums: true
+        line_spans: __span
+        pygments_lang_class: true
+    - pymdownx.inlinehilite
+    - pymdownx.snippets:
+        check_paths: true
+    - toc:
+        permalink: true
+        permalink_title: Anchor link to this section
+        toc_depth: 2
+        slugify: !!python/object/apply:pymdownx.slugs.slugify
+            kwds:
+                case: lower
+    - pymdownx.tabbed:
+        alternate_style: true
+        slugify: !!python/object/apply:pymdownx.slugs.slugify
+            kwds:
+                case: lower
+    - pymdownx.tasklist:
+        custom_checkbox: true
+        clickable_checkbox: false
+    - pymdownx.emoji:
+        emoji_index: !!python/name:material.extensions.emoji.twemoji
+        emoji_generator: !!python/name:material.extensions.emoji.to_svg
+    - pymdownx.betterem:
+        smart_enable: all
+    - pymdownx.caret
+    - pymdownx.mark
+    - pymdownx.tilde
+    - pymdownx.keys
+    - pymdownx.smartsymbols
+    - pymdownx.critic:
+          mode: accept
+    - pymdownx.arithmatex:
+          generic: true

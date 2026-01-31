@@ -1,5 +1,5 @@
 // static/js/editor/ui.js
-import { showAlert, showConfirm } from "./utils.js";
+import { showAlert, showConfirm } from "../common/modalsStandard.js";
 import { playlist, registerUnsavedCallback, registerTrackAddedCallback, registerTrackRemovedCallback } from "./playlist.js";
 import { easyMDE } from "./editorNotes.js";
 import { showProgressModal } from './progressModal.js';

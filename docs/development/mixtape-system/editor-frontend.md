@@ -33,6 +33,7 @@ graph TD
     Notes[editorNotes.js<br/>Markdown Editor]
     UI[ui.js<br/>UI Controls]
     Progress[progressModal.js<br/>SSE Progress]
+    StandardModels["../common/modalsStandard.js<br/>Helpers"]
     Utils[utils.js<br/>Helpers]
 
     Index --> Search
