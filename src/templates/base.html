@@ -43,13 +43,21 @@
           <div class="navbar-nav ms-auto d-flex align-items-center gap-2 mt-2 mt-md-0">
             {% if is_authenticated %}
             <div>
+              <a class="btn btn-outline-light d-flex align-items-center gap-2"
+                href="/collections"
+                title="Manage collections">
+                <i class="bi bi-collection"></i>
+                <span>Collections</span>
+              </a>
+            </div>
+            <div>
               <button class="btn btn-outline-light d-flex align-items-center gap-2"
                       id="collectionBtn"
                       data-bs-toggle="modal"
                       data-bs-target="#collectionStatsModal"
                       title="View collection statistics">
-                <i class="bi bi-music-note-list"></i>
-                <span>Collection</span>
+                <i class="bi bi-bar-chart-fill"></i>
+                <span class="d-none d-md-inline">Stats</span>
               </button>
             </div>
             {% endif %}

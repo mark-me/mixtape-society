@@ -1,0 +1,432 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Collections{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/collections.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-1">
+                <i class="bi bi-collection"></i> Manage Collections
+            </h1>
+            <p class="text-muted mb-0">
+                Add, edit, and manage your music collections
+            </p>
+        </div>
+        <button class="btn btn-success btn-lg shadow"
+                data-bs-toggle="modal"
+                data-bs-target="#addCollectionModal">
+            <i class="bi bi-plus-circle"></i> Add Collection
+        </button>
+    </div>
+
+    <!-- Info Alert -->
+    <div class="alert alert-info d-flex align-items-start">
+        <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+        <div>
+            <strong>About Collections:</strong> Collections allow you to organize music from different locations.
+            Each collection has its own database and can be searched independently in the mixtape editor.
+        </div>
+    </div>
+
+    <!-- Collections Grid -->
+    <div class="row g-4" id="collectionsGrid">
+        {% if collections and collections|length > 0 %}
+            {% for collection in collections %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card collection-card shadow-sm" data-collection-id="{{ collection.id }}">
+                    <div class="collection-header">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="mb-0">{{ collection.name }}</h5>
+                            {% if collection.is_default %}
+                            <span class="default-badge">Default</span>
+                            {% endif %}
+                        </div>
+                        {% if collection.description %}
+                        <p class="mb-0 small" style="opacity: 0.9;">{{ collection.description }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <small class="text-muted d-block mb-1">
+                                <i class="bi bi-folder"></i> Collection ID
+                            </small>
+                            <code class="path-display">{{ collection.id }}</code>
+                        </div>
+
+                        <div class="mb-3">
+                            <small class="text-muted d-block mb-1">
+                                <i class="bi bi-hdd"></i> Music Root
+                            </small>
+                            <code class="path-display">{{ collection.music_root }}</code>
+                        </div>
+
+                        <div>
+                            <small class="text-muted d-block mb-1">
+                                <i class="bi bi-database"></i> Database
+                            </small>
+                            <code class="path-display">{{ collection.db_path }}</code>
+                        </div>
+                    </div>
+
+                    <div class="collection-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">{{ collection.stats.num_tracks|default(0)|format_number }}</div>
+                            <div class="stat-label">Tracks</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">{{ collection.stats.num_artists|default(0)|format_number }}</div>
+                            <div class="stat-label">Artists</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">{{ collection.stats.num_albums|default(0)|format_number }}</div>
+                            <div class="stat-label">Albums</div>
+                        </div>
+                    </div>
+
+                    <div class="collection-actions">
+                        <div class="btn-group w-100" role="group">
+                            <button class="btn btn-sm btn-outline-primary view-stats-btn"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#collectionStatsModal"
+                                    data-collection-id="{{ collection.id }}"
+                                    data-collection-name="{{ collection.name }}"
+                                    title="View statistics">
+                                <i class="bi bi-bar-chart"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary edit-collection-btn"
+                                    data-collection-id="{{ collection.id }}"
+                                    title="Edit collection">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-info resync-collection-btn"
+                                    data-collection-id="{{ collection.id }}"
+                                    data-collection-name="{{ collection.name }}"
+                                    title="Resync collection">
+                                <i class="bi bi-arrow-clockwise"></i>
+                            </button>
+                            {% if not collection.is_default %}
+                            <button class="btn btn-sm btn-outline-danger delete-collection-btn"
+                                    data-collection-id="{{ collection.id }}"
+                                    data-collection-name="{{ collection.name }}"
+                                    title="Delete collection">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="bi bi-collection"></i>
+                    </div>
+                    <h3>No Collections Yet</h3>
+                    <p class="text-muted">Get started by adding your first music collection.</p>
+                    <button class="btn btn-success btn-lg mt-3"
+                            data-bs-toggle="modal"
+                            data-bs-target="#addCollectionModal">
+                        <i class="bi bi-plus-circle"></i> Add Your First Collection
+                    </button>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add Collection Modal -->
+<div class="modal fade" id="addCollectionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-plus-circle"></i> Add New Collection
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addCollectionForm">
+                    <div class="form-section">
+                        <h6 class="form-section-title">Basic Information</h6>
+
+                        <div class="mb-3">
+                            <label for="addCollectionId" class="form-label">
+                                Collection ID <span class="text-danger">*</span>
+                            </label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="addCollectionId"
+                                   required
+                                   pattern="[a-z0-9-]+"
+                                   placeholder="e.g., jazz, classical, rock">
+                            <small class="form-text text-muted">
+                                Lowercase letters, numbers, and hyphens only. Cannot be changed later.
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="addCollectionName" class="form-label">
+                                Display Name <span class="text-danger">*</span>
+                            </label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="addCollectionName"
+                                   required
+                                   placeholder="e.g., Jazz Archive">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="addCollectionDescription" class="form-label">
+                                Description
+                            </label>
+                            <textarea class="form-control"
+                                      id="addCollectionDescription"
+                                      rows="2"
+                                      placeholder="Optional description"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h6 class="form-section-title">Paths</h6>
+
+                        <!-- Music Root -->
+                        <div class="mb-3">
+                            <label for="addCollectionMusicRoot" class="form-label">
+                                Music Root Path <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <input type="text"
+                                       class="form-control"
+                                       id="addCollectionMusicRoot"
+                                       required
+                                       readonly
+                                       placeholder="Click browse to select…">
+                                <button class="btn btn-outline-secondary"
+                                        type="button"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#pathPickerModal"
+                                        data-picker-target="addCollectionMusicRoot"
+                                        data-picker-dirs-only="1"
+                                        title="Browse…">
+                                    <i class="bi bi-folder-open"></i>
+                                </button>
+                            </div>
+                            <small class="form-text text-muted">
+                                Select the folder that contains your music files.
+                            </small>
+                        </div>
+
+                        <!-- Database Directory -->
+                        <div class="mb-3">
+                            <label for="addCollectionDbDir" class="form-label">
+                                Database Directory <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <input type="text"
+                                       class="form-control"
+                                       id="addCollectionDbDir"
+                                       required
+                                       readonly
+                                       placeholder="Click browse to select…">
+                                <button class="btn btn-outline-secondary"
+                                        type="button"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#pathPickerModal"
+                                        data-picker-target="addCollectionDbDir"
+                                        data-picker-dirs-only="1"
+                                        title="Browse…">
+                                    <i class="bi bi-folder-open"></i>
+                                </button>
+                            </div>
+                            <small class="form-text text-muted">
+                                Select the directory where the database file will be stored.
+                                The file name is set automatically based on the Collection ID.
+                            </small>
+                            <!-- resolved full path shown here once both fields have a value -->
+                            <div id="dbPathPreview" class="mt-2" style="display:none;">
+                                <small class="text-muted"><i class="bi bi-database me-1"></i>
+                                    Database file: <code id="dbPathPreviewValue"></code>
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input"
+                               type="checkbox"
+                               id="addSetAsDefault">
+                        <label class="form-check-label" for="addSetAsDefault">
+                            Set as default collection
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="saveAddCollectionBtn">
+                    <i class="bi bi-plus-circle"></i> Add Collection
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Collection Modal -->
+<div class="modal fade" id="editCollectionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-pencil"></i> Edit Collection
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editCollectionForm">
+                    <input type="hidden" id="editCollectionId">
+
+                    <div class="mb-3">
+                        <label for="editCollectionName" class="form-label">
+                            Display Name <span class="text-danger">*</span>
+                        </label>
+                        <input type="text"
+                               class="form-control"
+                               id="editCollectionName"
+                               required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="editCollectionDescription" class="form-label">
+                            Description
+                        </label>
+                        <textarea class="form-control"
+                                  id="editCollectionDescription"
+                                  rows="2"></textarea>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <small>Note: Collection ID and paths cannot be changed after creation.</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveEditCollectionBtn">
+                    <i class="bi bi-save"></i> Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteCollectionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle"></i> Delete Collection
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="deleteCollectionId">
+
+                <p><strong>Are you sure you want to delete this collection?</strong></p>
+
+                <div class="alert alert-warning">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>This will:</strong>
+                    <ul class="mb-0 mt-2">
+                        <li>Remove the collection from the app</li>
+                        <li>Delete the collection's database file</li>
+                    </ul>
+                </div>
+
+                <div class="alert alert-success">
+                    <i class="bi bi-check-circle"></i>
+                    <strong>This will NOT:</strong>
+                    <ul class="mb-0 mt-2">
+                        <li>Delete your music files</li>
+                        <li>Affect other collections</li>
+                    </ul>
+                </div>
+
+                <p class="mb-0">Collection: <strong id="deleteCollectionName"></strong></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                    <i class="bi bi-trash"></i> Delete Collection
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Path Picker Modal -->
+<div class="modal fade" id="pathPickerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-folder-open"></i> Select Folder
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- breadcrumb trail -->
+                <nav aria-label="breadcrumb" class="mb-2">
+                    <ol class="breadcrumb mb-0" id="pickerBreadcrumb">
+                        <!-- built by JS -->
+                    </ol>
+                </nav>
+
+                <!-- scrollable entry list -->
+                <div class="border rounded" style="max-height:360px; overflow-y:auto;">
+                    <ul class="list-group list-group-flush" id="pickerEntries">
+                        <!-- built by JS -->
+                    </ul>
+                </div>
+
+                <!-- current-path indicator shown below the list -->
+                <div class="mt-2 d-flex align-items-center gap-2">
+                    <i class="bi bi-folder-check text-success"></i>
+                    <small class="text-muted">Selected:</small>
+                    <code id="pickerSelectedPath" class="text-break">—</code>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="pickerConfirmBtn" disabled>
+                    <i class="bi bi-check-lg"></i> Select This Folder
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="loading-overlay" style="display: none;">
+    <div class="loading-content">
+        <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <h5 id="loadingMessage">Processing...</h5>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script type="module" src="{{ url_for('static', filename='js/collections/index.js') }}"></script>
+{% endblock %}

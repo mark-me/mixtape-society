@@ -37,6 +37,7 @@ from routes import (
     create_play_blueprint,
     create_qr_blueprint,
     create_collections_blueprint,
+    create_collections_page_blueprint,
 )
 from utils import get_version
 
@@ -672,6 +673,22 @@ def create_app() -> Flask:
 
     # === Context Processors ===
 
+    @app.template_filter("format_number")
+    def format_number(value):
+        try:
+            value = float(value)
+        except (TypeError, ValueError):
+            return value
+
+        if value >= 1_000_000_000:
+            return f"{value / 1_000_000_000:.1f}B"
+        elif value >= 1_000_000:
+            return f"{value / 1_000_000:.1f}M"
+        elif value >= 1_000:
+            return f"{value / 1_000:.1f}K"
+        else:
+            return str(int(value))
+
     @app.context_processor
     def inject_now() -> dict:
         """
@@ -750,7 +767,7 @@ def create_app() -> Flask:
 
     app.register_blueprint(
         create_authentication_blueprint(limiter=limiter, logger=logger),
-        url_prefix="/auth"
+        url_prefix="/auth",
     )
 
     # Browser blueprint - unchanged, still gets mixtape_manager
@@ -799,6 +816,13 @@ def create_app() -> Flask:
             collection_manager=collection_manager, logger=logger
         ),
         url_prefix="/api/collections",
+    )
+
+    app.register_blueprint(
+        create_collections_page_blueprint(
+            collection_manager=collection_manager, logger=logger
+        ),
+        url_prefix="/collections",
     )
 
     return app

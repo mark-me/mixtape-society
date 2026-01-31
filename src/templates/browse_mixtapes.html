@@ -3,26 +3,6 @@
 
 {% block extra_css %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/browse_mixtapes.css') }}">
-    <style>
-        /* NEW: Collection badge styles */
-        .collection-badge {
-            display: inline-block;
-            padding: 0.25rem 0.5rem;
-            font-size: 0.75rem;
-            font-weight: 500;
-            border-radius: 0.25rem;
-            margin-right: 0.5rem;
-        }
-        
-        .collection-badge.collection-main { background-color: #0d6efd; color: white; }
-        .collection-badge.collection-jazz { background-color: #6f42c1; color: white; }
-        .collection-badge.collection-classical { background-color: #d63384; color: white; }
-        .collection-badge.collection-default { background-color: #6c757d; color: white; }
-        
-        .collection-filter-bar {
-            margin-bottom: 1rem;
-        }
-    </style>
 {% endblock %}
 
 {% block content %}
@@ -34,7 +14,7 @@
         </button>
     </div>
 
-    <!-- NEW: Collection Filter Bar (only show if multiple collections) -->
+    <!-- Collection Filter Bar (only show if multiple collections) -->
     {% if has_multiple_collections %}
     <div class="card mb-3 shadow-sm collection-filter-bar">
         <div class="card-body p-2 p-md-3">
@@ -43,17 +23,17 @@
                     <i class="bi bi-collection"></i> Collection:
                 </span>
                 <div class="btn-group btn-group-sm" role="group">
-                    <input type="radio" class="btn-check" name="collectionFilter" 
+                    <input type="radio" class="btn-check" name="collectionFilter"
                            id="filter-all" value="" autocomplete="off"
                            {% if not collection_filter %}checked{% endif %}>
                     <label class="btn btn-outline-primary" for="filter-all">
                         All ({{ mixtapes|length }})
                     </label>
-                    
+
                     {% for collection in collections %}
-                    <input type="radio" class="btn-check" name="collectionFilter" 
-                           id="filter-{{ collection.id }}" 
-                           value="{{ collection.id }}" 
+                    <input type="radio" class="btn-check" name="collectionFilter"
+                           id="filter-{{ collection.id }}"
+                           value="{{ collection.id }}"
                            autocomplete="off"
                            {% if collection_filter == collection.id %}checked{% endif %}>
                     <label class="btn btn-outline-primary" for="filter-{{ collection.id }}">
@@ -77,14 +57,14 @@
                         <span class="input-group-text">
                             <i class="bi bi-search"></i>
                         </span>
-                        <input type="text" 
-                               id="searchInput" 
-                               class="form-control form-control-sm" 
+                        <input type="text"
+                               id="searchInput"
+                               class="form-control form-control-sm"
                                placeholder="Search..."
                                value="{{ search_query }}"
                                autocomplete="off">
-                        <button class="btn btn-outline-secondary btn-sm" 
-                                type="button" 
+                        <button class="btn btn-outline-secondary btn-sm"
+                                type="button"
                                 id="clearSearch"
                                 style="display: {{ 'block' if search_query else 'none' }};">
                             <i class="bi bi-x-lg"></i>
@@ -94,12 +74,12 @@
 
                 <!-- Deep Search Button -->
                 <div class="col-lg-auto col-md-auto col-6">
-                    <span class="d-inline-block w-100" 
-                          data-bs-toggle="tooltip" 
-                          data-bs-placement="top" 
+                    <span class="d-inline-block w-100"
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
                           data-bs-title="Search within song names, artists, and albums"
                           tabindex="0">
-                        <button id="deepSearchBtn" 
+                        <button id="deepSearchBtn"
                                 class="btn btn-primary btn-sm w-100"
                                 {% if not search_query %}disabled{% endif %}>
                             <i class="bi bi-music-note-list"></i>
@@ -134,7 +114,7 @@
     <div class="alert alert-info d-flex justify-content-between align-items-center mb-4">
         <span>
             {% if search_query and search_deep %}
-                <i class="bi bi-music-note-list"></i> Deep search results for: <strong>"{{ search_query }}"</strong> 
+                <i class="bi bi-music-note-list"></i> Deep search results for: <strong>"{{ search_query }}"</strong>
                 ({{ mixtapes|length }} mixtape{{ 's' if mixtapes|length != 1 else '' }} found in tracks/artists/albums)
             {% elif search_query %}
                 <i class="bi bi-funnel"></i> Showing mixtapes with titles matching: <strong>"{{ search_query }}"</strong>
@@ -171,15 +151,15 @@
                 <p class="mixtape-meta">
                     <!-- NEW: Collection Badge (only show if multiple collections) -->
                     {% if has_multiple_collections %}
-                    <span class="collection-badge collection-{{ m.collection_id }}" 
+                    <span class="collection-badge collection-{{ m.collection_id }}"
                           data-bs-toggle="tooltip"
                           title="From {{ m.collection_name }} collection">
                         <i class="bi bi-collection"></i> {{ m.collection_name }}
                     </span>
                     {% endif %}
-                    
+
                     <span class="badge bg-secondary">{{ m.tracks|length }} tracks</span>
-                    
+
                     {% if m.updated_at %}
                         <br><small class="text-muted">Modified {{ m.updated_at[:10] }} at {{ m.updated_at[11:16] }}</small>
                     {% endif %}
@@ -235,29 +215,29 @@
 {% block extra_js %}
     <!-- Existing scripts -->
     <script type="module" src="{{ url_for('static', filename='js/browser/index.js') }}"></script>
-    
+
     <!-- NEW: Collection filtering script -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // Collection filter buttons
             const filterButtons = document.querySelectorAll('[name="collectionFilter"]');
-            
+
             filterButtons.forEach(button => {
                 button.addEventListener('change', (e) => {
                     const collectionId = e.target.value;
                     const url = new URL(window.location);
-                    
+
                     if (collectionId) {
                         url.searchParams.set('collection', collectionId);
                     } else {
                         url.searchParams.delete('collection');
                     }
-                    
+
                     // Preserve other params
                     window.location.href = url.toString();
                 });
             });
-            
+
             // Initialize Bootstrap tooltips for collection badges
             const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
             tooltipTriggerList.map(function (tooltipTriggerEl) {

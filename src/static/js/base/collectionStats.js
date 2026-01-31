@@ -1,6 +1,7 @@
 // static/js/base/collectionStats.js
 /**
  * Initializes the collection statistics modal functionality.
+ * Supports both single collection and multi-collection modes.
  * Loads stats when modal opens and handles resync button clicks.
  *
  * Returns:
@@ -9,33 +10,62 @@
 export function initCollectionStats() {
     const statsModal = document.getElementById('collectionStatsModal');
     const resyncBtn = document.getElementById('resyncBtn');
-    const confirmModal = new bootstrap.Modal(document.getElementById('resyncConfirmModal'));
+    const confirmModal = document.getElementById('resyncConfirmModal') 
+        ? new bootstrap.Modal(document.getElementById('resyncConfirmModal'))
+        : null;
     const confirmResyncBtn = document.getElementById('confirmResyncBtn');
 
     if (!statsModal) return;
 
+    let currentCollectionId = null;
+
     // Load stats when modal is shown
-    statsModal.addEventListener('show.bs.modal', async () => {
-        await loadStats();
+    statsModal.addEventListener('show.bs.modal', async (event) => {
+        // Get collection ID from the button that triggered the modal
+        const button = event.relatedTarget;
+        currentCollectionId = button?.dataset.collectionId || 
+                             statsModal.dataset.collectionId || 
+                             null;
+        
+        const collectionName = button?.dataset.collectionName || null;
+        
+        // Update modal title if collection name is provided
+        if (collectionName) {
+            const modalTitle = statsModal.querySelector('.modal-title');
+            if (modalTitle) {
+                modalTitle.innerHTML = `<i class="bi bi-bar-chart-fill"></i> ${collectionName} Statistics`;
+            }
+        }
+        
+        await loadStats(currentCollectionId);
     });
 
     // Handle resync button click - show confirmation modal
     if (resyncBtn) {
         resyncBtn.addEventListener('click', () => {
-            // Hide the stats modal
-            const statsModalInstance = bootstrap.Modal.getInstance(statsModal);
-            statsModalInstance.hide();
-            
-            // Show confirmation modal
-            confirmModal.show();
+            if (confirmModal) {
+                // Hide the stats modal
+                const statsModalInstance = bootstrap.Modal.getInstance(statsModal);
+                if (statsModalInstance) {
+                    statsModalInstance.hide();
+                }
+                
+                // Show confirmation modal
+                confirmModal.show();
+            } else {
+                // No confirmation modal, perform resync directly
+                performResync(currentCollectionId);
+            }
         });
     }
 
     // Handle confirm resync button
     if (confirmResyncBtn) {
         confirmResyncBtn.addEventListener('click', async () => {
-            await performResync();
-            confirmModal.hide();
+            await performResync(currentCollectionId);
+            if (confirmModal) {
+                confirmModal.hide();
+            }
         });
     }
 }
@@ -43,21 +73,33 @@ export function initCollectionStats() {
 /**
  * Loads collection statistics from the server and updates the UI.
  *
+ * Args:
+ *   collectionId: ID of the collection to load stats for (null for default)
+ *
  * Returns:
  *   Promise<void>
  */
-async function loadStats() {
+async function loadStats(collectionId = null) {
     const loadingEl = document.getElementById('statsLoading');
     const contentEl = document.getElementById('statsContent');
     const errorEl = document.getElementById('statsError');
 
     // Show loading state
-    loadingEl.style.display = 'block';
-    contentEl.style.display = 'none';
-    errorEl.style.display = 'none';
+    if (loadingEl) loadingEl.style.display = 'block';
+    if (contentEl) contentEl.style.display = 'none';
+    if (errorEl) errorEl.style.display = 'none';
 
     try {
-        const response = await fetch('/collection-stats');
+        let url;
+        if (collectionId) {
+            // Multi-collection mode: use collections API
+            url = `/api/collections/${collectionId}/stats`;
+        } else {
+            // Single collection mode: use legacy endpoint
+            url = '/collection-stats';
+        }
+        
+        const response = await fetch(url);
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -66,24 +108,52 @@ async function loadStats() {
         const stats = await response.json();
 
         // Update the UI with stats
-        document.getElementById('statsArtists').textContent = stats.num_artists.toLocaleString();
-        document.getElementById('statsAlbums').textContent = stats.num_albums.toLocaleString();
-        document.getElementById('statsTracks').textContent = stats.num_tracks.toLocaleString();
-        document.getElementById('statsDuration').textContent = formatDuration(stats.total_duration);
-        document.getElementById('statsLastAdded').textContent = formatLastAdded(stats.last_added);
+        // Handle both old format (num_artists) and new format (artist_count)
+        const artistCount = stats.artist_count || stats.num_artists || 0;
+        const albumCount = stats.album_count || stats.num_albums || 0;
+        const trackCount = stats.track_count || stats.num_tracks || 0;
+        const totalDuration = stats.total_duration || 0;
+        const totalSize = stats.total_size || 0;
+        const lastAdded = stats.last_added || null;
+
+        if (document.getElementById('statsArtists')) {
+            document.getElementById('statsArtists').textContent = artistCount.toLocaleString();
+        }
+        if (document.getElementById('statsAlbums')) {
+            document.getElementById('statsAlbums').textContent = albumCount.toLocaleString();
+        }
+        if (document.getElementById('statsTracks')) {
+            document.getElementById('statsTracks').textContent = trackCount.toLocaleString();
+        }
+        if (document.getElementById('statsDuration')) {
+            document.getElementById('statsDuration').textContent = formatDuration(totalDuration);
+        }
+        
+        // Optional fields
+        if (document.getElementById('statsTotalSize')) {
+            const sizeGB = (totalSize / (1024 ** 3)).toFixed(2);
+            document.getElementById('statsTotalSize').textContent = `${sizeGB} GB`;
+        }
+        if (document.getElementById('statsLastAdded')) {
+            document.getElementById('statsLastAdded').textContent = formatLastAdded(lastAdded);
+        }
 
         // Show content, hide loading
-        loadingEl.style.display = 'none';
-        contentEl.style.display = 'block';
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (contentEl) contentEl.style.display = 'block';
 
     } catch (error) {
         console.error('Error loading collection stats:', error);
         
         // Show error state
-        loadingEl.style.display = 'none';
-        errorEl.style.display = 'block';
-        document.getElementById('statsErrorMessage').textContent = 
-            'Failed to load statistics. Please try again.';
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (errorEl) {
+            errorEl.style.display = 'block';
+            const errorMsg = document.getElementById('statsErrorMessage');
+            if (errorMsg) {
+                errorMsg.textContent = 'Failed to load statistics. Please try again.';
+            }
+        }
     }
 }
 
@@ -147,12 +217,24 @@ function formatLastAdded(timestamp) {
 /**
  * Performs the resync operation by calling the server endpoint.
  *
+ * Args:
+ *   collectionId: ID of the collection to resync (null for default)
+ *
  * Returns:
  *   Promise<void>
  */
-async function performResync() {
+async function performResync(collectionId = null) {
     try {
-        const response = await fetch('/resync', {
+        let url;
+        if (collectionId) {
+            // Multi-collection mode: use collections API
+            url = `/api/collections/${collectionId}/resync`;
+        } else {
+            // Single collection mode: use legacy endpoint
+            url = '/resync';
+        }
+        
+        const response = await fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -161,7 +243,7 @@ async function performResync() {
 
         const result = await response.json();
 
-        if (result.success) {
+        if (result.success || response.ok) {
             // Reload the page immediately to show indexing status
             window.location.reload();
         } else {
@@ -185,8 +267,7 @@ async function performResync() {
  *   None
  */
 function showAlert(title, message, type = 'info') {
-    // You can use the existing appModal or create a toast notification
-    // This is a simple implementation using the global modal
+    // Use the existing appModal if available
     if (typeof window.showAlert === 'function') {
         window.showAlert(title, message, type);
     } else {

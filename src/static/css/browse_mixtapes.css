@@ -287,3 +287,22 @@
         padding: 0.5rem 1rem 1rem 1rem;
     }
 }
+
+/* === Collection badge styles === */
+.collection-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: 0.25rem;
+    margin-right: 0.5rem;
+}
+
+.collection-badge.collection-main { background-color: #0d6efd; color: white; }
+.collection-badge.collection-jazz { background-color: #6f42c1; color: white; }
+.collection-badge.collection-classical { background-color: #d63384; color: white; }
+.collection-badge.collection-default { background-color: #6c757d; color: white; }
+
+.collection-filter-bar {
+    margin-bottom: 1rem;
+}
