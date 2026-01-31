@@ -26,11 +26,28 @@
     </div>
 
     <!-- Info Alert -->
-    <div class="alert alert-info d-flex align-items-start">
-        <i class="bi bi-info-circle-fill me-2 fs-5"></i>
-        <div>
-            <strong>About Collections:</strong> Collections allow you to organize music from different locations.
-            Each collection has its own database and can be searched independently in the mixtape editor.
+    <div class="alert alert-info">
+        <div class="d-flex align-items-start">
+            <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+
+            <div class="flex-grow-1">
+                <div
+                    class="d-flex justify-content-between align-items-center"
+                    role="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#aboutCollections"
+                    aria-expanded="false"
+                >
+                    <strong>About Collections</strong>
+                    <i class="bi bi-chevron-down"></i>
+                </div>
+
+                <div id="aboutCollections" class="collapse mt-2">
+                    Collections allow you to organize music from different locations.
+                    Each collection has its own database and can be searched independently
+                    in the mixtape editor.
+                </div>
+            </div>
         </div>
     </div>
 
@@ -76,31 +93,38 @@
                     </div>
 
                     <div class="collection-stats">
-                        <div class="stat-item">
-                            <div class="stat-value">{{ collection.stats.num_tracks|default(0)|format_number }}</div>
-                            <div class="stat-label">Tracks</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">{{ collection.stats.num_artists|default(0)|format_number }}</div>
-                            <div class="stat-label">Artists</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">{{ collection.stats.num_albums|default(0)|format_number }}</div>
-                            <div class="stat-label">Albums</div>
+                        <div class="col-md-4">
+                            <div class="card text-center bg-artist-subtle border-artist">
+                                <div class="card-body">
+                                    <i class="bi bi-person-fill fs-3 text-artist"></i>
+                                    <h3 class="mt-2 mb-0 text-artist" id="statsArtists">{{ collection.stats.num_artists|default(0)|format_number }}</h3>
+                                    <p class="text-muted mb-0 small">Artists</p>
+                                </div>
+                            </div>
+                            </div>
+                            <div class="col-md-4">
+                            <div class="card text-center bg-album-subtle border-album">
+                                <div class="card-body">
+                                    <i class="bi bi-disc fs-3 text-album"></i>
+                                    <h3 class="mt-2 mb-0 text-album" id="statsAlbums">{{ collection.stats.num_albums|default(0)|format_number }}</h3>
+                                    <p class="text-muted mb-0 small">Albums</p>
+                                </div>
+                            </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card text-center bg-track-subtle border-track">
+                                    <div class="card-body">
+                                    <i class="bi bi-music-note fs-3 text-track"></i>
+                                    <h3 class="mt-2 mb-0 text-track" id="statsTracks">{{ collection.stats.num_tracks|default(0)|format_number }}</h3>
+                                    <p class="text-muted mb-0 small">Tracks</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     <div class="collection-actions">
                         <div class="btn-group w-100" role="group">
-                            <button class="btn btn-sm btn-outline-primary view-stats-btn"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#collectionStatsModal"
-                                    data-collection-id="{{ collection.id }}"
-                                    data-collection-name="{{ collection.name }}"
-                                    title="View statistics">
-                                <i class="bi bi-bar-chart"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-secondary edit-collection-btn"
+                            <button class="btn btn-sm btn-outline-success edit-collection-btn"
                                     data-collection-id="{{ collection.id }}"
                                     title="Edit collection">
                                 <i class="bi bi-pencil"></i>

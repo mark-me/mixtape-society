@@ -10,7 +10,7 @@
 }
 
 .collection-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--bs-primary);
     color: white;
     padding: 1.5rem;
     border-radius: 10px 10px 0 0;
@@ -20,7 +20,6 @@
     display: flex;
     justify-content: space-around;
     padding: 1rem;
-    background: #f8f9fa;
     border-radius: 0 0 10px 10px;
 }
 
@@ -42,12 +41,12 @@
 
 .collection-actions {
     padding: 1rem;
-    border-top: 1px solid #dee2e6;
+    border-top: 1px solid var(--bs-secondary);
 }
 
 .default-badge {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    color: white;
+    background: var(--bs-warning);
+    color: black;
     padding: 0.25rem 0.75rem;
     border-radius: 20px;
     font-size: 0.75rem;
