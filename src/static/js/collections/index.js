@@ -4,7 +4,7 @@
  * Handles add, edit, delete, and resync operations for collections
  */
 
-import { showAlert, showConfirm } from '../common/modalsStandard.js';
+import { showAlert, showConfirm } from '../editor/utils.js';
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
@@ -103,6 +103,18 @@ function updateDbPathPreview() {
     let dirsOnly      = true;   // hide plain files?
     let currentPath   = '/';    // directory currently being listed
 
+    // --------------------------------------------------------------
+    // Defaults cache – fetched once, then used as the opening
+    // directory for each picker button that declares a
+    // data-picker-default attribute (music_root or data_root).
+    // --------------------------------------------------------------
+    const defaults = {};                                // { music_root: "/…", data_root: "/…" }
+
+    fetch('/collections/defaults')
+        .then(r => r.ok ? r.json() : {})
+        .then(data => { Object.assign(defaults, data); })
+        .catch(() => {});                               // silent – picker falls back to "/" anyway
+
     // ------------------------------------------------------------------
     // Open: read config from the triggering button, load root
     // ------------------------------------------------------------------
@@ -115,9 +127,13 @@ function updateDbPathPreview() {
         confirmBtn.disabled = true;
         selectedEl.textContent = '—';
 
-        // Start browsing from "/" (or the value already in the target input if non-empty)
-        const existing = targetInputId && document.getElementById(targetInputId)?.value.trim();
-        currentPath = existing || '/';
+        // Priority for the starting directory:
+        //   1. Whatever the user previously selected (already in the input)
+        //   2. The server-side default for this button (music_root / data_root)
+        //   3. Filesystem root "/"
+        const existing      = targetInputId && document.getElementById(targetInputId)?.value.trim();
+        const pickerDefault = btn?.dataset.pickerDefault;          // e.g. "music_root"
+        currentPath = existing || defaults[pickerDefault] || '/';
 
         loadPath(currentPath);
     });
@@ -140,7 +156,7 @@ function updateDbPathPreview() {
     // ------------------------------------------------------------------
     // loadPath – fetch a directory listing and render breadcrumb + entries
     // ------------------------------------------------------------------
-    const loadPath = async (dirPath) => {
+    async function loadPath(dirPath) {
         entriesList.innerHTML = '<li class="list-group-item text-center text-muted"><span class="spinner-border spinner-border-sm"></span></li>';
 
         try {
@@ -163,7 +179,7 @@ function updateDbPathPreview() {
     // ------------------------------------------------------------------
     // renderBreadcrumb – clickable path segments
     // ------------------------------------------------------------------
-    const renderBreadcrumb = (path) => {
+    function renderBreadcrumb(path) {
         // Split "/music/Jazz/Sub" → ["", "music", "Jazz", "Sub"]
         const parts = path.split('/');
         let html = '';
@@ -207,7 +223,7 @@ function updateDbPathPreview() {
     // ------------------------------------------------------------------
     // renderEntries – directory rows + optional "select this folder" row
     // ------------------------------------------------------------------
-    const renderEntries = (entries) => {
+    function renderEntries(entries) {
         let html = '';
 
         // "Select current folder" option at the top
@@ -335,7 +351,7 @@ async function handleAddCollection() {
  * Handle edit collection button click
  */
 function handleEditCollectionClick(e) {
-    const {collectionId} = e.currentTarget.dataset;
+    const collectionId = e.currentTarget.dataset.collectionId;
 
     // Find collection data in the page
     const card = document.querySelector(`[data-collection-id="${collectionId}"]`);
@@ -423,7 +439,8 @@ async function handleSaveEdit() {
  * Handle delete collection button click
  */
 function handleDeleteCollectionClick(e) {
-    const {collectionId, collectionName} = e.currentTarget.dataset;
+    const collectionId = e.currentTarget.dataset.collectionId;
+    const collectionName = e.currentTarget.dataset.collectionName;
 
     // Populate delete modal
     document.getElementById('deleteCollectionId').value = collectionId;
@@ -489,7 +506,8 @@ async function handleConfirmDelete() {
  * Handle resync collection
  */
 async function handleResyncCollection(e) {
-    const {collectionId, collectionName} = e.currentTarget.dataset;
+    const collectionId = e.currentTarget.dataset.collectionId;
+    const collectionName = e.currentTarget.dataset.collectionName;
 
     const confirmed = await showConfirm({
         title: 'Resync Collection',
@@ -537,7 +555,8 @@ async function handleResyncCollection(e) {
  * Handle view stats button click
  */
 function handleViewStats(e) {
-    const {collectionId, collectionName} = e.currentTarget.dataset;
+    const collectionId = e.currentTarget.dataset.collectionId;
+    const collectionName = e.currentTarget.dataset.collectionName;
 
     // Set data attributes on modal for JavaScript in base.html to use
     const modal = document.getElementById('collectionStatsModal');

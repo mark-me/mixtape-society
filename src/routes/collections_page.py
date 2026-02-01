@@ -156,6 +156,23 @@ def create_collections_page_blueprint(
             logger.error(f"Error editing collection: {e}", exc_info=True)
             return jsonify({"error": str(e)}), 500
 
+    @bp.route("/defaults", methods=["GET"])
+    @require_auth
+    def get_defaults() -> Response:
+        """
+        Return the default starting directories for the path pickers.
+
+        The frontend calls this once when the page loads and caches the
+        values; the picker then uses them as the opening directory when
+        the user hasn't previously selected a path.
+        """
+        from flask import current_app
+
+        return jsonify({
+            "music_root": str(Path(current_app.config.get("MUSIC_ROOT", "/")).resolve()),
+            "data_root":  str(Path(current_app.config.get("DATA_ROOT",  "/")).resolve()),
+        })
+
     @bp.route("/browse-path", methods=["GET"])
     @require_auth
     def browse_path() -> Response:
