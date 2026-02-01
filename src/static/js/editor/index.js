@@ -17,9 +17,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // 🆕 0️⃣ Initialize Collection Manager FIRST
     // ---------------------------------------------------------------
     // Get collection configuration from body data attributes or preloaded mixtape
-    const hasMultiple = document.body.dataset.hasMultipleCollections === 'true';
-    const isEditing = document.body.dataset.editingMode === 'true';
-    const defaultCollectionId = document.body.dataset.defaultCollection;
+    const hasMultiple = document.documentElement.dataset.hasMultipleCollections === 'true';
+    const isEditing = document.documentElement.dataset.editingMode === 'true';
+    const defaultCollectionId = document.documentElement.dataset.defaultCollection;
     const mixtapeCollectionId = preloadMixtape?.collection_id;
     
     // Determine which collection to use

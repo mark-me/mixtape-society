@@ -199,19 +199,19 @@ def create_editor_blueprint(
         # Pass collection info to template
         if has_collection_manager:
             collections = collection_manager.list_collections()
-            collections=collections,
-            default_collection_id = collection_manager._default_id,
-            has_multiple = len(collections) > 1
+            default_collection_id = collection_manager._default_id
+            has_multiple_collections = len(collections) > 1
         else:
             collections = [{"id": "main", "name": "Main Collection"}]
             default_collection_id = "main"
+            has_multiple_collections = False
 
         return render_template(
             "editor.html",
             preload_mixtape=empty_mixtape,
             collections=collections,
             default_collection=default_collection_id,
-            has_multiple=has_multiple,
+            has_multiple_collections=has_multiple_collections,
             editing_mode=False
         )
 
