@@ -19,7 +19,7 @@ docker run -d \
   -p 5000:5000 \
   -v /path/to/your/music:/music:ro \
   -v /data/mixtape-society:/app/collection-data \
-  -e APP_PASSWORD=YourStrongPassword123! \
+  -e PASSWORD=YourStrongPassword123! \
   ghcr.io/mark-me/mixtape-society:latest
 ```
 
@@ -405,19 +405,19 @@ Gift links are the same URL as direct links, but displayed differently in your s
 **Docker Compose:**
 
 1. Edit `.env` file
-2. Change `APP_PASSWORD` value
+2. Change `PASSWORD` value
 3. Restart container: `docker compose up -d`
 
 **Docker run:**
 
 1. Stop container: `docker stop mixtape-society`
 2. Remove container: `docker rm mixtape-society`
-3. Run again with new `-e APP_PASSWORD=NewPassword`
+3. Run again with new `-e PASSWORD=NewPassword`
 
 **Local development:**
 
 1. Edit `.env` file
-2. Change `APP_PASSWORD` value
+2. Change `PASSWORD` value
 3. Restart application
 
 ### Can I customize the appearance?

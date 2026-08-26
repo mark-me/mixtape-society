@@ -123,7 +123,7 @@ For more information look at the [Docker Deployment](deployment.md) documentatio
 ## 💡 Best‑Practice Recommendations
 
 1. **Never commit a `.env`** containing secrets. Keep passwords out of source control.
-2. **In production**, set `APP_PASSWORD` (or any other secret) via the orchestration platform (Docker‑Compose `env_file`, Kubernetes secret, etc.). The app will refuse to start without it.
+2. **In production**, set `PASSWORD` (or any other secret) via the orchestration platform (Docker‑Compose `env_file`, Kubernetes secret, etc.). The app will refuse to start without it.
 3. **Mount `DATA_ROOT` on persistent storage** (a volume, bind‑mount, or cloud‑disk) so that the SQLite DB and cached audio survive container restarts.
 4. **Keep `MUSIC_ROOT` read‑only** – the scanner only needs to read files; mounting it as ro prevents accidental modifications from the container.
 5. **Adjust audio‑caching workers** (`AUDIO_CACHE_MAX_WORKERS`) according to the host CPU count; the default of 4 works well on most 4‑core machines.

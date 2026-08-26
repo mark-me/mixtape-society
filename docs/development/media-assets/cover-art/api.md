@@ -305,11 +305,8 @@ Currently no rate limiting on cover art endpoints.
 **Recommendations for production:**
 
 ```python
-from flask_limiter import Limiter
-
-limiter = Limiter(app, key_func=get_remote_address)
-
-@app.route("/api/covers/<path:release_dir>")
+# routes/covers.py
+@covers.route("/api/covers/<path:release_dir>")
 @limiter.limit("100 per minute")  # Adjust as needed
 def serve_cover_by_size(release_dir):
     # ...

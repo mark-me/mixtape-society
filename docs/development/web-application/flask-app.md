@@ -15,8 +15,12 @@ MixtapeManager          | browser
 AudioCache              | play
 Logger                  | editor
 Config (BaseConfig)     | og_cover
+&nbsp;                  | system
+&nbsp;                  | covers
 
-All routes are mounted under the appropriate URL prefixes (`/auth`, `/mixtapes`, `/play`, `/editor`, `/og`).
+`create_app()` itself only wires services together and registers blueprints — the app- and library-level housekeeping routes (indexing status, resync, database reset/health) live in the `system` blueprint, and cover-image serving lives in the `covers` blueprint, both in `routes/`. Only the landing page (`/`) remains a route defined directly on the app.
+
+All routes are mounted under the appropriate URL prefixes (`/auth`, `/mixtapes`, `/play`, `/editor`, `/og`); `system` and `covers` are mounted with no prefix, since their routes already carry their original top‑level paths (`/resync`, `/covers/<filename>`, etc.).
 
 ## ⚙️ Configuration & Environment Selection
 
@@ -50,22 +54,22 @@ The selected class is instantiated, its `ensure_dirs()` method creates required 
     * `MixtapeManager` – points at `config_cls.MIXTAPE_DIR` and receives the collection instance.
 4. **Error handler** – Catches `DatabaseCorruptionError` and returns either JSON (for AJAX) or a rendered `database_error.html`.
 5. **`@app.before_request`** – Checks whether an indexing job (`rebuilding` / `resyncing`) is in progress; if so, renders `indexing.html` for authenticated users.
-6. **Route definitions** – Landing page, indexing‑status JSON, collection‑stats JSON, resync trigger, robots.txt, cover serving, DB reset, health check.
+6. **Landing route** – The only route still defined directly on `app`; every other route lives in a blueprint (see below).
 7. **Context processors** – Inject `app_version`, `now` (UTC), `is_authenticated`, and `is_indexing` into every template.
 8. **Jinja filter** – `to_datetime` parses ISO strings or custom formats for display.
-9. **Blueprint registration** – Auth, Browser, Play, Editor, OG Cover are attached with their respective URL prefixes.
+9. **Blueprint registration** – Auth, Browser, Play, Editor, OG Cover, System, Covers are attached (the last two with no URL prefix).
 10. **Return** – The fully configured `app` object.
 
 ## 🔌 Core Services & Dependency Wiring
 
 | Service | Construction | Primary responsibilities |
 | ------- | ------------ | ------------------------ |
-| MusicCollectionUI (`musiclib`) | `MusicCollectionUI(music_root=config_cls.MUSIC_ROOT, db_path=config_cls.DB_PATH, logger=logger)` | Scans the music folder, builds an SQLite DB with FTS5, provides `search_highlighting`, `get_artist_details`, `get_album_details`, `get_cover`, `count`, `get_collection_stats`. |
+| MusicCollectionUI (`musiclib`) | `MusicCollectionUI(music_root=config_cls.MUSIC_ROOT, db_path=config_cls.DB_PATH, logger=logger)` | Scans the music folder, builds an SQLite DB with FTS5, provides `search_highlighting`, `get_artist_details`, `get_album_details`, `get_cover`, `get_or_create_cover`, `count`, `get_collection_stats`, `reload`. |
 | AudioCache (`audio_cache`) | `AudioCache(cache_dir=app.config["AUDIO_CACHE_DIR"], logger=logger)` | Stores transcoded audio files, provides progress tracking via `ProgressTracker`. |
 | MixtapeManager (`mixtape_manager`) | `MixtapeManager(path_mixtapes=config_cls.MIXTAPE_DIR, collection=collection)` | Persists mixtape JSON files, handles slug generation, cover processing, and deletion. |
 | Logger | `get_logger(name=__name__)` (via `logtools`) | Centralised structured logging (`INFO`, `WARNING`, `ERROR`). |
 
-All services are singletons attached to the Flask app (or passed explicitly to blueprints) so that they share the same DB connections and caches.
+All services are singletons attached to the Flask app (or passed explicitly to blueprints) so that they share the same DB connections and caches. `collection` in particular is constructed once here and handed to every blueprint that needs it; a database reset calls `collection.reload()` rather than replacing the object, so those references stay valid instead of pointing at a stale, closed instance.
 
 ## ⚠️ Error Handling (Database Corruption)
 
@@ -107,18 +111,24 @@ def handle_database_corruption(e):
 
 * If the user is not authenticated, the guard does **nothing** (letting the view decide whether to redirect)
 
-## 🌐 Public Routes
+## 🌐 Landing Route
 
 | Route | Method | Description |
 | ----- | ------ | ----------- |
 | `/` | GET | Landing page (`landing.html`). If indexing is active → `indexing.html`. If authenticated → redirect to `/mixtapes`. |
-| `/indexing-status` | GET (exempt from rate limiting) | Returns JSON with current indexing progress (used by the front-end polling). |
-| `/collection-stats` | GET (auth) | Returns JSON with `num_artists`, `num_albums`, `num_tracks`, `total_duration`, `last_added`. |
-| `/resync` | POST (auth) | Starts a background resync of the music library (spawns a daemon thread). Returns `{ success: true }` or an error. |
-| `/robots.txt` | GET | Disallows all crawlers (`User-agent: *\nDisallow: /`). |
-| `/covers/<filename>` | GET | Serves cached album cover images from `DATA_ROOT/cache/covers`. Only `.jpg`/`.jpeg`/`.png` are allowed (security). |
-| `/reset-database` | POST (auth) | Deletes the SQLite DB files (`*.db`, `*-wal`, `*-shm`, `*-journal`), recreates the `MusicCollectionUI` (triggers a rebuild), and returns a JSON summary. |
-| `/check-database-health` | GET (auth) | Runs a quick `PRAGMA quick_check` on the DB and returns `{ healthy: true/false, error?, requires_reset? }`. Used by the front-end health monitor. |
+
+Every other route lives in a blueprint under `routes/`:
+
+| Blueprint | Prefix | Routes | Docs |
+| --------- | ------ | ------ | ---- |
+| `system` | *(none)* | `/service-worker.js`, `/manifest.json`, `/robots.txt`, `/indexing-status`, `/collection-stats`, `/resync`, `/reset-database`, `/check-database-health` | [System Routes](routes/system.md) |
+| `covers` | *(none)* | `/covers/<filename>`, `/api/covers/<release_dir>` | [Cover Art Routes](../media-assets/cover-art/routes.md) |
+| `browser` | `/mixtapes` | Mixtape browsing | [Browse Mixtapes](routes/browse.md) |
+| `authenticator` | `/auth` | Login/logout | [Authentication](routes/authentication.md) |
+| `qr` | *(none)* | QR code generation | [QR Code Routes](routes/qr-codes.md) |
+| `play` | `/play` | Streaming/playback | [Audio Streaming](../audio-playback/backend/audio-streaming.md) |
+| `editor` | `/editor` | Mixtape editing API | [Editor API](../mixtape-system/editor-api.md) |
+| `og` | `/og` | Open‑Graph cover images | [OpenGraph Images](../media-assets/opengraph.md) |
 
 ## 🎨 Template Context Processors
 
@@ -179,9 +189,25 @@ app.register_blueprint(
     ),
     url_prefix="/og",
 )
+app.register_blueprint(
+    create_qr_blueprint(mixtape_manager=mixtape_manager, logger=logger)
+)
+app.register_blueprint(
+    create_system_blueprint(
+        collection=collection,
+        data_root=config_cls.DATA_ROOT,
+        limiter=limiter,
+        logger=logger,
+    )
+)
+app.register_blueprint(
+    create_covers_blueprint(
+        collection=collection, data_root=config_cls.DATA_ROOT, logger=logger
+    )
+)
 ```
 
-*Each blueprint lives in `routes/` and encapsulates a coherent feature set (authentication, browsing, playback, editing, Open‑Graph cover generation).*
+*Each blueprint lives in `routes/` and encapsulates a coherent feature set (authentication, browsing, playback, editing, Open‑Graph cover generation, app/library housekeeping, cover serving). `system` and `covers` are registered without a `url_prefix` since their routes already carry their original top‑level paths.*
 
 ## 🏃‍♂️ Application Runner
 

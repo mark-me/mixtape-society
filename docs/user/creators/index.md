@@ -131,7 +131,7 @@ docker run -d \
   -p 5000:5000 \
   -v /path/to/your/music:/music:ro \
   -v /data/mixtape-society:/app/collection-data \
-  -e APP_PASSWORD=YourStrongPassword123! \
+  -e PASSWORD=YourStrongPassword123! \
   ghcr.io/mark-me/mixtape-society:latest
 ```
 
@@ -149,7 +149,7 @@ services:
       - /your/music:/music:ro
       - mixtape_data:/app/collection-data
     environment:
-      - APP_PASSWORD=${APP_PASSWORD}
+      - PASSWORD=${PASSWORD}
       - APP_ENV=production
 
 volumes:

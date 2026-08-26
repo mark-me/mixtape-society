@@ -171,10 +171,10 @@ def get_cover_sizes(self, release_dir: str) -> dict[str, str]:
 
 **Route:** `/api/covers/<release_dir_encoded>`
 
-**Location:** `src/app.py` (added after existing `/covers/<filename>` route)
+**Location:** `src/routes/covers.py` (the `covers` blueprint)
 
 ```python
-@app.route("/api/covers/<path:release_dir_encoded>")
+@covers.route("/api/covers/<path:release_dir_encoded>")
 def serve_cover_by_size(release_dir_encoded):
     """Serves cover art with optional size parameter.
 
@@ -191,52 +191,29 @@ def serve_cover_by_size(release_dir_encoded):
     Returns:
         Image file from cache directory
     """
-    from urllib.parse import unquote
-
     release_dir = unquote(release_dir_encoded)
     requested_size = request.args.get('size', '').lower()
 
-    valid_sizes = ['96x96', '128x128', '192x192', '256x256', '384x384', '512x512']
-    covers_dir = app.config["DATA_ROOT"] / "cache" / "covers"
-
     if not requested_size:
         # No size specified, return main cover
-        cover_url = collection.get_cover(release_dir)
-        if cover_url:
-            filename = cover_url.split('/')[-1]
-            return send_from_directory(covers_dir, filename)
+        cover_path = collection.get_or_create_cover(release_dir)
+        if cover_path:
+            return send_from_directory(covers_dir, cover_path.name)
         abort(404)
 
     # Validate size parameter
-    if requested_size not in valid_sizes:
+    if requested_size not in VALID_SIZES:
         return jsonify({
             "error": "Invalid size parameter",
-            "valid_sizes": valid_sizes
+            "valid_sizes": VALID_SIZES
         }), 400
 
-    # Get or generate size-specific cover
-    slug = collection._sanitize_release_dir(release_dir)
-    size_filename = f"{slug}_{requested_size}.jpg"
-    size_path = covers_dir / size_filename
-
-    # Generate if doesn't exist
-    if not size_path.exists():
-        main_path = covers_dir / f"{slug}.jpg"
-        if not main_path.exists():
-            collection._extract_cover(release_dir, main_path)
-
-        if main_path.exists():
-            collection._generate_cover_variants(release_dir, slug)
-
-    # Serve size-specific cover
-    if size_path.exists():
-        return send_from_directory(covers_dir, size_filename)
-
-    # Fallback to main cover
-    main_filename = f"{slug}.jpg"
-    main_path = covers_dir / main_filename
-    if main_path.exists():
-        return send_from_directory(covers_dir, main_filename)
+    # get_or_create_cover generates the variant on demand — the
+    # slugging/extraction/variant-generation internals below are
+    # no longer the route's concern.
+    cover_path = collection.get_or_create_cover(release_dir, size=requested_size)
+    if cover_path:
+        return send_from_directory(covers_dir, cover_path.name)
 
     # Final fallback
     return send_from_directory(covers_dir, "_fallback.jpg")
@@ -278,14 +255,14 @@ sequenceDiagram
         Filesystem-->>API Endpoint: File found
         API Endpoint-->>Client: 200 + JPEG (40KB)
     else Size variant missing
-        API Endpoint->>Collection: _sanitize_release_dir()
-        Collection-->>API Endpoint: slug
-        API Endpoint->>Collection: _extract_cover() if needed
+        API Endpoint->>Collection: get_or_create_cover(release_dir, size)
+        Collection->>Collection: _sanitize_release_dir()
+        Collection->>Collection: _extract_cover() if needed
         Collection->>Filesystem: Extract main cover
-        API Endpoint->>Collection: _generate_cover_variants()
+        Collection->>Collection: _generate_cover_variants()
         Collection->>Filesystem: Generate 6 variants
         Filesystem-->>Collection: Success
-        Collection-->>API Endpoint: True
+        Collection-->>API Endpoint: Path to variant
         API Endpoint->>Filesystem: Read variant
         Filesystem-->>API Endpoint: File bytes
         API Endpoint-->>Client: 200 + JPEG (40KB)

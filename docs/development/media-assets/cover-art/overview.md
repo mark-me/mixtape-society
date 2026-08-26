@@ -44,12 +44,17 @@ graph TD
 
 Located in `src/musiclib/reader.py`, the `MusicCollection` class handles cover extraction:
 
-**Methods:**
+**Public methods:**
 
 - `get_cover(release_dir)` - Returns single cover URL
 - `get_cover_sizes(release_dir)` - Returns all size variants
+- `get_or_create_cover(release_dir, size=None)` - Resolves the on-disk cover file for a release, generating it (and, if a size is given, the requested variant) on demand. This is the entry point routes should use — it wraps the internals below so callers never need to know about slugging or extraction directly.
+
+**Internals (not part of the public API):**
+
 - `_extract_cover(release_dir, target_path)` - Extracts from files
 - `_generate_cover_variants(release_dir, slug)` - Creates size variants
+- `_sanitize_release_dir(release_dir)` - Produces the filename slug used for caching
 
 **Extraction Priority:**
 
@@ -88,9 +93,9 @@ _fallback.jpg           # Default when no cover found
 - Truncates long paths (>200 chars)
 - Adds hash suffix for collision avoidance
 
-### 3. Serving (`app.py`)
+### 3. Serving (`routes/covers.py`)
 
-Two Flask routes serve cover images:
+Two Flask routes, registered by the `covers` blueprint (`create_covers_blueprint`, mounted with no URL prefix in `app.py`), serve cover images:
 
 **Direct Serving:** `/covers/<filename>`
 
@@ -334,16 +339,17 @@ navigator.mediaSession.metadata = new MediaMetadata({
 ### Flask Routes
 
 ```python
-# Direct file serving (existing)
-@app.route("/covers/<filename>")
+# routes/covers.py — direct file serving (existing)
+@covers.route("/covers/<filename>")
 def serve_album_cover(filename):
     return send_from_directory(covers_dir, filename)
 
-# Size-parameterized API (new)
-@app.route("/api/covers/<path:release_dir>")
-def serve_cover_by_size(release_dir):
+# routes/covers.py — size-parameterized API (new)
+@covers.route("/api/covers/<path:release_dir_encoded>")
+def serve_cover_by_size(release_dir_encoded):
     size = request.args.get('size')  # e.g., "256x256"
-    # ... generate if needed, return appropriate file
+    cover_path = collection.get_or_create_cover(release_dir, size=size)
+    # ... return cover_path, or the fallback if it's None
 ```
 
 ---

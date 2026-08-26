@@ -154,6 +154,7 @@ nav:
             - Browse Mixtapes: development/web-application/routes/browse.md
             - Authentication: development/web-application/routes/authentication.md
             - QR Code Routes: development/web-application/routes/qr-codes.md
+            - System Routes: development/web-application/routes/system.md
         - UI Components:
             - Toast Notification System: development/web-application/ui-components/toast-system.md
         - Shared Utilities:

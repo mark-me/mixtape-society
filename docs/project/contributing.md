@@ -35,7 +35,7 @@ git clone https://github.com/mark-me/mixtape-society.git
 cd mixtape-society
 uv sync  --group dev
 
-# Edit MUSIC_ROOT and APP_PASSWORD in .env
+# Edit MUSIC_ROOT and PASSWORD in .env
 uv run python app.py
 ```
 
