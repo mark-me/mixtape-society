@@ -1,26 +1,16 @@
 import logging
-import os
 import sys
-import threading
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 
-from flask import (
-    Flask,
-    Response,
-    abort,
-    jsonify,
-    redirect,
-    render_template,
-    request,
-    send_from_directory,
-)
+from flask import Flask, Response, jsonify, redirect, render_template, request
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
 from audio_cache import AudioCache
-from auth import check_auth, require_auth
+from auth import check_auth
 from config import BaseConfig, DevelopmentConfig, ProductionConfig, TestConfig
 from logtools import get_logger, setup_logging
 from mixtape_manager import MixtapeManager
@@ -28,10 +18,12 @@ from musiclib import DatabaseCorruptionError, MusicCollectionUI, get_indexing_st
 from routes import (
     create_authentication_blueprint,
     create_browser_blueprint,
+    create_covers_blueprint,
     create_editor_blueprint,
     create_og_cover_blueprint,
     create_play_blueprint,
     create_qr_blueprint,
+    create_system_blueprint,
 )
 from utils import get_version
 
@@ -100,26 +92,6 @@ def create_app() -> Flask:
     mixtape_manager = MixtapeManager(
         path_mixtapes=config_cls.MIXTAPE_DIR, collection=collection
     )
-
-    @app.route("/service-worker.js")
-    def service_worker():
-        response = send_from_directory(
-            app.root_path,  # Serves from app root directory
-            "service-worker.js",
-            mimetype="application/javascript",
-        )
-        # Prevent caching so updates work
-        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-        # Scope to /play/ only
-        response.headers["Service-Worker-Allowed"] = "/play/"
-        return response
-
-    @app.route("/manifest.json")
-    def manifest():
-        """Serve PWA manifest"""
-        return send_from_directory(
-            app.root_path, "manifest.json", mimetype="application/manifest+json"
-        )
 
     @app.errorhandler(DatabaseCorruptionError)
     def handle_database_corruption(e: DatabaseCorruptionError) -> tuple[Response, int]:
@@ -198,292 +170,6 @@ def create_app() -> Flask:
         if check_auth():
             return redirect("/mixtapes")
         return render_template("landing.html")
-
-    @app.route("/indexing-status")
-    @limiter.exempt
-    def indexing_status_json():
-        """
-        Returns the current indexing status as JSON.
-        Used by the indexing page for AJAX polling.
-        """
-        status = get_indexing_status(config_cls.DATA_ROOT, logger=app.logger)
-        if not status:
-            # No indexing in progress - redirect to landing behavior
-            return {"done": True}
-
-        return {
-            "done": False,
-            "status": status.get("status"),
-            "current": status.get("current", 0),
-            "total": status.get("total", 0),
-            "started_at": status.get("started_at"),  # ISO string
-        }
-
-    @app.route("/collection-stats")
-    @require_auth
-    def collection_stats_json():
-        """
-        Returns collection statistics as JSON.
-        Used by the collection stats modal.
-        """
-        try:
-            stats = collection.get_collection_stats()
-            return jsonify(stats)
-        except Exception as e:
-            logger.exception(f"Error fetching collection stats: {e}")
-            return jsonify({"success": False, "error": str(e)}), 500
-
-    @app.route("/resync", methods=["POST"])
-    @require_auth
-    def resync_library():
-        """
-        Triggers a resync of the music library.
-        Only accessible to authenticated users.
-        Returns JSON with success status or error message.
-        """
-        try:
-            # Check if indexing is already in progress
-            status = get_indexing_status(config_cls.DATA_ROOT, logger=app.logger)
-            if status and status["status"] in ("rebuilding", "resyncing"):
-                return jsonify(
-                    {"success": False, "error": "Indexing already in progress"}
-                ), 409
-
-            # Trigger resync in background
-            import threading
-
-            def run_resync():
-                try:
-                    collection.resync()
-                    logger.info("Music library resync completed successfully")
-                except Exception as e:
-                    logger.exception(f"Error during resync: {e}")
-
-            thread = threading.Thread(target=run_resync, daemon=True)
-            thread.start()
-
-            logger.info("Music library resync initiated by user")
-            return jsonify({"success": True})
-
-        except Exception as e:
-            logger.exception(f"Error initiating resync: {e}")
-            return jsonify({"success": False, "error": str(e)}), 500
-
-    @app.route("/robots.txt")
-    def robots_txt():
-        """
-        Serves a robots.txt file that disallows all web crawlers. This helps prevent search engines from indexing the site.
-
-        Returns:
-            Response: A plain text HTTP response containing the robots.txt directives.
-        """
-        return Response("User-agent: *\nDisallow: /\n", mimetype="text/plain")
-
-    @app.route("/covers/<filename>")
-    def serve_album_cover(filename):
-        """
-        Serves extracted album cover images from the cached covers directory.
-        Includes explicit CORS and caching headers for car system compatibility.
-        """
-        covers_dir = app.config["DATA_ROOT"] / "cache" / "covers"
-        # Security: restrict to .jpg (or .jpeg/.png if you extend extraction)
-        if not filename.lower().endswith((".jpg", ".jpeg", ".png")):
-            abort(404)
-
-        response = send_from_directory(covers_dir, filename)
-
-        # Add explicit headers for car systems (Android Auto, CarPlay, etc.)
-        response.headers['Access-Control-Allow-Origin'] = '*'
-        response.headers['Access-Control-Allow-Methods'] = 'GET, OPTIONS'
-        response.headers['Access-Control-Max-Age'] = '3600'
-        response.headers['Cache-Control'] = 'public, max-age=86400'  # Cache for 24 hours
-        response.headers['Cross-Origin-Resource-Policy'] = 'cross-origin'
-
-        return response
-
-    @app.route("/api/covers/<path:release_dir_encoded>")
-    def serve_cover_by_size(release_dir_encoded):
-        """
-        Serves cover art with optional size parameter for Android Auto and responsive clients.
-        Supports ?size=WxH query parameter (e.g., ?size=256x256).
-        Generates size variants on-demand and caches them for future requests.
-
-        Args:
-            release_dir_encoded: URL-encoded release directory path
-
-        Query Parameters:
-            size: Optional size in format WxH (e.g., 256x256).
-                  Supported sizes: 96x96, 128x128, 192x192, 256x256, 384x384, 512x512
-
-        Returns:
-            Image file from cache directory
-        """
-        from urllib.parse import unquote
-
-        # Decode the release directory
-        release_dir = unquote(release_dir_encoded)
-
-        # Get requested size from query parameter
-        requested_size = request.args.get('size', '').lower()
-
-        # Validate size format and allowed values
-        valid_sizes = ['96x96', '128x128', '192x192', '256x256', '384x384', '512x512']
-
-        covers_dir = app.config["DATA_ROOT"] / "cache" / "covers"
-
-        if not requested_size:
-            # No size specified, return main cover (existing behavior)
-            cover_url = collection.get_cover(release_dir)
-            if cover_url:
-                filename = cover_url.split('/')[-1]
-                return send_from_directory(covers_dir, filename)
-            abort(404)
-
-        # Validate size parameter
-        if requested_size not in valid_sizes:
-            return jsonify({
-                "error": "Invalid size parameter",
-                "valid_sizes": valid_sizes
-            }), 400
-
-        # Get or generate size-specific cover
-        slug = collection._sanitize_release_dir(release_dir)
-        size_filename = f"{slug}_{requested_size}.jpg"
-        size_path = covers_dir / size_filename
-
-        # If size variant doesn't exist, generate it
-        if not size_path.exists():
-            # Ensure main cover exists first
-            main_path = covers_dir / f"{slug}.jpg"
-            if not main_path.exists():
-                collection._extract_cover(release_dir, main_path)
-
-            # Generate variants (will create the requested size)
-            if main_path.exists():
-                collection._generate_cover_variants(release_dir, slug)
-
-        # Serve the size-specific cover if it exists
-        if size_path.exists():
-            return send_from_directory(covers_dir, size_filename)
-
-        # Fallback: try to serve main cover
-        main_filename = f"{slug}.jpg"
-        main_path = covers_dir / main_filename
-        if main_path.exists():
-            return send_from_directory(covers_dir, main_filename)
-
-        # Final fallback
-        return send_from_directory(covers_dir, "_fallback.jpg")
-
-    @app.route("/reset-database", methods=["POST"])
-    @require_auth
-    def reset_database():
-        """
-        Resets the music library database and triggers a rebuild in the background.
-        Deletes existing database files, reinitializes the collection, and returns JSON with the operation result.
-
-        Returns:
-            Response: A JSON response indicating success, failure, or conflict if indexing is already in progress.
-        """
-        try:
-            # Check if indexing already in progress
-            status = get_indexing_status(config_cls.DATA_ROOT, logger=app.logger)
-            if status and status["status"] in ("rebuilding", "resyncing"):
-                return jsonify(
-                    {"success": False, "error": "Indexing already in progress"}
-                ), 409
-
-            logger.warning("Database reset requested by authenticated user")
-
-            # Close collection
-            try:
-                collection.close()
-                logger.info("Collection closed before database reset")
-            except Exception as e:
-                logger.warning(f"Error closing collection: {e}")
-
-            # Delete database files
-            db_path = Path(config_cls.DB_PATH)
-            deleted_files = []
-
-            for suffix in ["", "-wal", "-shm", "-journal"]:
-                file_path = Path(str(db_path) + suffix)
-                if file_path.exists():
-                    try:
-                        file_path.unlink()
-                        deleted_files.append(file_path.name)
-                        logger.debug(f"Deleted: {file_path}")
-                    except Exception as e:
-                        logger.exception(f"Failed to delete {file_path}: {e}")
-                        return jsonify(
-                            {
-                                "success": False,
-                                "error": f"Failed to delete database: {e}",
-                            }
-                        ), 500
-
-            # Reinitialize collection (triggers rebuild)
-            def reinitialize():
-                try:
-                    global collection
-                    logger.info("Reinitializing music collection")
-                    collection = MusicCollectionUI(
-                        music_root=config_cls.MUSIC_ROOT,
-                        db_path=config_cls.DB_PATH,
-                        logger=logger,
-                    )
-                    logger.info("Collection reinitialized")
-                except Exception as e:
-                    logger.exception(f"Error reinitializing: {e}")
-
-            thread = threading.Thread(target=reinitialize, daemon=True)
-            thread.start()
-
-            return jsonify(
-                {
-                    "success": True,
-                    "message": "Database reset. Rebuild started.",
-                    "deleted_files": deleted_files,
-                }
-            )
-
-        except Exception as e:
-            logger.error(f"Error during reset: {e}", exc_info=True)
-            return jsonify({"success": False, "error": str(e)}), 500
-
-    @app.route("/check-database-health")
-    @require_auth
-    def check_database_health():
-        """
-        Checks the health of the music library database and returns the result as JSON.
-
-        Uses a quick integrity check and track count to determine if the database is healthy or requires a reset.
-
-        Returns:
-            Response: A JSON response containing health status, track count, and check result or error details.
-        """
-        try:
-            count = collection.count()
-
-            with collection._extractor.get_conn(readonly=True) as conn:
-                result = conn.execute("PRAGMA quick_check").fetchone()[0]
-                is_healthy = result == "ok"
-
-            return jsonify(
-                {"healthy": is_healthy, "track_count": count, "check_result": result}
-            )
-
-        except DatabaseCorruptionError:
-            return jsonify(
-                {
-                    "healthy": False,
-                    "error": "Database corruption detected",
-                    "requires_reset": True,
-                }
-            )
-        except Exception as e:
-            logger.error(f"Error checking health: {e}")
-            return jsonify({"healthy": False, "error": str(e)}), 500
 
     # === Context Processors ===
 
@@ -594,6 +280,19 @@ def create_app() -> Flask:
     )
     app.register_blueprint(
         create_qr_blueprint(mixtape_manager=mixtape_manager, logger=logger)
+    )
+    app.register_blueprint(
+        create_system_blueprint(
+            collection=collection,
+            data_root=config_cls.DATA_ROOT,
+            limiter=limiter,
+            logger=logger,
+        )
+    )
+    app.register_blueprint(
+        create_covers_blueprint(
+            collection=collection, data_root=config_cls.DATA_ROOT, logger=logger
+        )
     )
 
     return app
