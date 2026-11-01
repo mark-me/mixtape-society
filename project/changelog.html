@@ -684,6 +684,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
+  <a href="#-v080" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📦 v0.8.0
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#-v075" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1220,6 +1231,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
+  <a href="#-v080" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📦 v0.8.0
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#-v075" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1636,7 +1658,7 @@
 
 
   
-    <a href="https://github.com/mark-me/mixtape-society/edit/main/docs/project/changelog.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/mark-me/mixtape-society/edit/master/docs/project/changelog.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75z"></path></svg>
     </a>
@@ -1645,7 +1667,7 @@
     
       
     
-    <a href="https://github.com/mark-me/mixtape-society/raw/main/docs/project/changelog.md" title="View source of this page" class="md-content__button md-icon">
+    <a href="https://github.com/mark-me/mixtape-society/raw/master/docs/project/changelog.md" title="View source of this page" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0 8a5 5 0 0 1-5-5 5 5 0 0 1 5-5 5 5 0 0 1 5 5 5 5 0 0 1-5 5m0-12.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5"></path></svg>
     </a>
@@ -1656,15 +1678,49 @@
 <h1 id="changelog">Changelog<a class="headerlink" href="#changelog" title="Anchor link to this section">¶</a></h1>
 <p>All notable changes to Mixtape Society are documented here. We follow <a href="https://semver.org/">Semantic Versioning</a> and the spirit of <a href="https://keepachangelog.com/">Keep a Changelog</a>.</p>
 <p>Each release rewinds and fast-forwards your mixtape experience—just like a real cassette! 🎧</p>
+<h2 id="-v080">📦 v0.8.0<a class="headerlink" href="#-v080" title="Anchor link to this section">¶</a></h2>
+<p><span class="md-tag">Release</span></p>
+<p><strong>🗓️</strong> 2026-11-01</p>
+<div class="admonition warning">
+<p class="admonition-title">Before you upgrade</p>
+<p>The container now runs as user <code>1000</code>, so data written by an older image has to be handed over once, or the app won't start: <code>sudo chown -R 1000:1000 ./collection-data</code>. See the <a href="../user/creators/installation.html">installation guide</a> for named volumes. The example Compose file now reads <code>PASSWORD</code> from <code>docker/.env</code>. Everyone is logged out once.</p>
+</div>
+<h3 id="-added">✨ Added<a class="headerlink" href="#-added" title="Anchor link to this section">¶</a></h3>
+<ul>
+<li>Help is now part of the app: it opens the documentation of the version you run, also without internet</li>
+<li>Automated tests and code checks on every pull request and before every Docker image</li>
+<li>Vulnerability scans of the Python packages and the Docker image, and weekly dependency updates by Dependabot</li>
+<li>Docker health check</li>
+<li><code>SESSION_COOKIE_SECURE</code> setting for installs that are only reached over HTTPS</li>
+</ul>
+<h3 id="-changed">🔧 Changed<a class="headerlink" href="#-changed" title="Anchor link to this section">¶</a></h3>
+<ul>
+<li>Docker image is much smaller and runs as a non-root user, read-only in the example Compose file</li>
+<li>Security headers on every response; requests from other sites that change something are refused</li>
+<li>Updated packages, including Pillow 13, CairoSVG 2.9.1 and Werkzeug 3.1.9 for security fixes</li>
+<li>Moved system and cover routes out of <code>app.py</code> into their own blueprints</li>
+<li>New logo and a more pronounced favicon</li>
+<li>Improved readability of the documentation</li>
+</ul>
+<h3 id="-fixed">🐛 Fixed<a class="headerlink" href="#-fixed" title="Anchor link to this section">¶</a></h3>
+<ul>
+<li>Password could be guessed offline from a session cookie: sessions are now signed with a separate random key</li>
+<li>App now refuses to start in production without a <code>PASSWORD</code></li>
+<li>Resetting the database left the app working with the old, closed collection</li>
+<li>Pushing to <code>master</code> didn't build a Docker image</li>
+<li>Documentation build failing on pages that referred to code that wasn't there</li>
+</ul>
+<p><a href="https://github.com/mark-me/mixtape-society/compare/v0.7.5...v0.8.0">Changes since last version</a></p>
+<hr>
 <h2 id="-v075">📦 v0.7.5<a class="headerlink" href="#-v075" title="Anchor link to this section">¶</a></h2>
 <p><span class="md-tag">Release</span></p>
 <p><strong>🗓️</strong> 2026-01-26</p>
-<h3 id="-changed">🔧 Changed<a class="headerlink" href="#-changed" title="Anchor link to this section">¶</a></h3>
+<h3 id="-changed_1">🔧 Changed<a class="headerlink" href="#-changed_1" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Refactored playerControl.js, split across more files</li>
 <li>Restructuring documentation</li>
 </ul>
-<h3 id="-fixed">🐛 Fixed<a class="headerlink" href="#-fixed" title="Anchor link to this section">¶</a></h3>
+<h3 id="-fixed_1">🐛 Fixed<a class="headerlink" href="#-fixed_1" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Playback stops on mobile</li>
 <li>Reusing indexing for tracking playback across multiple mixtapes</li>
@@ -1674,13 +1730,13 @@
 <h2 id="-v074">📦 v0.7.4<a class="headerlink" href="#-v074" title="Anchor link to this section">¶</a></h2>
 <p><span class="md-tag">Release</span></p>
 <p><strong>🗓️</strong> 2026-01-25</p>
-<h3 id="-changed_1">🔧 Changed<a class="headerlink" href="#-changed_1" title="Anchor link to this section">¶</a></h3>
+<h3 id="-changed_2">🔧 Changed<a class="headerlink" href="#-changed_2" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Removed cover upload limit</li>
 <li>Added artist to track label for compilation albums</li>
 <li>Speeded up quering by improving indexes, batching count queries and batching compilcation detection</li>
 </ul>
-<h3 id="-fixed_1">🐛 Fixed<a class="headerlink" href="#-fixed_1" title="Anchor link to this section">¶</a></h3>
+<h3 id="-fixed_2">🐛 Fixed<a class="headerlink" href="#-fixed_2" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>With new mixtape, every save results in a new one</li>
 <li>Bottom player play button doesn't resume track after page reload</li>
@@ -1691,11 +1747,11 @@
 <h2 id="-v073">📦 v0.7.3<a class="headerlink" href="#-v073" title="Anchor link to this section">¶</a></h2>
 <p><span class="md-tag">Release</span></p>
 <p><strong>🗓️</strong> 2026-01-24</p>
-<h3 id="-added">✨ Added<a class="headerlink" href="#-added" title="Anchor link to this section">¶</a></h3>
+<h3 id="-added_1">✨ Added<a class="headerlink" href="#-added_1" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Sleep timer</li>
 </ul>
-<h3 id="-fixed_2">🐛 Fixed<a class="headerlink" href="#-fixed_2" title="Anchor link to this section">¶</a></h3>
+<h3 id="-fixed_3">🐛 Fixed<a class="headerlink" href="#-fixed_3" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Some Android devices stopped playback when track ended</li>
 </ul>
@@ -1704,15 +1760,15 @@
 <h2 id="-v072">📦 v0.7.2<a class="headerlink" href="#-v072" title="Anchor link to this section">¶</a></h2>
 <p><span class="md-tag">Release</span></p>
 <p><strong>🗓️</strong> 2026-01-23</p>
-<h3 id="-added_1">✨ Added<a class="headerlink" href="#-added_1" title="Anchor link to this section">¶</a></h3>
+<h3 id="-added_2">✨ Added<a class="headerlink" href="#-added_2" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Add confirmation modal when emptying mixtape</li>
 </ul>
-<h3 id="-changed_2">🔧 Changed<a class="headerlink" href="#-changed_2" title="Anchor link to this section">¶</a></h3>
+<h3 id="-changed_3">🔧 Changed<a class="headerlink" href="#-changed_3" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Centralized toast system for better consistency</li>
 </ul>
-<h3 id="-fixed_3">🐛 Fixed<a class="headerlink" href="#-fixed_3" title="Anchor link to this section">¶</a></h3>
+<h3 id="-fixed_4">🐛 Fixed<a class="headerlink" href="#-fixed_4" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Chromecasting</li>
 <li>Android Auto</li>
@@ -1722,7 +1778,7 @@
 <h2 id="-v071">📦 v0.7.1<a class="headerlink" href="#-v071" title="Anchor link to this section">¶</a></h2>
 <p><span class="md-tag">Release</span></p>
 <p><strong>🗓️</strong> 2026-01-22</p>
-<h3 id="-added_2">✨ Added<a class="headerlink" href="#-added_2" title="Anchor link to this section">¶</a></h3>
+<h3 id="-added_3">✨ Added<a class="headerlink" href="#-added_3" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Shuffle option for receiver</li>
 <li>Repeat mode (off/all/one)</li>
@@ -1736,13 +1792,13 @@
 <h2 id="-v070">📦 v0.7.0<a class="headerlink" href="#-v070" title="Anchor link to this section">¶</a></h2>
 <p><span class="md-tag">Release</span></p>
 <p><strong>🗓️</strong> 2026-01-21</p>
-<h3 id="-added_3">✨ Added<a class="headerlink" href="#-added_3" title="Anchor link to this section">¶</a></h3>
+<h3 id="-added_4">✨ Added<a class="headerlink" href="#-added_4" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Gift receiver experience!</li>
 <li>Help pages for users</li>
 <li>Resuming playback on reload</li>
 </ul>
-<h3 id="-fixed_4">🐛 Fixed<a class="headerlink" href="#-fixed_4" title="Anchor link to this section">¶</a></h3>
+<h3 id="-fixed_5">🐛 Fixed<a class="headerlink" href="#-fixed_5" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Made playback more resistant against temporary network failures</li>
 <li>Play button on bottom didn't properly show on mobile devices with a light theme</li>
@@ -1752,11 +1808,11 @@
 <h2 id="-v060">📦 v0.6.0<a class="headerlink" href="#-v060" title="Anchor link to this section">¶</a></h2>
 <p><span class="md-tag">Release</span></p>
 <p><strong>🗓️</strong> 2026-01-19</p>
-<h3 id="-added_4">✨ Added<a class="headerlink" href="#-added_4" title="Anchor link to this section">¶</a></h3>
+<h3 id="-added_5">✨ Added<a class="headerlink" href="#-added_5" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Prefetching next song data for improved song switching.</li>
 </ul>
-<h3 id="-fixed_5">🐛 Fixed<a class="headerlink" href="#-fixed_5" title="Anchor link to this section">¶</a></h3>
+<h3 id="-fixed_6">🐛 Fixed<a class="headerlink" href="#-fixed_6" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Android car not showing in car.</li>
 </ul>
@@ -1765,7 +1821,7 @@
 <h2 id="-v059">📦 v0.5.9<a class="headerlink" href="#-v059" title="Anchor link to this section">¶</a></h2>
 <p><span class="md-tag">Release</span></p>
 <p><strong>🗓️</strong> 2026-01-17</p>
-<h3 id="-fixed_6">🐛 Fixed<a class="headerlink" href="#-fixed_6" title="Anchor link to this section">¶</a></h3>
+<h3 id="-fixed_7">🐛 Fixed<a class="headerlink" href="#-fixed_7" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Limiter only applied to login page</li>
 <li>PWA manifest was not dynamic, so would not work for received shared mixtapes</li>
@@ -1775,14 +1831,14 @@
 <h2 id="-v058">📦 v0.5.8<a class="headerlink" href="#-v058" title="Anchor link to this section">¶</a></h2>
 <p><span class="md-tag">Release</span></p>
 <p><strong>🗓️</strong> 2026-01-16</p>
-<h3 id="-added_5">✨ Added<a class="headerlink" href="#-added_5" title="Anchor link to this section">¶</a></h3>
+<h3 id="-added_6">✨ Added<a class="headerlink" href="#-added_6" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Added Android Auto support</li>
 <li>Size-optimized cover generation</li>
 <li>Mechanical click sound effect for cassette mode</li>
 <li>Lots of extra and restructured documentation</li>
 </ul>
-<h3 id="-fixed_7">🐛 Fixed<a class="headerlink" href="#-fixed_7" title="Anchor link to this section">¶</a></h3>
+<h3 id="-fixed_8">🐛 Fixed<a class="headerlink" href="#-fixed_8" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>The artist's album accordions in the search results went missing since v0.5.7</li>
 </ul>
@@ -1791,12 +1847,12 @@
 <h2 id="-v057">📦 v0.5.7<a class="headerlink" href="#-v057" title="Anchor link to this section">¶</a></h2>
 <p><span class="md-tag">Release</span></p>
 <p><strong>🗓️</strong> 2026-01-13</p>
-<h3 id="-added_6">✨ Added<a class="headerlink" href="#-added_6" title="Anchor link to this section">¶</a></h3>
+<h3 id="-added_7">✨ Added<a class="headerlink" href="#-added_7" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Added PWA (Progressive Web App) support for offline playback and installation</li>
 <li>Added ChromeCast support for playback</li>
 </ul>
-<h3 id="-fixed_8">🐛 Fixed<a class="headerlink" href="#-fixed_8" title="Anchor link to this section">¶</a></h3>
+<h3 id="-fixed_9">🐛 Fixed<a class="headerlink" href="#-fixed_9" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Allow searching for strange characters in artist/album/track names</li>
 <li>Type 3 characters to start searching -&gt; 2 characters</li>
@@ -1806,11 +1862,11 @@
 <h2 id="-v056">📦 v0.5.6<a class="headerlink" href="#-v056" title="Anchor link to this section">¶</a></h2>
 <p><span class="md-tag">Release</span></p>
 <p><strong>🗓️</strong> 2026-01-11</p>
-<h3 id="-added_7">✨ Added<a class="headerlink" href="#-added_7" title="Anchor link to this section">¶</a></h3>
+<h3 id="-added_8">✨ Added<a class="headerlink" href="#-added_8" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Multi-Architecture Docker Build Setup</li>
 </ul>
-<h3 id="-fixed_9">🐛 Fixed<a class="headerlink" href="#-fixed_9" title="Anchor link to this section">¶</a></h3>
+<h3 id="-fixed_10">🐛 Fixed<a class="headerlink" href="#-fixed_10" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Slug sanitation for mixtape titles with spaces and non-URL-safe characters</li>
 <li>Centered QR code in modal</li>
@@ -1820,12 +1876,12 @@
 <h2 id="-v055">📦 v0.5.5<a class="headerlink" href="#-v055" title="Anchor link to this section">¶</a></h2>
 <p><span class="md-tag">Release</span></p>
 <p><strong>🗓️</strong> 2026-01-09</p>
-<h3 id="-added_8">✨ Added<a class="headerlink" href="#-added_8" title="Anchor link to this section">¶</a></h3>
+<h3 id="-added_9">✨ Added<a class="headerlink" href="#-added_9" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Sharing through QR codes on browse, editor and playback pages</li>
 <li>Filtering and sorting on the mixtape browsing page</li>
 </ul>
-<h3 id="-changed_3">🔧 Changed<a class="headerlink" href="#-changed_3" title="Anchor link to this section">¶</a></h3>
+<h3 id="-changed_4">🔧 Changed<a class="headerlink" href="#-changed_4" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Changed search bar for the mixtape editor</li>
 </ul>
@@ -1834,7 +1890,7 @@
 <h2 id="-v054">📦 v0.5.4<a class="headerlink" href="#-v054" title="Anchor link to this section">¶</a></h2>
 <p><span class="md-tag">Release</span></p>
 <p><strong>🗓️</strong> 2026-01-07</p>
-<h3 id="-fixed_10">🐛 Fixed<a class="headerlink" href="#-fixed_10" title="Anchor link to this section">¶</a></h3>
+<h3 id="-fixed_11">🐛 Fixed<a class="headerlink" href="#-fixed_11" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Color cassette tape strip</li>
 </ul>
@@ -1843,11 +1899,11 @@
 <h2 id="-v053">📦 v0.5.3<a class="headerlink" href="#-v053" title="Anchor link to this section">¶</a></h2>
 <p><span class="md-tag">Release</span></p>
 <p><strong>🗓️</strong> 2026-01-07</p>
-<h3 id="-added_9">✨ Added<a class="headerlink" href="#-added_9" title="Anchor link to this section">¶</a></h3>
+<h3 id="-added_10">✨ Added<a class="headerlink" href="#-added_10" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Immersive walkman mode on mobile</li>
 </ul>
-<h3 id="-fixed_11">🐛 Fixed<a class="headerlink" href="#-fixed_11" title="Anchor link to this section">¶</a></h3>
+<h3 id="-fixed_12">🐛 Fixed<a class="headerlink" href="#-fixed_12" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Restored mobile notification pause/play functionality</li>
 </ul>
@@ -1856,16 +1912,16 @@
 <h2 id="-v052">📦 v0.5.2<a class="headerlink" href="#-v052" title="Anchor link to this section">¶</a></h2>
 <p><span class="md-tag">Release</span></p>
 <p><strong>🗓️</strong> 2026-01-06</p>
-<h3 id="-added_10">✨ Added<a class="headerlink" href="#-added_10" title="Anchor link to this section">¶</a></h3>
+<h3 id="-added_11">✨ Added<a class="headerlink" href="#-added_11" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Mixtape cover resizing to reduce bandwidth needs</li>
 <li>Added cassette tape look option to playback</li>
 </ul>
-<h3 id="-changed_4">🔧 Changed<a class="headerlink" href="#-changed_4" title="Anchor link to this section">¶</a></h3>
+<h3 id="-changed_5">🔧 Changed<a class="headerlink" href="#-changed_5" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Normalize cover images to RGB and handle transparency correctly before saving as JPEG, while slightly adjusting JPEG output settings.</li>
 </ul>
-<h3 id="-fixed_12">🐛 Fixed<a class="headerlink" href="#-fixed_12" title="Anchor link to this section">¶</a></h3>
+<h3 id="-fixed_13">🐛 Fixed<a class="headerlink" href="#-fixed_13" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Prevent unnecessary resizing of small cover images</li>
 </ul>
@@ -1876,7 +1932,7 @@
 <p>All notable changes to Mixtape Society are documented here. We follow <a href="https://semver.org/">Semantic Versioning</a> and the spirit of <a href="https://keepachangelog.com/">Keep a Changelog</a>.</p>
 <p>Each release rewinds and fast-forwards your mixtape experience—just like a real cassette! 🎧</p>
 <p><strong>🗓️</strong> 2026-01-04</p>
-<h3 id="-added_11">✨ Added<a class="headerlink" href="#-added_11" title="Anchor link to this section">¶</a></h3>
+<h3 id="-added_12">✨ Added<a class="headerlink" href="#-added_12" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Adaptive theming based on the mixtape cover for playback</li>
 </ul>
@@ -1885,7 +1941,7 @@
 <h2 id="-v050">📦 v0.5.0<a class="headerlink" href="#-v050" title="Anchor link to this section">¶</a></h2>
 <p><span class="md-tag">Release</span></p>
 <p><strong>🗓️</strong> 2026-01-04</p>
-<h3 id="-added_12">✨ Added<a class="headerlink" href="#-added_12" title="Anchor link to this section">¶</a></h3>
+<h3 id="-added_13">✨ Added<a class="headerlink" href="#-added_13" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Modal for statistics on the entire collection</li>
 <li>Improved details in editor for compilation albums</li>
@@ -1893,12 +1949,12 @@
 <li>Hierarchical hints in search results</li>
 <li>User are alerted on broken DB and can rebuild from UI -&gt; Shared mixtapes still usable while DB is being rebuilt</li>
 </ul>
-<h3 id="-changed_5">🔧 Changed<a class="headerlink" href="#-changed_5" title="Anchor link to this section">¶</a></h3>
+<h3 id="-changed_6">🔧 Changed<a class="headerlink" href="#-changed_6" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Moved the resync button to the statistics modal</li>
 <li>Handling of compilation albums is now uniform</li>
 </ul>
-<h3 id="-fixed_13">🐛 Fixed<a class="headerlink" href="#-fixed_13" title="Anchor link to this section">¶</a></h3>
+<h3 id="-fixed_14">🐛 Fixed<a class="headerlink" href="#-fixed_14" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Database resync corrupts database</li>
 <li>Watcher corrupts database when changing lots of files in the music collection</li>
@@ -1912,13 +1968,13 @@
 <h2 id="-v041">📦 v0.4.1<a class="headerlink" href="#-v041" title="Anchor link to this section">¶</a></h2>
 <p><span class="md-tag">Release</span></p>
 <p><strong>🗓️</strong> 2026-01-02</p>
-<h3 id="-added_13">✨ Added<a class="headerlink" href="#-added_13" title="Anchor link to this section">¶</a></h3>
+<h3 id="-added_14">✨ Added<a class="headerlink" href="#-added_14" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Fallback cover art</li>
 <li>Cover art for track search results</li>
 <li>Cover art in mobile notification</li>
 </ul>
-<h3 id="-changed_6">🔧 Changed<a class="headerlink" href="#-changed_6" title="Anchor link to this section">¶</a></h3>
+<h3 id="-changed_7">🔧 Changed<a class="headerlink" href="#-changed_7" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>CSS changed to sematic color system</li>
 <li>Cleaning up editor and player javascript</li>
@@ -1928,7 +1984,7 @@
 <h2 id="-v040">📦 v0.4.0<a class="headerlink" href="#-v040" title="Anchor link to this section">¶</a></h2>
 <p><span class="md-tag">Release</span></p>
 <p><strong>🗓️</strong> 2026-01-01</p>
-<h3 id="-added_14">✨ Added<a class="headerlink" href="#-added_14" title="Anchor link to this section">¶</a></h3>
+<h3 id="-added_15">✨ Added<a class="headerlink" href="#-added_15" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Floating buttons in editor for mobile to:<ul>
 <li>Jump to mixtape tracks</li>
@@ -1937,7 +1993,7 @@
 </li>
 <li>Added button for manual resyncing the music collection library</li>
 </ul>
-<h3 id="-fixed_14">🐛 Fixed<a class="headerlink" href="#-fixed_14" title="Anchor link to this section">¶</a></h3>
+<h3 id="-fixed_15">🐛 Fixed<a class="headerlink" href="#-fixed_15" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Saving existing mixtapes results in error</li>
 <li>Covers not available for non-admin users</li>
@@ -1948,17 +2004,17 @@
 <h2 id="-v030">📦 v0.3.0<a class="headerlink" href="#-v030" title="Anchor link to this section">¶</a></h2>
 <p><span class="md-tag">Release</span></p>
 <p><strong>🗓️</strong> 2026-01-01</p>
-<h3 id="-added_15">✨ Added<a class="headerlink" href="#-added_15" title="Anchor link to this section">¶</a></h3>
+<h3 id="-added_16">✨ Added<a class="headerlink" href="#-added_16" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Covers included for tracks</li>
 <li>Composite cover generation</li>
 <li>Track removal toast</li>
 </ul>
-<h3 id="-changed_7">🔧 Changed<a class="headerlink" href="#-changed_7" title="Anchor link to this section">¶</a></h3>
+<h3 id="-changed_8">🔧 Changed<a class="headerlink" href="#-changed_8" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Play buttons changed to cover-play buttons</li>
 </ul>
-<h3 id="-fixed_15">🐛 Fixed<a class="headerlink" href="#-fixed_15" title="Anchor link to this section">¶</a></h3>
+<h3 id="-fixed_16">🐛 Fixed<a class="headerlink" href="#-fixed_16" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Reordering tracks resulted in track added toast.</li>
 <li>White theme browsing mixtapes, mixtape title invisible</li>
@@ -1969,16 +2025,16 @@
 <h2 id="-v025">📦 v0.2.5<a class="headerlink" href="#-v025" title="Anchor link to this section">¶</a></h2>
 <p><span class="md-tag">Release</span></p>
 <p><strong>🗓️</strong> 2025-12-30</p>
-<h3 id="-added_16">✨ Added<a class="headerlink" href="#-added_16" title="Anchor link to this section">¶</a></h3>
+<h3 id="-added_17">✨ Added<a class="headerlink" href="#-added_17" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Creating cached versions of FLAC's converted to lower (but listenable) quality when creating a mixtape</li>
 <li>Option to let the user choose higher quality playback</li>
 </ul>
-<h3 id="-changed_8">🔧 Changed<a class="headerlink" href="#-changed_8" title="Anchor link to this section">¶</a></h3>
+<h3 id="-changed_9">🔧 Changed<a class="headerlink" href="#-changed_9" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Updated documentation</li>
 </ul>
-<h3 id="-fixed_16">🐛 Fixed<a class="headerlink" href="#-fixed_16" title="Anchor link to this section">¶</a></h3>
+<h3 id="-fixed_17">🐛 Fixed<a class="headerlink" href="#-fixed_17" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>When searching with multiple words, the results narrows down</li>
 <li>Player control text is illegible in the white theme</li>
@@ -1989,12 +2045,12 @@
 <h2 id="-v022">📦 v0.2.2<a class="headerlink" href="#-v022" title="Anchor link to this section">¶</a></h2>
 <p><span class="md-tag">Release</span></p>
 <p><strong>🗓️</strong> 2025-12-28</p>
-<h3 id="-added_17">✨ Added<a class="headerlink" href="#-added_17" title="Anchor link to this section">¶</a></h3>
+<h3 id="-added_18">✨ Added<a class="headerlink" href="#-added_18" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Possibility to expand the tracks/liner notes for easier reordering and writing notes.</li>
 <li>Duration of playlist items added</li>
 </ul>
-<h3 id="-changed_9">🔧 Changed<a class="headerlink" href="#-changed_9" title="Anchor link to this section">¶</a></h3>
+<h3 id="-changed_10">🔧 Changed<a class="headerlink" href="#-changed_10" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Mixtape player page:<ul>
 <li>Playback track layout so it looks better on mobile devices</li>
@@ -2009,7 +2065,7 @@
 </ul>
 </li>
 </ul>
-<h3 id="-fixed_17">🐛 Fixed<a class="headerlink" href="#-fixed_17" title="Anchor link to this section">¶</a></h3>
+<h3 id="-fixed_18">🐛 Fixed<a class="headerlink" href="#-fixed_18" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Track title not rendering on playlist</li>
 </ul>
@@ -2018,7 +2074,7 @@
 <h2 id="-v021">📦 v0.2.1<a class="headerlink" href="#-v021" title="Anchor link to this section">¶</a></h2>
 <p><span class="md-tag">Release</span></p>
 <p><strong>🗓️</strong> 2025-12-27</p>
-<h3 id="-fixed_18">🐛 Fixed<a class="headerlink" href="#-fixed_18" title="Anchor link to this section">¶</a></h3>
+<h3 id="-fixed_19">🐛 Fixed<a class="headerlink" href="#-fixed_19" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Mixtapes editing made more uniform and robust against network failures, resulted in fatal crash</li>
 <li>Fixed album sorting for artists to case insensitive</li>
@@ -2029,13 +2085,13 @@
 <h2 id="-v020">📦 v0.2.0<a class="headerlink" href="#-v020" title="Anchor link to this section">¶</a></h2>
 <p><span class="md-tag">Release</span></p>
 <p><strong>🗓️</strong> 2025-12-27</p>
-<h3 id="-changed_10">🔧 Changed<a class="headerlink" href="#-changed_10" title="Anchor link to this section">¶</a></h3>
+<h3 id="-changed_11">🔧 Changed<a class="headerlink" href="#-changed_11" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>OpenGraph image and added information to better comply with standards <a href="https://opengraph.dev/">https://opengraph.dev/</a></li>
 <li>Changing the title of the mixtape is independent of the filename of the stored mixtape. This ensures keeping the old shared URL alive when changing the title.</li>
 <li>Navbar to sticky-top</li>
 </ul>
-<h3 id="-fixed_19">🐛 Fixed<a class="headerlink" href="#-fixed_19" title="Anchor link to this section">¶</a></h3>
+<h3 id="-fixed_20">🐛 Fixed<a class="headerlink" href="#-fixed_20" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Collapse of the navbar happens only on small screens</li>
 <li>Better player display on smaller screens</li>
@@ -2046,7 +2102,7 @@
 <h2 id="-v018-alpha">📦 v0.1.8-alpha<a class="headerlink" href="#-v018-alpha" title="Anchor link to this section">¶</a></h2>
 <p><span class="md-tag">Unreleased</span></p>
 <p><strong>🗓️</strong> 2025-12-26</p>
-<h3 id="-added_18">✨ Added<a class="headerlink" href="#-added_18" title="Anchor link to this section">¶</a></h3>
+<h3 id="-added_19">✨ Added<a class="headerlink" href="#-added_19" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Using tags while searching<ul>
 <li>Artist</li>
@@ -2060,7 +2116,7 @@
 <li>Cache pass-1 results between keystrokes, keep the results of Pass 1 (scored rows) around temporarily, so increasing the precision of your search  doesn't need to hit the database again.</li>
 <li>Added robot.txt to disallow page indexing by search engines</li>
 </ul>
-<h3 id="-changed_11">🔧 Changed<a class="headerlink" href="#-changed_11" title="Anchor link to this section">¶</a></h3>
+<h3 id="-changed_12">🔧 Changed<a class="headerlink" href="#-changed_12" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Extracted JavaScript from Jinja templates to <code>static/js</code></li>
 <li>Liner notes before tracks list</li>
@@ -2072,7 +2128,7 @@
 <li>Better mixtape editing</li>
 <li>When indexing the music library, Ajax reloading is used to reduce page reloads</li>
 </ul>
-<h3 id="-fixed_20">🐛 Fixed<a class="headerlink" href="#-fixed_20" title="Anchor link to this section">¶</a></h3>
+<h3 id="-fixed_21">🐛 Fixed<a class="headerlink" href="#-fixed_21" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Player does not adhere to light/dark theming</li>
 <li>Possible mixtape collision</li>
@@ -2084,12 +2140,12 @@
 <h2 id="-v017-alpha">📦 v0.1.7-alpha<a class="headerlink" href="#-v017-alpha" title="Anchor link to this section">¶</a></h2>
 <p><span class="md-tag">Pre-release</span></p>
 <p><strong>🗓️</strong> 2025-12-18</p>
-<h3 id="-added_19">✨ Added<a class="headerlink" href="#-added_19" title="Anchor link to this section">¶</a></h3>
+<h3 id="-added_20">✨ Added<a class="headerlink" href="#-added_20" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Editing previews - each track in the search-result can be played without adding them to the playlist</li>
 <li>Project link in navbar</li>
 </ul>
-<h3 id="-changed_12">🔧 Changed<a class="headerlink" href="#-changed_12" title="Anchor link to this section">¶</a></h3>
+<h3 id="-changed_13">🔧 Changed<a class="headerlink" href="#-changed_13" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Logo and favicon</li>
 <li>Documentation line-up with app style</li>
@@ -2099,11 +2155,11 @@
 <h2 id="-v016-alpha">📦 v0.1.6-alpha<a class="headerlink" href="#-v016-alpha" title="Anchor link to this section">¶</a></h2>
 <p><span class="md-tag">Pre-release</span></p>
 <p><strong>🗓️</strong> 2025-12-17</p>
-<h3 id="-changed_13">🔧 Changed<a class="headerlink" href="#-changed_13" title="Anchor link to this section">¶</a></h3>
+<h3 id="-changed_14">🔧 Changed<a class="headerlink" href="#-changed_14" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Extracted CSS to dedicated files in static, and added comments with clear flow</li>
 </ul>
-<h3 id="-fixed_21">🐛 Fixed<a class="headerlink" href="#-fixed_21" title="Anchor link to this section">¶</a></h3>
+<h3 id="-fixed_22">🐛 Fixed<a class="headerlink" href="#-fixed_22" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Covers not showing for users that are not logged in</li>
 <li>Editor headers change according to creating or editing mixtape</li>
@@ -2113,18 +2169,18 @@
 <h2 id="-v015-alpha">📦 v0.1.5-alpha<a class="headerlink" href="#-v015-alpha" title="Anchor link to this section">¶</a></h2>
 <p><span class="md-tag">Pre-release</span></p>
 <p><strong>🗓️</strong> 2025-12-17</p>
-<h3 id="-added_20">✨ Added<a class="headerlink" href="#-added_20" title="Anchor link to this section">¶</a></h3>
+<h3 id="-added_21">✨ Added<a class="headerlink" href="#-added_21" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Grouping search results:</li>
 <li>Nesting for Artists: Artists show as top-level headers with summaries (e.g., "2 album(s)", "5 nummer(s)").</li>
 <li>Albums are nested in an accordion below, each with their own header and collapsible tracks.</li>
 <li>Folding Tracks: Tracks are hidden by default under a collapsible section (accordion for nested albums, simple collapse for standalone albums). Click the header/button to expand.</li>
 </ul>
-<h3 id="-changed_14">🔧 Changed<a class="headerlink" href="#-changed_14" title="Anchor link to this section">¶</a></h3>
+<h3 id="-changed_15">🔧 Changed<a class="headerlink" href="#-changed_15" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Moved from JavaScript dialogs to Bootstrap dialogs</li>
 </ul>
-<h3 id="-fixed_22">🐛 Fixed<a class="headerlink" href="#-fixed_22" title="Anchor link to this section">¶</a></h3>
+<h3 id="-fixed_23">🐛 Fixed<a class="headerlink" href="#-fixed_23" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Fixed Dockerfile by starting app from factory function</li>
 </ul>
@@ -2133,16 +2189,16 @@
 <h2 id="-v014-alpha">📦 v0.1.4-alpha<a class="headerlink" href="#-v014-alpha" title="Anchor link to this section">¶</a></h2>
 <p><span class="md-tag">Pre-release</span></p>
 <p><strong>🗓️</strong> 2025-12-16</p>
-<h3 id="-added_21">✨ Added<a class="headerlink" href="#-added_21" title="Anchor link to this section">¶</a></h3>
+<h3 id="-added_22">✨ Added<a class="headerlink" href="#-added_22" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Page that informs user at first startup on the progress of music library scraping</li>
 </ul>
-<h3 id="-changed_15">🔧 Changed<a class="headerlink" href="#-changed_15" title="Anchor link to this section">¶</a></h3>
+<h3 id="-changed_16">🔧 Changed<a class="headerlink" href="#-changed_16" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Music library extraction backend (Musiclib)</li>
 <li>Huge overhaul of back-end, making modules less interdependent</li>
 </ul>
-<h3 id="-fixed_23">🐛 Fixed<a class="headerlink" href="#-fixed_23" title="Anchor link to this section">¶</a></h3>
+<h3 id="-fixed_24">🐛 Fixed<a class="headerlink" href="#-fixed_24" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Missing standard cover art</li>
 <li>Theme adherence on some pages</li>
@@ -2154,14 +2210,14 @@
 <h2 id="-v013-alpha">📦 v0.1.3-alpha<a class="headerlink" href="#-v013-alpha" title="Anchor link to this section">¶</a></h2>
 <p><span class="md-tag">Pre-release</span></p>
 <p><strong>🗓️</strong> 2025-12-15</p>
-<h3 id="-added_22">✨ Added<a class="headerlink" href="#-added_22" title="Anchor link to this section">¶</a></h3>
+<h3 id="-added_23">✨ Added<a class="headerlink" href="#-added_23" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Creating liner notes for a mixtape</li>
 <li>Pop-up when adding tracks to a mixtape</li>
 <li>Share mixtape from play page</li>
 <li>Social card metadata for mixtapes</li>
 </ul>
-<h3 id="-fixed_24">🐛 Fixed<a class="headerlink" href="#-fixed_24" title="Anchor link to this section">¶</a></h3>
+<h3 id="-fixed_25">🐛 Fixed<a class="headerlink" href="#-fixed_25" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Moving away from editing a mixtape then returning would lose changes</li>
 </ul>
@@ -2170,7 +2226,7 @@
 <h2 id="-v012-alpha">📦 v0.1.2-alpha<a class="headerlink" href="#-v012-alpha" title="Anchor link to this section">¶</a></h2>
 <p><span class="md-tag">Pre-release</span></p>
 <p><strong>🗓️</strong> 2025-12-12</p>
-<h3 id="-fixed_25">🐛 Fixed<a class="headerlink" href="#-fixed_25" title="Anchor link to this section">¶</a></h3>
+<h3 id="-fixed_26">🐛 Fixed<a class="headerlink" href="#-fixed_26" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Made Mixtape browser responsive</li>
 </ul>
@@ -2179,19 +2235,19 @@
 <h2 id="-v011-alpha">📦 v0.1.1-alpha<a class="headerlink" href="#-v011-alpha" title="Anchor link to this section">¶</a></h2>
 <p><span class="md-tag">Pre-release</span></p>
 <p><strong>🗓️</strong> 2025-12-12</p>
-<h3 id="-added_23">✨ Added<a class="headerlink" href="#-added_23" title="Anchor link to this section">¶</a></h3>
+<h3 id="-added_24">✨ Added<a class="headerlink" href="#-added_24" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Included version information from git tags</li>
 <li>Docker logging</li>
 <li>Rate limiting for login</li>
 </ul>
-<h3 id="-changed_16">🔧 Changed<a class="headerlink" href="#-changed_16" title="Anchor link to this section">¶</a></h3>
+<h3 id="-changed_17">🔧 Changed<a class="headerlink" href="#-changed_17" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Improved music path handling</li>
 <li>Simplified logging</li>
 <li>Documentation welcome page</li>
 </ul>
-<h3 id="-fixed_26">🐛 Fixed<a class="headerlink" href="#-fixed_26" title="Anchor link to this section">¶</a></h3>
+<h3 id="-fixed_27">🐛 Fixed<a class="headerlink" href="#-fixed_27" title="Anchor link to this section">¶</a></h3>
 <ul>
 <li>Password handling with strange characters</li>
 <li>Database locks when too many Watcher related updates</li>
@@ -2219,7 +2275,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"></path></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="January 27, 2026 20:36:06 UTC"><span class="timeago" datetime="2026-01-27T20:36:06+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="January 27, 2026 20:36:06 UTC">2026-01-27</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="November 1, 2026 20:52:20 UTC"><span class="timeago" datetime="2026-11-01T20:52:20+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="November 1, 2026 20:52:20 UTC">2026-11-01</span>
   </span>
 
     
