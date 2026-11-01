@@ -1,7 +1,8 @@
 name: Docs
 
 # Every pull request builds the documentation, so a broken page shows before it is merged.
-# A push to master builds it and publishes it to GitHub Pages.
+# A push to master also publishes it to GitHub Pages; the repository's Pages source has to be
+# set to GitHub Actions for that.
 on:
   pull_request:
   push:
@@ -9,38 +10,45 @@ on:
       - master
   workflow_dispatch:
 
+# One publication at a time; a newer push replaces one that is still waiting.
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: read
 
 jobs:
   build:
-    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
 
       - name: Set up uv
         uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
 
       - name: Build docs
-        run: uv run --locked --group dev mkdocs build
+        run: uv run --locked python -m zensical build --strict
+
+      - name: Upload the site
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: site
 
   deploy:
     if: github.event_name != 'pull_request'
+    needs: build
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-
-      - name: Set up uv
-        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
-
-      - name: Deploy docs
-        run: uv run --locked --group dev mkdocs gh-deploy --force
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

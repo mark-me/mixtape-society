@@ -32,15 +32,8 @@ sources = { "src" = "src" }  # Map src/ naar zichzelf in de wheel
 [dependency-groups]
 dev = [
     # Documentation tooling
-    "mkdocs>=1.6.1,<2",
-    "mkdocs-material>=9.7.0",
-    "mkdocs-git-committers-plugin>=0.2.3",
-    "mkdocs-git-revision-date-localized-plugin>=1.5.0",
-    "mkdocs-mermaid2-plugin>=1.2.3",
-    "mkdocs-panzoom-plugin>=0.4.2",
-    "mkdocstrings>=1.0.0",
-    "mkdocstrings-python>=2.0.1",
-    "mkdocs-glightbox>=0.5.2",
+    "zensical>=0.0.74",
+    "mkdocstrings-python>=2.0.10",
     # Checks
     "pytest>=9.1.1",
     "ruff>=0.9",

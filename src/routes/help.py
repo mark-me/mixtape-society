@@ -11,7 +11,7 @@ def create_help_blueprint(help_dir: Path) -> Blueprint:
 
     The Docker image carries the built site, so the help always belongs to the version
     that runs and works without internet. Where no built site is found, such as a local
-    run before `mkdocs build`, the help is taken from GitHub Pages instead.
+    run before `zensical build`, the help is taken from GitHub Pages instead.
 
     Args:
         help_dir: Directory holding the built documentation site.
