@@ -62,14 +62,18 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # pip is not needed to run the app, and what it carries along would only be found by the scan.
-RUN python -m pip uninstall --yes pip
+# The app runs as this user; everything it writes goes to the data directory.
+RUN python -m pip uninstall --yes pip \
+    && useradd --system --uid 1000 --create-home mixtape
 
 WORKDIR /app
 
 # Build argument for version
 ARG APP_VERSION=dev
 
-RUN mkdir /music
+RUN mkdir /music \
+    && mkdir /app/collection-data \
+    && chown mixtape /app/collection-data
 
 COPY --from=build /app/.venv /app/.venv
 COPY src ./src
@@ -84,6 +88,13 @@ ENV PATH=/app/.venv/bin:$PATH \
 # The build fails here, not the container at its start, when the environment does not fit.
 RUN python -c "import src.app, gunicorn"
 
+USER mixtape
+
+# Your collection data lives here; mount a volume to keep it.
+VOLUME /app/collection-data
 EXPOSE 5000
 
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--log-level", "info", "src.app:create_app()"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s \
+    CMD ["python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/robots.txt', timeout=3)"]
+
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--log-level", "info", "--control-socket", "/tmp/gunicorn.ctl", "src.app:create_app()"]

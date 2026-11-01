@@ -131,6 +131,19 @@ docker compose up -d
 
 Your data (database, mixtapes, covers) is preserved in the `mixtape_data` volume.
 
+!!! warning "Upgrading from an image that ran as root"
+    The container now runs as user `1000`, with a read-only file system apart from the data directory. Data written by an older image belongs to root, and the app won't start until you hand it over. Use the path of your own data directory, once:
+
+    ```bash
+    sudo chown -R 1000:1000 ./collection-data
+    ```
+
+    For a named volume:
+
+    ```bash
+    docker run --rm --user 0 --entrypoint chown -v mixtape_data:/data ghcr.io/mark-me/mixtape-society:latest -R 1000:1000 /data
+    ```
+
 ## 📁 Data Storage
 
 ### Volume Layout
@@ -201,8 +214,7 @@ volumes:
 | `MUSIC_ROOT` | No | `/music` | Container path to music (matches volume mount) |
 | `LOG_LEVEL` | No | `INFO` | Logging verbosity: `DEBUG`, `INFO`, `WARNING`, `ERROR` |
 | `TZ` | No | `UTC` | Timezone for timestamps (e.g., `America/New_York`) |
-| `PUID` | No | `1000` | User ID for file permissions |
-| `PGID` | No | `1000` | Group ID for file permissions |
+| `SESSION_COOKIE_SECURE` | No | *(off)* | Set to `1` when the app is only reached over HTTPS |
 
 ### Port Configuration
 

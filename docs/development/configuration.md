@@ -47,6 +47,7 @@ After the optional `.env` load, the module defines a **`BASE_DIR`** (`src/`) and
 | `DATA_ROOT` | `BaseConfig.DATA_ROOT` | `../collection-data` (project-root relative) | Writable directory for all app-generated files. |
 | `HELP_DIR` | `BaseConfig.HELP_DIR` | `../site` (project-root relative) | Built documentation site served under `/help/`. The Docker image sets it to `/app/help`. |
 | `PASSWORD` | `BaseConfig.PASSWORD` (and overridden in subclasses) | `dev-password` (dev) / `test-password` (test) / must be set (prod) | Login password for the web UI. |
+| `SESSION_COOKIE_SECURE` | `BaseConfig.SESSION_COOKIE_SECURE` | off | Set to `1` when the app is only reached over HTTPS, so the session cookie is never sent over plain HTTP. |
 | `AUDIO_CACHE_ENABLED` | `BaseConfig.AUDIO_CACHE_ENABLED` | `True` | Toggle the whole audio-caching subsystem on/off. |
 | `AUDIO_CACHE_DEFAULT_QUALITY` | `BaseConfig.AUDIO_CACHE_DEFAULT_QUALITY` | `medium` | Default quality for cached audio files (`low`, `medium`, `high`). |
 | `AUDIO_CACHE_MAX_WORKERS` | `BaseConfig.AUDIO_CACHE_MAX_WORKERS` | `4` | Number of worker threads used for background transcoding. |

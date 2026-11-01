@@ -6,6 +6,9 @@ on:
     tags: [ 'v*.*.*' ]
 
 jobs:
+  tests:
+    uses: ./.github/workflows/tests.yml
+
   # The packages are checked for known vulnerabilities; a dangerous one stops the image.
   security:
     uses: ./.github/workflows/security.yml
@@ -15,7 +18,7 @@ jobs:
       packages: read
 
   build-and-push:
-    needs: [security]
+    needs: [tests, security]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -66,14 +69,14 @@ jobs:
         id: version
         run: |
           # If it's a proper tag like v1.2.3
-          if [[ ${{ github.ref }} == refs/tags/v*.*.* ]]; then
+          if [[ "$GITHUB_REF" == refs/tags/v*.*.* ]]; then
             TAG=${GITHUB_REF#refs/tags/}
             VERSION=${TAG#v}
             echo "version=${VERSION}" >> $GITHUB_OUTPUT
             echo "display_version=${VERSION}" >> $GITHUB_OUTPUT
 
           # If on master branch
-          elif [[ ${{ github.ref }} == refs/heads/master ]]; then
+          elif [[ "$GITHUB_REF" == refs/heads/master ]]; then
             LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
             BASE_VERSION=${LATEST_TAG#v}
             COMMIT_DISTANCE=$(git rev-list --count ${LATEST_TAG}..HEAD 2>/dev/null || echo "0")
@@ -87,7 +90,7 @@ jobs:
             fi
 
           # If on test branch
-          elif [[ ${{ github.ref }} == refs/heads/test ]]; then
+          elif [[ "$GITHUB_REF" == refs/heads/test ]]; then
             LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
             BASE_VERSION=${LATEST_TAG#v}
             SHORT_SHA=$(git rev-parse --short=8 HEAD)
@@ -97,7 +100,7 @@ jobs:
           # Fallback: PRs, feature branches, etc.
           else
             SHORT_SHA=$(git rev-parse --short=8 HEAD)
-            BRANCH=$(echo ${{ github.head_ref || github.ref_name }} | tr '/' '-')
+            BRANCH=$(echo "$GITHUB_REF_NAME" | tr '/' '-')
             echo "version=dev.${BRANCH}.${SHORT_SHA}" >> $GITHUB_OUTPUT
             echo "display_version=dev.${BRANCH}.${SHORT_SHA}" >> $GITHUB_OUTPUT
           fi
@@ -107,7 +110,7 @@ jobs:
         run: |
           # Test branch: amd64 only for faster builds
           # Master and tags: multi-architecture build (amd64, arm64)
-          if [[ ${{ github.ref }} == refs/heads/test ]]; then
+          if [[ "$GITHUB_REF" == refs/heads/test ]]; then
             echo "platforms=linux/amd64" >> $GITHUB_OUTPUT
           else
             echo "platforms=linux/amd64,linux/arm64" >> $GITHUB_OUTPUT

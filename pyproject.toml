@@ -41,7 +41,18 @@ dev = [
     "mkdocstrings>=1.0.0",
     "mkdocstrings-python>=2.0.1",
     "mkdocs-glightbox>=0.5.2",
+    # Checks
+    "pytest>=9.1.1",
+    "ruff>=0.9",
 ]
 
 [project.scripts]
 mixtape = "src.app:serve"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff.lint]
+# Unused and undefined names.
+select = ["F"]

@@ -39,6 +39,11 @@ class BaseConfig:
     # Keep password handling clean
     PASSWORD = os.getenv("PASSWORD", "dev-password")
 
+    # Session cookie. Secure is opt-in: many installs run on plain HTTP in a home network,
+    # where a Secure cookie would make logging in impossible.
+    SESSION_COOKIE_SAMESITE = "Lax"
+    SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE") == "1"
+
     # The built documentation site, served as the help under /help/
     HELP_DIR = Path(os.getenv("HELP_DIR", BASE_DIR.parent / "site"))
 

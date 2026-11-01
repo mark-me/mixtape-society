@@ -1,0 +1,31 @@
+name: Tests
+
+# Checks the code and runs the tests on every pull request. The Docker workflow calls this one
+# too, and builds no image when it fails.
+on:
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+
+      # CairoSVG needs the Cairo library.
+      - name: Install system packages
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libcairo2
+
+      - name: Check the code
+        run: uv run --locked python -m ruff check src tests
+
+      - name: Run tests
+        run: uv run --locked python -m pytest
