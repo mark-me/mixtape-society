@@ -10,7 +10,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
 from audio_cache import AudioCache
-from auth import check_auth
+from auth import check_auth, derive_session_key
 from config import BaseConfig, DevelopmentConfig, ProductionConfig, TestConfig
 from logtools import get_logger, setup_logging
 from mixtape_manager import MixtapeManager
@@ -30,11 +30,13 @@ from utils import get_version
 
 def create_app() -> Flask:
     config_cls = get_configuration()
+    if not config_cls.PASSWORD:
+        raise RuntimeError("The PASSWORD environment variable must be set")
 
     # === Create Flask app ===
     app = Flask(__name__)
 
-    app.secret_key = config_cls.PASSWORD
+    app.secret_key = derive_session_key(config_cls.DATA_ROOT, config_cls.PASSWORD)
     app.config.from_object(config_cls)
     CORS(
         app,

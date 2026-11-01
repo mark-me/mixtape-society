@@ -15,7 +15,7 @@ Functionally, it:
     - Exposed as `/login` on the authentication blueprint.
     - Protected by `@limiter.limit("5 per minute")`, meaning each client can only attempt login five times per minute.
     - Reads the `password` field from `request.form`.
-    - Compares the submitted password to `current_app.secret_key`:
+    - Compares the submitted password to `current_app.config["PASSWORD"]` in constant time (`auth.password_matches`):
         - If they match: sets `session["authenticated"] = True`.
         - If they do not match: uses `flash("Invalid password", "danger")` to send an error message to the UI.
     - Always redirects to `/` afterward (both success and failure).

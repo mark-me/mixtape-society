@@ -41,7 +41,7 @@ The selected class is instantiated, its `ensure_dirs()` method creates required 
 
   ```python
   app = Flask(__name__)
-  app.secret_key = config_cls.PASSWORD
+  app.secret_key = derive_session_key(config_cls.DATA_ROOT, config_cls.PASSWORD)
   app.config.from_object(config_cls)
   CORS(app)  # adds Access‑Control‑Allow‑Origin: *
   ```
