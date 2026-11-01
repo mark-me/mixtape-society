@@ -27,7 +27,31 @@ COPY src ./src
 RUN uv sync --locked --no-cache --no-dev
 
 
-# Runtime stage: Python, the virtual environment, the source, and what the app calls on.
+# Docs stage: the documentation site, which the app serves as its help.
+FROM python:3.13-slim-trixie AS docs
+
+COPY --from=uv /uv /usr/local/bin/uv
+
+ENV UV_LINK_MODE=copy \
+    UV_PYTHON_DOWNLOADS=never \
+    DOCS_GIT_DATES=false \
+    GIT_PYTHON_REFRESH=quiet
+
+WORKDIR /app
+
+# Only the tools the documentation needs (the dev group), not the app itself.
+COPY pyproject.toml uv.lock README.md ./
+RUN uv sync --locked --no-cache --only-group dev --no-install-project
+
+# The API pages are read from the docstrings in the source.
+COPY mkdocs.yml ./
+COPY docs ./docs
+COPY src ./src
+RUN uv run --no-sync mkdocs build -d /app/help
+
+
+# Runtime stage: Python, the virtual environment, the source, the built help, and what the
+# app calls on.
 FROM python:3.13-slim-trixie
 
 # ffmpeg transcodes the audio; CairoSVG needs the Cairo library.
@@ -49,9 +73,11 @@ RUN mkdir /music
 
 COPY --from=build /app/.venv /app/.venv
 COPY src ./src
+COPY --from=docs /app/help /app/help
 
 ENV PATH=/app/.venv/bin:$PATH \
     PYTHONPATH=/app/src \
+    HELP_DIR=/app/help \
     PYTHONUNBUFFERED=1 \
     APP_VERSION=${APP_VERSION}
 

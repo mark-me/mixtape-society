@@ -39,6 +39,9 @@ class BaseConfig:
     # Keep password handling clean
     PASSWORD = os.getenv("PASSWORD", "dev-password")
 
+    # The built documentation site, served as the help under /help/
+    HELP_DIR = Path(os.getenv("HELP_DIR", BASE_DIR.parent / "site"))
+
     # Audio caching settings
     AUDIO_CACHE_ENABLED = True
     AUDIO_CACHE_DEFAULT_QUALITY = "medium"

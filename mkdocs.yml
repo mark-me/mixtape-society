@@ -210,6 +210,8 @@ plugins:
   - panzoom:
       full_screen: true
   - git-revision-date-localized:
+      # The Docker build has no git history to read the dates from.
+      enabled: !ENV [DOCS_GIT_DATES, true]
       enable_creation_date: true
       type: timeago
       fallback_to_build_date: true

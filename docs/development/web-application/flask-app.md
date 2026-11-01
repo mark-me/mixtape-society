@@ -129,6 +129,7 @@ Every other route lives in a blueprint under `routes/`:
 | `play` | `/play` | Streaming/playback | [Audio Streaming](../audio-playback/backend/audio-streaming.md) |
 | `editor` | `/editor` | Mixtape editing API | [Editor API](../mixtape-system/editor-api.md) |
 | `og` | `/og` | Open‑Graph cover images | [OpenGraph Images](../media-assets/opengraph.md) |
+| `help` | `/help` | The built documentation site, served as the app's help; falls back to GitHub Pages when no site is built | – |
 
 ## 🎨 Template Context Processors
 

@@ -20,6 +20,7 @@ from routes import (
     create_browser_blueprint,
     create_covers_blueprint,
     create_editor_blueprint,
+    create_help_blueprint,
     create_og_cover_blueprint,
     create_play_blueprint,
     create_qr_blueprint,
@@ -136,6 +137,7 @@ def create_app() -> Flask:
             "/play",
             "/indexing-status",
             "/check-database-health",
+            "/help",
         ]
 
         for path in bypass_paths:
@@ -295,6 +297,10 @@ def create_app() -> Flask:
         create_covers_blueprint(
             collection=collection, data_root=config_cls.DATA_ROOT, logger=logger
         )
+    )
+
+    app.register_blueprint(
+        create_help_blueprint(help_dir=config_cls.HELP_DIR), url_prefix="/help"
     )
 
     return app

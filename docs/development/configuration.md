@@ -45,6 +45,7 @@ After the optional `.env` load, the module defines a **`BASE_DIR`** (`src/`) and
 | `APP_ENV` | `config.py` (top) | `development` | Determines which configuration class (`DevelopmentConfig`, `TestConfig`, `ProductionConfig`) is used. Accepted values: `development`, `test`, `production`. |
 | `MUSIC_ROOT` | `BaseConfig.MUSIC_ROOT` | `/music` | Absolute path to the music collection. Must be readable by the process. |
 | `DATA_ROOT` | `BaseConfig.DATA_ROOT` | `../collection-data` (project-root relative) | Writable directory for all app-generated files. |
+| `HELP_DIR` | `BaseConfig.HELP_DIR` | `../site` (project-root relative) | Built documentation site served under `/help/`. The Docker image sets it to `/app/help`. |
 | `PASSWORD` | `BaseConfig.PASSWORD` (and overridden in subclasses) | `dev-password` (dev) / `test-password` (test) / must be set (prod) | Login password for the web UI. |
 | `AUDIO_CACHE_ENABLED` | `BaseConfig.AUDIO_CACHE_ENABLED` | `True` | Toggle the whole audio-caching subsystem on/off. |
 | `AUDIO_CACHE_DEFAULT_QUALITY` | `BaseConfig.AUDIO_CACHE_DEFAULT_QUALITY` | `medium` | Default quality for cached audio files (`low`, `medium`, `high`). |
