@@ -1,0 +1,89 @@
+name: Security scan
+
+# Checks the Python packages the app runs on for known vulnerabilities, with Trivy. A HIGH or
+# CRITICAL vulnerability that has a fix fails the run; the full list, every severity, is
+# always in the log. The Docker workflow calls this scan too, and builds no image when it
+# fails. It also runs weekly: new vulnerabilities are found in packages that did not change.
+#
+# Only what goes into the image is scanned: the packages uv.lock pins for the app, without
+# the development tools. And Trivy runs in an empty folder holding just that list, so no
+# .trivyignore or trivy.yaml from the checkout — which a pull request could add to hide a
+# finding — is ever read.
+#
+# The weekly run also scans the published image, :latest: its Debian packages get new
+# vulnerabilities while the image stays the same. The Docker workflow scans each image it
+# builds before publishing it.
+on:
+  pull_request:
+  push:
+    # master and test are scanned by the Docker workflow, which calls this one.
+    branches-ignore: [master, test]
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+env:
+  # Also in docker-image.yml.
+  TRIVY_VERSION: "0.76.0"
+
+jobs:
+  packages:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+
+      - name: Install Trivy
+        uses: ./.github/actions/install-trivy
+        with:
+          version: ${{ env.TRIVY_VERSION }}
+
+      - name: List the packages that go into the image
+        run: |
+          mkdir "$RUNNER_TEMP/scan"
+          uv export --frozen --no-dev --no-hashes --no-emit-project \
+            --format requirements-txt -o "$RUNNER_TEMP/scan/requirements.txt"
+
+      - name: List every known vulnerability
+        working-directory: ${{ runner.temp }}/scan
+        run: trivy fs --scanners vuln --format table --exit-code 0 .
+
+      - name: Fail on a HIGH or CRITICAL vulnerability that has a fix
+        working-directory: ${{ runner.temp }}/scan
+        # One without a fix cannot be resolved by updating; it is listed above.
+        run: trivy fs --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed --format table --exit-code 1 .
+
+  image:
+    # Weekly and by hand only; when the Docker workflow calls this one, it scans the new image itself.
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install Trivy
+        uses: ./.github/actions/install-trivy
+        with:
+          version: ${{ env.TRIVY_VERSION }}
+
+      - name: Fail on a HIGH or CRITICAL vulnerability that has a fix
+        working-directory: ${{ runner.temp }}
+        env:
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir scan-image && cd scan-image
+          trivy image --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed --format table \
+            --exit-code 1 "ghcr.io/${{ github.repository }}:latest"

@@ -1,0 +1,37 @@
+# Dependabot opens pull requests that keep the dependencies up to date, so a vulnerability the
+# security scan reports comes with its fix. Each pull request still passes the checks before
+# it can be merged.
+version: 2
+updates:
+  # The Python packages, as locked in uv.lock. Minor and patch updates come together in one
+  # pull request a week; a new major version comes on its own, to be looked at.
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    groups:
+      python:
+        update-types: ["minor", "patch"]
+
+  # The GitHub Actions, pinned to commits: Dependabot moves the commit and the version noted
+  # beside it together.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    groups:
+      actions:
+        update-types: ["minor", "patch"]
+
+  # The base images in docker/Dockerfile. A new Python version (3.13 to 3.14) is not
+  # proposed: it goes together with .python-version, so it is done by hand.
+  - package-ecosystem: "docker"
+    directory: "/docker"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    ignore:
+      - dependency-name: "python"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]

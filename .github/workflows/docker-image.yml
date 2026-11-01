@@ -6,7 +6,16 @@ on:
     tags: [ 'v*.*.*' ]
 
 jobs:
+  # The packages are checked for known vulnerabilities; a dangerous one stops the image.
+  security:
+    uses: ./.github/workflows/security.yml
+    permissions:
+      contents: read
+      # For the weekly scan of the published image, which this call does not run.
+      packages: read
+
   build-and-push:
+    needs: [security]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -14,18 +23,18 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -35,7 +44,7 @@ jobs:
       # v*.*.* tag, the short commit SHA, and :latest for master.
       - name: Extract metadata (tags, labels)
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
@@ -104,12 +113,45 @@ jobs:
             echo "platforms=linux/amd64,linux/arm64" >> $GITHUB_OUTPUT
           fi
 
+      # The image is built once for amd64 and scanned before anything is published: the
+      # Debian packages of the base image, and Python's own, which the package scan does not
+      # see. The build is kept in the cache, so the push below reuses it.
+      - name: Build the image to scan
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: docker/Dockerfile
+          platforms: linux/amd64
+          load: true
+          push: false
+          tags: mixtape-society:scan
+          build-args: |
+            APP_VERSION=${{ steps.version.outputs.version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Install Trivy
+        uses: ./.github/actions/install-trivy
+        with:
+          version: "0.76.0" # As in security.yml.
+
+      # In an empty folder, so no .trivyignore or trivy.yaml from the checkout is read. A
+      # vulnerability without a fix is listed but cannot be resolved by building again.
+      - name: Scan the image
+        working-directory: ${{ runner.temp }}
+        run: |
+          mkdir scan-image && cd scan-image
+          trivy image --scanners vuln --format table --exit-code 0 mixtape-society:scan
+          trivy image --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed --format table \
+            --exit-code 1 mixtape-society:scan
+
       - name: Build and push Docker image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           file: docker/Dockerfile
           platforms: ${{ steps.platforms.outputs.platforms }}
+          cache-from: type=gha
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
