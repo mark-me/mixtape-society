@@ -6,6 +6,28 @@ All notable changes to Mixtape Society are documented here. We follow [Semantic 
 
 Each release rewinds and fast-forwards your mixtape experience—just like a real cassette! 🎧
 
+## 📦 v0.8.1
+
+<span class="md-tag">Release</span>
+
+**🗓️** 2026-11-01
+
+### 🔧 Changed
+
+- Documentation moved from MkDocs to Zensical, with a new look; the image lightbox, zooming in diagrams and last-changed dates are gone
+- Simplified diagrams that were hard to read
+- Updated dependencies
+
+### 🐛 Fixed
+
+- Help now shows diagrams and its own fonts without internet
+- Diagram on the audio playback overview didn't render
+- Corrected several diagrams and outdated statements in the documentation
+
+[Changes since last version](https://github.com/mark-me/mixtape-society/compare/v0.8.0...v0.8.1)
+
+---
+
 ## 📦 v0.8.0
 
 <span class="md-tag">Release</span>
