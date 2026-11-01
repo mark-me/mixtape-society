@@ -10,6 +10,9 @@ wheels/
 # Virtual environments
 .venv
 
+# Local secrets
+docker/.env
+
 # Index files
 music_index
 covers

@@ -6,6 +6,14 @@ services:
     #   dockerfile: docker/Dockerfile
     container_name: mixtape-society
     restart: unless-stopped
+    # Only the data directory and /tmp can be written to.
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     ports:
       - "5000:5000"
     volumes:
@@ -21,5 +29,5 @@ services:
       - MUSIC_ROOT=/music
       - DATA_ROOT=/app/collection-data
 
-      # Strong password!
-      - PASSWORD=supergeheim123
+      # Strong password! Set it in docker/.env, which stays out of git
+      - PASSWORD=${PASSWORD:?Set PASSWORD in docker/.env}

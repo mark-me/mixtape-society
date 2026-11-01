@@ -8,13 +8,13 @@ authors = [
     {name = "Mark Zwart", email = "mark.zwart@pobox.com"}
 ]
 dependencies = [
-    "cairosvg>=2.8.2",
+    "cairosvg>=2.9.1",
     "flask>=3.1.2",
     "flask-cors>=6.0.1",
     "flask-limiter>=4.1.1",
     "flask-login>=0.6.3",
     "gunicorn>=23.0.0",
-    "pillow>=12.0.0",
+    "pillow>=13.0.0",
     "python-dotenv>=1.2.1",
     "python-json-logger>=4.0.0",
     "qrcode>=8.2",
@@ -32,7 +32,7 @@ sources = { "src" = "src" }  # Map src/ naar zichzelf in de wheel
 [dependency-groups]
 dev = [
     # Documentation tooling
-    "mkdocs>=1.6.1",
+    "mkdocs>=1.6.1,<2",
     "mkdocs-material>=9.7.0",
     "mkdocs-git-committers-plugin>=0.2.3",
     "mkdocs-git-revision-date-localized-plugin>=1.5.0",
@@ -41,7 +41,18 @@ dev = [
     "mkdocstrings>=1.0.0",
     "mkdocstrings-python>=2.0.1",
     "mkdocs-glightbox>=0.5.2",
+    # Checks
+    "pytest>=9.1.1",
+    "ruff>=0.9",
 ]
 
 [project.scripts]
 mixtape = "src.app:serve"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff.lint]
+# Unused and undefined names.
+select = ["F"]

@@ -2,6 +2,7 @@ from flask import session, redirect, Blueprint, Response, request, flash, curren
 
 from flask_limiter import Limiter
 
+from auth import password_matches
 from common.logging import Logger, NullLogger
 
 def create_authentication_blueprint(limiter: Limiter, logger: Logger | None = None) -> Blueprint:
@@ -36,7 +37,7 @@ def create_authentication_blueprint(limiter: Limiter, logger: Logger | None = No
             Response: The Flask response object for the appropriate redirect.
         """
         password = request.form.get("password")
-        if password == current_app.secret_key:
+        if password_matches(password, current_app.config["PASSWORD"]):
             session["authenticated"] = True
         else:
             flash("Invalid password", "danger")

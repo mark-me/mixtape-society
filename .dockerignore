@@ -1,0 +1,17 @@
+# Keep the build context to what the image needs: pyproject.toml, uv.lock, README.md, src/, and
+# mkdocs.yml with docs/, which the image carries as its help.
+.git
+.github
+.venv
+.vscode
+.cache
+.env
+.pytest_cache
+.ruff_cache
+__pycache__
+*.py[cod]
+collection-data
+docker
+node_modules
+site
+tests

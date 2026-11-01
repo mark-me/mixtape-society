@@ -1,0 +1,23 @@
+name: Install Trivy
+description: A fixed release of Trivy, checked against its published checksum.
+
+inputs:
+  version:
+    description: The Trivy release, without the v.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      working-directory: ${{ runner.temp }}
+      env:
+        TRIVY_VERSION: ${{ inputs.version }}
+      run: |
+        archive="trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz"
+        base="https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}"
+        curl -sSfLO "$base/$archive"
+        curl -sSfLO "$base/trivy_${TRIVY_VERSION}_checksums.txt"
+        grep " $archive\$" "trivy_${TRIVY_VERSION}_checksums.txt" | sha256sum --check --strict
+        mkdir -p bin && tar -xzf "$archive" -C bin trivy
+        echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"

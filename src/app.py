@@ -10,7 +10,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
 from audio_cache import AudioCache
-from auth import check_auth
+from auth import check_auth, derive_session_key
 from config import BaseConfig, DevelopmentConfig, ProductionConfig, TestConfig
 from logtools import get_logger, setup_logging
 from mixtape_manager import MixtapeManager
@@ -20,22 +20,27 @@ from routes import (
     create_browser_blueprint,
     create_covers_blueprint,
     create_editor_blueprint,
+    create_help_blueprint,
     create_og_cover_blueprint,
     create_play_blueprint,
     create_qr_blueprint,
     create_system_blueprint,
 )
+from security import register_security
 from utils import get_version
 
 
 def create_app() -> Flask:
     config_cls = get_configuration()
+    if not config_cls.PASSWORD:
+        raise RuntimeError("The PASSWORD environment variable must be set")
 
     # === Create Flask app ===
     app = Flask(__name__)
 
-    app.secret_key = config_cls.PASSWORD
+    app.secret_key = derive_session_key(config_cls.DATA_ROOT, config_cls.PASSWORD)
     app.config.from_object(config_cls)
+    register_security(app)
     CORS(
         app,
         resources={
@@ -134,6 +139,7 @@ def create_app() -> Flask:
             "/play",
             "/indexing-status",
             "/check-database-health",
+            "/help",
         ]
 
         for path in bypass_paths:
@@ -293,6 +299,10 @@ def create_app() -> Flask:
         create_covers_blueprint(
             collection=collection, data_root=config_cls.DATA_ROOT, logger=logger
         )
+    )
+
+    app.register_blueprint(
+        create_help_blueprint(help_dir=config_cls.HELP_DIR), url_prefix="/help"
     )
 
     return app

@@ -91,7 +91,14 @@ Basic manual testing is fine for most changes. If you're modifying core componen
 - Test edge cases (empty folders, weird filenames, large libraries)
 - Check it doesn't break existing features
 
-No formal test suite yet, but that might change.
+The automated checks run on every pull request and before every Docker image. Run them locally with:
+
+```bash
+uv run python -m ruff check src tests
+uv run python -m pytest
+```
+
+The tests start the app on empty temporary directories, so they never touch your own music or data.
 
 ## 📚 Documentation
 

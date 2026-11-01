@@ -41,7 +41,7 @@ The selected class is instantiated, its `ensure_dirs()` method creates required 
 
   ```python
   app = Flask(__name__)
-  app.secret_key = config_cls.PASSWORD
+  app.secret_key = derive_session_key(config_cls.DATA_ROOT, config_cls.PASSWORD)
   app.config.from_object(config_cls)
   CORS(app)  # adds Access‑Control‑Allow‑Origin: *
   ```
@@ -129,6 +129,7 @@ Every other route lives in a blueprint under `routes/`:
 | `play` | `/play` | Streaming/playback | [Audio Streaming](../audio-playback/backend/audio-streaming.md) |
 | `editor` | `/editor` | Mixtape editing API | [Editor API](../mixtape-system/editor-api.md) |
 | `og` | `/og` | Open‑Graph cover images | [OpenGraph Images](../media-assets/opengraph.md) |
+| `help` | `/help` | The built documentation site, served as the app's help; falls back to GitHub Pages when no site is built | – |
 
 ## 🎨 Template Context Processors
 

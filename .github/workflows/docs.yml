@@ -1,32 +1,46 @@
-name: Deploy Docs
+name: Docs
 
+# Every pull request builds the documentation, so a broken page shows before it is merged.
+# A push to master builds it and publishes it to GitHub Pages.
 on:
+  pull_request:
   push:
     branches:
       - master
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  deploy:
+  build:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Set up uv
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+
+      - name: Build docs
+        run: uv run --locked --group dev mkdocs build
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          python-version: "3.11"
+          fetch-depth: 0
 
-      - name: Install uv
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
-
-      - name: Install dev dependencies
-        run: uv sync --group dev
+      - name: Set up uv
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
 
       - name: Deploy docs
-        run: uv run mkdocs gh-deploy --force
+        run: uv run --locked --group dev mkdocs gh-deploy --force
