@@ -135,26 +135,24 @@ sequenceDiagram
     participant Client
     participant Flask
     participant Extraction
-    participant FileSystem
+    participant FS as FileSystem
     participant Cache
 
-    Client->>Flask: GET /api/covers/Artist/Album?size=256x256
-    Flask->>Cache: Check for variant
+    Client->>Flask: GET /api/covers/Artist/Album<br/>?size=256x256
+    Flask->>Cache: Variant or main cover?
     Cache-->>Flask: Not found
-    Flask->>Cache: Check for main cover
-    Cache-->>Flask: Not found
-    Flask->>Extraction: Extract cover from files
-    Extraction->>FileSystem: Search folder images
+    Flask->>Extraction: Extract cover
+    Extraction->>FS: Search folder images
     alt Image found
-        FileSystem-->>Extraction: cover.jpg
+        FS-->>Extraction: cover.jpg
     else No image
-        Extraction->>FileSystem: Check embedded art
-        FileSystem-->>Extraction: Audio file metadata
+        Extraction->>FS: Check embedded art
+        FS-->>Extraction: Audio file metadata
     end
-    Extraction->>Extraction: Optimize to 800x800, 85% quality
+    Extraction->>Extraction: Optimize to 800x800,<br/>85% quality
     Extraction->>Cache: Save main cover
     Flask->>Extraction: Generate all variants
-    Extraction->>Extraction: Resize to 96×96, 128×128, ..., 512×512
+    Extraction->>Extraction: Resize from 96×96<br/>to 512×512
     Extraction->>Cache: Save all variants
     Cache-->>Flask: Variant ready
     Flask-->>Client: 256×256 JPEG (~40KB)

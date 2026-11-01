@@ -333,23 +333,20 @@ classDiagram
 ```mermaid
 sequenceDiagram
     participant User
-    participant BrowserJS
-    participant FlaskApp
-    participant Blueprint as browse_mixtapes
-    participant MixtapeManager
+    participant JS as BrowserJS
+    participant BP as browse_mixtapes
+    participant MM as MixtapeManager
 
-    User->>BrowserJS: Types in search box
-    BrowserJS->>BrowserJS: Filter by title (instant)
+    User->>JS: Types in search box
+    JS->>JS: Filter by title (instant)
 
-    User->>BrowserJS: Clicks "Tracks" button
-    BrowserJS->>FlaskApp: GET /mixtapes/?search=rock&deep=true&sort_by=title&sort_order=asc
-    FlaskApp->>Blueprint: browse(search='rock', deep='true', ...)
-    Blueprint->>MixtapeManager: list_all()
-    MixtapeManager-->>Blueprint: all mixtapes
-    Blueprint->>Blueprint: _deep_search_mixtapes(mixtapes, 'rock')
-    Blueprint->>Blueprint: sort by title ascending
-    Blueprint-->>FlaskApp: render template with filtered results
-    FlaskApp-->>User: HTML page with search results
+    User->>JS: Clicks "Tracks" button
+    JS->>BP: GET /mixtapes/?search=rock<br/>&deep=true&sort_by=title
+    BP->>MM: list_all()
+    MM-->>BP: All mixtapes
+    BP->>BP: _deep_search_mixtapes()
+    BP->>BP: Sort by title
+    BP-->>User: HTML page with results
 ```
 
 ### Sequence Diagram - Deleting a Mixtape
@@ -357,19 +354,16 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant User
-    participant BrowserJS
-    participant FlaskApp
-    participant browse_mixtapes as Blueprint
-    participant MixtapeManager
+    participant JS as BrowserJS
+    participant BP as browse_mixtapes
+    participant MM as MixtapeManager
 
-    User->>BrowserJS: Click Delete → opens modal
-    BrowserJS->>FlaskApp: POST /mixtapes/delete/<slug>
-    FlaskApp->>Blueprint: delete_mixtape(slug)
-    Blueprint->>MixtapeManager: delete(slug)
-    MixtapeManager-->>Blueprint: success
-    Blueprint-->>FlaskApp: JSON {success:true}
-    FlaskApp-->>BrowserJS: JSON response
-    BrowserJS->>BrowserJS: Show success toast, reload page
+    User->>JS: Click Delete, confirm in modal
+    JS->>BP: POST /mixtapes/delete/#lt;slug#gt;
+    BP->>MM: delete(slug)
+    MM-->>BP: Success
+    BP-->>JS: JSON {success:true}
+    JS->>JS: Show toast, reload page
 ```
 
 ## 🎯 User Experience Features

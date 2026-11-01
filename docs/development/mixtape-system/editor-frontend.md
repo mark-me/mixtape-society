@@ -126,10 +126,9 @@ sequenceDiagram
 
     User->>Input: Types "beatles"
     Input->>Debounce: Queue search (300ms)
-    Debounce->>API: GET /editor/search?q=beatles
+    Debounce->>API: GET /editor/search<br/>?q=beatles
     API->>Results: JSON results
-    Results->>Results: Group by type
-    Results->>Results: Render artists, albums, tracks
+    Results->>Results: Group by type, render
 
     User->>Results: Click artist
     Results->>API: GET /editor/artist_details

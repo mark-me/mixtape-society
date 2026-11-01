@@ -44,34 +44,22 @@ play = Blueprint("play", __name__)   # registered in the main Flask app
 ```mermaid
 sequenceDiagram
     participant Client
-    participant FlaskApp
-    participant stream_audio as stream_audio()
-    participant resolve as _resolve_and_validate_path()
-    participant guess_mime as _guess_mime_type()
-    participant serving_path as _get_serving_path()
-    participant AudioCache
-    participant range_request as _handle_range_request()
-    participant send_file
+    participant Route as stream_audio()
+    participant Cache as AudioCache
+    participant Send as Response helpers
 
-    Client->>FlaskApp: GET /play/#lt;file_path#gt;?quality=medium [and Range]
-    FlaskApp->>stream_audio: Call with file_path + query
-    stream_audio->>resolve: Validate and resolve
-    resolve-->>stream_audio: full_path (or abort 403/404)
-    stream_audio->>guess_mime: Guess MIME
-    guess_mime-->>stream_audio: mime_type
-    stream_audio->>serving_path: Choose original or cached file (quality)
-    serving_path->>AudioCache: cache.is_cached / cache.get_cache_path
-    AudioCache-->>serving_path: serve_path
+    Client->>Route: GET /play/#lt;file_path#gt;?quality=medium
+    Route->>Route: Validate path (or abort 403/404)
+    Route->>Route: Guess MIME type
+    Route->>Cache: Cached file for this quality?
+    Cache-->>Route: Path to serve
     alt Range header present
-        stream_audio->>range_request: Serve partial bytes
-        range_request-->>stream_audio: 206 Partial Content response
-        stream_audio-->>FlaskApp: Return 206
+        Route->>Send: _handle_range_request()
+        Send-->>Client: 206 Partial Content
     else No Range header
-        stream_audio->>send_file: Send full file
-        send_file-->>stream_audio: 200 OK response
-        stream_audio-->>FlaskApp: Return 200
+        Route->>Send: send_file()
+        Send-->>Client: 200 OK
     end
-    FlaskApp-->>Client: Stream audio bytes
 ```
 
 ---
@@ -287,10 +275,7 @@ graph TB
     Route{Route Pattern}
 
     Stream[stream_audio]
-    Player[public_play]
-    Cover[serve_cover]
-    CacheStats[cache_stats]
-    CacheClear[clear_cache]
+    Other["Other routes:<br/>/share/*, /covers/*, /admin/cache/*"]
 
     Validate[Path Validation]
     MIME[MIME Detection]
@@ -309,10 +294,7 @@ graph TB
     Client --> Route
 
     Route -->|/play/*| Stream
-    Route -->|/share/*| Player
-    Route -->|/covers/*| Cover
-    Route -->|/admin/cache/stats| CacheStats
-    Route -->|/admin/cache/clear| CacheClear
+    Route --> Other
 
     Stream --> Validate
     Validate -->|Valid| MIME

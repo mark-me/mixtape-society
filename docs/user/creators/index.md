@@ -21,7 +21,7 @@ Choose your deployment method:
 **What you'll need:**
 
 - A music library (MP3, FLAC, etc.)
-- Docker (or Python 3.11+ for local dev)
+- Docker (or Python 3.13+ for local dev)
 - 10 minutes for setup
 
 ---

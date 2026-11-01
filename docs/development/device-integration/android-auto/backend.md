@@ -240,33 +240,25 @@ GET /api/covers/Artist%2FAlbum?size=999x999
 ```mermaid
 sequenceDiagram
     participant Client
-    participant Flask
-    participant API Endpoint
+    participant API as API endpoint
     participant Collection
-    participant Filesystem
+    participant FS as Filesystem
 
-    Client->>Flask: GET /api/covers/Artist%2FAlbum?size=256x256
-    Flask->>API Endpoint: serve_cover_by_size()
-    API Endpoint->>API Endpoint: Decode release_dir
-    API Endpoint->>API Endpoint: Validate size parameter
-
-    alt Size variant exists
-        API Endpoint->>Filesystem: Check cache
-        Filesystem-->>API Endpoint: File found
-        API Endpoint-->>Client: 200 + JPEG (40KB)
-    else Size variant missing
-        API Endpoint->>Collection: get_or_create_cover(release_dir, size)
-        Collection->>Collection: _sanitize_release_dir()
-        Collection->>Collection: _extract_cover() if needed
-        Collection->>Filesystem: Extract main cover
-        Collection->>Collection: _generate_cover_variants()
-        Collection->>Filesystem: Generate 6 variants
-        Filesystem-->>Collection: Success
-        Collection-->>API Endpoint: Path to variant
-        API Endpoint->>Filesystem: Read variant
-        Filesystem-->>API Endpoint: File bytes
-        API Endpoint-->>Client: 200 + JPEG (40KB)
+    Client->>API: GET /api/covers/Artist%2FAlbum<br/>?size=256x256
+    API->>API: Decode path, validate size
+    API->>Collection: get_or_create_cover()
+    alt Variant exists
+        Collection->>FS: Look up variant
+        FS-->>Collection: File found
+    else Variant missing
+        Collection->>Collection: Extract cover if needed
+        Collection->>FS: Save main cover
+        Collection->>FS: Generate 6 variants
     end
+    Collection-->>API: Path to variant
+    API->>FS: Read variant
+    FS-->>API: File bytes
+    API-->>Client: 200 + JPEG (40KB)
 ```
 
 ---

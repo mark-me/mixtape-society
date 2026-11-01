@@ -27,7 +27,7 @@ Offer a simple, non-intrusive timer that respects user preferences and integrate
 ### Module Structure
 
 ```mermaid
-graph TB
+graph LR
     SleepTimer[sleepTimer.js]
 
     UI[Modal UI]

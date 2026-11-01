@@ -37,7 +37,7 @@ Android Auto is **simpler** - it's just enhanced Media Session API with no netwo
 ### System Overview
 
 ```mermaid
-graph LR
+graph TD
     User[User in Car]
     Car[Car Dashboard]
     Phone[Phone Browser]
@@ -63,47 +63,42 @@ graph LR
 ```mermaid
 sequenceDiagram
     actor User
-    participant PlayerControls as playerControls.js
-    participant PlayerUtils as playerUtils.js
-    participant AndroidAuto as androidAuto.js
+    participant Controls as playerControls.js
+    participant Utils as playerUtils.js
+    participant Auto as androidAuto.js
     participant Audio as main_player
 
-    User->>PlayerControls: initPlayerControls()
-    PlayerControls->>PlayerUtils: detectiOS()
-    PlayerControls->>PlayerUtils: detectAndroid()
-    PlayerControls->>PlayerUtils: logDeviceInfo()
-    alt Android device
-        PlayerControls->>AndroidAuto: logAndroidAutoStatus()
+    User->>Controls: initPlayerControls()
+    Controls->>Utils: Detect platform, log device
+    opt Android device
+        Controls->>Auto: logAndroidAutoStatus()
     end
 
-    User->>PlayerControls: tap track item
-    PlayerControls->>PlayerControls: playTrack(index)
+    User->>Controls: Tap track
+    Controls->>Controls: playTrack(index)
     alt Casting active
-        PlayerControls->>PlayerControls: castJumpToTrack(index)
-        PlayerControls->>PlayerControls: return (Chromecast handles Media Session)
+        Controls->>Controls: castJumpToTrack(index)
+        Note over Controls: Chromecast handles<br/>the Media Session
     else Local playback
-        PlayerControls->>Audio: set src and play()
-        PlayerControls->>PlayerUtils: extractMetadataFromDOM(trackElement)
-        PlayerUtils-->>PlayerControls: metadata (title, artist, album, artwork)
-        alt AndroidAuto connected
-            PlayerControls->>AndroidAuto: isAndroidAutoConnected()
-            AndroidAuto-->>PlayerControls: true
-            PlayerControls->>AndroidAuto: setupAndroidAutoMediaSession(metadata, playerControlsAPI, Audio)
-            AndroidAuto->>AndroidAuto: prepareArtwork(metadata.artwork)
-            AndroidAuto->>AndroidAuto: setupActionHandlers(playerControlsAPI, Audio)
-            AndroidAuto->>AndroidAuto: setupAudioEventListeners(Audio)
-        else Not AndroidAuto
-            PlayerControls->>AndroidAuto: isAndroidAutoConnected()
-            AndroidAuto-->>PlayerControls: false
-            PlayerControls->>PlayerUtils: setupLocalMediaSession(metadata, playerControlsAPI)
+        Controls->>Audio: Set src and play()
+        Controls->>Utils: extractMetadataFromDOM()
+        Utils-->>Controls: Metadata
+        Controls->>Auto: isAndroidAutoConnected()
+        alt Connected
+            Auto-->>Controls: true
+            Controls->>Auto: setupAndroidAutoMediaSession()
+            Auto->>Auto: Artwork, actions, listeners
+        else Not connected
+            Auto-->>Controls: false
+            Controls->>Utils: setupLocalMediaSession()
         end
     end
 
-    User->>PlayerControls: stop playback
-    alt AndroidAuto connected
-        PlayerControls->>AndroidAuto: clearAndroidAutoMediaSession()
-    else Not AndroidAuto
-        PlayerControls->>PlayerUtils: clearMediaSession()
+    User->>Controls: Stop playback
+    alt Android Auto connected
+        Controls->>Auto: clearAndroidAutoMediaSession()
+    else Not connected
+        Controls->>Utils: clearMediaSession()
     end
 ```
 
@@ -115,39 +110,23 @@ classDiagram
         +detectiOS()
         +detectAndroid()
         +logDeviceInfo()
-        +setupLocalMediaSession(metadata, playerControls)
+        +setupLocalMediaSession(...)
         +clearMediaSession()
         +updateMediaSessionPlaybackState(state)
-        +updateMediaSessionPosition(position, duration, playbackRate)
+        +updateMediaSessionPosition(...)
         +getMimeTypeFromUrl(url)
         +extractMetadataFromDOM(trackElement)
     }
 
     class PlayerControls {
         +initPlayerControls()
-        -checkCastingState()
-        -playTrack(index)
-        -updatePositionState()
-        -syncPlayIcons()
-        -togglePlayPause()
-        -silenceLocalPlayer()
-        -enableLocalPlayer()
-        -updateLocalMediaSession(metadata)
-        -currentIndex
-        -isCurrentlyCasting
-        -playerControlsAPI
     }
 
     class AndroidAutoModule {
         +isAndroidAutoConnected()
-        +setupAndroidAutoMediaSession(metadata, playerControls, audioElement)
+        +setupAndroidAutoMediaSession(...)
         +clearAndroidAutoMediaSession()
         +logAndroidAutoStatus()
-        -prepareArtwork(originalArtwork)
-        -setupActionHandlers(playerControls, audioElement)
-        -updatePositionState(audioElement)
-        -setupAudioEventListeners(audioElement)
-        -ANDROID_AUTO_ARTWORK_SIZES
     }
 
     class MediaSessionAPI {
@@ -160,7 +139,7 @@ classDiagram
     PlayerControls ..> PlayerUtils : uses
     PlayerControls ..> AndroidAutoModule : uses
     AndroidAutoModule ..> MediaSessionAPI : configures
-    PlayerUtils ..> MediaSessionAPI : setupLocalMediaSession()
+    PlayerUtils ..> MediaSessionAPI : configures
 ```
 
 ---

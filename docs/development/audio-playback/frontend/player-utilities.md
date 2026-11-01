@@ -27,7 +27,7 @@ Centralize common utilities to avoid duplication and ensure consistent platform 
 ### Module Structure
 
 ```mermaid
-graph TB
+graph LR
     PlayerUtils[playerUtils.js]
 
     Detection[Platform Detection]

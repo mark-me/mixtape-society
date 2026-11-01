@@ -13,55 +13,47 @@
 ### Loading/resyncing process
 
 ```mermaid
-flowchart LR
-    A["User initiates process (rebuild() / resync())"] --> B["Log start and set indexing status"]
-    B --> C{"Operation type?"}
-    C -->|"'rebuild()'"| D["Clear database and prepare for file scan"]
-    C -->|"'resync()'"| E["Scan filesystem and compare with DB"]
+flowchart TD
+    A["rebuild() or resync()"] --> B["Log start, set indexing status"]
+    B --> C{"Operation?"}
+    C -->|"rebuild()"| D["Clear database"]
+    C -->|"resync()"| E["Compare filesystem with database"]
 
-    D --> F["Scan music root for files to index"]
-    E --> G["Identify changes: files to add or remove"]
-    F --> H["Queue file operations to process"]
+    D --> F["Scan music root for files"]
+    E --> G["Find files to add or remove"]
+    F --> H["Queue file operations"]
     G --> H
 
-    H --> I["Start job, update counters & status"]
-    I --> J["Process queued file operations (Delete/Index)"]
+    H --> I["Start job, update counters and status"]
+    I --> J["Process queued operations"]
 
     J --> K{"Job complete?"}
-    K -->|Yes| L["Finalize job, log completion, clear status"]
     K -->|No| J
-
-    L --> M["Indexing complete, external indexing status cleared"]
+    K -->|Yes| L["Finalize job, log completion, clear status"]
 ```
 
 ### Monitoring process
 
 ```mermaid
-flowchart LR
-    A["'start_monitoring()' called"] --> B{"Is Observer running?"}
-    B -->|Yes| C["No-op (return immediately)"]
-    B -->|No| D["Create and start Observer instance"]
+flowchart TD
+    A["start_monitoring()"] --> B{"Observer running?"}
+    B -->|Yes| C["Return immediately"]
+    B -->|No| D["Start Observer, watch music_root"]
 
-    D --> E["Schedule file watcher for 'music_root'"]
-    E --> F["Start Observer thread"]
-
-    F --> G["FS event in 'music_root' (create/modify/delete)"]
-    G --> H["Process event"]
-
-    H --> I{"Is directory?"}
+    D --> G["File created, modified or deleted"]
+    G --> I{"Directory?"}
     I -->|Yes| J["Ignore event"]
-    I -->|No| K["Check if extension is supported"]
+    I -->|No| K{"Supported extension?"}
 
     K -->|No| J
-    K -->|Yes| L["Enqueue event (Index or Delete file)"]
-
-    L --> M["Writer thread processes events"]
+    K -->|Yes| L["Queue Index or Delete event"]
+    L --> M["Writer thread processes it"]
 
     %% Shutdown flow
-    N["'stop()' called"] --> O["Stop writer thread and join"]
-    O --> P{"Is Observer running?"}
-    P -->|Yes| Q["Stop and join Observer thread"]
-    P -->|No| R["No monitoring to stop"]
+    N["stop()"] --> O["Stop writer thread and join"]
+    O --> P{"Observer running?"}
+    P -->|Yes| Q["Stop Observer and join"]
+    P -->|No| R["Nothing to stop"]
 ```
 
 ## 🧱 Core data structures
@@ -233,51 +225,37 @@ These utilities are deliberately lightweight: they operate purely on the filesys
 ```mermaid
 sequenceDiagram
     actor User
-    participant CollectionExtractor
-    participant DBWriterThread
-    participant SQLite as SQLite_DB
-    participant FS
+    participant Ex as CollectionExtractor
+    participant Writer as DB writer thread
+    participant DB as SQLite
+    participant FS as Filesystem
 
-    User->>CollectionExtractor: resync()
-    CollectionExtractor->>CollectionExtractor: set_indexing_status(resyncing, total=-1, current=0)
+    User->>Ex: resync()
+    Ex->>Ex: Status: resyncing
+    Ex->>FS: Scan paths
+    FS-->>Ex: Paths on disk
+    Ex->>DB: Read paths
+    DB-->>Ex: Paths in database
+    Ex->>Ex: Compute files<br/>to add and remove
+    Ex->>Writer: Queue DELETE_FILE<br/>per removed file
+    Ex->>Writer: Queue INDEX_FILE<br/>per added file
+    Ex->>Writer: Queue RESYNC_DONE
 
-    CollectionExtractor->>CollectionExtractor: _scan_filesystem_paths()
-    FS-->>CollectionExtractor: fs_paths (relative)
-    CollectionExtractor->>CollectionExtractor: _get_database_paths()
-    SQLite-->>CollectionExtractor: db_paths (relative)
-
-    CollectionExtractor->>CollectionExtractor: compute to_add_rel, to_remove_rel
-    CollectionExtractor->>CollectionExtractor: to_add_abs = _to_abspath(to_add_rel)
-    CollectionExtractor->>CollectionExtractor: set_indexing_status(resyncing, total, current=0)
-
-    CollectionExtractor->>CollectionExtractor: _start_job("resyncing", total)
-    loop for each path in to_remove_rel
-        CollectionExtractor->>DBWriterThread: enqueue IndexEvent(DELETE_FILE, rel_path)
-    end
-    loop for each path in to_add_abs
-        CollectionExtractor->>DBWriterThread: enqueue IndexEvent(INDEX_FILE, abs_path)
-    end
-    CollectionExtractor->>DBWriterThread: enqueue IndexEvent(RESYNC_DONE)
-
-    loop DB writer loop
+    loop Until RESYNC_DONE
         alt DELETE_FILE
-            DBWriterThread->>SQLite: DELETE FROM tracks WHERE path = rel_path
+            Writer->>DB: DELETE track
         else INDEX_FILE
-            DBWriterThread->>SQLite: _index_file(abs_path) INSERT OR REPLACE
+            Writer->>DB: INSERT OR<br/>REPLACE track
         end
-        DBWriterThread->>CollectionExtractor: _processed_count++
-        alt batch_size reached
-            DBWriterThread->>SQLite: COMMIT
-            DBWriterThread->>CollectionExtractor: _update_progress_status()
-            CollectionExtractor->>CollectionExtractor: set_indexing_status(resyncing, total, current)
+        opt Batch size reached
+            Writer->>DB: COMMIT
+            Writer->>Ex: Update progress status
         end
     end
 
-    DBWriterThread->>SQLite: COMMIT
-    DBWriterThread->>SQLite: wal_checkpoint(PASSIVE)
-    DBWriterThread->>CollectionExtractor: _handle_job_completion()
-    CollectionExtractor->>CollectionExtractor: set_indexing_status(resyncing, total, current=total)
-    CollectionExtractor->>CollectionExtractor: clear_indexing_status()
+    Writer->>DB: COMMIT and WAL checkpoint
+    Writer->>Ex: _handle_job_completion()
+    Ex->>Ex: Clear indexing status
 ```
 
 ---

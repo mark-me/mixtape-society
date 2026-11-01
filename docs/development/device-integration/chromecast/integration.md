@@ -53,43 +53,34 @@ graph TB
 
 ```mermaid
 sequenceDiagram
-    actor User
-    participant Browser as Browser Player
-    participant ChromecastJS as chromecast.js
-    participant CastSDK as Google Cast SDK
-    participant Receiver as Chromecast Device
-    participant Server as Flask Server
+    participant Browser as Browser player
+    participant JS as chromecast.js
+    participant SDK as Cast SDK
+    participant Device as Chromecast
+    participant Server as Flask
 
-    User->>Browser: Click cast button
-    Browser->>ChromecastJS: extractTracksFromDOM()
-    ChromecastJS-->>Browser: tracks array
-    Browser->>ChromecastJS: loadPlaylistAndCast(tracks, startIndex)
-
+    Browser->>JS: Cast button:<br/>load tracks
     alt Existing cast session
-        ChromecastJS->>CastSDK: loadQueue(currentSession)
+        JS->>SDK: loadQueue(session)
     else No active session
-        ChromecastJS->>CastSDK: requestSession()
-        CastSDK-->>ChromecastJS: new session
-        ChromecastJS->>CastSDK: loadQueue(session)
+        JS->>SDK: requestSession()
+        SDK-->>JS: New session
+        JS->>SDK: loadQueue(session)
     end
 
-    ChromecastJS->>ChromecastJS: silenceLocalPlayer()
-    ChromecastJS->>ChromecastJS: clearMediaSession()
-
-    CastSDK->>Receiver: QueueLoadRequest with tracks
+    JS->>JS: Silence player,<br/>clear session
+    SDK->>Device: QueueLoadRequest with tracks
 
     loop For each track
-        Receiver->>Server: GET /play/<path>?quality=medium
-        Server-->>Receiver: 206/200 audio stream + CORS headers
-        Receiver->>Receiver: Buffer & decode
+        Device->>Server: GET /play/...
+        Server-->>Device: 206/200 audio
     end
 
-    Receiver->>CastSDK: Media state updates
-    CastSDK->>ChromecastJS: Player state callbacks
-    ChromecastJS->>Browser: Update UI state
+    Device->>SDK: Media state updates
+    SDK->>JS: Player state callbacks
+    JS->>Browser: Update UI state
 
-    Note over Browser,Receiver: User controls playback via phone/computer
-    Note over Receiver: Audio plays on Chromecast device
+    Note over Browser,Device: Controls stay on the phone or computer,<br/>audio plays on the Chromecast
 ```
 
 ---

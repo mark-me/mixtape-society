@@ -50,7 +50,7 @@ player/
 ### Component Relationships
 
 ```mermaid
-graph TB
+graph LR
     PlayerControls[playerControls.js<br/>Main Orchestrator]
 
     PlayerControls --> QueueMgr[queueManager.js<br/>Shuffle & Repeat]
@@ -74,10 +74,6 @@ graph TB
     Chromecast --> CastSDK[Google Cast SDK]
     AndroidAuto --> MediaSession[Media Session API]
     PlayerUtils --> MediaSession
-
-    LocalPlayer --> Audio[Audio Playback]
-    CastSDK --> ChromecastDevice[Chromecast Device]
-    MediaSession --> CarDashboard[Car Dashboard/Lock Screen]
 
     style PlayerControls fill:#4a6fa5,color:#fff
     style QueueMgr fill:#5a8fa5,color:#fff
