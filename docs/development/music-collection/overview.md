@@ -13,7 +13,6 @@ Below is a concise, high‑level walkthrough of the module’s responsibilities,
 
 ```mermaid
 classDiagram
-    %% ==== Core data types ====
     class IndexEvent {
         <<dataclass>>
         +EventType type
@@ -29,58 +28,32 @@ classDiagram
         RESYNC_DONE
     }
 
-    %% ==== CollectionExtractor (main engine) ====
     class CollectionExtractor {
-        -Path music_root
-        -Path db_path
-        -Path data_root
-        -Logger _logger
-        -Queue[IndexEvent] _write_queue
-        -Event _writer_stop
-        -Observer? _observer
-        -Thread _writer_thread
-        -set SUPPORTED_EXTS
-        +CollectionExtractor(music_root, db_path, logger=None)
         +rebuild()
         +resync()
         +start_monitoring()
         +stop()
-        +get_conn(readonly=False) Connection
-        -_init_db()
-        -_populate_fts_if_needed()
-        -_db_writer_loop()
-        -_index_file(conn, path)
-        -_write_queue.put(event)
+        +get_conn(readonly) Connection
     }
 
-    %% ==== EnhancedWatcher (filesystem event handler) ====
     class EnhancedWatcher {
-        -CollectionExtractor extractor
-        +EnhancedWatcher(extractor)
         +on_any_event(event)
         +shutdown()
     }
 
-    %% ==== Indexing status helpers (module-level functions) ====
     class indexing_status {
         <<module>>
-        +set_indexing_status(data_root, status, total, current)
-        +clear_indexing_status(data_root)
-        +get_indexing_status(data_root, logger=None)
-        -_atomic_write_json(status_file, data)
-        -_calculate_progress(total, current) float
-        -_get_started_at(status_file) str|None
-        -_build_status_data(status, started_at, total, current, progress) dict
+        +set_indexing_status(...)
+        +clear_indexing_status(...)
+        +get_indexing_status(...)
     }
 
-    %% ==== Relationships ====
     CollectionExtractor --> IndexEvent : produces / consumes
-    CollectionExtractor --> EventType : uses literals
-    CollectionExtractor --> EnhancedWatcher : creates & registers
-    CollectionExtractor --> indexing_status : writes progress JSON
-    EnhancedWatcher --> IndexEvent : enqueues events
+    CollectionExtractor --> EventType : uses
+    CollectionExtractor --> EnhancedWatcher : creates
+    CollectionExtractor --> indexing_status : writes progress
+    EnhancedWatcher --> IndexEvent : enqueues
     EnhancedWatcher --> CollectionExtractor : holds reference
-    indexing_status ..> Path : works with filesystem paths
 ```
 
 ---

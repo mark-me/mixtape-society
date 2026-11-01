@@ -69,7 +69,7 @@ Your mixtapes and database are preserved in volumes.
 - 1GB RAM
 - 2GB disk space (plus music library)
 - Single-core CPU
-- Docker or Python 3.11+
+- Docker or Python 3.13+
 
 **Recommended:**
 

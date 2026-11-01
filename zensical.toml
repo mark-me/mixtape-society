@@ -1,0 +1,232 @@
+[project]
+site_name = "Mixtape Society"
+site_description = "Self-hosted mixtape sharing platform with music streaming, Chromecast support, and curated playlist management"
+site_author = "Mark Zwart"
+site_url = "https://mark-me.github.io/mixtape-society/"
+docs_dir = "docs"
+site_dir = "site"
+# The app links to its help pages by file name, such as user/creators/index.html.
+use_directory_urls = false
+
+copyright = "Mark Zwart"
+
+repo_url = "https://github.com/mark-me/mixtape-society"
+repo_name = "mark-me/mixtape-society"
+edit_uri = "edit/master/docs/"
+
+extra_css = ["stylesheets/extra.css"]
+# With mermaid already loaded, the theme doesn't fetch it from unpkg, so diagrams in the app's
+# help work without internet. Keep the major version the theme asks for (mermaid@12).
+extra_javascript = ["javascripts/vendor/mermaid.min.js"]
+
+nav = [
+  { "Introduction" = "index.md" },
+  { "Getting Started" = [
+    { "Overview" = "user/getting-started.md" },
+    { "For Creators" = [
+      { "Creator's Guide" = "user/creators/index.md" },
+      { "Installation" = "user/creators/installation.md" },
+      { "Creating Mixtapes" = "user/creators/editor.md" },
+      { "Collection Management" = "user/creators/collection-management.md" },
+      { "Sharing Mixtapes" = "user/creators/sharing.md" },
+      { "Creator FAQ" = "user/creators/faq.md" },
+    ] },
+    { "For Recipients" = [
+      { "Recipient's Guide" = "user/recipients/index.md" },
+      { "Getting Started" = "user/recipients/getting-started.md" },
+      { "Player Guide" = "user/recipients/player.md" },
+      { "Streaming to Devices" = "user/recipients/streaming.md" },
+      { "Recipient FAQ" = "user/recipients/faq.md" },
+    ] },
+  ] },
+  { "Architecture & Development" = [
+    { "Project Overview" = "development/intro.md" },
+    { "Deployment" = "development/deployment.md" },
+    { "Configuration" = "development/configuration.md" },
+    { "Music Collection" = [
+      { "Overview" = "development/music-collection/overview.md" },
+      { "Reading Library" = "development/music-collection/reading.md" },
+      { "Loading & Indexing" = "development/music-collection/loading.md" },
+    ] },
+    { "Mixtape System" = [
+      { "Overview" = "development/mixtape-system/overview.md" },
+      { "Mixtape Manager (Backend)" = "development/mixtape-system/manager-backend.md" },
+      { "Editor (Frontend)" = "development/mixtape-system/editor-frontend.md" },
+      { "Editor API (Backend)" = "development/mixtape-system/editor-api.md" },
+      { "QR Code Generation" = "development/mixtape-system/qr-generation.md" },
+    ] },
+    { "Audio Playback" = [
+      { "System Overview" = "development/audio-playback/overview.md" },
+      { "Backend (Streaming)" = [
+        { "Audio Streaming" = "development/audio-playback/backend/audio-streaming.md" },
+        { "Range Requests" = "development/audio-playback/backend/range-requests.md" },
+        { "Quality & Caching" = "development/audio-playback/backend/quality-caching.md" },
+        { "Server Cache System" = "development/audio-playback/backend/server-cache-system.md" },
+      ] },
+      { "Frontend (Player)" = [
+        { "Player Controls" = "development/audio-playback/frontend/player-controls.md" },
+        { "Player Utilities" = "development/audio-playback/frontend/player-utilities.md" },
+        { "Sleep Timer" = "development/audio-playback/frontend/sleep-timer.md" },
+      ] },
+      { "Media Session Integration" = "development/audio-playback/media-integration.md" },
+    ] },
+    { "Device Integration" = [
+      { "Chromecast" = [
+        { "Integration Guide" = "development/device-integration/chromecast/integration.md" },
+      ] },
+      { "Android Auto" = [
+        { "Integration Overview" = "development/device-integration/android-auto/overview.md" },
+        { "Frontend Implementation" = "development/device-integration/android-auto/frontend.md" },
+        { "Backend Implementation" = "development/device-integration/android-auto/backend.md" },
+        { "Testing Guide" = "development/device-integration/android-auto/testing.md" },
+      ] },
+    ] },
+    { "Media Assets" = [
+      { "Cover Art System" = [
+        { "Overview" = "development/media-assets/cover-art/overview.md" },
+        { "Size Optimization" = "development/media-assets/cover-art/optimization.md" },
+        { "API Reference" = "development/media-assets/cover-art/api.md" },
+        { "Route Handler" = "development/media-assets/cover-art/routes.md" },
+      ] },
+      { "OpenGraph Images" = "development/media-assets/opengraph.md" },
+    ] },
+    { "Web Application" = [
+      { "Flask App Structure" = "development/web-application/flask-app.md" },
+      { "Progressive Web App (PWA)" = [
+        { "PWA Introduction" = "development/web-application/pwa/introduction.md" },
+        { "PWA Optimizations" = "development/web-application/pwa/optimizations.md" },
+      ] },
+      { "Routes & APIs" = [
+        { "Browse Mixtapes" = "development/web-application/routes/browse.md" },
+        { "Authentication" = "development/web-application/routes/authentication.md" },
+        { "QR Code Routes" = "development/web-application/routes/qr-codes.md" },
+        { "System Routes" = "development/web-application/routes/system.md" },
+      ] },
+      { "UI Components" = [
+        { "Toast Notification System" = "development/web-application/ui-components/toast-system.md" },
+      ] },
+      { "Shared Utilities" = [
+        { "Common Module" = "development/web-application/utilities/common.md" },
+        { "Utilities" = "development/web-application/utilities/utilities.md" },
+      ] },
+    ] },
+  ] },
+  { "Project" = [
+    { "Overview" = "project/index.md" },
+    { "Changelog" = "project/changelog.md" },
+    { "Roadmap" = "project/roadmap.md" },
+    { "Ideas" = [
+      { "General Ideas" = "project/ideas/ideas.md" },
+      { "Design & Implementation Map" = "project/ideas/design_implementation_map.md" },
+    ] },
+    { "Contributing" = "project/contributing.md" },
+    { "About" = "project/about.md" },
+  ] },
+]
+
+[project.theme]
+logo = "images/logo.png"
+favicon = "images/logo.png"
+language = "en"
+# The fonts come with the site, from stylesheets/extra.css, instead of from Google.
+font = false
+features = [
+  "content.action.edit",
+  "content.action.view",
+  "content.code.annotate",
+  "content.code.copy",
+  "content.code.select",
+  "content.tabs.link",
+  "content.tooltips",
+  "navigation.footer",
+  "navigation.indexes",
+  "navigation.instant",
+  "navigation.path",
+  "navigation.prune",
+  "navigation.tabs",
+  "navigation.tabs.sticky",
+  "navigation.top",
+  "navigation.tracking",
+  "search.highlight",
+  "toc.follow",
+]
+
+[project.theme.icon]
+repo = "fontawesome/brands/github"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
+scheme = "default"
+primary = "custom"
+accent = "custom"
+toggle.icon = "lucide/sun"
+toggle.name = "Switch to dark mode"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
+scheme = "slate"
+primary = "custom"
+accent = "custom"
+toggle.icon = "lucide/moon"
+toggle.name = "Switch to light mode"
+
+[[project.extra.social]]
+icon = "fontawesome/brands/github"
+link = "https://github.com/mark-me/mixtape-society"
+name = "GitHub Repository"
+
+[project.markdown_extensions]
+abbr = {}
+admonition = {}
+attr_list = {}
+def_list = {}
+footnotes = {}
+md_in_html = {}
+tables = {}
+toc.permalink = true
+toc.permalink_title = "Anchor link to this section"
+toc.toc_depth = 2
+toc.slugify = { object = "pymdownx.slugs.slugify", kwds = { case = "lower" } }
+pymdownx.arithmatex.generic = true
+pymdownx.betterem.smart_enable = "all"
+pymdownx.caret = {}
+pymdownx.critic.mode = "accept"
+pymdownx.details = {}
+pymdownx.emoji.emoji_index = "zensical.extensions.emoji.twemoji"
+pymdownx.emoji.emoji_generator = "zensical.extensions.emoji.to_svg"
+pymdownx.highlight.anchor_linenums = true
+pymdownx.highlight.line_spans = "__span"
+pymdownx.highlight.pygments_lang_class = true
+pymdownx.inlinehilite = {}
+pymdownx.keys = {}
+pymdownx.mark = {}
+pymdownx.smartsymbols = {}
+pymdownx.snippets.check_paths = true
+pymdownx.superfences.custom_fences = [
+  { name = "mermaid", class = "mermaid", format = "pymdownx.superfences.fence_code_format" },
+]
+pymdownx.tabbed.alternate_style = true
+pymdownx.tabbed.slugify = { object = "pymdownx.slugs.slugify", kwds = { case = "lower" } }
+pymdownx.tasklist.custom_checkbox = true
+pymdownx.tilde = {}
+
+# The API pages are read from the docstrings: parsed, so the app is not installed for it.
+[project.plugins.mkdocstrings.handlers.python]
+paths = ["."]
+inventories = []
+
+[project.plugins.mkdocstrings.handlers.python.options]
+show_bases = true
+show_root_heading = true
+show_root_full_path = false
+show_symbol_type_heading = true
+show_symbol_type_toc = true
+show_source = true
+members_order = "source"
+heading_level = 2
+summary = true
+docstring_style = "google"
+docstring_section_style = "table"
+show_if_no_docstring = false
+inherited_members = false
+merge_init_into_class = true

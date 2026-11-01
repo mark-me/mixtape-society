@@ -14,7 +14,7 @@ Welcome to the **Mixtape Society** development guide. This section explains how 
             - `docker-image.yml` – Build Docker images on GHCR
             - `docs.yml` – Publish GitHub Pages
     - 🐳 **docker/** – Dockerfiles & Compose configs
-    - 📚 **docs/** – MkDocs source (this folder)
+    - 📚 **docs/** – Zensical source (this folder)
     - 📂 **src/**
         - `app.py` – Flask entry point
         - 📂 `audio_cache/` – Audio transcoding & caching
@@ -32,7 +32,7 @@ Welcome to the **Mixtape Society** development guide. This section explains how 
         - 📂 `utilities/` – Miscellaneous helper functions
     - 📄 `.gitignore` – Ignored files for Git
     - 📄 `LICENSE` – Project license
-    - 📄 `mkdocs.yml` – MkDocs site configuration
+    - 📄 `zensical.toml` – Zensical site configuration
     - 📄 `pyproject.toml` – Poetry‑style project metadata
     - 📄 `.python-version` – Python version pinning (3.13+)
     - 📄 `README.md` – Repository overview

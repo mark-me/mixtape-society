@@ -43,10 +43,11 @@ The selected class is instantiated, its `ensure_dirs()` method creates required 
   app = Flask(__name__)
   app.secret_key = derive_session_key(config_cls.DATA_ROOT, config_cls.PASSWORD)
   app.config.from_object(config_cls)
-  CORS(app)  # adds Access‑Control‑Allow‑Origin: *
+  register_security(app)  # security headers, refuses changes sent from other sites
+  CORS(app, resources={r"/*": {"origins": "*", "supports_credentials": False, ...}})
   ```
 
-1. **Rate limiting** – flask_limiter with defaults `1000/day` and `300/hour`.
+1. **Rate limiting** – flask_limiter without default limits; only the login route is limited, to 5 attempts per minute.
 2. **Logging** – Calls `logger_setup(config)` (creates `logs/app.log`), then mirrors Gunicorn’s logger if running under Gunicorn.
 3. **Core services**
     * `MusicCollectionUI` – watches the music root, builds the SQLite FTS5 DB, and exposes search/high‑level APIs.

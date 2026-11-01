@@ -29,18 +29,18 @@ sequenceDiagram
     participant UI as Browser
     participant Flask as QR Blueprint
     participant MM as MixtapeManager
-    participant FS as FileSystem (static folder)
+    participant QRGen as QR Generator
 
-    UI->>Flask: GET /qr/awesome-mixtape.png?size=400&logo=true
-    Flask->>MM: mixtape_manager.get('awesome-mixtape')
+    UI->>Flask: GET /qr/awesome-mixtape.png<br/>?size=400&logo=true
+    Flask->>MM: get('awesome-mixtape')
     alt mixtape exists
         MM-->>Flask: mixtape dict
-        Flask->>FS: Resolve logo.svg / logo.png (if requested)
+        Flask->>Flask: Find logo (if requested)
         Flask->>QRGen: generate_mixtape_qr(...)
         QRGen-->>Flask: PNG bytes
-        Flask-->>UI: 200 PNG (Cache‑Control: public, max‑age=3600)
+        Flask-->>UI: 200 PNG (cached for 1 hour)
     else
-        Flask-->>UI: 404 “Mixtape not found”
+        Flask-->>UI: 404 Mixtape not found
     end
 ```
 
@@ -57,19 +57,18 @@ sequenceDiagram
     participant UI as Browser
     participant Flask as QR Blueprint
     participant MM as MixtapeManager
-    participant FS as FileSystem (static folder)
+    participant QRGen as QR Generator
 
-    UI->>Flask: GET /qr/awesome-mixtape/download?size=800&include_cover=true&include_title=true
-    Flask->>MM: mixtape_manager.get('awesome-mixtape')
+    UI->>Flask: GET /qr/awesome-mixtape/download<br/>?size=800&include_cover=true<br/>&include_title=true
+    Flask->>MM: get('awesome-mixtape')
     alt mixtape exists
         MM-->>Flask: mixtape dict
-        Flask->>FS: Resolve logo.svg / logo.png
-        Flask->>FS: Resolve mixtape cover (if requested)
+        Flask->>Flask: Find logo and cover
         Flask->>QRGen: generate_mixtape_qr_with_cover(...)
         QRGen-->>Flask: PNG bytes
-        Flask-->>UI: 200 PNG (attachment filename="<title>-qr-code.png")
+        Flask-->>UI: 200 PNG (as attachment)
     else
-        Flask-->>UI: 404 “Mixtape not found”
+        Flask-->>UI: 404 Mixtape not found
     end
 ```
 
@@ -118,17 +117,16 @@ sequenceDiagram
     participant UI as Browser
     participant Flask as QR Blueprint
     participant MM as MixtapeManager
-    participant QRGen as QR Generator (qr_generator.py)
-    participant FS as FileSystem (static folder)
+    participant QRGen as QR Generator
 
-    UI->>Flask: GET /qr/<slug>.png?size=400&logo=true
-    Flask->>MM: mixtape_manager.get(slug)
+    UI->>Flask: GET /qr/#lt;slug#gt;.png<br/>?size=400&logo=true
+    Flask->>MM: get(slug)
     alt mixtape exists
         MM-->>Flask: mixtape dict
-        Flask->>FS: Resolve logo.svg (fallback to logo.png)
-        Flask->>QRGen: generate_mixtape_qr(url, title, logo_path, size)
+        Flask->>Flask: Find logo.svg or logo.png
+        Flask->>QRGen: generate_mixtape_qr(...)
         QRGen-->>Flask: PNG bytes
-        Flask-->>UI: 200 PNG (Cache‑Control)
+        Flask-->>UI: 200 PNG (Cache-Control)
     else
         Flask-->>UI: 404
     end

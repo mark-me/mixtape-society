@@ -49,12 +49,9 @@ Mixtape Society leverages several fantastic open-source libraries and tools. A b
 
 ### Documentation
 
-- **[MkDocs](https://www.mkdocs.org/)** & **[Material for MkDocs](https://squidfunk.github.io/mkdocs-material/)** – Static documentation you’re reading right now
+- **[Zensical](https://zensical.org/)** – Static site generator and theme for this documentation
 - **[mkdocstrings](https://mkdocstrings.github.io/)** – Auto-generated API docs from code
-- **[mkdocs-git-revision-date-localized-plugin](https://github.com/timvink/mkdocs-git-revision-date-localized-plugin)** – Page last-updated dates
-- **[mkdocs-git-committers-plugin](https://github.com/byrnereese/mkdocs-git-committers-plugin)** – Contributor credits
-- **[mkdocs-panzoom-plugin](https://github.com/lucasmaystre/mkdocs-panzoom)** – Zoomable screenshots
-- **[mermaid2](https://github.com/Franiac/mkdocs-mermaid2-plugin)** – Diagrams
+- **[Mermaid](https://mermaid.js.org/)** – Diagrams
 
 ### Frontend & Design
 

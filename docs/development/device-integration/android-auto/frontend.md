@@ -188,34 +188,25 @@ prepareArtwork(artworkArray) {
 
 ```mermaid
 sequenceDiagram
-    participant User
-    participant PlayerControls
-    participant PlayerUtils
-    participant AndroidAuto
+    participant Controls as PlayerControls
+    participant Utils as PlayerUtils
+    participant Auto as AndroidAuto
+    participant Nav as Navigator
     participant Flask
 
-    User->>PlayerControls: Click track
-    PlayerControls->>PlayerUtils: extractMetadataFromDOM()
-    PlayerUtils->>PlayerUtils: detectAndroid()
+    Controls->>Controls: Track clicked
+    Controls->>Utils: extractMetadata<br/>FromDOM()
+    Utils->>Utils: detectAndroid()
+    Utils->>Utils: Artwork sizes:<br/>Android Auto 5,<br/>iOS 3, desktop 2
+    Utils-->>Controls: Metadata with artwork
 
-    alt Is Android Auto
-        PlayerUtils->>PlayerUtils: Build 5 size URLs
-        PlayerUtils-->>PlayerControls: metadata with 5 artwork entries
-    else Is iOS
-        PlayerUtils->>PlayerUtils: Build 3 size URLs
-        PlayerUtils-->>PlayerControls: metadata with 3 artwork entries
-    else Is Desktop
-        PlayerUtils->>PlayerUtils: Build 2 size URLs
-        PlayerUtils-->>PlayerControls: metadata with 2 artwork entries
-    end
+    Controls->>Auto: updateMedia<br/>Metadata()
+    Auto->>Auto: prepareArtwork()
+    Auto->>Nav: Update MediaSession
 
-    PlayerControls->>AndroidAuto: updateMediaMetadata(metadata)
-    AndroidAuto->>AndroidAuto: prepareArtwork()
-    AndroidAuto->>Navigator: Update MediaSession
-
-    Navigator->>Flask: GET /covers/slug_256x256.jpg
-    Flask-->>Navigator: 200 OK (40KB)
-    Navigator->>User: Display artwork in Android Auto
+    Nav->>Flask: GET /covers/<br/>slug_256x256.jpg
+    Flask-->>Nav: 200 OK (40KB)
+    Note over Nav: Artwork shown<br/>in Android Auto
 ```
 
 ---

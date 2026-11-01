@@ -104,7 +104,7 @@ The tests start the app on empty temporary directories, so they never touch your
 
 If your PR adds a feature or changes behavior:
 - Update relevant docs in `/docs`
-- Add a brief note in `CHANGELOG.md` (I'll handle version numbering)
+- Add a brief note in `docs/project/changelog.md` (I'll handle version numbering)
 
 ## ❓ Questions?
 

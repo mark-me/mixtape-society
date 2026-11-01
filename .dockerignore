@@ -1,5 +1,5 @@
 # Keep the build context to what the image needs: pyproject.toml, uv.lock, README.md, src/, and
-# mkdocs.yml with docs/, which the image carries as its help.
+# zensical.toml with docs/, which the image carries as its help.
 .git
 .github
 .venv

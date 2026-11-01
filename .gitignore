@@ -1,3 +1,6 @@
+# Documentation build cache
+.cache
+
 # Python-generated files
 __pycache__/
 *.py[oc]

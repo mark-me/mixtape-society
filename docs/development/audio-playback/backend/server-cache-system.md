@@ -106,14 +106,15 @@ sequenceDiagram
 ### Playback Flow
 
 ```mermaid
-graph LR
+graph TD
     A[User clicks Play] --> B{Quality selected?}
     B -->|Original| C[Serve original FLAC]
     B -->|High/Med/Low| D{Is source lossless?}
     D -->|No| C
     D -->|Yes| E{Cache exists?}
     E -->|Yes| F[Serve cached MP3]
-    E -->|No| G[Log warning → fall back to original]
+    E -->|No| G[Log warning, fall back to original]
+    G --> C
     F --> H[User streams small file]
     C --> I[User streams large file]
 ```
