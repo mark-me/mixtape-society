@@ -1812,12 +1812,17 @@ Hold "Alt" / "Option" to enable pan &amp; zoom
 <h2 id="components">Components<a class="headerlink" href="#components" title="Anchor link to this section">¶</a></h2>
 <h3 id="1-extraction-readerpy">1. Extraction (<code>reader.py</code>)<a class="headerlink" href="#1-extraction-readerpy" title="Anchor link to this section">¶</a></h3>
 <p>Located in <code>src/musiclib/reader.py</code>, the <code>MusicCollection</code> class handles cover extraction:</p>
-<p><strong>Methods:</strong></p>
+<p><strong>Public methods:</strong></p>
 <ul>
 <li><code>get_cover(release_dir)</code> - Returns single cover URL</li>
 <li><code>get_cover_sizes(release_dir)</code> - Returns all size variants</li>
+<li><code>get_or_create_cover(release_dir, size=None)</code> - Resolves the on-disk cover file for a release, generating it (and, if a size is given, the requested variant) on demand. This is the entry point routes should use — it wraps the internals below so callers never need to know about slugging or extraction directly.</li>
+</ul>
+<p><strong>Internals (not part of the public API):</strong></p>
+<ul>
 <li><code>_extract_cover(release_dir, target_path)</code> - Extracts from files</li>
 <li><code>_generate_cover_variants(release_dir, slug)</code> - Creates size variants</li>
+<li><code>_sanitize_release_dir(release_dir)</code> - Produces the filename slug used for caching</li>
 </ul>
 <p><strong>Extraction Priority:</strong></p>
 <ol>
@@ -1851,8 +1856,8 @@ Hold "Alt" / "Option" to enable pan &amp; zoom
 <li>Truncates long paths (&gt;200 chars)</li>
 <li>Adds hash suffix for collision avoidance</li>
 </ul>
-<h3 id="3-serving-apppy">3. Serving (<code>app.py</code>)<a class="headerlink" href="#3-serving-apppy" title="Anchor link to this section">¶</a></h3>
-<p>Two Flask routes serve cover images:</p>
+<h3 id="3-serving-routescoverspy">3. Serving (<code>routes/covers.py</code>)<a class="headerlink" href="#3-serving-routescoverspy" title="Anchor link to this section">¶</a></h3>
+<p>Two Flask routes, registered by the <code>covers</code> blueprint (<code>create_covers_blueprint</code>, mounted with no URL prefix in <code>app.py</code>), serve cover images:</p>
 <p><strong>Direct Serving:</strong> <code>/covers/&lt;filename&gt;</code></p>
 <ul>
 <li>Original endpoint (unchanged)</li>
@@ -2167,16 +2172,17 @@ Hold "Alt" / "Option" to enable pan &amp; zoom
 </span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="p">});</span>
 </span></code></pre></div>
 <h3 id="flask-routes">Flask Routes<a class="headerlink" href="#flask-routes" title="Anchor link to this section">¶</a></h3>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Direct file serving (existing)</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">"/covers/&lt;filename&gt;"</span><span class="p">)</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># routes/covers.py — direct file serving (existing)</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nd">@covers</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">"/covers/&lt;filename&gt;"</span><span class="p">)</span>
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="k">def</span><span class="w"> </span><span class="nf">serve_album_cover</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
 </span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>    <span class="k">return</span> <span class="n">send_from_directory</span><span class="p">(</span><span class="n">covers_dir</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
 </span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="c1"># Size-parameterized API (new)</span>
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">"/api/covers/&lt;path:release_dir&gt;"</span><span class="p">)</span>
-</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="k">def</span><span class="w"> </span><span class="nf">serve_cover_by_size</span><span class="p">(</span><span class="n">release_dir</span><span class="p">):</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="c1"># routes/covers.py — size-parameterized API (new)</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="nd">@covers</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">"/api/covers/&lt;path:release_dir_encoded&gt;"</span><span class="p">)</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="k">def</span><span class="w"> </span><span class="nf">serve_cover_by_size</span><span class="p">(</span><span class="n">release_dir_encoded</span><span class="p">):</span>
 </span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>    <span class="n">size</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'size'</span><span class="p">)</span>  <span class="c1"># e.g., "256x256"</span>
-</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>    <span class="c1"># ... generate if needed, return appropriate file</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>    <span class="n">cover_path</span> <span class="o">=</span> <span class="n">collection</span><span class="o">.</span><span class="n">get_or_create_cover</span><span class="p">(</span><span class="n">release_dir</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">)</span>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>    <span class="c1"># ... return cover_path, or the fallback if it's None</span>
 </span></code></pre></div>
 <hr>
 <h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Anchor link to this section">¶</a></h2>
@@ -2228,7 +2234,7 @@ Hold "Alt" / "Option" to enable pan &amp; zoom
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"></path></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="August 26, 2026 18:30:12 UTC"><span class="timeago" datetime="2026-08-26T18:30:12+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="August 26, 2026 18:30:12 UTC">2026-08-26</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="August 26, 2026 20:09:45 UTC"><span class="timeago" datetime="2026-08-26T20:09:45+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="August 26, 2026 20:09:45 UTC">2026-08-26</span>
   </span>
 
     
@@ -2238,7 +2244,7 @@ Hold "Alt" / "Option" to enable pan &amp; zoom
     <span class="md-icon" title="Created">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"></path></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="August 26, 2026 18:30:12 UTC"><span class="timeago" datetime="2026-08-26T18:30:12+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="August 26, 2026 18:30:12 UTC">2026-08-26</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="January 15, 2026 22:30:50 UTC"><span class="timeago" datetime="2026-01-15T22:30:50+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="January 15, 2026 22:30:50 UTC">2026-01-15</span>
   </span>
 
     
