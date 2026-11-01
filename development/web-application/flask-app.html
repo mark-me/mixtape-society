@@ -22,7 +22,7 @@
       
       
       <link rel="icon" href="../../images/logo.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
     
     
       
@@ -30,10 +30,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -81,7 +81,7 @@
             body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
             body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
         </style><meta name="panzoom-theme" content="material">
-<meta name="panzoom-data" content='{"selectors": [".mermaid", ".d2"], "initial_zoom_level": 1.0}'> </head>
+<meta name="panzoom-data" content='{"selectors": [".d2", ".mermaid"], "initial_zoom_level": 1.0}'> </head>
   
   
     
@@ -2482,47 +2482,47 @@ ensures necessary directories exist, and returns the configuration object.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/app.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-311">311</a></span>
-<span class="normal"><a href="#__codelineno-0-312">312</a></span>
-<span class="normal"><a href="#__codelineno-0-313">313</a></span>
-<span class="normal"><a href="#__codelineno-0-314">314</a></span>
-<span class="normal"><a href="#__codelineno-0-315">315</a></span>
-<span class="normal"><a href="#__codelineno-0-316">316</a></span>
-<span class="normal"><a href="#__codelineno-0-317">317</a></span>
-<span class="normal"><a href="#__codelineno-0-318">318</a></span>
-<span class="normal"><a href="#__codelineno-0-319">319</a></span>
-<span class="normal"><a href="#__codelineno-0-320">320</a></span>
-<span class="normal"><a href="#__codelineno-0-321">321</a></span>
-<span class="normal"><a href="#__codelineno-0-322">322</a></span>
-<span class="normal"><a href="#__codelineno-0-323">323</a></span>
-<span class="normal"><a href="#__codelineno-0-324">324</a></span>
-<span class="normal"><a href="#__codelineno-0-325">325</a></span>
-<span class="normal"><a href="#__codelineno-0-326">326</a></span>
-<span class="normal"><a href="#__codelineno-0-327">327</a></span>
-<span class="normal"><a href="#__codelineno-0-328">328</a></span>
-<span class="normal"><a href="#__codelineno-0-329">329</a></span>
-<span class="normal"><a href="#__codelineno-0-330">330</a></span>
-<span class="normal"><a href="#__codelineno-0-331">331</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-311"><a id="__codelineno-0-311" name="__codelineno-0-311"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_configuration</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">BaseConfig</span><span class="p">:</span>
-</span><span id="__span-0-312"><a id="__codelineno-0-312" name="__codelineno-0-312"></a><span class="w">    </span><span class="sd">"""</span>
-</span><span id="__span-0-313"><a id="__codelineno-0-313" name="__codelineno-0-313"></a><span class="sd">    Determines and returns the appropriate configuration class for the current environment.</span>
-</span><span id="__span-0-314"><a id="__codelineno-0-314" name="__codelineno-0-314"></a>
-</span><span id="__span-0-315"><a id="__codelineno-0-315" name="__codelineno-0-315"></a><span class="sd">    Selects the configuration based on the APP_ENV environment variable,</span>
-</span><span id="__span-0-316"><a id="__codelineno-0-316" name="__codelineno-0-316"></a><span class="sd">    ensures necessary directories exist, and returns the configuration object.</span>
-</span><span id="__span-0-317"><a id="__codelineno-0-317" name="__codelineno-0-317"></a>
-</span><span id="__span-0-318"><a id="__codelineno-0-318" name="__codelineno-0-318"></a><span class="sd">    Returns:</span>
-</span><span id="__span-0-319"><a id="__codelineno-0-319" name="__codelineno-0-319"></a><span class="sd">        BaseConfig: The configuration object for the current environment.</span>
-</span><span id="__span-0-320"><a id="__codelineno-0-320" name="__codelineno-0-320"></a><span class="sd">    """</span>
-</span><span id="__span-0-321"><a id="__codelineno-0-321" name="__codelineno-0-321"></a>    <span class="n">CONFIG_MAP</span> <span class="o">=</span> <span class="p">{</span>
-</span><span id="__span-0-322"><a id="__codelineno-0-322" name="__codelineno-0-322"></a>        <span class="s2">"development"</span><span class="p">:</span> <span class="n">DevelopmentConfig</span><span class="p">,</span>
-</span><span id="__span-0-323"><a id="__codelineno-0-323" name="__codelineno-0-323"></a>        <span class="s2">"test"</span><span class="p">:</span> <span class="n">TestConfig</span><span class="p">,</span>
-</span><span id="__span-0-324"><a id="__codelineno-0-324" name="__codelineno-0-324"></a>        <span class="s2">"production"</span><span class="p">:</span> <span class="n">ProductionConfig</span><span class="p">,</span>
-</span><span id="__span-0-325"><a id="__codelineno-0-325" name="__codelineno-0-325"></a>    <span class="p">}</span>
-</span><span id="__span-0-326"><a id="__codelineno-0-326" name="__codelineno-0-326"></a>
-</span><span id="__span-0-327"><a id="__codelineno-0-327" name="__codelineno-0-327"></a>    <span class="n">ENV</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">"APP_ENV"</span><span class="p">,</span> <span class="s2">"development"</span><span class="p">)</span>
-</span><span id="__span-0-328"><a id="__codelineno-0-328" name="__codelineno-0-328"></a>
-</span><span id="__span-0-329"><a id="__codelineno-0-329" name="__codelineno-0-329"></a>    <span class="n">config</span> <span class="o">=</span> <span class="n">CONFIG_MAP</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ENV</span><span class="p">,</span> <span class="n">DevelopmentConfig</span><span class="p">)</span>
-</span><span id="__span-0-330"><a id="__codelineno-0-330" name="__codelineno-0-330"></a>    <span class="n">config</span><span class="o">.</span><span class="n">ensure_dirs</span><span class="p">()</span>
-</span><span id="__span-0-331"><a id="__codelineno-0-331" name="__codelineno-0-331"></a>    <span class="k">return</span> <span class="n">config</span>
+              <div class="language-python highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#src.app.get_configuration--source--__codelineno-0-311">311</a></span>
+<span class="normal"><a href="#src.app.get_configuration--source--__codelineno-0-312">312</a></span>
+<span class="normal"><a href="#src.app.get_configuration--source--__codelineno-0-313">313</a></span>
+<span class="normal"><a href="#src.app.get_configuration--source--__codelineno-0-314">314</a></span>
+<span class="normal"><a href="#src.app.get_configuration--source--__codelineno-0-315">315</a></span>
+<span class="normal"><a href="#src.app.get_configuration--source--__codelineno-0-316">316</a></span>
+<span class="normal"><a href="#src.app.get_configuration--source--__codelineno-0-317">317</a></span>
+<span class="normal"><a href="#src.app.get_configuration--source--__codelineno-0-318">318</a></span>
+<span class="normal"><a href="#src.app.get_configuration--source--__codelineno-0-319">319</a></span>
+<span class="normal"><a href="#src.app.get_configuration--source--__codelineno-0-320">320</a></span>
+<span class="normal"><a href="#src.app.get_configuration--source--__codelineno-0-321">321</a></span>
+<span class="normal"><a href="#src.app.get_configuration--source--__codelineno-0-322">322</a></span>
+<span class="normal"><a href="#src.app.get_configuration--source--__codelineno-0-323">323</a></span>
+<span class="normal"><a href="#src.app.get_configuration--source--__codelineno-0-324">324</a></span>
+<span class="normal"><a href="#src.app.get_configuration--source--__codelineno-0-325">325</a></span>
+<span class="normal"><a href="#src.app.get_configuration--source--__codelineno-0-326">326</a></span>
+<span class="normal"><a href="#src.app.get_configuration--source--__codelineno-0-327">327</a></span>
+<span class="normal"><a href="#src.app.get_configuration--source--__codelineno-0-328">328</a></span>
+<span class="normal"><a href="#src.app.get_configuration--source--__codelineno-0-329">329</a></span>
+<span class="normal"><a href="#src.app.get_configuration--source--__codelineno-0-330">330</a></span>
+<span class="normal"><a href="#src.app.get_configuration--source--__codelineno-0-331">331</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="src.app.get_configuration--source--__span-0-311"><a id="src.app.get_configuration--source--__codelineno-0-311" name="src.app.get_configuration--source--__codelineno-0-311"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_configuration</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">BaseConfig</span><span class="p">:</span>
+</span><span id="src.app.get_configuration--source--__span-0-312"><a id="src.app.get_configuration--source--__codelineno-0-312" name="src.app.get_configuration--source--__codelineno-0-312"></a><span class="w">    </span><span class="sd">"""</span>
+</span><span id="src.app.get_configuration--source--__span-0-313"><a id="src.app.get_configuration--source--__codelineno-0-313" name="src.app.get_configuration--source--__codelineno-0-313"></a><span class="sd">    Determines and returns the appropriate configuration class for the current environment.</span>
+</span><span id="src.app.get_configuration--source--__span-0-314"><a id="src.app.get_configuration--source--__codelineno-0-314" name="src.app.get_configuration--source--__codelineno-0-314"></a>
+</span><span id="src.app.get_configuration--source--__span-0-315"><a id="src.app.get_configuration--source--__codelineno-0-315" name="src.app.get_configuration--source--__codelineno-0-315"></a><span class="sd">    Selects the configuration based on the APP_ENV environment variable,</span>
+</span><span id="src.app.get_configuration--source--__span-0-316"><a id="src.app.get_configuration--source--__codelineno-0-316" name="src.app.get_configuration--source--__codelineno-0-316"></a><span class="sd">    ensures necessary directories exist, and returns the configuration object.</span>
+</span><span id="src.app.get_configuration--source--__span-0-317"><a id="src.app.get_configuration--source--__codelineno-0-317" name="src.app.get_configuration--source--__codelineno-0-317"></a>
+</span><span id="src.app.get_configuration--source--__span-0-318"><a id="src.app.get_configuration--source--__codelineno-0-318" name="src.app.get_configuration--source--__codelineno-0-318"></a><span class="sd">    Returns:</span>
+</span><span id="src.app.get_configuration--source--__span-0-319"><a id="src.app.get_configuration--source--__codelineno-0-319" name="src.app.get_configuration--source--__codelineno-0-319"></a><span class="sd">        BaseConfig: The configuration object for the current environment.</span>
+</span><span id="src.app.get_configuration--source--__span-0-320"><a id="src.app.get_configuration--source--__codelineno-0-320" name="src.app.get_configuration--source--__codelineno-0-320"></a><span class="sd">    """</span>
+</span><span id="src.app.get_configuration--source--__span-0-321"><a id="src.app.get_configuration--source--__codelineno-0-321" name="src.app.get_configuration--source--__codelineno-0-321"></a>    <span class="n">CONFIG_MAP</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="src.app.get_configuration--source--__span-0-322"><a id="src.app.get_configuration--source--__codelineno-0-322" name="src.app.get_configuration--source--__codelineno-0-322"></a>        <span class="s2">"development"</span><span class="p">:</span> <span class="n">DevelopmentConfig</span><span class="p">,</span>
+</span><span id="src.app.get_configuration--source--__span-0-323"><a id="src.app.get_configuration--source--__codelineno-0-323" name="src.app.get_configuration--source--__codelineno-0-323"></a>        <span class="s2">"test"</span><span class="p">:</span> <span class="n">TestConfig</span><span class="p">,</span>
+</span><span id="src.app.get_configuration--source--__span-0-324"><a id="src.app.get_configuration--source--__codelineno-0-324" name="src.app.get_configuration--source--__codelineno-0-324"></a>        <span class="s2">"production"</span><span class="p">:</span> <span class="n">ProductionConfig</span><span class="p">,</span>
+</span><span id="src.app.get_configuration--source--__span-0-325"><a id="src.app.get_configuration--source--__codelineno-0-325" name="src.app.get_configuration--source--__codelineno-0-325"></a>    <span class="p">}</span>
+</span><span id="src.app.get_configuration--source--__span-0-326"><a id="src.app.get_configuration--source--__codelineno-0-326" name="src.app.get_configuration--source--__codelineno-0-326"></a>
+</span><span id="src.app.get_configuration--source--__span-0-327"><a id="src.app.get_configuration--source--__codelineno-0-327" name="src.app.get_configuration--source--__codelineno-0-327"></a>    <span class="n">ENV</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">"APP_ENV"</span><span class="p">,</span> <span class="s2">"development"</span><span class="p">)</span>
+</span><span id="src.app.get_configuration--source--__span-0-328"><a id="src.app.get_configuration--source--__codelineno-0-328" name="src.app.get_configuration--source--__codelineno-0-328"></a>
+</span><span id="src.app.get_configuration--source--__span-0-329"><a id="src.app.get_configuration--source--__codelineno-0-329" name="src.app.get_configuration--source--__codelineno-0-329"></a>    <span class="n">config</span> <span class="o">=</span> <span class="n">CONFIG_MAP</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ENV</span><span class="p">,</span> <span class="n">DevelopmentConfig</span><span class="p">)</span>
+</span><span id="src.app.get_configuration--source--__span-0-330"><a id="src.app.get_configuration--source--__codelineno-0-330" name="src.app.get_configuration--source--__codelineno-0-330"></a>    <span class="n">config</span><span class="o">.</span><span class="n">ensure_dirs</span><span class="p">()</span>
+</span><span id="src.app.get_configuration--source--__span-0-331"><a id="src.app.get_configuration--source--__codelineno-0-331" name="src.app.get_configuration--source--__codelineno-0-331"></a>    <span class="k">return</span> <span class="n">config</span>
 </span></code></pre></div></td></tr></tbody></table></div>
             </details>
     </div>
@@ -2577,27 +2577,27 @@ ensures necessary directories exist, and returns the configuration object.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/app.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-344">344</a></span>
-<span class="normal"><a href="#__codelineno-0-345">345</a></span>
-<span class="normal"><a href="#__codelineno-0-346">346</a></span>
-<span class="normal"><a href="#__codelineno-0-347">347</a></span>
-<span class="normal"><a href="#__codelineno-0-348">348</a></span>
-<span class="normal"><a href="#__codelineno-0-349">349</a></span>
-<span class="normal"><a href="#__codelineno-0-350">350</a></span>
-<span class="normal"><a href="#__codelineno-0-351">351</a></span>
-<span class="normal"><a href="#__codelineno-0-352">352</a></span>
-<span class="normal"><a href="#__codelineno-0-353">353</a></span>
-<span class="normal"><a href="#__codelineno-0-354">354</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-344"><a id="__codelineno-0-344" name="__codelineno-0-344"></a><span class="k">def</span><span class="w"> </span><span class="nf">serve</span><span class="p">(</span><span class="n">debug</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="__span-0-345"><a id="__codelineno-0-345" name="__codelineno-0-345"></a><span class="w">    </span><span class="sd">"""</span>
-</span><span id="__span-0-346"><a id="__codelineno-0-346" name="__codelineno-0-346"></a><span class="sd">    Starts the Flask application server.</span>
-</span><span id="__span-0-347"><a id="__codelineno-0-347" name="__codelineno-0-347"></a>
-</span><span id="__span-0-348"><a id="__codelineno-0-348" name="__codelineno-0-348"></a><span class="sd">    Runs the app on host 0.0.0.0 and port 5000, with debugging enabled or disabled based on the argument.</span>
-</span><span id="__span-0-349"><a id="__codelineno-0-349" name="__codelineno-0-349"></a>
-</span><span id="__span-0-350"><a id="__codelineno-0-350" name="__codelineno-0-350"></a><span class="sd">    Args:</span>
-</span><span id="__span-0-351"><a id="__codelineno-0-351" name="__codelineno-0-351"></a><span class="sd">        debug: Whether to run the server in debug mode. Defaults to True.</span>
-</span><span id="__span-0-352"><a id="__codelineno-0-352" name="__codelineno-0-352"></a><span class="sd">    """</span>
-</span><span id="__span-0-353"><a id="__codelineno-0-353" name="__codelineno-0-353"></a>    <span class="n">app</span> <span class="o">=</span> <span class="n">create_app</span><span class="p">()</span>
-</span><span id="__span-0-354"><a id="__codelineno-0-354" name="__codelineno-0-354"></a>    <span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">,</span> <span class="n">use_reloader</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="s2">"0.0.0.0"</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">5000</span><span class="p">)</span>
+              <div class="language-python highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#src.app.serve--source--__codelineno-0-344">344</a></span>
+<span class="normal"><a href="#src.app.serve--source--__codelineno-0-345">345</a></span>
+<span class="normal"><a href="#src.app.serve--source--__codelineno-0-346">346</a></span>
+<span class="normal"><a href="#src.app.serve--source--__codelineno-0-347">347</a></span>
+<span class="normal"><a href="#src.app.serve--source--__codelineno-0-348">348</a></span>
+<span class="normal"><a href="#src.app.serve--source--__codelineno-0-349">349</a></span>
+<span class="normal"><a href="#src.app.serve--source--__codelineno-0-350">350</a></span>
+<span class="normal"><a href="#src.app.serve--source--__codelineno-0-351">351</a></span>
+<span class="normal"><a href="#src.app.serve--source--__codelineno-0-352">352</a></span>
+<span class="normal"><a href="#src.app.serve--source--__codelineno-0-353">353</a></span>
+<span class="normal"><a href="#src.app.serve--source--__codelineno-0-354">354</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="src.app.serve--source--__span-0-344"><a id="src.app.serve--source--__codelineno-0-344" name="src.app.serve--source--__codelineno-0-344"></a><span class="k">def</span><span class="w"> </span><span class="nf">serve</span><span class="p">(</span><span class="n">debug</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="src.app.serve--source--__span-0-345"><a id="src.app.serve--source--__codelineno-0-345" name="src.app.serve--source--__codelineno-0-345"></a><span class="w">    </span><span class="sd">"""</span>
+</span><span id="src.app.serve--source--__span-0-346"><a id="src.app.serve--source--__codelineno-0-346" name="src.app.serve--source--__codelineno-0-346"></a><span class="sd">    Starts the Flask application server.</span>
+</span><span id="src.app.serve--source--__span-0-347"><a id="src.app.serve--source--__codelineno-0-347" name="src.app.serve--source--__codelineno-0-347"></a>
+</span><span id="src.app.serve--source--__span-0-348"><a id="src.app.serve--source--__codelineno-0-348" name="src.app.serve--source--__codelineno-0-348"></a><span class="sd">    Runs the app on host 0.0.0.0 and port 5000, with debugging enabled or disabled based on the argument.</span>
+</span><span id="src.app.serve--source--__span-0-349"><a id="src.app.serve--source--__codelineno-0-349" name="src.app.serve--source--__codelineno-0-349"></a>
+</span><span id="src.app.serve--source--__span-0-350"><a id="src.app.serve--source--__codelineno-0-350" name="src.app.serve--source--__codelineno-0-350"></a><span class="sd">    Args:</span>
+</span><span id="src.app.serve--source--__span-0-351"><a id="src.app.serve--source--__codelineno-0-351" name="src.app.serve--source--__codelineno-0-351"></a><span class="sd">        debug: Whether to run the server in debug mode. Defaults to True.</span>
+</span><span id="src.app.serve--source--__span-0-352"><a id="src.app.serve--source--__codelineno-0-352" name="src.app.serve--source--__codelineno-0-352"></a><span class="sd">    """</span>
+</span><span id="src.app.serve--source--__span-0-353"><a id="src.app.serve--source--__codelineno-0-353" name="src.app.serve--source--__codelineno-0-353"></a>    <span class="n">app</span> <span class="o">=</span> <span class="n">create_app</span><span class="p">()</span>
+</span><span id="src.app.serve--source--__span-0-354"><a id="src.app.serve--source--__codelineno-0-354" name="src.app.serve--source--__codelineno-0-354"></a>    <span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">,</span> <span class="n">use_reloader</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="s2">"0.0.0.0"</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">5000</span><span class="p">)</span>
 </span></code></pre></div></td></tr></tbody></table></div>
             </details>
     </div>
@@ -2809,10 +2809,10 @@ ensures necessary directories exist, and returns the configuration object.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.indexes", "navigation.prune", "navigation.path", "navigation.footer", "navigation.tracking", "toc.follow", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.select", "content.code.annotate", "content.action.edit", "content.action.view", "content.tooltips", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.indexes", "navigation.prune", "navigation.path", "navigation.footer", "navigation.tracking", "toc.follow", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.select", "content.code.annotate", "content.action.edit", "content.action.view", "content.tooltips", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
       
         <script src="../../js/timeago.min.js"></script>
       

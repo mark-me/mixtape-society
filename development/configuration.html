@@ -22,7 +22,7 @@
       
       
       <link rel="icon" href="../images/logo.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
     
     
       
@@ -30,10 +30,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -81,7 +81,7 @@
             body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
             body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
         </style><meta name="panzoom-theme" content="material">
-<meta name="panzoom-data" content='{"selectors": [".mermaid", ".d2"], "initial_zoom_level": 1.0}'> </head>
+<meta name="panzoom-data" content='{"selectors": [".d2", ".mermaid"], "initial_zoom_level": 1.0}'> </head>
   
   
     
@@ -1907,27 +1907,27 @@ databases, mixtapes, covers, and cached audio files.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/config/config.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-58">58</a></span>
-<span class="normal"><a href="#__codelineno-0-59">59</a></span>
-<span class="normal"><a href="#__codelineno-0-60">60</a></span>
-<span class="normal"><a href="#__codelineno-0-61">61</a></span>
-<span class="normal"><a href="#__codelineno-0-62">62</a></span>
-<span class="normal"><a href="#__codelineno-0-63">63</a></span>
-<span class="normal"><a href="#__codelineno-0-64">64</a></span>
-<span class="normal"><a href="#__codelineno-0-65">65</a></span>
-<span class="normal"><a href="#__codelineno-0-66">66</a></span>
-<span class="normal"><a href="#__codelineno-0-67">67</a></span>
-<span class="normal"><a href="#__codelineno-0-68">68</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-58"><a id="__codelineno-0-58" name="__codelineno-0-58"></a><span class="nd">@classmethod</span>
-</span><span id="__span-0-59"><a id="__codelineno-0-59" name="__codelineno-0-59"></a><span class="k">def</span><span class="w"> </span><span class="nf">ensure_dirs</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-</span><span id="__span-0-60"><a id="__codelineno-0-60" name="__codelineno-0-60"></a><span class="w">    </span><span class="sd">"""Create all required data and cache directories if they do not exist.</span>
-</span><span id="__span-0-61"><a id="__codelineno-0-61" name="__codelineno-0-61"></a>
-</span><span id="__span-0-62"><a id="__codelineno-0-62" name="__codelineno-0-62"></a><span class="sd">    This method prepares the filesystem so the application can safely store</span>
-</span><span id="__span-0-63"><a id="__codelineno-0-63" name="__codelineno-0-63"></a><span class="sd">    databases, mixtapes, covers, and cached audio files.</span>
-</span><span id="__span-0-64"><a id="__codelineno-0-64" name="__codelineno-0-64"></a><span class="sd">    """</span>
-</span><span id="__span-0-65"><a id="__codelineno-0-65" name="__codelineno-0-65"></a>    <span class="bp">cls</span><span class="o">.</span><span class="n">DATA_ROOT</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="__span-0-66"><a id="__codelineno-0-66" name="__codelineno-0-66"></a>    <span class="bp">cls</span><span class="o">.</span><span class="n">MIXTAPE_DIR</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="__span-0-67"><a id="__codelineno-0-67" name="__codelineno-0-67"></a>    <span class="bp">cls</span><span class="o">.</span><span class="n">COVER_DIR</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="__span-0-68"><a id="__codelineno-0-68" name="__codelineno-0-68"></a>    <span class="bp">cls</span><span class="o">.</span><span class="n">AUDIO_CACHE_DIR</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+              <div class="language-python highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#src.config.config.BaseConfig.ensure_dirs--source--__codelineno-0-58">58</a></span>
+<span class="normal"><a href="#src.config.config.BaseConfig.ensure_dirs--source--__codelineno-0-59">59</a></span>
+<span class="normal"><a href="#src.config.config.BaseConfig.ensure_dirs--source--__codelineno-0-60">60</a></span>
+<span class="normal"><a href="#src.config.config.BaseConfig.ensure_dirs--source--__codelineno-0-61">61</a></span>
+<span class="normal"><a href="#src.config.config.BaseConfig.ensure_dirs--source--__codelineno-0-62">62</a></span>
+<span class="normal"><a href="#src.config.config.BaseConfig.ensure_dirs--source--__codelineno-0-63">63</a></span>
+<span class="normal"><a href="#src.config.config.BaseConfig.ensure_dirs--source--__codelineno-0-64">64</a></span>
+<span class="normal"><a href="#src.config.config.BaseConfig.ensure_dirs--source--__codelineno-0-65">65</a></span>
+<span class="normal"><a href="#src.config.config.BaseConfig.ensure_dirs--source--__codelineno-0-66">66</a></span>
+<span class="normal"><a href="#src.config.config.BaseConfig.ensure_dirs--source--__codelineno-0-67">67</a></span>
+<span class="normal"><a href="#src.config.config.BaseConfig.ensure_dirs--source--__codelineno-0-68">68</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="src.config.config.BaseConfig.ensure_dirs--source--__span-0-58"><a id="src.config.config.BaseConfig.ensure_dirs--source--__codelineno-0-58" name="src.config.config.BaseConfig.ensure_dirs--source--__codelineno-0-58"></a><span class="nd">@classmethod</span>
+</span><span id="src.config.config.BaseConfig.ensure_dirs--source--__span-0-59"><a id="src.config.config.BaseConfig.ensure_dirs--source--__codelineno-0-59" name="src.config.config.BaseConfig.ensure_dirs--source--__codelineno-0-59"></a><span class="k">def</span><span class="w"> </span><span class="nf">ensure_dirs</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+</span><span id="src.config.config.BaseConfig.ensure_dirs--source--__span-0-60"><a id="src.config.config.BaseConfig.ensure_dirs--source--__codelineno-0-60" name="src.config.config.BaseConfig.ensure_dirs--source--__codelineno-0-60"></a><span class="w">    </span><span class="sd">"""Create all required data and cache directories if they do not exist.</span>
+</span><span id="src.config.config.BaseConfig.ensure_dirs--source--__span-0-61"><a id="src.config.config.BaseConfig.ensure_dirs--source--__codelineno-0-61" name="src.config.config.BaseConfig.ensure_dirs--source--__codelineno-0-61"></a>
+</span><span id="src.config.config.BaseConfig.ensure_dirs--source--__span-0-62"><a id="src.config.config.BaseConfig.ensure_dirs--source--__codelineno-0-62" name="src.config.config.BaseConfig.ensure_dirs--source--__codelineno-0-62"></a><span class="sd">    This method prepares the filesystem so the application can safely store</span>
+</span><span id="src.config.config.BaseConfig.ensure_dirs--source--__span-0-63"><a id="src.config.config.BaseConfig.ensure_dirs--source--__codelineno-0-63" name="src.config.config.BaseConfig.ensure_dirs--source--__codelineno-0-63"></a><span class="sd">    databases, mixtapes, covers, and cached audio files.</span>
+</span><span id="src.config.config.BaseConfig.ensure_dirs--source--__span-0-64"><a id="src.config.config.BaseConfig.ensure_dirs--source--__codelineno-0-64" name="src.config.config.BaseConfig.ensure_dirs--source--__codelineno-0-64"></a><span class="sd">    """</span>
+</span><span id="src.config.config.BaseConfig.ensure_dirs--source--__span-0-65"><a id="src.config.config.BaseConfig.ensure_dirs--source--__codelineno-0-65" name="src.config.config.BaseConfig.ensure_dirs--source--__codelineno-0-65"></a>    <span class="bp">cls</span><span class="o">.</span><span class="n">DATA_ROOT</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="src.config.config.BaseConfig.ensure_dirs--source--__span-0-66"><a id="src.config.config.BaseConfig.ensure_dirs--source--__codelineno-0-66" name="src.config.config.BaseConfig.ensure_dirs--source--__codelineno-0-66"></a>    <span class="bp">cls</span><span class="o">.</span><span class="n">MIXTAPE_DIR</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="src.config.config.BaseConfig.ensure_dirs--source--__span-0-67"><a id="src.config.config.BaseConfig.ensure_dirs--source--__codelineno-0-67" name="src.config.config.BaseConfig.ensure_dirs--source--__codelineno-0-67"></a>    <span class="bp">cls</span><span class="o">.</span><span class="n">COVER_DIR</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="src.config.config.BaseConfig.ensure_dirs--source--__span-0-68"><a id="src.config.config.BaseConfig.ensure_dirs--source--__codelineno-0-68" name="src.config.config.BaseConfig.ensure_dirs--source--__codelineno-0-68"></a>    <span class="bp">cls</span><span class="o">.</span><span class="n">AUDIO_CACHE_DIR</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </span></code></pre></div></td></tr></tbody></table></div>
             </details>
     </div>
@@ -2313,10 +2313,10 @@ development-focused settings like debugging.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.indexes", "navigation.prune", "navigation.path", "navigation.footer", "navigation.tracking", "toc.follow", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.select", "content.code.annotate", "content.action.edit", "content.action.view", "content.tooltips", "content.tabs.link"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.indexes", "navigation.prune", "navigation.path", "navigation.footer", "navigation.tracking", "toc.follow", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.select", "content.code.annotate", "content.action.edit", "content.action.view", "content.tooltips", "content.tabs.link"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../assets/javascripts/bundle.c21346df.min.js"></script>
       
         <script src="../js/timeago.min.js"></script>
       

@@ -22,7 +22,7 @@
       
       
       <link rel="icon" href="../../images/logo.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
     
     
       
@@ -30,10 +30,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -81,7 +81,7 @@
             body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
             body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
         </style><meta name="panzoom-theme" content="material">
-<meta name="panzoom-data" content='{"selectors": [".mermaid", ".d2"], "initial_zoom_level": 1.0}'> </head>
+<meta name="panzoom-data" content='{"selectors": [".d2", ".mermaid"], "initial_zoom_level": 1.0}'> </head>
   
   
     
@@ -1839,153 +1839,153 @@ Two flavours are offered:</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/qr_generator/qr_generator.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-19">19</a></span>
-<span class="normal"><a href="#__codelineno-0-20">20</a></span>
-<span class="normal"><a href="#__codelineno-0-21">21</a></span>
-<span class="normal"><a href="#__codelineno-0-22">22</a></span>
-<span class="normal"><a href="#__codelineno-0-23">23</a></span>
-<span class="normal"><a href="#__codelineno-0-24">24</a></span>
-<span class="normal"><a href="#__codelineno-0-25">25</a></span>
-<span class="normal"><a href="#__codelineno-0-26">26</a></span>
-<span class="normal"><a href="#__codelineno-0-27">27</a></span>
-<span class="normal"><a href="#__codelineno-0-28">28</a></span>
-<span class="normal"><a href="#__codelineno-0-29">29</a></span>
-<span class="normal"><a href="#__codelineno-0-30">30</a></span>
-<span class="normal"><a href="#__codelineno-0-31">31</a></span>
-<span class="normal"><a href="#__codelineno-0-32">32</a></span>
-<span class="normal"><a href="#__codelineno-0-33">33</a></span>
-<span class="normal"><a href="#__codelineno-0-34">34</a></span>
-<span class="normal"><a href="#__codelineno-0-35">35</a></span>
-<span class="normal"><a href="#__codelineno-0-36">36</a></span>
-<span class="normal"><a href="#__codelineno-0-37">37</a></span>
-<span class="normal"><a href="#__codelineno-0-38">38</a></span>
-<span class="normal"><a href="#__codelineno-0-39">39</a></span>
-<span class="normal"><a href="#__codelineno-0-40">40</a></span>
-<span class="normal"><a href="#__codelineno-0-41">41</a></span>
-<span class="normal"><a href="#__codelineno-0-42">42</a></span>
-<span class="normal"><a href="#__codelineno-0-43">43</a></span>
-<span class="normal"><a href="#__codelineno-0-44">44</a></span>
-<span class="normal"><a href="#__codelineno-0-45">45</a></span>
-<span class="normal"><a href="#__codelineno-0-46">46</a></span>
-<span class="normal"><a href="#__codelineno-0-47">47</a></span>
-<span class="normal"><a href="#__codelineno-0-48">48</a></span>
-<span class="normal"><a href="#__codelineno-0-49">49</a></span>
-<span class="normal"><a href="#__codelineno-0-50">50</a></span>
-<span class="normal"><a href="#__codelineno-0-51">51</a></span>
-<span class="normal"><a href="#__codelineno-0-52">52</a></span>
-<span class="normal"><a href="#__codelineno-0-53">53</a></span>
-<span class="normal"><a href="#__codelineno-0-54">54</a></span>
-<span class="normal"><a href="#__codelineno-0-55">55</a></span>
-<span class="normal"><a href="#__codelineno-0-56">56</a></span>
-<span class="normal"><a href="#__codelineno-0-57">57</a></span>
-<span class="normal"><a href="#__codelineno-0-58">58</a></span>
-<span class="normal"><a href="#__codelineno-0-59">59</a></span>
-<span class="normal"><a href="#__codelineno-0-60">60</a></span>
-<span class="normal"><a href="#__codelineno-0-61">61</a></span>
-<span class="normal"><a href="#__codelineno-0-62">62</a></span>
-<span class="normal"><a href="#__codelineno-0-63">63</a></span>
-<span class="normal"><a href="#__codelineno-0-64">64</a></span>
-<span class="normal"><a href="#__codelineno-0-65">65</a></span>
-<span class="normal"><a href="#__codelineno-0-66">66</a></span>
-<span class="normal"><a href="#__codelineno-0-67">67</a></span>
-<span class="normal"><a href="#__codelineno-0-68">68</a></span>
-<span class="normal"><a href="#__codelineno-0-69">69</a></span>
-<span class="normal"><a href="#__codelineno-0-70">70</a></span>
-<span class="normal"><a href="#__codelineno-0-71">71</a></span>
-<span class="normal"><a href="#__codelineno-0-72">72</a></span>
-<span class="normal"><a href="#__codelineno-0-73">73</a></span>
-<span class="normal"><a href="#__codelineno-0-74">74</a></span>
-<span class="normal"><a href="#__codelineno-0-75">75</a></span>
-<span class="normal"><a href="#__codelineno-0-76">76</a></span>
-<span class="normal"><a href="#__codelineno-0-77">77</a></span>
-<span class="normal"><a href="#__codelineno-0-78">78</a></span>
-<span class="normal"><a href="#__codelineno-0-79">79</a></span>
-<span class="normal"><a href="#__codelineno-0-80">80</a></span>
-<span class="normal"><a href="#__codelineno-0-81">81</a></span>
-<span class="normal"><a href="#__codelineno-0-82">82</a></span>
-<span class="normal"><a href="#__codelineno-0-83">83</a></span>
-<span class="normal"><a href="#__codelineno-0-84">84</a></span>
-<span class="normal"><a href="#__codelineno-0-85">85</a></span>
-<span class="normal"><a href="#__codelineno-0-86">86</a></span>
-<span class="normal"><a href="#__codelineno-0-87">87</a></span>
-<span class="normal"><a href="#__codelineno-0-88">88</a></span>
-<span class="normal"><a href="#__codelineno-0-89">89</a></span>
-<span class="normal"><a href="#__codelineno-0-90">90</a></span>
-<span class="normal"><a href="#__codelineno-0-91">91</a></span>
-<span class="normal"><a href="#__codelineno-0-92">92</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19"></a><span class="k">def</span><span class="w"> </span><span class="nf">generate_mixtape_qr_with_cover</span><span class="p">(</span>
-</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20"></a>    <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21"></a>    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22"></a>    <span class="n">cover_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23"></a>    <span class="n">logo_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24"></a>    <span class="n">qr_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">400</span><span class="p">,</span>
-</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25"></a>    <span class="n">include_title</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
-</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27"></a><span class="w">    </span><span class="sd">"""</span>
-</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28"></a><span class="sd">    Generate a branded QR code with mixtape cover art and title.</span>
-</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29"></a>
-</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30"></a><span class="sd">    Creates a composite image with:</span>
-</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31"></a><span class="sd">    - Mixtape cover art at the top</span>
-</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32"></a><span class="sd">    - Title banner below cover</span>
-</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33"></a><span class="sd">    - QR code at the bottom</span>
-</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34"></a><span class="sd">    - Optional logo in QR center</span>
-</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35"></a>
-</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36"></a><span class="sd">    Args:</span>
-</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37"></a><span class="sd">        url: The full URL to encode in the QR code</span>
-</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38"></a><span class="sd">        title: The mixtape title to display</span>
-</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39"></a><span class="sd">        cover_path: Path to mixtape cover image</span>
-</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40"></a><span class="sd">        logo_path: Optional path to logo for QR center</span>
-</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41"></a><span class="sd">        qr_size: Size of the QR code portion (default 400)</span>
-</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42"></a><span class="sd">        include_title: Whether to include title banner (default True)</span>
-</span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43"></a>
-</span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44"></a><span class="sd">    Returns:</span>
-</span><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45"></a><span class="sd">        bytes: PNG image data of the complete branded QR code</span>
-</span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46"></a>
-</span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47"></a><span class="sd">    Raises:</span>
-</span><span id="__span-0-48"><a id="__codelineno-0-48" name="__codelineno-0-48"></a><span class="sd">        ImportError: If qrcode library is not installed</span>
-</span><span id="__span-0-49"><a id="__codelineno-0-49" name="__codelineno-0-49"></a><span class="sd">    """</span>
-</span><span id="__span-0-50"><a id="__codelineno-0-50" name="__codelineno-0-50"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">QR_AVAILABLE</span><span class="p">:</span>
-</span><span id="__span-0-51"><a id="__codelineno-0-51" name="__codelineno-0-51"></a>        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
-</span><span id="__span-0-52"><a id="__codelineno-0-52" name="__codelineno-0-52"></a>            <span class="s2">"qrcode library not installed. Install with: uv add qrcode pillow"</span>
-</span><span id="__span-0-53"><a id="__codelineno-0-53" name="__codelineno-0-53"></a>        <span class="p">)</span>
-</span><span id="__span-0-54"><a id="__codelineno-0-54" name="__codelineno-0-54"></a>
-</span><span id="__span-0-55"><a id="__codelineno-0-55" name="__codelineno-0-55"></a>    <span class="c1"># Generate base QR code</span>
-</span><span id="__span-0-56"><a id="__codelineno-0-56" name="__codelineno-0-56"></a>    <span class="n">qr</span> <span class="o">=</span> <span class="n">qrcode</span><span class="o">.</span><span class="n">QRCode</span><span class="p">(</span>
-</span><span id="__span-0-57"><a id="__codelineno-0-57" name="__codelineno-0-57"></a>        <span class="n">version</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-</span><span id="__span-0-58"><a id="__codelineno-0-58" name="__codelineno-0-58"></a>        <span class="n">error_correction</span><span class="o">=</span><span class="n">qrcode</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">ERROR_CORRECT_H</span><span class="p">,</span>
-</span><span id="__span-0-59"><a id="__codelineno-0-59" name="__codelineno-0-59"></a>        <span class="n">box_size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
-</span><span id="__span-0-60"><a id="__codelineno-0-60" name="__codelineno-0-60"></a>        <span class="n">border</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-</span><span id="__span-0-61"><a id="__codelineno-0-61" name="__codelineno-0-61"></a>    <span class="p">)</span>
-</span><span id="__span-0-62"><a id="__codelineno-0-62" name="__codelineno-0-62"></a>
-</span><span id="__span-0-63"><a id="__codelineno-0-63" name="__codelineno-0-63"></a>    <span class="n">qr</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
-</span><span id="__span-0-64"><a id="__codelineno-0-64" name="__codelineno-0-64"></a>    <span class="n">qr</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">fit</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="__span-0-65"><a id="__codelineno-0-65" name="__codelineno-0-65"></a>
-</span><span id="__span-0-66"><a id="__codelineno-0-66" name="__codelineno-0-66"></a>    <span class="c1"># Create styled QR code</span>
-</span><span id="__span-0-67"><a id="__codelineno-0-67" name="__codelineno-0-67"></a>    <span class="n">qr_img</span> <span class="o">=</span> <span class="n">qr</span><span class="o">.</span><span class="n">make_image</span><span class="p">(</span>
-</span><span id="__span-0-68"><a id="__codelineno-0-68" name="__codelineno-0-68"></a>        <span class="n">image_factory</span><span class="o">=</span><span class="n">StyledPilImage</span><span class="p">,</span>
-</span><span id="__span-0-69"><a id="__codelineno-0-69" name="__codelineno-0-69"></a>        <span class="n">module_drawer</span><span class="o">=</span><span class="n">RoundedModuleDrawer</span><span class="p">(),</span>
-</span><span id="__span-0-70"><a id="__codelineno-0-70" name="__codelineno-0-70"></a>        <span class="n">color_mask</span><span class="o">=</span><span class="n">SolidFillColorMask</span><span class="p">(</span>
-</span><span id="__span-0-71"><a id="__codelineno-0-71" name="__codelineno-0-71"></a>            <span class="n">back_color</span><span class="o">=</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
-</span><span id="__span-0-72"><a id="__codelineno-0-72" name="__codelineno-0-72"></a>            <span class="n">front_color</span><span class="o">=</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="mi">58</span><span class="p">,</span> <span class="mi">95</span><span class="p">),</span>  <span class="c1"># Navy blue</span>
-</span><span id="__span-0-73"><a id="__codelineno-0-73" name="__codelineno-0-73"></a>        <span class="p">),</span>
-</span><span id="__span-0-74"><a id="__codelineno-0-74" name="__codelineno-0-74"></a>    <span class="p">)</span>
-</span><span id="__span-0-75"><a id="__codelineno-0-75" name="__codelineno-0-75"></a>
-</span><span id="__span-0-76"><a id="__codelineno-0-76" name="__codelineno-0-76"></a>    <span class="n">qr_img</span> <span class="o">=</span> <span class="n">qr_img</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="n">qr_size</span><span class="p">,</span> <span class="n">qr_size</span><span class="p">),</span> <span class="n">Image</span><span class="o">.</span><span class="n">Resampling</span><span class="o">.</span><span class="n">LANCZOS</span><span class="p">)</span>
-</span><span id="__span-0-77"><a id="__codelineno-0-77" name="__codelineno-0-77"></a>
-</span><span id="__span-0-78"><a id="__codelineno-0-78" name="__codelineno-0-78"></a>    <span class="c1"># Add logo to QR center if provided</span>
-</span><span id="__span-0-79"><a id="__codelineno-0-79" name="__codelineno-0-79"></a>    <span class="k">if</span> <span class="n">logo_path</span> <span class="ow">and</span> <span class="n">logo_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-</span><span id="__span-0-80"><a id="__codelineno-0-80" name="__codelineno-0-80"></a>        <span class="n">qr_img</span> <span class="o">=</span> <span class="n">_add_logo_to_qr</span><span class="p">(</span><span class="n">qr_img</span><span class="p">,</span> <span class="n">logo_path</span><span class="p">)</span>
-</span><span id="__span-0-81"><a id="__codelineno-0-81" name="__codelineno-0-81"></a>
-</span><span id="__span-0-82"><a id="__codelineno-0-82" name="__codelineno-0-82"></a>    <span class="c1"># Create composite image with cover and title</span>
-</span><span id="__span-0-83"><a id="__codelineno-0-83" name="__codelineno-0-83"></a>    <span class="n">composite</span> <span class="o">=</span> <span class="n">_create_composite_image</span><span class="p">(</span>
-</span><span id="__span-0-84"><a id="__codelineno-0-84" name="__codelineno-0-84"></a>        <span class="n">qr_img</span><span class="o">=</span><span class="n">qr_img</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">cover_path</span><span class="o">=</span><span class="n">cover_path</span><span class="p">,</span> <span class="n">include_title</span><span class="o">=</span><span class="n">include_title</span>
-</span><span id="__span-0-85"><a id="__codelineno-0-85" name="__codelineno-0-85"></a>    <span class="p">)</span>
-</span><span id="__span-0-86"><a id="__codelineno-0-86" name="__codelineno-0-86"></a>
-</span><span id="__span-0-87"><a id="__codelineno-0-87" name="__codelineno-0-87"></a>    <span class="c1"># Convert to bytes</span>
-</span><span id="__span-0-88"><a id="__codelineno-0-88" name="__codelineno-0-88"></a>    <span class="n">buffer</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span>
-</span><span id="__span-0-89"><a id="__codelineno-0-89" name="__codelineno-0-89"></a>    <span class="n">composite</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">"PNG"</span><span class="p">,</span> <span class="n">optimize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="__span-0-90"><a id="__codelineno-0-90" name="__codelineno-0-90"></a>    <span class="n">buffer</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-</span><span id="__span-0-91"><a id="__codelineno-0-91" name="__codelineno-0-91"></a>
-</span><span id="__span-0-92"><a id="__codelineno-0-92" name="__codelineno-0-92"></a>    <span class="k">return</span> <span class="n">buffer</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span>
+              <div class="language-python highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-19">19</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-20">20</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-21">21</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-22">22</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-23">23</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-24">24</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-25">25</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-26">26</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-27">27</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-28">28</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-29">29</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-30">30</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-31">31</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-32">32</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-33">33</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-34">34</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-35">35</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-36">36</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-37">37</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-38">38</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-39">39</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-40">40</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-41">41</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-42">42</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-43">43</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-44">44</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-45">45</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-46">46</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-47">47</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-48">48</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-49">49</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-50">50</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-51">51</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-52">52</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-53">53</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-54">54</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-55">55</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-56">56</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-57">57</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-58">58</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-59">59</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-60">60</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-61">61</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-62">62</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-63">63</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-64">64</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-65">65</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-66">66</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-67">67</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-68">68</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-69">69</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-70">70</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-71">71</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-72">72</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-73">73</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-74">74</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-75">75</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-76">76</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-77">77</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-78">78</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-79">79</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-80">80</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-81">81</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-82">82</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-83">83</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-84">84</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-85">85</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-86">86</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-87">87</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-88">88</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-89">89</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-90">90</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-91">91</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-92">92</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-19"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-19" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-19"></a><span class="k">def</span><span class="w"> </span><span class="nf">generate_mixtape_qr_with_cover</span><span class="p">(</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-20"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-20" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-20"></a>    <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-21"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-21" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-21"></a>    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-22"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-22" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-22"></a>    <span class="n">cover_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-23"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-23" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-23"></a>    <span class="n">logo_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-24"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-24" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-24"></a>    <span class="n">qr_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">400</span><span class="p">,</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-25"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-25" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-25"></a>    <span class="n">include_title</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-26"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-26" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-26"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-27"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-27" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-27"></a><span class="w">    </span><span class="sd">"""</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-28"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-28" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-28"></a><span class="sd">    Generate a branded QR code with mixtape cover art and title.</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-29"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-29" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-29"></a>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-30"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-30" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-30"></a><span class="sd">    Creates a composite image with:</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-31"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-31" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-31"></a><span class="sd">    - Mixtape cover art at the top</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-32"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-32" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-32"></a><span class="sd">    - Title banner below cover</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-33"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-33" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-33"></a><span class="sd">    - QR code at the bottom</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-34"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-34" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-34"></a><span class="sd">    - Optional logo in QR center</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-35"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-35" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-35"></a>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-36"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-36" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-36"></a><span class="sd">    Args:</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-37"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-37" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-37"></a><span class="sd">        url: The full URL to encode in the QR code</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-38"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-38" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-38"></a><span class="sd">        title: The mixtape title to display</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-39"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-39" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-39"></a><span class="sd">        cover_path: Path to mixtape cover image</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-40"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-40" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-40"></a><span class="sd">        logo_path: Optional path to logo for QR center</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-41"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-41" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-41"></a><span class="sd">        qr_size: Size of the QR code portion (default 400)</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-42"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-42" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-42"></a><span class="sd">        include_title: Whether to include title banner (default True)</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-43"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-43" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-43"></a>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-44"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-44" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-44"></a><span class="sd">    Returns:</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-45"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-45" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-45"></a><span class="sd">        bytes: PNG image data of the complete branded QR code</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-46"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-46" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-46"></a>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-47"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-47" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-47"></a><span class="sd">    Raises:</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-48"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-48" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-48"></a><span class="sd">        ImportError: If qrcode library is not installed</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-49"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-49" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-49"></a><span class="sd">    """</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-50"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-50" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-50"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">QR_AVAILABLE</span><span class="p">:</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-51"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-51" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-51"></a>        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-52"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-52" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-52"></a>            <span class="s2">"qrcode library not installed. Install with: uv add qrcode pillow"</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-53"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-53" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-53"></a>        <span class="p">)</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-54"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-54" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-54"></a>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-55"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-55" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-55"></a>    <span class="c1"># Generate base QR code</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-56"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-56" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-56"></a>    <span class="n">qr</span> <span class="o">=</span> <span class="n">qrcode</span><span class="o">.</span><span class="n">QRCode</span><span class="p">(</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-57"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-57" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-57"></a>        <span class="n">version</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-58"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-58" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-58"></a>        <span class="n">error_correction</span><span class="o">=</span><span class="n">qrcode</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">ERROR_CORRECT_H</span><span class="p">,</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-59"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-59" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-59"></a>        <span class="n">box_size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-60"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-60" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-60"></a>        <span class="n">border</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-61"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-61" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-61"></a>    <span class="p">)</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-62"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-62" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-62"></a>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-63"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-63" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-63"></a>    <span class="n">qr</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-64"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-64" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-64"></a>    <span class="n">qr</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">fit</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-65"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-65" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-65"></a>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-66"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-66" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-66"></a>    <span class="c1"># Create styled QR code</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-67"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-67" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-67"></a>    <span class="n">qr_img</span> <span class="o">=</span> <span class="n">qr</span><span class="o">.</span><span class="n">make_image</span><span class="p">(</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-68"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-68" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-68"></a>        <span class="n">image_factory</span><span class="o">=</span><span class="n">StyledPilImage</span><span class="p">,</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-69"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-69" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-69"></a>        <span class="n">module_drawer</span><span class="o">=</span><span class="n">RoundedModuleDrawer</span><span class="p">(),</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-70"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-70" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-70"></a>        <span class="n">color_mask</span><span class="o">=</span><span class="n">SolidFillColorMask</span><span class="p">(</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-71"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-71" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-71"></a>            <span class="n">back_color</span><span class="o">=</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-72"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-72" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-72"></a>            <span class="n">front_color</span><span class="o">=</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="mi">58</span><span class="p">,</span> <span class="mi">95</span><span class="p">),</span>  <span class="c1"># Navy blue</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-73"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-73" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-73"></a>        <span class="p">),</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-74"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-74" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-74"></a>    <span class="p">)</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-75"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-75" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-75"></a>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-76"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-76" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-76"></a>    <span class="n">qr_img</span> <span class="o">=</span> <span class="n">qr_img</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="n">qr_size</span><span class="p">,</span> <span class="n">qr_size</span><span class="p">),</span> <span class="n">Image</span><span class="o">.</span><span class="n">Resampling</span><span class="o">.</span><span class="n">LANCZOS</span><span class="p">)</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-77"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-77" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-77"></a>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-78"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-78" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-78"></a>    <span class="c1"># Add logo to QR center if provided</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-79"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-79" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-79"></a>    <span class="k">if</span> <span class="n">logo_path</span> <span class="ow">and</span> <span class="n">logo_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-80"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-80" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-80"></a>        <span class="n">qr_img</span> <span class="o">=</span> <span class="n">_add_logo_to_qr</span><span class="p">(</span><span class="n">qr_img</span><span class="p">,</span> <span class="n">logo_path</span><span class="p">)</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-81"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-81" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-81"></a>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-82"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-82" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-82"></a>    <span class="c1"># Create composite image with cover and title</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-83"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-83" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-83"></a>    <span class="n">composite</span> <span class="o">=</span> <span class="n">_create_composite_image</span><span class="p">(</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-84"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-84" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-84"></a>        <span class="n">qr_img</span><span class="o">=</span><span class="n">qr_img</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">cover_path</span><span class="o">=</span><span class="n">cover_path</span><span class="p">,</span> <span class="n">include_title</span><span class="o">=</span><span class="n">include_title</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-85"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-85" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-85"></a>    <span class="p">)</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-86"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-86" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-86"></a>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-87"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-87" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-87"></a>    <span class="c1"># Convert to bytes</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-88"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-88" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-88"></a>    <span class="n">buffer</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-89"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-89" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-89"></a>    <span class="n">composite</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">"PNG"</span><span class="p">,</span> <span class="n">optimize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-90"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-90" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-90"></a>    <span class="n">buffer</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-91"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-91" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-91"></a>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__span-0-92"><a id="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-92" name="src.qr_generator.qr_generator.generate_mixtape_qr_with_cover--source--__codelineno-0-92"></a>    <span class="k">return</span> <span class="n">buffer</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span>
 </span></code></pre></div></td></tr></tbody></table></div>
             </details>
     </div>
@@ -2009,87 +2009,87 @@ Two flavours are offered:</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/qr_generator/qr_generator.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-270">270</a></span>
-<span class="normal"><a href="#__codelineno-0-271">271</a></span>
-<span class="normal"><a href="#__codelineno-0-272">272</a></span>
-<span class="normal"><a href="#__codelineno-0-273">273</a></span>
-<span class="normal"><a href="#__codelineno-0-274">274</a></span>
-<span class="normal"><a href="#__codelineno-0-275">275</a></span>
-<span class="normal"><a href="#__codelineno-0-276">276</a></span>
-<span class="normal"><a href="#__codelineno-0-277">277</a></span>
-<span class="normal"><a href="#__codelineno-0-278">278</a></span>
-<span class="normal"><a href="#__codelineno-0-279">279</a></span>
-<span class="normal"><a href="#__codelineno-0-280">280</a></span>
-<span class="normal"><a href="#__codelineno-0-281">281</a></span>
-<span class="normal"><a href="#__codelineno-0-282">282</a></span>
-<span class="normal"><a href="#__codelineno-0-283">283</a></span>
-<span class="normal"><a href="#__codelineno-0-284">284</a></span>
-<span class="normal"><a href="#__codelineno-0-285">285</a></span>
-<span class="normal"><a href="#__codelineno-0-286">286</a></span>
-<span class="normal"><a href="#__codelineno-0-287">287</a></span>
-<span class="normal"><a href="#__codelineno-0-288">288</a></span>
-<span class="normal"><a href="#__codelineno-0-289">289</a></span>
-<span class="normal"><a href="#__codelineno-0-290">290</a></span>
-<span class="normal"><a href="#__codelineno-0-291">291</a></span>
-<span class="normal"><a href="#__codelineno-0-292">292</a></span>
-<span class="normal"><a href="#__codelineno-0-293">293</a></span>
-<span class="normal"><a href="#__codelineno-0-294">294</a></span>
-<span class="normal"><a href="#__codelineno-0-295">295</a></span>
-<span class="normal"><a href="#__codelineno-0-296">296</a></span>
-<span class="normal"><a href="#__codelineno-0-297">297</a></span>
-<span class="normal"><a href="#__codelineno-0-298">298</a></span>
-<span class="normal"><a href="#__codelineno-0-299">299</a></span>
-<span class="normal"><a href="#__codelineno-0-300">300</a></span>
-<span class="normal"><a href="#__codelineno-0-301">301</a></span>
-<span class="normal"><a href="#__codelineno-0-302">302</a></span>
-<span class="normal"><a href="#__codelineno-0-303">303</a></span>
-<span class="normal"><a href="#__codelineno-0-304">304</a></span>
-<span class="normal"><a href="#__codelineno-0-305">305</a></span>
-<span class="normal"><a href="#__codelineno-0-306">306</a></span>
-<span class="normal"><a href="#__codelineno-0-307">307</a></span>
-<span class="normal"><a href="#__codelineno-0-308">308</a></span>
-<span class="normal"><a href="#__codelineno-0-309">309</a></span>
-<span class="normal"><a href="#__codelineno-0-310">310</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-270"><a id="__codelineno-0-270" name="__codelineno-0-270"></a><span class="k">def</span><span class="w"> </span><span class="nf">generate_mixtape_qr</span><span class="p">(</span>
-</span><span id="__span-0-271"><a id="__codelineno-0-271" name="__codelineno-0-271"></a>    <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">logo_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">400</span>
-</span><span id="__span-0-272"><a id="__codelineno-0-272" name="__codelineno-0-272"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
-</span><span id="__span-0-273"><a id="__codelineno-0-273" name="__codelineno-0-273"></a><span class="w">    </span><span class="sd">"""</span>
-</span><span id="__span-0-274"><a id="__codelineno-0-274" name="__codelineno-0-274"></a><span class="sd">    Generate a simple QR code (backward compatibility).</span>
-</span><span id="__span-0-275"><a id="__codelineno-0-275" name="__codelineno-0-275"></a>
-</span><span id="__span-0-276"><a id="__codelineno-0-276" name="__codelineno-0-276"></a><span class="sd">    This is the original function for basic QR generation.</span>
-</span><span id="__span-0-277"><a id="__codelineno-0-277" name="__codelineno-0-277"></a><span class="sd">    """</span>
-</span><span id="__span-0-278"><a id="__codelineno-0-278" name="__codelineno-0-278"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">QR_AVAILABLE</span><span class="p">:</span>
-</span><span id="__span-0-279"><a id="__codelineno-0-279" name="__codelineno-0-279"></a>        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
-</span><span id="__span-0-280"><a id="__codelineno-0-280" name="__codelineno-0-280"></a>            <span class="s2">"qrcode library not installed. Install with: uv add qrcode pillow"</span>
-</span><span id="__span-0-281"><a id="__codelineno-0-281" name="__codelineno-0-281"></a>        <span class="p">)</span>
-</span><span id="__span-0-282"><a id="__codelineno-0-282" name="__codelineno-0-282"></a>
-</span><span id="__span-0-283"><a id="__codelineno-0-283" name="__codelineno-0-283"></a>    <span class="n">qr</span> <span class="o">=</span> <span class="n">qrcode</span><span class="o">.</span><span class="n">QRCode</span><span class="p">(</span>
-</span><span id="__span-0-284"><a id="__codelineno-0-284" name="__codelineno-0-284"></a>        <span class="n">version</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-</span><span id="__span-0-285"><a id="__codelineno-0-285" name="__codelineno-0-285"></a>        <span class="n">error_correction</span><span class="o">=</span><span class="n">qrcode</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">ERROR_CORRECT_H</span><span class="p">,</span>
-</span><span id="__span-0-286"><a id="__codelineno-0-286" name="__codelineno-0-286"></a>        <span class="n">box_size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
-</span><span id="__span-0-287"><a id="__codelineno-0-287" name="__codelineno-0-287"></a>        <span class="n">border</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-</span><span id="__span-0-288"><a id="__codelineno-0-288" name="__codelineno-0-288"></a>    <span class="p">)</span>
-</span><span id="__span-0-289"><a id="__codelineno-0-289" name="__codelineno-0-289"></a>
-</span><span id="__span-0-290"><a id="__codelineno-0-290" name="__codelineno-0-290"></a>    <span class="n">qr</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
-</span><span id="__span-0-291"><a id="__codelineno-0-291" name="__codelineno-0-291"></a>    <span class="n">qr</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">fit</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="__span-0-292"><a id="__codelineno-0-292" name="__codelineno-0-292"></a>
-</span><span id="__span-0-293"><a id="__codelineno-0-293" name="__codelineno-0-293"></a>    <span class="n">img</span> <span class="o">=</span> <span class="n">qr</span><span class="o">.</span><span class="n">make_image</span><span class="p">(</span>
-</span><span id="__span-0-294"><a id="__codelineno-0-294" name="__codelineno-0-294"></a>        <span class="n">image_factory</span><span class="o">=</span><span class="n">StyledPilImage</span><span class="p">,</span>
-</span><span id="__span-0-295"><a id="__codelineno-0-295" name="__codelineno-0-295"></a>        <span class="n">module_drawer</span><span class="o">=</span><span class="n">RoundedModuleDrawer</span><span class="p">(),</span>
-</span><span id="__span-0-296"><a id="__codelineno-0-296" name="__codelineno-0-296"></a>        <span class="n">color_mask</span><span class="o">=</span><span class="n">SolidFillColorMask</span><span class="p">(</span>
-</span><span id="__span-0-297"><a id="__codelineno-0-297" name="__codelineno-0-297"></a>            <span class="n">back_color</span><span class="o">=</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span> <span class="n">front_color</span><span class="o">=</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="mi">58</span><span class="p">,</span> <span class="mi">95</span><span class="p">)</span>
-</span><span id="__span-0-298"><a id="__codelineno-0-298" name="__codelineno-0-298"></a>        <span class="p">),</span>
-</span><span id="__span-0-299"><a id="__codelineno-0-299" name="__codelineno-0-299"></a>    <span class="p">)</span>
-</span><span id="__span-0-300"><a id="__codelineno-0-300" name="__codelineno-0-300"></a>
-</span><span id="__span-0-301"><a id="__codelineno-0-301" name="__codelineno-0-301"></a>    <span class="n">img</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="n">size</span><span class="p">,</span> <span class="n">size</span><span class="p">),</span> <span class="n">Image</span><span class="o">.</span><span class="n">Resampling</span><span class="o">.</span><span class="n">LANCZOS</span><span class="p">)</span>
-</span><span id="__span-0-302"><a id="__codelineno-0-302" name="__codelineno-0-302"></a>
-</span><span id="__span-0-303"><a id="__codelineno-0-303" name="__codelineno-0-303"></a>    <span class="k">if</span> <span class="n">logo_path</span> <span class="ow">and</span> <span class="n">logo_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-</span><span id="__span-0-304"><a id="__codelineno-0-304" name="__codelineno-0-304"></a>        <span class="n">img</span> <span class="o">=</span> <span class="n">_add_logo_to_qr</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">logo_path</span><span class="p">)</span>
-</span><span id="__span-0-305"><a id="__codelineno-0-305" name="__codelineno-0-305"></a>
-</span><span id="__span-0-306"><a id="__codelineno-0-306" name="__codelineno-0-306"></a>    <span class="n">buffer</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span>
-</span><span id="__span-0-307"><a id="__codelineno-0-307" name="__codelineno-0-307"></a>    <span class="n">img</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">"PNG"</span><span class="p">,</span> <span class="n">optimize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="__span-0-308"><a id="__codelineno-0-308" name="__codelineno-0-308"></a>    <span class="n">buffer</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-</span><span id="__span-0-309"><a id="__codelineno-0-309" name="__codelineno-0-309"></a>
-</span><span id="__span-0-310"><a id="__codelineno-0-310" name="__codelineno-0-310"></a>    <span class="k">return</span> <span class="n">buffer</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span>
+              <div class="language-python highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-270">270</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-271">271</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-272">272</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-273">273</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-274">274</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-275">275</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-276">276</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-277">277</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-278">278</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-279">279</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-280">280</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-281">281</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-282">282</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-283">283</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-284">284</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-285">285</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-286">286</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-287">287</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-288">288</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-289">289</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-290">290</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-291">291</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-292">292</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-293">293</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-294">294</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-295">295</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-296">296</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-297">297</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-298">298</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-299">299</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-300">300</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-301">301</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-302">302</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-303">303</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-304">304</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-305">305</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-306">306</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-307">307</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-308">308</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-309">309</a></span>
+<span class="normal"><a href="#src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-310">310</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-270"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-270" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-270"></a><span class="k">def</span><span class="w"> </span><span class="nf">generate_mixtape_qr</span><span class="p">(</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-271"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-271" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-271"></a>    <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">logo_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">400</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-272"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-272" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-272"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-273"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-273" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-273"></a><span class="w">    </span><span class="sd">"""</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-274"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-274" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-274"></a><span class="sd">    Generate a simple QR code (backward compatibility).</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-275"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-275" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-275"></a>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-276"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-276" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-276"></a><span class="sd">    This is the original function for basic QR generation.</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-277"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-277" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-277"></a><span class="sd">    """</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-278"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-278" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-278"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">QR_AVAILABLE</span><span class="p">:</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-279"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-279" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-279"></a>        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-280"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-280" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-280"></a>            <span class="s2">"qrcode library not installed. Install with: uv add qrcode pillow"</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-281"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-281" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-281"></a>        <span class="p">)</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-282"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-282" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-282"></a>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-283"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-283" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-283"></a>    <span class="n">qr</span> <span class="o">=</span> <span class="n">qrcode</span><span class="o">.</span><span class="n">QRCode</span><span class="p">(</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-284"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-284" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-284"></a>        <span class="n">version</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-285"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-285" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-285"></a>        <span class="n">error_correction</span><span class="o">=</span><span class="n">qrcode</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">ERROR_CORRECT_H</span><span class="p">,</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-286"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-286" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-286"></a>        <span class="n">box_size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-287"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-287" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-287"></a>        <span class="n">border</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-288"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-288" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-288"></a>    <span class="p">)</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-289"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-289" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-289"></a>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-290"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-290" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-290"></a>    <span class="n">qr</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-291"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-291" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-291"></a>    <span class="n">qr</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">fit</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-292"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-292" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-292"></a>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-293"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-293" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-293"></a>    <span class="n">img</span> <span class="o">=</span> <span class="n">qr</span><span class="o">.</span><span class="n">make_image</span><span class="p">(</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-294"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-294" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-294"></a>        <span class="n">image_factory</span><span class="o">=</span><span class="n">StyledPilImage</span><span class="p">,</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-295"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-295" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-295"></a>        <span class="n">module_drawer</span><span class="o">=</span><span class="n">RoundedModuleDrawer</span><span class="p">(),</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-296"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-296" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-296"></a>        <span class="n">color_mask</span><span class="o">=</span><span class="n">SolidFillColorMask</span><span class="p">(</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-297"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-297" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-297"></a>            <span class="n">back_color</span><span class="o">=</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span> <span class="n">front_color</span><span class="o">=</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="mi">58</span><span class="p">,</span> <span class="mi">95</span><span class="p">)</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-298"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-298" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-298"></a>        <span class="p">),</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-299"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-299" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-299"></a>    <span class="p">)</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-300"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-300" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-300"></a>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-301"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-301" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-301"></a>    <span class="n">img</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="n">size</span><span class="p">,</span> <span class="n">size</span><span class="p">),</span> <span class="n">Image</span><span class="o">.</span><span class="n">Resampling</span><span class="o">.</span><span class="n">LANCZOS</span><span class="p">)</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-302"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-302" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-302"></a>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-303"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-303" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-303"></a>    <span class="k">if</span> <span class="n">logo_path</span> <span class="ow">and</span> <span class="n">logo_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-304"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-304" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-304"></a>        <span class="n">img</span> <span class="o">=</span> <span class="n">_add_logo_to_qr</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">logo_path</span><span class="p">)</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-305"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-305" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-305"></a>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-306"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-306" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-306"></a>    <span class="n">buffer</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-307"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-307" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-307"></a>    <span class="n">img</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">"PNG"</span><span class="p">,</span> <span class="n">optimize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-308"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-308" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-308"></a>    <span class="n">buffer</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-309"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-309" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-309"></a>
+</span><span id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__span-0-310"><a id="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-310" name="src.qr_generator.qr_generator.generate_mixtape_qr--source--__codelineno-0-310"></a>    <span class="k">return</span> <span class="n">buffer</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span>
 </span></code></pre></div></td></tr></tbody></table></div>
             </details>
     </div>
@@ -2301,10 +2301,10 @@ Two flavours are offered:</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.indexes", "navigation.prune", "navigation.path", "navigation.footer", "navigation.tracking", "toc.follow", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.select", "content.code.annotate", "content.action.edit", "content.action.view", "content.tooltips", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.indexes", "navigation.prune", "navigation.path", "navigation.footer", "navigation.tracking", "toc.follow", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.select", "content.code.annotate", "content.action.edit", "content.action.view", "content.tooltips", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
       
         <script src="../../js/timeago.min.js"></script>
       

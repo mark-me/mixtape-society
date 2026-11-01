@@ -22,7 +22,7 @@
       
       
       <link rel="icon" href="../../../images/logo.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
     
     
       
@@ -30,10 +30,10 @@
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -81,7 +81,7 @@
             body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
             body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
         </style><meta name="panzoom-theme" content="material">
-<meta name="panzoom-data" content='{"selectors": [".mermaid", ".d2"], "initial_zoom_level": 1.0}'> </head>
+<meta name="panzoom-data" content='{"selectors": [".d2", ".mermaid"], "initial_zoom_level": 1.0}'> </head>
   
   
     
@@ -1973,57 +1973,57 @@ or a fallback image path if no cover is found.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/musiclib/reader.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1328">1328</a></span>
-<span class="normal"><a href="#__codelineno-0-1329">1329</a></span>
-<span class="normal"><a href="#__codelineno-0-1330">1330</a></span>
-<span class="normal"><a href="#__codelineno-0-1331">1331</a></span>
-<span class="normal"><a href="#__codelineno-0-1332">1332</a></span>
-<span class="normal"><a href="#__codelineno-0-1333">1333</a></span>
-<span class="normal"><a href="#__codelineno-0-1334">1334</a></span>
-<span class="normal"><a href="#__codelineno-0-1335">1335</a></span>
-<span class="normal"><a href="#__codelineno-0-1336">1336</a></span>
-<span class="normal"><a href="#__codelineno-0-1337">1337</a></span>
-<span class="normal"><a href="#__codelineno-0-1338">1338</a></span>
-<span class="normal"><a href="#__codelineno-0-1339">1339</a></span>
-<span class="normal"><a href="#__codelineno-0-1340">1340</a></span>
-<span class="normal"><a href="#__codelineno-0-1341">1341</a></span>
-<span class="normal"><a href="#__codelineno-0-1342">1342</a></span>
-<span class="normal"><a href="#__codelineno-0-1343">1343</a></span>
-<span class="normal"><a href="#__codelineno-0-1344">1344</a></span>
-<span class="normal"><a href="#__codelineno-0-1345">1345</a></span>
-<span class="normal"><a href="#__codelineno-0-1346">1346</a></span>
-<span class="normal"><a href="#__codelineno-0-1347">1347</a></span>
-<span class="normal"><a href="#__codelineno-0-1348">1348</a></span>
-<span class="normal"><a href="#__codelineno-0-1349">1349</a></span>
-<span class="normal"><a href="#__codelineno-0-1350">1350</a></span>
-<span class="normal"><a href="#__codelineno-0-1351">1351</a></span>
-<span class="normal"><a href="#__codelineno-0-1352">1352</a></span>
-<span class="normal"><a href="#__codelineno-0-1353">1353</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-1328"><a id="__codelineno-0-1328" name="__codelineno-0-1328"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_cover</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">release_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="__span-0-1329"><a id="__codelineno-0-1329" name="__codelineno-0-1329"></a><span class="w">    </span><span class="sd">"""Retrieves or generates the cover image path for a given album release directory.</span>
-</span><span id="__span-0-1330"><a id="__codelineno-0-1330" name="__codelineno-0-1330"></a><span class="sd">    Returns a relative path to a cached or newly extracted cover image if available,</span>
-</span><span id="__span-0-1331"><a id="__codelineno-0-1331" name="__codelineno-0-1331"></a><span class="sd">    or a fallback image path if no cover is found.</span>
-</span><span id="__span-0-1332"><a id="__codelineno-0-1332" name="__codelineno-0-1332"></a>
-</span><span id="__span-0-1333"><a id="__codelineno-0-1333" name="__codelineno-0-1333"></a><span class="sd">    Args:</span>
-</span><span id="__span-0-1334"><a id="__codelineno-0-1334" name="__codelineno-0-1334"></a><span class="sd">        release_dir: The release directory identifier used to locate or derive the cover image.</span>
-</span><span id="__span-0-1335"><a id="__codelineno-0-1335" name="__codelineno-0-1335"></a>
-</span><span id="__span-0-1336"><a id="__codelineno-0-1336" name="__codelineno-0-1336"></a><span class="sd">    Returns:</span>
-</span><span id="__span-0-1337"><a id="__codelineno-0-1337" name="__codelineno-0-1337"></a><span class="sd">        str | None: Relative path to the cover image within the covers directory, or fallback image path if not found.</span>
-</span><span id="__span-0-1338"><a id="__codelineno-0-1338" name="__codelineno-0-1338"></a><span class="sd">    """</span>
-</span><span id="__span-0-1339"><a id="__codelineno-0-1339" name="__codelineno-0-1339"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">release_dir</span><span class="p">:</span>
-</span><span id="__span-0-1340"><a id="__codelineno-0-1340" name="__codelineno-0-1340"></a>        <span class="k">return</span> <span class="s2">"covers/_fallback.jpg"</span>
-</span><span id="__span-0-1341"><a id="__codelineno-0-1341" name="__codelineno-0-1341"></a>
-</span><span id="__span-0-1342"><a id="__codelineno-0-1342" name="__codelineno-0-1342"></a>    <span class="c1"># Sanitize to a safe filename slug</span>
-</span><span id="__span-0-1343"><a id="__codelineno-0-1343" name="__codelineno-0-1343"></a>    <span class="n">slug</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sanitize_release_dir</span><span class="p">(</span><span class="n">release_dir</span><span class="p">)</span>
-</span><span id="__span-0-1344"><a id="__codelineno-0-1344" name="__codelineno-0-1344"></a>    <span class="n">cover_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">covers_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">slug</span><span class="si">}</span><span class="s2">.jpg"</span>
-</span><span id="__span-0-1345"><a id="__codelineno-0-1345" name="__codelineno-0-1345"></a>
-</span><span id="__span-0-1346"><a id="__codelineno-0-1346" name="__codelineno-0-1346"></a>    <span class="k">if</span> <span class="n">cover_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-</span><span id="__span-0-1347"><a id="__codelineno-0-1347" name="__codelineno-0-1347"></a>        <span class="k">return</span> <span class="sa">f</span><span class="s2">"covers/</span><span class="si">{</span><span class="n">slug</span><span class="si">}</span><span class="s2">.jpg"</span>
-</span><span id="__span-0-1348"><a id="__codelineno-0-1348" name="__codelineno-0-1348"></a>
-</span><span id="__span-0-1349"><a id="__codelineno-0-1349" name="__codelineno-0-1349"></a>    <span class="c1"># Extract on demand</span>
-</span><span id="__span-0-1350"><a id="__codelineno-0-1350" name="__codelineno-0-1350"></a>    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_cover</span><span class="p">(</span><span class="n">release_dir</span><span class="p">,</span> <span class="n">cover_path</span><span class="p">):</span>
-</span><span id="__span-0-1351"><a id="__codelineno-0-1351" name="__codelineno-0-1351"></a>        <span class="k">return</span> <span class="sa">f</span><span class="s2">"covers/</span><span class="si">{</span><span class="n">slug</span><span class="si">}</span><span class="s2">.jpg"</span>
-</span><span id="__span-0-1352"><a id="__codelineno-0-1352" name="__codelineno-0-1352"></a>
-</span><span id="__span-0-1353"><a id="__codelineno-0-1353" name="__codelineno-0-1353"></a>    <span class="k">return</span> <span class="s2">"covers/_fallback.jpg"</span>
+              <div class="language-python highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1328">1328</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1329">1329</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1330">1330</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1331">1331</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1332">1332</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1333">1333</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1334">1334</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1335">1335</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1336">1336</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1337">1337</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1338">1338</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1339">1339</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1340">1340</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1341">1341</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1342">1342</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1343">1343</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1344">1344</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1345">1345</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1346">1346</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1347">1347</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1348">1348</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1349">1349</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1350">1350</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1351">1351</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1352">1352</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1353">1353</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="src.musiclib.reader.MusicCollection.get_cover--source--__span-0-1328"><a id="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1328" name="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1328"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_cover</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">release_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover--source--__span-0-1329"><a id="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1329" name="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1329"></a><span class="w">    </span><span class="sd">"""Retrieves or generates the cover image path for a given album release directory.</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover--source--__span-0-1330"><a id="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1330" name="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1330"></a><span class="sd">    Returns a relative path to a cached or newly extracted cover image if available,</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover--source--__span-0-1331"><a id="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1331" name="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1331"></a><span class="sd">    or a fallback image path if no cover is found.</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover--source--__span-0-1332"><a id="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1332" name="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1332"></a>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover--source--__span-0-1333"><a id="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1333" name="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1333"></a><span class="sd">    Args:</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover--source--__span-0-1334"><a id="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1334" name="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1334"></a><span class="sd">        release_dir: The release directory identifier used to locate or derive the cover image.</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover--source--__span-0-1335"><a id="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1335" name="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1335"></a>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover--source--__span-0-1336"><a id="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1336" name="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1336"></a><span class="sd">    Returns:</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover--source--__span-0-1337"><a id="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1337" name="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1337"></a><span class="sd">        str | None: Relative path to the cover image within the covers directory, or fallback image path if not found.</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover--source--__span-0-1338"><a id="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1338" name="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1338"></a><span class="sd">    """</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover--source--__span-0-1339"><a id="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1339" name="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1339"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">release_dir</span><span class="p">:</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover--source--__span-0-1340"><a id="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1340" name="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1340"></a>        <span class="k">return</span> <span class="s2">"covers/_fallback.jpg"</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover--source--__span-0-1341"><a id="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1341" name="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1341"></a>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover--source--__span-0-1342"><a id="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1342" name="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1342"></a>    <span class="c1"># Sanitize to a safe filename slug</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover--source--__span-0-1343"><a id="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1343" name="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1343"></a>    <span class="n">slug</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sanitize_release_dir</span><span class="p">(</span><span class="n">release_dir</span><span class="p">)</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover--source--__span-0-1344"><a id="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1344" name="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1344"></a>    <span class="n">cover_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">covers_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">slug</span><span class="si">}</span><span class="s2">.jpg"</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover--source--__span-0-1345"><a id="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1345" name="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1345"></a>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover--source--__span-0-1346"><a id="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1346" name="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1346"></a>    <span class="k">if</span> <span class="n">cover_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover--source--__span-0-1347"><a id="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1347" name="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1347"></a>        <span class="k">return</span> <span class="sa">f</span><span class="s2">"covers/</span><span class="si">{</span><span class="n">slug</span><span class="si">}</span><span class="s2">.jpg"</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover--source--__span-0-1348"><a id="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1348" name="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1348"></a>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover--source--__span-0-1349"><a id="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1349" name="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1349"></a>    <span class="c1"># Extract on demand</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover--source--__span-0-1350"><a id="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1350" name="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1350"></a>    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_cover</span><span class="p">(</span><span class="n">release_dir</span><span class="p">,</span> <span class="n">cover_path</span><span class="p">):</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover--source--__span-0-1351"><a id="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1351" name="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1351"></a>        <span class="k">return</span> <span class="sa">f</span><span class="s2">"covers/</span><span class="si">{</span><span class="n">slug</span><span class="si">}</span><span class="s2">.jpg"</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover--source--__span-0-1352"><a id="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1352" name="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1352"></a>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover--source--__span-0-1353"><a id="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1353" name="src.musiclib.reader.MusicCollection.get_cover--source--__codelineno-0-1353"></a>    <span class="k">return</span> <span class="s2">"covers/_fallback.jpg"</span>
 </span></code></pre></div></td></tr></tbody></table></div>
             </details>
     </div>
@@ -2101,87 +2101,87 @@ Generates size variants on-demand if not already cached.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/musiclib/reader.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1355">1355</a></span>
-<span class="normal"><a href="#__codelineno-0-1356">1356</a></span>
-<span class="normal"><a href="#__codelineno-0-1357">1357</a></span>
-<span class="normal"><a href="#__codelineno-0-1358">1358</a></span>
-<span class="normal"><a href="#__codelineno-0-1359">1359</a></span>
-<span class="normal"><a href="#__codelineno-0-1360">1360</a></span>
-<span class="normal"><a href="#__codelineno-0-1361">1361</a></span>
-<span class="normal"><a href="#__codelineno-0-1362">1362</a></span>
-<span class="normal"><a href="#__codelineno-0-1363">1363</a></span>
-<span class="normal"><a href="#__codelineno-0-1364">1364</a></span>
-<span class="normal"><a href="#__codelineno-0-1365">1365</a></span>
-<span class="normal"><a href="#__codelineno-0-1366">1366</a></span>
-<span class="normal"><a href="#__codelineno-0-1367">1367</a></span>
-<span class="normal"><a href="#__codelineno-0-1368">1368</a></span>
-<span class="normal"><a href="#__codelineno-0-1369">1369</a></span>
-<span class="normal"><a href="#__codelineno-0-1370">1370</a></span>
-<span class="normal"><a href="#__codelineno-0-1371">1371</a></span>
-<span class="normal"><a href="#__codelineno-0-1372">1372</a></span>
-<span class="normal"><a href="#__codelineno-0-1373">1373</a></span>
-<span class="normal"><a href="#__codelineno-0-1374">1374</a></span>
-<span class="normal"><a href="#__codelineno-0-1375">1375</a></span>
-<span class="normal"><a href="#__codelineno-0-1376">1376</a></span>
-<span class="normal"><a href="#__codelineno-0-1377">1377</a></span>
-<span class="normal"><a href="#__codelineno-0-1378">1378</a></span>
-<span class="normal"><a href="#__codelineno-0-1379">1379</a></span>
-<span class="normal"><a href="#__codelineno-0-1380">1380</a></span>
-<span class="normal"><a href="#__codelineno-0-1381">1381</a></span>
-<span class="normal"><a href="#__codelineno-0-1382">1382</a></span>
-<span class="normal"><a href="#__codelineno-0-1383">1383</a></span>
-<span class="normal"><a href="#__codelineno-0-1384">1384</a></span>
-<span class="normal"><a href="#__codelineno-0-1385">1385</a></span>
-<span class="normal"><a href="#__codelineno-0-1386">1386</a></span>
-<span class="normal"><a href="#__codelineno-0-1387">1387</a></span>
-<span class="normal"><a href="#__codelineno-0-1388">1388</a></span>
-<span class="normal"><a href="#__codelineno-0-1389">1389</a></span>
-<span class="normal"><a href="#__codelineno-0-1390">1390</a></span>
-<span class="normal"><a href="#__codelineno-0-1391">1391</a></span>
-<span class="normal"><a href="#__codelineno-0-1392">1392</a></span>
-<span class="normal"><a href="#__codelineno-0-1393">1393</a></span>
-<span class="normal"><a href="#__codelineno-0-1394">1394</a></span>
-<span class="normal"><a href="#__codelineno-0-1395">1395</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-1355"><a id="__codelineno-0-1355" name="__codelineno-0-1355"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_cover_sizes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">release_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
-</span><span id="__span-0-1356"><a id="__codelineno-0-1356" name="__codelineno-0-1356"></a><span class="w">    </span><span class="sd">"""Returns URLs for multiple size variants of a cover image.</span>
-</span><span id="__span-0-1357"><a id="__codelineno-0-1357" name="__codelineno-0-1357"></a><span class="sd">    Generates size variants on-demand if not already cached.</span>
-</span><span id="__span-0-1358"><a id="__codelineno-0-1358" name="__codelineno-0-1358"></a>
-</span><span id="__span-0-1359"><a id="__codelineno-0-1359" name="__codelineno-0-1359"></a><span class="sd">    Args:</span>
-</span><span id="__span-0-1360"><a id="__codelineno-0-1360" name="__codelineno-0-1360"></a><span class="sd">        release_dir: The release directory identifier for which to retrieve cover variants.</span>
-</span><span id="__span-0-1361"><a id="__codelineno-0-1361" name="__codelineno-0-1361"></a>
-</span><span id="__span-0-1362"><a id="__codelineno-0-1362" name="__codelineno-0-1362"></a><span class="sd">    Returns:</span>
-</span><span id="__span-0-1363"><a id="__codelineno-0-1363" name="__codelineno-0-1363"></a><span class="sd">        dict[str, str]: Dictionary mapping size strings (e.g., "96x96") to relative URL paths.</span>
-</span><span id="__span-0-1364"><a id="__codelineno-0-1364" name="__codelineno-0-1364"></a><span class="sd">    """</span>
-</span><span id="__span-0-1365"><a id="__codelineno-0-1365" name="__codelineno-0-1365"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">release_dir</span><span class="p">:</span>
-</span><span id="__span-0-1366"><a id="__codelineno-0-1366" name="__codelineno-0-1366"></a>        <span class="n">sizes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">96</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">192</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">384</span><span class="p">,</span> <span class="mi">512</span><span class="p">]</span>
-</span><span id="__span-0-1367"><a id="__codelineno-0-1367" name="__codelineno-0-1367"></a>        <span class="k">return</span> <span class="p">{</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s2">x</span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s2">"</span><span class="p">:</span> <span class="s2">"covers/_fallback.jpg"</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sizes</span><span class="p">}</span>
-</span><span id="__span-0-1368"><a id="__codelineno-0-1368" name="__codelineno-0-1368"></a>
-</span><span id="__span-0-1369"><a id="__codelineno-0-1369" name="__codelineno-0-1369"></a>    <span class="n">slug</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sanitize_release_dir</span><span class="p">(</span><span class="n">release_dir</span><span class="p">)</span>
-</span><span id="__span-0-1370"><a id="__codelineno-0-1370" name="__codelineno-0-1370"></a>    <span class="n">sizes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">96</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">192</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">384</span><span class="p">,</span> <span class="mi">512</span><span class="p">]</span>
-</span><span id="__span-0-1371"><a id="__codelineno-0-1371" name="__codelineno-0-1371"></a>
-</span><span id="__span-0-1372"><a id="__codelineno-0-1372" name="__codelineno-0-1372"></a>    <span class="c1"># Ensure main cover exists first</span>
-</span><span id="__span-0-1373"><a id="__codelineno-0-1373" name="__codelineno-0-1373"></a>    <span class="n">main_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">covers_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">slug</span><span class="si">}</span><span class="s2">.jpg"</span>
-</span><span id="__span-0-1374"><a id="__codelineno-0-1374" name="__codelineno-0-1374"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">main_path</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_cover</span><span class="p">(</span><span class="n">release_dir</span><span class="p">,</span> <span class="n">main_path</span><span class="p">):</span>
-</span><span id="__span-0-1375"><a id="__codelineno-0-1375" name="__codelineno-0-1375"></a>        <span class="k">return</span> <span class="p">{</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s2">x</span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s2">"</span><span class="p">:</span> <span class="s2">"covers/_fallback.jpg"</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sizes</span><span class="p">}</span>
-</span><span id="__span-0-1376"><a id="__codelineno-0-1376" name="__codelineno-0-1376"></a>
-</span><span id="__span-0-1377"><a id="__codelineno-0-1377" name="__codelineno-0-1377"></a>    <span class="c1"># Check if variants exist, generate if needed</span>
-</span><span id="__span-0-1378"><a id="__codelineno-0-1378" name="__codelineno-0-1378"></a>    <span class="n">variants_exist</span> <span class="o">=</span> <span class="nb">all</span><span class="p">(</span>
-</span><span id="__span-0-1379"><a id="__codelineno-0-1379" name="__codelineno-0-1379"></a>        <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">covers_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">slug</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s2">x</span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s2">.jpg"</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sizes</span>
-</span><span id="__span-0-1380"><a id="__codelineno-0-1380" name="__codelineno-0-1380"></a>    <span class="p">)</span>
-</span><span id="__span-0-1381"><a id="__codelineno-0-1381" name="__codelineno-0-1381"></a>
-</span><span id="__span-0-1382"><a id="__codelineno-0-1382" name="__codelineno-0-1382"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">variants_exist</span><span class="p">:</span>
-</span><span id="__span-0-1383"><a id="__codelineno-0-1383" name="__codelineno-0-1383"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_generate_cover_variants</span><span class="p">(</span><span class="n">release_dir</span><span class="p">,</span> <span class="n">slug</span><span class="p">)</span>
-</span><span id="__span-0-1384"><a id="__codelineno-0-1384" name="__codelineno-0-1384"></a>
-</span><span id="__span-0-1385"><a id="__codelineno-0-1385" name="__codelineno-0-1385"></a>    <span class="c1"># Build URL dictionary</span>
-</span><span id="__span-0-1386"><a id="__codelineno-0-1386" name="__codelineno-0-1386"></a>    <span class="n">result</span> <span class="o">=</span> <span class="p">{}</span>
-</span><span id="__span-0-1387"><a id="__codelineno-0-1387" name="__codelineno-0-1387"></a>    <span class="k">for</span> <span class="n">size</span> <span class="ow">in</span> <span class="n">sizes</span><span class="p">:</span>
-</span><span id="__span-0-1388"><a id="__codelineno-0-1388" name="__codelineno-0-1388"></a>        <span class="n">variant_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">covers_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">slug</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2">x</span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2">.jpg"</span>
-</span><span id="__span-0-1389"><a id="__codelineno-0-1389" name="__codelineno-0-1389"></a>        <span class="k">if</span> <span class="n">variant_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-</span><span id="__span-0-1390"><a id="__codelineno-0-1390" name="__codelineno-0-1390"></a>            <span class="n">result</span><span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2">x</span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2">"</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"covers/</span><span class="si">{</span><span class="n">slug</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2">x</span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2">.jpg"</span>
-</span><span id="__span-0-1391"><a id="__codelineno-0-1391" name="__codelineno-0-1391"></a>        <span class="k">else</span><span class="p">:</span>
-</span><span id="__span-0-1392"><a id="__codelineno-0-1392" name="__codelineno-0-1392"></a>            <span class="c1"># Fallback to main cover if variant doesn't exist</span>
-</span><span id="__span-0-1393"><a id="__codelineno-0-1393" name="__codelineno-0-1393"></a>            <span class="n">result</span><span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2">x</span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2">"</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"covers/</span><span class="si">{</span><span class="n">slug</span><span class="si">}</span><span class="s2">.jpg"</span>
-</span><span id="__span-0-1394"><a id="__codelineno-0-1394" name="__codelineno-0-1394"></a>
-</span><span id="__span-0-1395"><a id="__codelineno-0-1395" name="__codelineno-0-1395"></a>    <span class="k">return</span> <span class="n">result</span>
+              <div class="language-python highlight"><table class="highlighttable"><tbody><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1355">1355</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1356">1356</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1357">1357</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1358">1358</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1359">1359</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1360">1360</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1361">1361</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1362">1362</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1363">1363</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1364">1364</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1365">1365</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1366">1366</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1367">1367</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1368">1368</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1369">1369</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1370">1370</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1371">1371</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1372">1372</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1373">1373</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1374">1374</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1375">1375</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1376">1376</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1377">1377</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1378">1378</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1379">1379</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1380">1380</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1381">1381</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1382">1382</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1383">1383</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1384">1384</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1385">1385</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1386">1386</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1387">1387</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1388">1388</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1389">1389</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1390">1390</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1391">1391</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1392">1392</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1393">1393</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1394">1394</a></span>
+<span class="normal"><a href="#src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1395">1395</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1355"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1355" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1355"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_cover_sizes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">release_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1356"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1356" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1356"></a><span class="w">    </span><span class="sd">"""Returns URLs for multiple size variants of a cover image.</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1357"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1357" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1357"></a><span class="sd">    Generates size variants on-demand if not already cached.</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1358"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1358" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1358"></a>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1359"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1359" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1359"></a><span class="sd">    Args:</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1360"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1360" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1360"></a><span class="sd">        release_dir: The release directory identifier for which to retrieve cover variants.</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1361"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1361" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1361"></a>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1362"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1362" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1362"></a><span class="sd">    Returns:</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1363"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1363" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1363"></a><span class="sd">        dict[str, str]: Dictionary mapping size strings (e.g., "96x96") to relative URL paths.</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1364"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1364" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1364"></a><span class="sd">    """</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1365"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1365" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1365"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">release_dir</span><span class="p">:</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1366"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1366" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1366"></a>        <span class="n">sizes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">96</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">192</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">384</span><span class="p">,</span> <span class="mi">512</span><span class="p">]</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1367"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1367" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1367"></a>        <span class="k">return</span> <span class="p">{</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s2">x</span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s2">"</span><span class="p">:</span> <span class="s2">"covers/_fallback.jpg"</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sizes</span><span class="p">}</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1368"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1368" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1368"></a>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1369"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1369" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1369"></a>    <span class="n">slug</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sanitize_release_dir</span><span class="p">(</span><span class="n">release_dir</span><span class="p">)</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1370"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1370" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1370"></a>    <span class="n">sizes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">96</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">192</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">384</span><span class="p">,</span> <span class="mi">512</span><span class="p">]</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1371"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1371" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1371"></a>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1372"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1372" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1372"></a>    <span class="c1"># Ensure main cover exists first</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1373"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1373" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1373"></a>    <span class="n">main_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">covers_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">slug</span><span class="si">}</span><span class="s2">.jpg"</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1374"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1374" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1374"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">main_path</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_cover</span><span class="p">(</span><span class="n">release_dir</span><span class="p">,</span> <span class="n">main_path</span><span class="p">):</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1375"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1375" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1375"></a>        <span class="k">return</span> <span class="p">{</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s2">x</span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s2">"</span><span class="p">:</span> <span class="s2">"covers/_fallback.jpg"</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sizes</span><span class="p">}</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1376"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1376" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1376"></a>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1377"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1377" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1377"></a>    <span class="c1"># Check if variants exist, generate if needed</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1378"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1378" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1378"></a>    <span class="n">variants_exist</span> <span class="o">=</span> <span class="nb">all</span><span class="p">(</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1379"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1379" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1379"></a>        <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">covers_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">slug</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s2">x</span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s2">.jpg"</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sizes</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1380"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1380" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1380"></a>    <span class="p">)</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1381"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1381" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1381"></a>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1382"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1382" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1382"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">variants_exist</span><span class="p">:</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1383"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1383" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1383"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_generate_cover_variants</span><span class="p">(</span><span class="n">release_dir</span><span class="p">,</span> <span class="n">slug</span><span class="p">)</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1384"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1384" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1384"></a>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1385"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1385" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1385"></a>    <span class="c1"># Build URL dictionary</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1386"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1386" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1386"></a>    <span class="n">result</span> <span class="o">=</span> <span class="p">{}</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1387"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1387" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1387"></a>    <span class="k">for</span> <span class="n">size</span> <span class="ow">in</span> <span class="n">sizes</span><span class="p">:</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1388"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1388" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1388"></a>        <span class="n">variant_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">covers_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">slug</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2">x</span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2">.jpg"</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1389"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1389" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1389"></a>        <span class="k">if</span> <span class="n">variant_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1390"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1390" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1390"></a>            <span class="n">result</span><span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2">x</span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2">"</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"covers/</span><span class="si">{</span><span class="n">slug</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2">x</span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2">.jpg"</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1391"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1391" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1391"></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1392"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1392" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1392"></a>            <span class="c1"># Fallback to main cover if variant doesn't exist</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1393"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1393" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1393"></a>            <span class="n">result</span><span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2">x</span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2">"</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"covers/</span><span class="si">{</span><span class="n">slug</span><span class="si">}</span><span class="s2">.jpg"</span>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1394"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1394" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1394"></a>
+</span><span id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__span-0-1395"><a id="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1395" name="src.musiclib.reader.MusicCollection.get_cover_sizes--source--__codelineno-0-1395"></a>    <span class="k">return</span> <span class="n">result</span>
 </span></code></pre></div></td></tr></tbody></table></div>
             </details>
     </div>
@@ -2587,10 +2587,10 @@ Generates size variants on-demand if not already cached.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.instant", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.indexes", "navigation.prune", "navigation.path", "navigation.footer", "navigation.tracking", "toc.follow", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.select", "content.code.annotate", "content.action.edit", "content.action.view", "content.tooltips", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.instant", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.indexes", "navigation.prune", "navigation.path", "navigation.footer", "navigation.tracking", "toc.follow", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.select", "content.code.annotate", "content.action.edit", "content.action.view", "content.tooltips", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.c21346df.min.js"></script>
       
         <script src="../../../js/timeago.min.js"></script>
       
