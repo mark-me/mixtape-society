@@ -45,30 +45,30 @@ play = Blueprint("play", __name__)   # registered in the main Flask app
 sequenceDiagram
     participant Client
     participant FlaskApp
-    participant stream_audio()
-    participant _resolve_and_validate_path()
-    participant _guess_mime_type()
-    participant _get_serving_path()
+    participant stream_audio as stream_audio()
+    participant resolve as _resolve_and_validate_path()
+    participant guess_mime as _guess_mime_type()
+    participant serving_path as _get_serving_path()
     participant AudioCache
-    participant _handle_range_request()
+    participant range_request as _handle_range_request()
     participant send_file
 
-    Client->>FlaskApp: GET /play/<file_path>?quality=medium [& Range]
-    FlaskApp->>stream_audio(): Call with file_path + query
-    stream_audio()->>_resolve_and_validate_path(): Validate & resolve
-    _resolve_and_validate_path()-->>stream_audio(): full_path (or abort 403/404)
-    stream_audio()->>_guess_mime_type(): Guess MIME
-    _guess_mime_type()-->>stream_audio(): mime_type
-    stream_audio()->>_get_serving_path(): Choose original or cached file (quality)
-    _get_serving_path()->>AudioCache: cache.is_cached / cache.get_cache_path
-    AudioCache-->>_get_serving_path(): serve_path
+    Client->>FlaskApp: GET /play/#lt;file_path#gt;?quality=medium [and Range]
+    FlaskApp->>stream_audio: Call with file_path + query
+    stream_audio->>resolve: Validate and resolve
+    resolve-->>stream_audio: full_path (or abort 403/404)
+    stream_audio->>guess_mime: Guess MIME
+    guess_mime-->>stream_audio: mime_type
+    stream_audio->>serving_path: Choose original or cached file (quality)
+    serving_path->>AudioCache: cache.is_cached / cache.get_cache_path
+    AudioCache-->>serving_path: serve_path
     alt Range header present
-        stream_audio()->>_handle_range_request(): Serve partial bytes
-        _handle_range_request()-->>stream_audio(): 206 Partial Content response
+        stream_audio->>range_request: Serve partial bytes
+        range_request-->>stream_audio: 206 Partial Content response
         stream_audio-->>FlaskApp: Return 206
     else No Range header
         stream_audio->>send_file: Send full file
-        send_file-->>stream_audio(): 200 OK response
+        send_file-->>stream_audio: 200 OK response
         stream_audio-->>FlaskApp: Return 200
     end
     FlaskApp-->>Client: Stream audio bytes

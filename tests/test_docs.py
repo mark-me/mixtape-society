@@ -37,3 +37,15 @@ def test_every_image_on_a_page_exists():
                 missing.append(f"{page.relative_to(DOCS)}: {target}")
 
     assert missing == []
+
+
+def test_the_help_needs_nothing_from_the_internet():
+    config = tomllib.loads((ROOT / "zensical.toml").read_text(encoding="utf-8"))["project"]
+    stylesheet = DOCS / "stylesheets" / "extra.css"
+
+    assert config["theme"]["font"] is False
+    assert all((DOCS / script).is_file() for script in config["extra_javascript"])
+    assert "javascripts/vendor/mermaid.min.js" in config["extra_javascript"]
+    fonts = re.findall(r'url\("([^"]+)"\)', stylesheet.read_text(encoding="utf-8"))
+    assert fonts
+    assert all((stylesheet.parent / font).is_file() for font in fonts)

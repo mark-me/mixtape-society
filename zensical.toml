@@ -15,6 +15,9 @@ repo_name = "mark-me/mixtape-society"
 edit_uri = "edit/master/docs/"
 
 extra_css = ["stylesheets/extra.css"]
+# With mermaid already loaded, the theme doesn't fetch it from unpkg, so diagrams in the app's
+# help work without internet. Keep the major version the theme asks for (mermaid@12).
+extra_javascript = ["javascripts/vendor/mermaid.min.js"]
 
 nav = [
   { "Introduction" = "index.md" },
@@ -125,6 +128,8 @@ nav = [
 logo = "images/logo.png"
 favicon = "images/logo.png"
 language = "en"
+# The fonts come with the site, from stylesheets/extra.css, instead of from Google.
+font = false
 features = [
   "content.action.edit",
   "content.action.view",
@@ -145,10 +150,6 @@ features = [
   "search.highlight",
   "toc.follow",
 ]
-
-[project.theme.font]
-text = "Inter"
-code = "Jetbrains Mono"
 
 [project.theme.icon]
 repo = "fontawesome/brands/github"
