@@ -250,7 +250,7 @@ docker compose -f docker-compose.dev.yml up -d
 
 The production images are automatically built on:
 
-- Push to `main` branch → `latest` tag
+- Push to `master` branch → `master` and `latest` tags
 - New release tags → version-specific tags (e.g., `v1.4.2`)
 
 Images are published to GitHub Container Registry:

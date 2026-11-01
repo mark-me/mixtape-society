@@ -2,7 +2,7 @@ name: Build & Push Docker Image
 
 on:
   push:
-    branches: [ main, test ]
+    branches: [ master, test ]
     tags: [ 'v*.*.*' ]
 
 jobs:
@@ -31,17 +31,19 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Tags: the branch name (:master or :test), the release version for a
+      # v*.*.* tag, the short commit SHA, and :latest for master.
       - name: Extract metadata (tags, labels)
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
-            type=ref,event=branch  # Tags like :main or :test
+            type=ref,event=branch
             type=ref,event=pr
             type=semver,pattern={{version}}
             type=sha,format=short
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}  # :latest only for main
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
           labels: |
             org.opencontainers.image.title=Mixtape Society
             org.opencontainers.image.description=Music collection manager with multi-architecture support (amd64, arm64)
@@ -61,8 +63,8 @@ jobs:
             echo "version=${VERSION}" >> $GITHUB_OUTPUT
             echo "display_version=${VERSION}" >> $GITHUB_OUTPUT
 
-          # If on main branch
-          elif [[ ${{ github.ref }} == refs/heads/main ]]; then
+          # If on master branch
+          elif [[ ${{ github.ref }} == refs/heads/master ]]; then
             LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
             BASE_VERSION=${LATEST_TAG#v}
             COMMIT_DISTANCE=$(git rev-list --count ${LATEST_TAG}..HEAD 2>/dev/null || echo "0")
@@ -72,7 +74,7 @@ jobs:
             else
               SHORT_SHA=$(git rev-parse --short=8 HEAD)
               echo "version=${BASE_VERSION}+dev.${COMMIT_DISTANCE}.${SHORT_SHA}" >> $GITHUB_OUTPUT
-              echo "display_version=${BASE_VERSION}+main.${COMMIT_DISTANCE}.${SHORT_SHA}" >> $GITHUB_OUTPUT
+              echo "display_version=${BASE_VERSION}+master.${COMMIT_DISTANCE}.${SHORT_SHA}" >> $GITHUB_OUTPUT
             fi
 
           # If on test branch
@@ -95,7 +97,7 @@ jobs:
         id: platforms
         run: |
           # Test branch: amd64 only for faster builds
-          # Main and tags: multi-architecture build (amd64, arm64)
+          # Master and tags: multi-architecture build (amd64, arm64)
           if [[ ${{ github.ref }} == refs/heads/test ]]; then
             echo "platforms=linux/amd64" >> $GITHUB_OUTPUT
           else

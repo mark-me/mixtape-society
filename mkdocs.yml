@@ -4,7 +4,7 @@ site_author: 'Mark Zwart'
 site_url: https://mixtape-society.org/
 repo_url: https://github.com/mark-me/mixtape-society
 repo_name: mark-me/mixtape-society
-edit_uri: edit/main/docs/
+edit_uri: edit/master/docs/
 use_directory_urls: false
 
 copyright: Mark Zwart
