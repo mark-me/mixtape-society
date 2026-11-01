@@ -65,10 +65,22 @@ class MusicCollection:
             db_path: The path to the SQLite database file used to store collection metadata.
             logger: Optional logger instance for recording informational and error messages.
         """
+        self._logger = logger or NullLogger()
+        self._initialize(music_root, db_path)
+
+    def _initialize(self, music_root: Path | str, db_path: Path | str) -> None:
+        """Sets up (or re-sets-up) the collection's state for the given paths.
+
+        Shared by __init__ and reload() so both start from the same, single
+        source of truth for what "a freshly opened collection" looks like.
+
+        Args:
+            music_root: The root directory containing the music files to be indexed.
+            db_path: The path to the SQLite database file used to store collection metadata.
+        """
         self.music_root = Path(music_root).resolve()
         self.db_path = Path(db_path)
-        self._logger = logger or NullLogger()
-        self._extractor = CollectionExtractor(self.music_root, self.db_path, logger=logger)
+        self._extractor = CollectionExtractor(self.music_root, self.db_path, logger=self._logger)
 
         track_count = self.count()
         self._startup_mode = "rebuild" if track_count == 0 else "resync"
@@ -89,6 +101,21 @@ class MusicCollection:
         self.covers_dir = self.db_path.parent / "cache" / "covers"
         self.covers_dir.mkdir(parents=True, exist_ok=True)
         self._setup_fallback_cover()
+
+    def reload(self, music_root: Path | str | None = None, db_path: Path | str | None = None) -> None:
+        """Closes and re-opens the collection in place, keeping this object's identity.
+
+        Anything holding a reference to this MusicCollection (route closures,
+        blueprints registered at app-startup) keeps working after a reload —
+        unlike replacing the instance, which would strand those references on
+        the old, closed object.
+
+        Args:
+            music_root: Optional new music root directory; defaults to the current one.
+            db_path: Optional new database path; defaults to the current one.
+        """
+        self.close()
+        self._initialize(music_root or self.music_root, db_path or self.db_path)
 
     def is_indexing(self) -> bool:
         status = get_indexing_status(self.db_path.parent)
@@ -1366,6 +1393,33 @@ class MusicCollection:
                 result[f"{size}x{size}"] = f"covers/{slug}.jpg"
 
         return result
+
+    def get_or_create_cover(self, release_dir: str, size: str | None = None) -> Path | None:
+        """Resolves the on-disk path of a cover image, generating it on demand if needed.
+
+        Public entry point for callers (e.g. cover-serving routes) that only need
+        a file to hand off — they should not need to know about slugging,
+        extraction, or variant-generation internals.
+
+        Args:
+            release_dir: The release directory identifier for the album.
+            size: Optional "WxH" size string for a variant; the original cover if omitted.
+
+        Returns:
+            Path | None: Path to the resolved cover file within `covers_dir`, or None if unresolvable.
+        """
+        if not release_dir:
+            return None
+
+        if size is None:
+            relative = self.get_cover(release_dir)
+        else:
+            relative = self.get_cover_sizes(release_dir).get(size)
+
+        if not relative:
+            return None
+
+        return self.covers_dir / Path(relative).name
 
     def _setup_fallback_cover(self) -> None:
         """Ensures the fallback cover image exists in the covers directory.
