@@ -6,6 +6,44 @@ All notable changes to Mixtape Society are documented here. We follow [Semantic 
 
 Each release rewinds and fast-forwards your mixtape experience—just like a real cassette! 🎧
 
+## 📦 v0.8.0
+
+<span class="md-tag">Release</span>
+
+**🗓️** 2026-11-01
+
+!!! warning "Before you upgrade"
+    The container now runs as user `1000`, so data written by an older image has to be handed over once, or the app won't start: `sudo chown -R 1000:1000 ./collection-data`. See the [installation guide](../user/creators/installation.md) for named volumes. The example Compose file now reads `PASSWORD` from `docker/.env`. Everyone is logged out once.
+
+### ✨ Added
+
+- Help is now part of the app: it opens the documentation of the version you run, also without internet
+- Automated tests and code checks on every pull request and before every Docker image
+- Vulnerability scans of the Python packages and the Docker image, and weekly dependency updates by Dependabot
+- Docker health check
+- `SESSION_COOKIE_SECURE` setting for installs that are only reached over HTTPS
+
+### 🔧 Changed
+
+- Docker image is much smaller and runs as a non-root user, read-only in the example Compose file
+- Security headers on every response; requests from other sites that change something are refused
+- Updated packages, including Pillow 13, CairoSVG 2.9.1 and Werkzeug 3.1.9 for security fixes
+- Moved system and cover routes out of `app.py` into their own blueprints
+- New logo and a more pronounced favicon
+- Improved readability of the documentation
+
+### 🐛 Fixed
+
+- Password could be guessed offline from a session cookie: sessions are now signed with a separate random key
+- App now refuses to start in production without a `PASSWORD`
+- Resetting the database left the app working with the old, closed collection
+- Pushing to `master` didn't build a Docker image
+- Documentation build failing on pages that referred to code that wasn't there
+
+[Changes since last version](https://github.com/mark-me/mixtape-society/compare/v0.7.5...v0.8.0)
+
+---
+
 ## 📦 v0.7.5
 
 <span class="md-tag">Release</span>
