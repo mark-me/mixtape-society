@@ -5,7 +5,7 @@
 # Dependabot moves them together. A new Python version comes with .python-version.
 #
 # uv comes from its own image, at a fixed version.
-FROM ghcr.io/astral-sh/uv:0.13.6 AS uv
+FROM ghcr.io/astral-sh/uv:0.13.7 AS uv
 
 
 # Build stage: install the locked dependencies, without the development tools.
