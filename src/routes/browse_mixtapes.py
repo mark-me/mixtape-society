@@ -148,7 +148,7 @@ def create_browser_blueprint(
         Returns:
             Response: A redirect response to the public play page for the mixtape.
         """
-        return redirect(url_for("public_play", slug=slug))
+        return redirect(url_for("play.public_play", slug=slug))
 
     @browser.route("/files/<path:filename>")
     @require_auth
