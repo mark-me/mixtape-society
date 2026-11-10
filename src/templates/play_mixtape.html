@@ -253,7 +253,7 @@
                                 <!-- Play button on the left -->
                                 <div class="track-cover-wrapper me-3 flex-shrink-0">
                                     {% if t.cover %}
-                                        <img src="{{ url_for('serve_album_cover', filename=t.cover.split('/')[-1]) }}" alt="Cover" class="track-cover rounded">
+                                        <img src="{{ url_for('covers.serve_album_cover', filename=t.cover.split('/')[-1]) }}" alt="Cover" class="track-cover rounded">
                                     {% else %}
                                         <div class="track-cover-placeholder rounded"></div>
                                     {% endif %}
