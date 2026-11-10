@@ -6,6 +6,22 @@ All notable changes to Mixtape Society are documented here. We follow [Semantic 
 
 Each release rewinds and fast-forwards your mixtape experience—just like a real cassette! 🎧
 
+## 📦 v0.8.2
+
+<span class="md-tag">Release</span>
+
+**🗓️** 2026-11-11
+
+### 🐛 Fixed
+
+- Shared mixtapes with track covers didn't open
+- Indexing page failed for a logged-in owner
+- Play button in the mixtape overview didn't work
+
+[Changes since last version](https://github.com/mark-me/mixtape-society/compare/v0.8.1...v0.8.2)
+
+---
+
 ## 📦 v0.8.1
 
 <span class="md-tag">Release</span>
