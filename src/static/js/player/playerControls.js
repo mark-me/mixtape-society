@@ -480,7 +480,10 @@ export function initPlayerControls() {
     };
     
     // Cassette mode plays the cassette sound: reload the current track in it, or out of it, at
-    // the same position, without starting a paused track.
+    // the same position, without starting a paused track. The position is only applied to the
+    // address it was asked for: a track chosen meanwhile starts where it should. Playback is
+    // resumed at once rather than when loaded, so a pause meanwhile is not undone.
+    let pendingModePosition = null;
     const reloadForPlayerMode = () => {
         const currentIndex = playbackManager.getCurrentIndex();
         if (currentIndex < 0 || !player.src || checkCastingState()) return;
@@ -489,12 +492,16 @@ export function initPlayerControls() {
         if (url.href === player.src) return;
 
         const wasPlaying = !player.paused;
-        const {currentTime} = player;
+        // Switching twice before the first reload has loaded keeps the position from before both
+        const position = pendingModePosition ?? player.currentTime;
+        pendingModePosition = position;
         player.addEventListener('loadedmetadata', () => {
-            player.currentTime = currentTime;
-            if (wasPlaying) player.play().catch(err => console.warn('Could not resume after mode change:', err));
+            if (player.src !== url.href) return;
+            pendingModePosition = null;
+            player.currentTime = position;
         }, { once: true });
         player.src = url.href;
+        if (wasPlaying) player.play().catch(err => console.warn('Could not resume after mode change:', err));
     };
 
     document.addEventListener('player-mode-changed', reloadForPlayerMode);

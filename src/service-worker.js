@@ -257,7 +257,10 @@ async function handleAudioRequest(request) {
         // Try to get full file from cache (we only cache 200 responses, not 206)
         const cachedResponse = await cache.match(cacheKey);
 
-        if (cachedResponse) {
+        // A stand-in kept by an earlier version of this worker is dropped, so the real file comes
+        if (cachedResponse && !isCacheable(cachedResponse)) {
+            await cache.delete(cacheKey);
+        } else if (cachedResponse) {
             console.log('[SW] 📦 Found cached audio file');
 
             // For HEAD requests, just return headers

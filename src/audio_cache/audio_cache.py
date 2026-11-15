@@ -9,6 +9,8 @@ requirements during playback.
 import hashlib
 import os
 import subprocess
+import tempfile
+import time
 from pathlib import Path
 from typing import Literal
 
@@ -29,6 +31,11 @@ TDK_D90_FILTER = (
     "equalizer=f=3000:width_type=q:width=0.5:g=1.5,"
     "equalizer=f=10000:width_type=q:width=0.7:g=-2[out]"
 )
+
+# Suffix of a file ffmpeg is still writing; one left by an interrupted job is removed by
+# clear_cache once it is older than PARTIAL_MAX_AGE seconds.
+PARTIAL_SUFFIX = ".part"
+PARTIAL_MAX_AGE = 3600
 
 QUALITY_SETTINGS = {
     "high": {"bitrate": "256k", "format": "mp3"},
@@ -214,9 +221,15 @@ class AudioCache:
 
         self.logger.debug(f"Transcoding {original_path.name} to {quality} quality ({bitrate})")
 
-        # Written under a temporary name and moved into place when complete, so a file that is
-        # still being written is never served as cached.
-        partial_path = cache_path.with_name(f"{cache_path.name}.part")
+        # Written under a temporary name of its own and moved into place when complete, so a file
+        # still being written is never served as cached, and two jobs making the same file at
+        # once don't write into each other's.
+        handle, partial_name = tempfile.mkstemp(
+            dir=self.cache_dir, prefix=f"{cache_path.name}.", suffix=PARTIAL_SUFFIX
+        )
+        os.close(handle)
+        partial_path = Path(partial_name)
+        partial_path.chmod(0o644)  # mkstemp makes it private; a cached file is readable as before
 
         # Build ffmpeg command
         cmd = ["ffmpeg", "-y", "-i", str(original_path)]  # Overwrite output file
@@ -249,10 +262,11 @@ class AudioCache:
 
         except subprocess.CalledProcessError as e:
             self.logger.error(f"Transcoding failed for {original_path}: {e.stderr}")
-            # Clean up partial file if it exists
-            if partial_path.exists():
-                partial_path.unlink()
             raise
+
+        finally:
+            # Clean up the partial file, whatever stopped the job
+            partial_path.unlink(missing_ok=True)
 
     def get_cached_or_original(
         self, original_path: Path, quality: QualityLevel = "medium"
@@ -335,18 +349,19 @@ class AudioCache:
         Returns:
             Number of files deleted.
         """
-        import time
-
         deleted_count = 0
         current_time = time.time()
 
-        for file_path in self.cache_dir.rglob("*.mp3"):
+        for file_path in [*self.cache_dir.rglob("*.mp3"), *self.cache_dir.rglob(f"*{PARTIAL_SUFFIX}")]:
             if file_path.is_file():
-                should_delete = True
-
-                if older_than_days is not None:
-                    file_age_days = (current_time - file_path.stat().st_mtime) / 86400
-                    should_delete = file_age_days > older_than_days
+                file_age = current_time - file_path.stat().st_mtime
+                if file_path.suffix == PARTIAL_SUFFIX:
+                    # Left by an interrupted job; a younger one may still be written
+                    should_delete = file_age > PARTIAL_MAX_AGE
+                elif older_than_days is not None:
+                    should_delete = file_age / 86400 > older_than_days
+                else:
+                    should_delete = True
 
                 if should_delete:
                     try:

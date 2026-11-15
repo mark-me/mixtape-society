@@ -74,11 +74,12 @@ def create_play_blueprint(
         if quality not in ["high", "medium", "low", "cassette", "original"]:
             quality = "medium"
 
-        # Until the cassette version is made, play the medium one without the tape sound; it must
-        # not be kept under the cassette address, or the tape sound would never come.
+        # Until the cassette version is made, play what medium would play (its cached version,
+        # or the original until that is made too), without the tape sound; it must not be kept
+        # under the cassette address, or the tape sound would never come.
         stand_in = quality == "cassette" and not audio_cache.is_cached(original_path, quality)
         if stand_in:
-            logger.warning(f"No cassette version of {original_path.name} yet, playing medium")
+            logger.warning(f"No cassette version of {original_path.name} yet, playing as medium")
             quality = "medium"
 
         # Determine which file to serve (cached or original)

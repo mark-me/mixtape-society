@@ -202,7 +202,8 @@ The player's cassette mode asks for `quality=cassette`: the track with the sound
 
 - **Every format gets it.** As it changes the sound, it is made for MP3 sources too, not only lossless ones.
 - **Made in advance.** It is in `AUDIO_CACHE_PRECACHE_QUALITIES`, so it is made when a mixtape is saved; at startup, the app makes it in the background for mixtapes saved before.
-- **A stand-in until then.** Without a cassette version, the route plays the medium one with `Cache-Control: no-store`, so neither the browser nor the service worker keeps it under the cassette address.
+- **A stand-in until then.** Without a cassette version, the route plays what `medium` would play — its cached version, or the original until that is made too — with `Cache-Control: no-store`, so neither the browser nor the service worker keeps it under the cassette address. A stand-in that an older service worker did keep is dropped the next time it is asked for.
+- **No half-written files.** ffmpeg writes to a temporary file of its own, which is moved into place when complete; `clear_cache` removes ones left by an interrupted job after an hour.
 - **The player switches along.** Turning cassette mode on or off reloads the current track at the same position; a paused track stays paused. Chromecast keeps playing the normal sound.
 
 ---

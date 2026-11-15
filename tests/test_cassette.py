@@ -1,13 +1,19 @@
 """Tests for the cassette sound: the TDK D90 version of a track that cassette mode plays."""
 
+import json
 import os
 import re
 import subprocess
+import threading
+import time
 from pathlib import Path
 
 import pytest
 
+import audio_cache.audio_cache as audio_cache_module
+from app import saved_track_paths
 from audio_cache import AudioCache, CacheWorker
+from mixtape_manager import MixtapeManager
 
 
 def _make_audio(path: Path, source: str) -> Path:
@@ -78,6 +84,64 @@ def test_only_finished_files_count_as_cached(tmp_path, cache):
     assert list(cache.cache_dir.iterdir()) == []
 
 
+def test_a_file_being_written_is_not_served_as_cached(tmp_path, cache, monkeypatch):
+    source = tmp_path / "song.flac"
+    source.write_bytes(b"source")
+    final = cache.get_cache_path(source, "cassette")
+    seen = {}
+
+    def ffmpeg(cmd, **kwargs):
+        Path(cmd[-1]).write_bytes(b"half")
+        seen["cached while writing"] = cache.is_cached(source, "cassette")
+        seen["final file while writing"] = final.exists()
+        Path(cmd[-1]).write_bytes(b"whole")
+        return subprocess.CompletedProcess(cmd, 0)
+
+    monkeypatch.setattr(audio_cache_module.subprocess, "run", ffmpeg)
+    cache.transcode_file(source, "cassette")
+
+    assert seen == {"cached while writing": False, "final file while writing": False}
+    assert final.read_bytes() == b"whole"
+
+
+def test_two_jobs_making_the_same_file_do_not_write_into_each_other(tmp_path, cache, monkeypatch):
+    source = tmp_path / "song.flac"
+    source.write_bytes(b"source")
+    both_writing = threading.Barrier(2, timeout=5)
+    written_to = []
+
+    def ffmpeg(cmd, **kwargs):
+        written_to.append(cmd[-1])
+        both_writing.wait()
+        Path(cmd[-1]).write_bytes(b"whole")
+        return subprocess.CompletedProcess(cmd, 0)
+
+    monkeypatch.setattr(audio_cache_module.subprocess, "run", ffmpeg)
+    jobs = [threading.Thread(target=cache.transcode_file, args=(source, "cassette", True)) for _ in range(2)]
+    for job in jobs:
+        job.start()
+    for job in jobs:
+        job.join()
+
+    assert len(set(written_to)) == 2
+    assert cache.get_cache_path(source, "cassette").read_bytes() == b"whole"
+    assert [path.name for path in cache.cache_dir.iterdir()] == [cache.get_cache_path(source, "cassette").name]
+
+
+def test_clearing_removes_files_left_by_interrupted_jobs(cache):
+    left = cache.cache_dir / "abc_cassette_192k.mp3.x1.part"
+    writing = cache.cache_dir / "abc_cassette_192k.mp3.x2.part"
+    for path in (left, writing):
+        path.write_bytes(b"half")
+    two_hours_ago = time.time() - 7200
+    os.utime(left, (two_hours_ago, two_hours_ago))
+
+    cache.clear_cache()
+
+    assert not left.exists()
+    assert writing.exists()
+
+
 def test_mixtapes_saved_before_get_their_cassette_version(tmp_path, cache):
     source = _make_audio(tmp_path / "song.mp3", "sine=frequency=440:duration=2")
 
@@ -109,6 +173,46 @@ def test_cassette_mode_plays_the_cassette_version(app, client, track):
 def test_until_it_is_made_a_stand_in_plays_that_is_not_kept(client, track, headers):
     response = client.get("/play/cassette-route.flac?quality=cassette", headers=headers)
 
-    assert response.status_code in (200, 206)
+    assert response.status_code == (206 if headers else 200)
     assert response.mimetype == "audio/flac"
     assert response.headers["Cache-Control"] == "no-store"
+    if headers:
+        assert response.headers["Content-Range"] == f"bytes 0-99/{track.stat().st_size}"
+        assert len(response.data) == 100
+
+
+def test_startup_skips_mixtapes_it_cannot_read(tmp_path):
+    music = tmp_path / "music"
+    music.mkdir()
+    (music / "good.mp3").write_bytes(b"audio")
+    mixtapes = tmp_path / "mixtapes"
+    mixtapes.mkdir()
+    saved = {
+        "good": {"tracks": [{"path": "good.mp3"}, {"path": "gone.mp3"}]},
+        "tracks-not-a-list": {"tracks": "good.mp3"},
+        "track-without-path": {"tracks": [{"artist": "Someone"}, "good.mp3", {"path": 3}]},
+    }
+    for slug, data in saved.items():
+        (mixtapes / f"{slug}.json").write_text(json.dumps(data))
+    (mixtapes / "broken.json").write_text("{not json")
+
+    paths = saved_track_paths(MixtapeManager(path_mixtapes=mixtapes, collection=None), music, logger=None)
+
+    assert paths == [music / "good.mp3"]
+
+
+def test_startup_goes_on_when_the_mixtapes_cannot_be_listed(tmp_path):
+    class Unreadable:
+        def list_all(self):
+            raise TypeError("not a mixtape")
+
+    class Logger:
+        warned = []
+
+        def warning(self, message):
+            self.warned.append(message)
+
+    logger = Logger()
+
+    assert saved_track_paths(Unreadable(), tmp_path, logger) == []
+    assert logger.warned
