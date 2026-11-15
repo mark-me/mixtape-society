@@ -6,6 +6,48 @@ All notable changes to Mixtape Society are documented here. We follow [Semantic 
 
 Each release rewinds and fast-forwards your mixtape experience—just like a real cassette! 🎧
 
+## 📦 v0.9.0
+
+<span class="md-tag">Release</span>
+
+**🗓️** 2026-11-16
+
+!!! warning "Before you upgrade"
+    - **Behind a reverse proxy** (Traefik, Nginx, Caddy, Tailscale Funnel), set `TRUSTED_PROXIES=1`. Without it, all visitors share the limit of 5 login attempts a minute. See the [installation guide](../user/creators/installation.md).
+    - **Shared links to single tracks** only play for tracks in a saved mixtape; links to other files in your collection now answer "not found".
+    - **On first start**, the app makes the cassette version of every track in your mixtapes in the background, which takes a while and roughly doubles the space the audio cache uses. Until a track's version is ready, it plays without the tape sound.
+
+### ✨ Added
+
+- Cassette mode now also sounds like a cassette: a TDK D90, with tape hiss, a slight wobble and a little less treble
+- `TRUSTED_PROXIES` setting, so the login limit counts each visitor separately behind a reverse proxy
+- Security checks on every pull request: CodeQL, the libraries loaded from CDNs, and the workflows themselves
+
+### 🔧 Changed
+
+- Without a login, only tracks in a saved mixtape can be streamed; the owner can still stream everything
+- Libraries loaded from CDNs have fixed versions and integrity hashes
+- The Docker image picks up Debian's security updates every week
+- Updated dependencies
+
+### 🔒 Security
+
+- A gift link's note could run a script on your server's site, with your rights when you were logged in
+- The audio cache could be cleared without logging in
+- DOMPurify, which makes liner notes safe to show, updated to 3.4.17 for known bypasses
+- The mixtape search could put the search text into the page as HTML
+- The help pages could reveal whether a folder outside the documentation exists
+
+### 🐛 Fixed
+
+- The "No mixtapes found" message in the mixtape search never showed
+- An audio file that was still being written could be served from the cache
+- The second, never-working copy of Bootstrap at the bottom of every page is gone
+
+[Changes since last version](https://github.com/mark-me/mixtape-society/compare/v0.8.2...v0.9.0)
+
+---
+
 ## 📦 v0.8.2
 
 <span class="md-tag">Release</span>
