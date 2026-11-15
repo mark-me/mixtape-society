@@ -1,6 +1,7 @@
 from urllib.parse import urlsplit
 
 from flask import Flask, abort, request
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 # What a page may load, besides itself. Only reported for now, in the browser's console: the
 # templates still use inline scripts, which an enforced policy would stop.
@@ -41,6 +42,23 @@ def register_security(app: Flask) -> None:
     """
     app.before_request(reject_other_sites)
     app.after_request(add_security_headers)
+
+
+def trust_proxies(app: Flask, count: int) -> None:
+    """
+    Lets the app see a visitor's own address and scheme behind reverse proxies.
+
+    Behind a proxy, every request comes from the proxy's address, so all visitors would share
+    the login limit and one could lock out the owner. With the number of proxies before the
+    app, the address is taken from the X-Forwarded-For header those proxies add. Without
+    proxies, the count must stay 0: the header could then be made up to get around the limit.
+
+    Args:
+        app: The Flask application.
+        count: The number of reverse proxies in front of the app.
+    """
+    if count > 0:
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=count, x_proto=count, x_host=count)
 
 
 def reject_other_sites() -> None:

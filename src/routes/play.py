@@ -14,7 +14,7 @@ from flask import (
 )
 
 from audio_cache import AudioCache, QualityLevel
-from auth import require_auth
+from auth import check_auth, require_auth
 from common.logging import Logger, NullLogger
 from mixtape_manager import MixtapeManager
 
@@ -62,6 +62,9 @@ def create_play_blueprint(
             quality: Quality level - "high" (256k), "medium" (192k), "low" (128k), "original",
                 or "cassette" (the sound of a TDK D90 tape, for the player's cassette mode)
 
+        Without a login, only tracks in a saved mixtape can be streamed; the owner can stream
+        any file in the collection, as the editor does to preview tracks.
+
         Args:
             file_path: The relative path to the audio file within the music directory.
 
@@ -69,6 +72,9 @@ def create_play_blueprint(
             Response: The Flask response object streaming the audio file or an error response.
         """
         original_path = _resolve_and_validate_path(file_path)
+        if not check_auth() and not _is_shared(original_path):
+            # Not found rather than forbidden, so a visitor can't tell which files exist
+            abort(404)
 
         # Get quality preference from query parameter
         quality: QualityLevel = request.args.get("quality", "medium")
@@ -139,6 +145,20 @@ def create_play_blueprint(
         )
 
         return original_path
+
+    def _is_shared(full_path: Path) -> bool:
+        """
+        Checks whether a music file is a track in one of the saved mixtapes.
+
+        Args:
+            full_path: The resolved path to the music file.
+
+        Returns:
+            bool: True if a saved mixtape contains it.
+        """
+        path_music = Path(current_app.config["MUSIC_ROOT"]).resolve()
+        relative = full_path.relative_to(path_music).as_posix()
+        return relative in mixtape_manager.shared_track_paths()
 
     def _resolve_and_validate_path(file_path: str) -> Path:
         """

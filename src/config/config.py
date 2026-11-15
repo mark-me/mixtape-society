@@ -39,6 +39,10 @@ class BaseConfig:
     # Keep password handling clean
     PASSWORD = os.getenv("PASSWORD", "dev-password")
 
+    # Reverse proxies in front of the app (Traefik, Nginx, Caddy, Tailscale Funnel ...). Leave
+    # at 0 when the app is reached directly, or visitors could make up their own address.
+    TRUSTED_PROXIES = int(os.getenv("TRUSTED_PROXIES") or 0)
+
     # Session cookie. Secure is opt-in: many installs run on plain HTTP in a home network,
     # where a Secure cookie would make logging in impossible.
     SESSION_COOKIE_SAMESITE = "Lax"

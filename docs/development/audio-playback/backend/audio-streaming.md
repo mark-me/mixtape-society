@@ -20,6 +20,10 @@ The `stream_audio()` function is the central handler for audio file requests. It
 
 ---
 
+## 🔑 Who May Stream What
+
+Without a login, `stream_audio()` only streams tracks that are in a saved mixtape (`MixtapeManager.shared_track_paths()`); any other file answers 404, the same as one that doesn't exist, so a visitor can't find out what else is in the collection. The owner, logged in, can stream every file, as the editor does to preview tracks. The list of shared tracks is read again only when a mixtape file is added, changed or removed, so a newly saved mixtape plays at once.
+
 ## 🔒 Path Validation
 
 ### _resolve_and_validate_path()
@@ -286,7 +290,7 @@ response.headers["Access-Control-Expose-Headers"] = \
 
 This is safe because:
 
-- Audio files are intentionally public (shared mixtapes)
+- Tracks in saved mixtapes are intentionally public, so a shared mixtape plays without a login; the rest of the collection needs one
 - No authentication credentials in responses
 - Read-only operation (no state changes)
 
