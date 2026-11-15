@@ -205,3 +205,8 @@
 .hidden { display: none !important; }
 .fade-out { opacity: 0 !important; transition: opacity 0.7s ease; pointer-events: none; }
 .fade-in  { opacity: 1 !important; transition: opacity 0.7s ease; }
+
+/* The note is plain text: keep its line breaks */
+.gift-message-body {
+    white-space: pre-line;
+}

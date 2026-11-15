@@ -14,6 +14,7 @@ from flask import (
 )
 
 from audio_cache import AudioCache, QualityLevel
+from auth import require_auth
 from common.logging import Logger, NullLogger
 from mixtape_manager import MixtapeManager
 
@@ -410,6 +411,7 @@ def create_play_blueprint(
     # Admin/utility endpoints for cache management
 
     @play.route("/admin/cache/stats")
+    @require_auth
     def cache_stats() -> dict:
         """
         Get statistics about the audio cache.
@@ -427,6 +429,7 @@ def create_play_blueprint(
         }
 
     @play.route("/admin/cache/clear", methods=["POST"])
+    @require_auth
     def clear_cache() -> dict:
         """
         Clear the audio cache.
