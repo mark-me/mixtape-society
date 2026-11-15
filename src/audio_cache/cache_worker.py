@@ -103,7 +103,7 @@ class CacheWorker:
         )
 
         for idx, file_path in enumerate(track_paths, 1):
-            if not self.audio_cache.should_transcode(file_path):
+            if not any(self.audio_cache.should_transcode(file_path, q) for q in qualities):
                 self.logger.debug(f"Skipping {file_path.name} (no transcoding needed)")
                 results[str(file_path)] = {"skipped": True}
                 continue
@@ -139,12 +139,16 @@ class CacheWorker:
 
         # Filter files that need transcoding
         files_to_cache = [
-            path for path in track_paths if self.audio_cache.should_transcode(path)
+            path
+            for path in track_paths
+            if any(self.audio_cache.should_transcode(path, q) for q in qualities)
         ]
 
         # Track skipped files (non-FLAC that don't need transcoding)
         skipped_files = [
-            path for path in track_paths if not self.audio_cache.should_transcode(path)
+            path
+            for path in track_paths
+            if not any(self.audio_cache.should_transcode(path, q) for q in qualities)
         ]
 
         total_files = len(files_to_cache)
@@ -214,7 +218,7 @@ class CacheWorker:
         """
         results = {
             str(path): (
-                self.audio_cache.is_cached(path, quality) if self.audio_cache.should_transcode(path) else True
+                self.audio_cache.is_cached(path, quality) if self.audio_cache.should_transcode(path, quality) else True
             )
             for path in track_paths
         }
@@ -239,9 +243,6 @@ class CacheWorker:
         files_to_regenerate = []
 
         for path in track_paths:
-            if not self.audio_cache.should_transcode(path):
-                continue
-
             # Check each quality level
             for quality in qualities:
                 if not self.audio_cache.is_cached(path, quality):

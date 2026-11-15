@@ -13,6 +13,9 @@ export const QUALITY_LEVELS = {
 
 export const DEFAULT_QUALITY = 'medium';
 
+// Played instead of the chosen quality in cassette mode: the sound of a TDK D90 tape.
+export const CASSETTE_QUALITY = 'cassette';
+
 export class QualityManager {
     constructor(storageKey = 'audioQuality') {
         this.storageKey = storageKey;
@@ -57,10 +60,17 @@ export class QualityManager {
     }
     
     /**
+     * Quality to play: the cassette sound in cassette mode, else the chosen quality
+     */
+    getPlaybackQuality() {
+        return document.body.classList.contains('cassette-mode') ? CASSETTE_QUALITY : this.currentQuality;
+    }
+    
+    /**
      * Build audio URL with quality parameter
      */
     buildAudioUrl(basePath, quality = null) {
-        const q = quality || this.currentQuality;
+        const q = quality || this.getPlaybackQuality();
         const urlParams = new URLSearchParams();
         urlParams.set('quality', q);
         return `${basePath}?${urlParams.toString()}`;

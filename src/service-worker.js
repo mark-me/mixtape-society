@@ -230,6 +230,14 @@ async function handleRootPlay(request) {
  *
  * Range requests are critical for audio seeking and must be handled correctly.
  */
+/**
+ * Whether a response may be kept: not when the server says no-store, as it does when it plays a
+ * stand-in until the cassette sound of a track is made.
+ */
+function isCacheable(response) {
+    return response.ok && response.status === 200 && !(response.headers.get('Cache-Control') || '').includes('no-store');
+}
+
 async function handleAudioRequest(request) {
     const url = new URL(request.url);
     const cacheKey = url.toString(); // Full URL including query params
@@ -249,7 +257,10 @@ async function handleAudioRequest(request) {
         // Try to get full file from cache (we only cache 200 responses, not 206)
         const cachedResponse = await cache.match(cacheKey);
 
-        if (cachedResponse) {
+        // A stand-in kept by an earlier version of this worker is dropped, so the real file comes
+        if (cachedResponse && !isCacheable(cachedResponse)) {
+            await cache.delete(cacheKey);
+        } else if (cachedResponse) {
             console.log('[SW] 📦 Found cached audio file');
 
             // For HEAD requests, just return headers
@@ -294,6 +305,9 @@ async function handleAudioRequest(request) {
                 const fullResponse = await fetch(fullRequest);
 
                 if (fullResponse.ok && fullResponse.status === 200) {
+                    if (!isCacheable(fullResponse)) {
+                        return createRangeResponse(fullResponse, request.headers.get('Range'));
+                    }
                     // Cache asynchronously (don't block response)
                     cache.put(cacheKey, fullResponse.clone()).catch(err => {
                         console.warn('[SW] ⚠️ Failed to cache audio:', err);
@@ -314,7 +328,7 @@ async function handleAudioRequest(request) {
         // For non-range requests, just fetch and cache
         const response = await fetch(request);
 
-        if (response.ok && response.status === 200) {
+        if (isCacheable(response)) {
             // Cache asynchronously (don't block response)
             cache.put(cacheKey, response.clone()).catch(err => {
                 console.warn('[SW] ⚠️ Failed to cache audio:', err);

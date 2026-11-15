@@ -243,6 +243,10 @@ Adjust streaming quality to match your connection and data plan.
 !!! tip "Connection Issues?"
     If playback stutters or stops frequently, try switching to a lower quality setting. The difference is often imperceptible with standard headphones.
 
+### 📼 The Sound of a Cassette
+
+In cassette mode, the mixtape also sounds like a cassette: a TDK D90, with soft tape hiss, a slight wobble, and a little less treble. Switch back to the modern view for the normal sound; the track carries on where it was. On a Chromecast, you always hear the normal sound.
+
 ---
 
 ## ⌨️ Keyboard Shortcuts (Desktop)

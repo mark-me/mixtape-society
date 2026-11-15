@@ -58,7 +58,8 @@ def create_play_blueprint(
         determines the correct MIME type, and supports HTTP range requests for seeking.
 
         Query Parameters:
-            quality: Quality level - "high" (256k), "medium" (192k), "low" (128k), or "original"
+            quality: Quality level - "high" (256k), "medium" (192k), "low" (128k), "original",
+                or "cassette" (the sound of a TDK D90 tape, for the player's cassette mode)
 
         Args:
             file_path: The relative path to the audio file within the music directory.
@@ -70,7 +71,15 @@ def create_play_blueprint(
 
         # Get quality preference from query parameter
         quality: QualityLevel = request.args.get("quality", "medium")
-        if quality not in ["high", "medium", "low", "original"]:
+        if quality not in ["high", "medium", "low", "cassette", "original"]:
+            quality = "medium"
+
+        # Until the cassette version is made, play what medium would play (its cached version,
+        # or the original until that is made too), without the tape sound; it must not be kept
+        # under the cassette address, or the tape sound would never come.
+        stand_in = quality == "cassette" and not audio_cache.is_cached(original_path, quality)
+        if stand_in:
+            logger.warning(f"No cassette version of {original_path.name} yet, playing as medium")
             quality = "medium"
 
         # Determine which file to serve (cached or original)
@@ -80,7 +89,10 @@ def create_play_blueprint(
         file_size = serve_path.stat().st_size
 
         if range_header := request.headers.get("Range"):
-            return _handle_range_request(serve_path, mime_type, range_header, file_size)
+            response = _handle_range_request(serve_path, mime_type, range_header, file_size)
+            if stand_in:
+                response.headers["Cache-Control"] = "no-store"
+            return response
 
         # Full file request
         response = send_file(
@@ -91,7 +103,7 @@ def create_play_blueprint(
         response.headers["Access-Control-Expose-Headers"] = (
             "Content-Type, Accept-Encoding, Range"
         )
-        response.headers["Cache-Control"] = "public, max-age=3600"
+        response.headers["Cache-Control"] = "no-store" if stand_in else "public, max-age=3600"
         return response
 
     def _get_serving_path(
@@ -110,7 +122,7 @@ def create_play_blueprint(
             Path to the file that should be served.
         """
         # If original quality or format doesn't need transcoding, serve original
-        if quality == "original" or not cache.should_transcode(original_path):
+        if quality == "original" or not cache.should_transcode(original_path, quality):
             return original_path
 
         # Check if cached version exists

@@ -34,6 +34,7 @@ The quality and caching system allows clients to request different audio quality
 | `high` | 256 kbps | MP3 | High-quality wireless, good connections |
 | `medium` | 192 kbps | MP3 | Default, balanced quality/bandwidth |
 | `low` | 128 kbps | MP3 | Cellular, bandwidth-constrained |
+| `cassette` | 192 kbps | MP3 with the sound of a TDK D90 tape | The player's cassette mode |
 
 ### Quality Parameter
 
@@ -51,6 +52,7 @@ GET /play/<file_path>?quality=<level>
 /play/jazz/miles-davis/so-what.flac?quality=high       # 256k MP3
 /play/jazz/miles-davis/so-what.flac?quality=medium     # 192k MP3
 /play/jazz/miles-davis/so-what.flac?quality=low        # 128k MP3
+/play/jazz/miles-davis/so-what.flac?quality=cassette   # 192k MP3, TDK D90 tape sound
 ```
 
 **Default:** `original` (when parameter omitted)
@@ -193,6 +195,16 @@ def should_transcode(self, file_path: Path) -> bool:
     extension = file_path.suffix.lower()
     return extension in {'.flac', '.wav', '.ogg', '.m4a'}
 ```
+
+### 📼 Cassette Sound
+
+The player's cassette mode asks for `quality=cassette`: the track with the sound of a TDK D90 tape from the mid-nineties. An ffmpeg filter adds tape hiss and wow and flutter, narrows the frequency range to 40 Hz–14.5 kHz, and colours the tone. It comes from [Audio Cassette Simulation](https://github.com/AARomanov1985/Audio-Cassette-Simulation) by Aleksandr Romanov (MIT licence, in `src/audio_cache/cassette-simulation-LICENSE.txt`).
+
+- **Every format gets it.** As it changes the sound, it is made for MP3 sources too, not only lossless ones.
+- **Made in advance.** It is in `AUDIO_CACHE_PRECACHE_QUALITIES`, so it is made when a mixtape is saved; at startup, the app makes it in the background for mixtapes saved before.
+- **A stand-in until then.** Without a cassette version, the route plays what `medium` would play — its cached version, or the original until that is made too — with `Cache-Control: no-store`, so neither the browser nor the service worker keeps it under the cassette address. A stand-in that an older service worker did keep is dropped the next time it is asked for.
+- **No half-written files.** ffmpeg writes to a temporary file of its own, which is moved into place when complete; `clear_cache` removes ones left by an interrupted job after an hour.
+- **The player switches along.** Turning cassette mode on or off reloads the current track at the same position; a paused track stays paused. Chromecast keeps playing the normal sound.
 
 ---
 

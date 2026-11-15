@@ -52,7 +52,7 @@ After the optional `.env` load, the module defines a **`BASE_DIR`** (`src/`) and
 | `AUDIO_CACHE_DEFAULT_QUALITY` | `BaseConfig.AUDIO_CACHE_DEFAULT_QUALITY` | `medium` | Default quality for cached audio files (`low`, `medium`, `high`). |
 | `AUDIO_CACHE_MAX_WORKERS` | `BaseConfig.AUDIO_CACHE_MAX_WORKERS` | `4` | Number of worker threads used for background transcoding. |
 | `AUDIO_CACHE_PRECACHE_ON_UPLOAD` | `BaseConfig.AUDIO_CACHE_PRECACHE_ON_UPLOAD` | `True` | When a mixtape is saved, automatically start caching its tracks. |
-| `AUDIO_CACHE_PRECACHE_QUALITIES` | `BaseConfig.AUDIO_CACHE_PRECACHE_QUALITIES` | `["medium"]` | List of qualities to precache (e.g., `["low","medium","high"]`). |
+| `AUDIO_CACHE_PRECACHE_QUALITIES` | `BaseConfig.AUDIO_CACHE_PRECACHE_QUALITIES` | `["medium", "cassette"]` | List of qualities to precache (e.g., `["low","medium","high"]`); `cassette` is the tape sound of the player's cassette mode. |
 | `DEBUG` | Set by subclass (`DevelopmentConfig.DEBUG = True`) | `False` (prod) | Enables Flask’s debugger and auto-reload. |
 | `PYTHONPATH` / `PYTHON_VERSION` | Not read by the app, but documented for developers. | – | Pinning to Python 3.11+ via `.python-version` (used by `uv`). |
 

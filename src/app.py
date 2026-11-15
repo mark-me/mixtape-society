@@ -1,6 +1,7 @@
 import logging
 import sys
 import os
+import threading
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -9,7 +10,7 @@ from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
-from audio_cache import AudioCache
+from audio_cache import AudioCache, CacheWorker
 from auth import check_auth, derive_session_key
 from config import BaseConfig, DevelopmentConfig, ProductionConfig, TestConfig
 from logtools import get_logger, setup_logging
@@ -97,6 +98,17 @@ def create_app() -> Flask:
     mixtape_manager = MixtapeManager(
         path_mixtapes=config_cls.MIXTAPE_DIR, collection=collection
     )
+
+    # Mixtapes saved before a quality was cached (such as the cassette sound) get it in the
+    # background, one file at a time, so playback keeps the server's attention.
+    threading.Thread(
+        target=CacheWorker(audio_cache, logger).regenerate_outdated_cache,
+        args=(
+            saved_track_paths(mixtape_manager, config_cls.MUSIC_ROOT, logger),
+            config_cls.AUDIO_CACHE_PRECACHE_QUALITIES,
+        ),
+        daemon=True,
+    ).start()
 
     @app.errorhandler(DatabaseCorruptionError)
     def handle_database_corruption(e: DatabaseCorruptionError) -> tuple[Response, int]:
@@ -306,6 +318,40 @@ def create_app() -> Flask:
     )
 
     return app
+
+
+def saved_track_paths(mixtape_manager: MixtapeManager, music_root: Path, logger) -> list[Path]:
+    """
+    Lists the music files of all saved mixtapes that exist on disk.
+
+    A mixtape file that can't be read, or a track without a path, is skipped: what this list is
+    for, filling the audio cache, is not worth the app failing to start.
+
+    Args:
+        mixtape_manager: Manager of the saved mixtapes.
+        music_root: Root directory of the music collection.
+        logger: Logger for what is skipped.
+
+    Returns:
+        list[Path]: The paths of the music files.
+    """
+    try:
+        mixtapes = mixtape_manager.list_all()
+    except Exception as e:
+        logger.warning(f"Could not list mixtapes to fill the audio cache: {e}")
+        return []
+
+    paths = []
+    for mixtape in mixtapes:
+        tracks = mixtape.get("tracks") if isinstance(mixtape, dict) else None
+        if not isinstance(tracks, list):
+            continue
+        for track in tracks:
+            if isinstance(track, dict) and isinstance(track.get("path"), str):
+                path = music_root / track["path"]
+                if path.exists():
+                    paths.append(path)
+    return paths
 
 
 def get_configuration() -> BaseConfig:

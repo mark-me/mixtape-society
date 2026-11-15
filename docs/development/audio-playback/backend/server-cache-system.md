@@ -150,7 +150,7 @@ graph TD
 | `AUDIO_CACHE_DEFAULT_QUALITY` | `"medium"` | Quality used when a client does not specify one. |
 | `AUDIO_CACHE_MAX_WORKERS` | `4` | Number of parallel threads for batch transcoding. |
 | `AUDIO_CACHE_PRECACHE_ON_UPLOAD` | `True` | Auto-cache mixtape tracks when a mixtape is saved. |
-| `AUDIO_CACHE_PRECACHE_QUALITIES` | `["medium"]` | List of qualities to pre-generate (e.g., `["low", "medium", "high"]`). |
+| `AUDIO_CACHE_PRECACHE_QUALITIES` | `["medium", "cassette"]` | List of qualities to pre-generate (e.g., `["low", "medium", "high"]`). `cassette` is the tape sound of the player's cassette mode. |
 
 > These values are defined in `src/config/config.py` and can be overridden with environment variables (e.g., `AUDIO_CACHE_MAX_WORKERS=8`).
 
