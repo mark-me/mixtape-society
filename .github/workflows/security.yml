@@ -1,6 +1,7 @@
 name: Security scan
 
-# Checks the Python packages the app runs on for known vulnerabilities, with Trivy. A HIGH or
+# Checks the Python packages the app runs on for known vulnerabilities, with Trivy; also the
+# libraries the templates load from CDNs, with npm audit, and the workflows, with zizmor. A HIGH or
 # CRITICAL vulnerability that has a fix fails the run; the full list, every severity, is
 # always in the log. The Docker workflow calls this scan too, and builds no image when it
 # fails. It also runs weekly: new vulnerabilities are found in packages that did not change.
@@ -29,6 +30,7 @@ permissions:
 env:
   # Also in docker-image.yml.
   TRIVY_VERSION: "0.76.0"
+  ZIZMOR_VERSION: "1.31.1"
 
 jobs:
   packages:
@@ -37,6 +39,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up uv
         uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
@@ -61,6 +65,35 @@ jobs:
         # One without a fix cannot be resolved by updating; it is listed above.
         run: trivy fs --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed --format table --exit-code 1 .
 
+  # The libraries the templates load from CDNs, which Dependabot and Trivy don't see.
+  cdn-libraries:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check the CDN libraries for known vulnerabilities
+        run: python3 .github/scripts/audit_cdn_libraries.py
+
+  # The workflows themselves: permissions, credentials, injection through expressions.
+  workflows:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+
+      - name: Check the workflows with zizmor
+        run: uvx zizmor==${{ env.ZIZMOR_VERSION }} --offline --min-severity low .github/workflows
+
   image:
     # Weekly and by hand only; when the Docker workflow calls this one, it scans the new image itself.
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
@@ -72,6 +105,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Install Trivy
         uses: ./.github/actions/install-trivy

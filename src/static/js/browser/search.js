@@ -69,9 +69,9 @@ export function initSearch() {
     const updateEmptyState = (count, isSearching, query = '') => {
         let emptyState = document.querySelector('.no-mixtapes');
 
-        // Create empty state if it doesn't exist
+        // Create empty state if it doesn't exist, in the container that holds the mixtapes
         if (!emptyState) {
-            const container = document.querySelector('.container.py-5');
+            const container = mixtapeItems[0]?.closest('.container') || document.querySelector('.container');
             emptyState = document.createElement('div');
             emptyState.className = 'no-mixtapes';
             container.appendChild(emptyState);
@@ -82,9 +82,11 @@ export function initSearch() {
             emptyState.innerHTML = `
                 <i class="bi bi-cassette display-1 mb-4 text-muted"></i>
                 <h3>No mixtapes found</h3>
-                <p class="text-muted">No mixtapes match "${query}" in their titles</p>
+                <p class="text-muted">No mixtapes match "<span class="empty-state-query"></span>" in their titles</p>
                 <p class="text-muted"><small>Try the "Search Tracks" button for a deeper search</small></p>
             `;
+            // The query can come from the address (?search=...), so it goes in as text
+            emptyState.querySelector('.empty-state-query').textContent = query;
         } else if (count === 0 && !isSearching) {
             emptyState.style.display = 'block';
             emptyState.innerHTML = `

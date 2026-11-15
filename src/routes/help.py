@@ -1,6 +1,7 @@
 from pathlib import Path
 
-from flask import Blueprint, redirect, send_from_directory, url_for
+from flask import Blueprint, abort, redirect, send_from_directory, url_for
+from werkzeug.security import safe_join
 
 ONLINE = "https://mark-me.github.io/mixtape-society/"
 
@@ -38,7 +39,10 @@ def create_help_blueprint(help_dir: Path) -> Blueprint:
             return redirect(ONLINE + path)
         if path == "" or path.endswith("/"):
             path += "index.html"
-        elif (help_dir / path).is_dir():
+        elif (inside := safe_join(str(help_dir), path)) is None:
+            # Outside the site: not even whether it exists is told
+            abort(404)
+        elif Path(inside).is_dir():
             return redirect(url_for("help.page", path=f"{path}/"))
         return send_from_directory(help_dir, path)
 

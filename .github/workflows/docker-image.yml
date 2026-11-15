@@ -5,6 +5,10 @@ on:
     branches: [ master, test ]
     tags: [ 'v*.*.*' ]
 
+# Each job asks for what it needs beyond reading the code.
+permissions:
+  contents: read
+
 jobs:
   tests:
     uses: ./.github/workflows/tests.yml
@@ -28,6 +32,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           fetch-depth: 0
 
       - name: Set up QEMU
