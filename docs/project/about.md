@@ -39,6 +39,7 @@ Mixtape Society leverages several fantastic open-source libraries and tools. A b
 - **[Flask-Limiter](https://flask-limiter.readthedocs.io/)** – Rate limiting for the login route
 - **[Flask-Login](https://flask-login.readthedocs.io/)** – Session management
 - **[FFmpeg](https://ffmpeg.org/)** - Transcoding audio quality
+- **[Audio Cassette Simulation](https://github.com/AARomanov1985/Audio-Cassette-Simulation)** by Aleksandr Romanov – The TDK D90 tape sound of cassette mode
 - **[Gunicorn](https://gunicorn.org/)** – Production WSGI server
 - **[Pillow](https://python-pillow.org/)** – Image processing for uploaded covers and OpenGraph image generation
 - **[python-dotenv](https://github.com/theskumar/python-dotenv)** – Easy .env file support

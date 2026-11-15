@@ -479,6 +479,26 @@ export function initPlayerControls() {
         });
     };
     
+    // Cassette mode plays the cassette sound: reload the current track in it, or out of it, at
+    // the same position, without starting a paused track.
+    const reloadForPlayerMode = () => {
+        const currentIndex = playbackManager.getCurrentIndex();
+        if (currentIndex < 0 || !player.src || checkCastingState()) return;
+
+        const url = new URL(qualityManager.buildAudioUrl(trackItems[currentIndex].dataset.path), window.location.href);
+        if (url.href === player.src) return;
+
+        const wasPlaying = !player.paused;
+        const {currentTime} = player;
+        player.addEventListener('loadedmetadata', () => {
+            player.currentTime = currentTime;
+            if (wasPlaying) player.play().catch(err => console.warn('Could not resume after mode change:', err));
+        }, { once: true });
+        player.src = url.href;
+    };
+
+    document.addEventListener('player-mode-changed', reloadForPlayerMode);
+
     const changeQuality = (newQuality) => {
         qualityManager.setQuality(newQuality);
         

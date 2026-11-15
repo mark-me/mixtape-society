@@ -1,6 +1,7 @@
 import logging
 import sys
 import os
+import threading
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -9,7 +10,7 @@ from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
-from audio_cache import AudioCache
+from audio_cache import AudioCache, CacheWorker
 from auth import check_auth, derive_session_key
 from config import BaseConfig, DevelopmentConfig, ProductionConfig, TestConfig
 from logtools import get_logger, setup_logging
@@ -97,6 +98,19 @@ def create_app() -> Flask:
     mixtape_manager = MixtapeManager(
         path_mixtapes=config_cls.MIXTAPE_DIR, collection=collection
     )
+
+    # Mixtapes saved before a quality was cached (such as the cassette sound) get it in the
+    # background, one file at a time, so playback keeps the server's attention.
+    track_paths = [
+        config_cls.MUSIC_ROOT / track["path"]
+        for mixtape in mixtape_manager.list_all()
+        for track in mixtape.get("tracks", [])
+    ]
+    threading.Thread(
+        target=CacheWorker(audio_cache, logger).regenerate_outdated_cache,
+        args=([path for path in track_paths if path.exists()], config_cls.AUDIO_CACHE_PRECACHE_QUALITIES),
+        daemon=True,
+    ).start()
 
     @app.errorhandler(DatabaseCorruptionError)
     def handle_database_corruption(e: DatabaseCorruptionError) -> tuple[Response, int]:

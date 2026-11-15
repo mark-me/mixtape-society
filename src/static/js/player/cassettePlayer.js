@@ -494,6 +494,9 @@ export function initCassettePlayer() {
                 await unlockOrientation();
             }
         }
+
+        // The player switches to or from the cassette sound
+        document.dispatchEvent(new CustomEvent('player-mode-changed', { detail: { mode } }));
     }
 
     /**
@@ -903,6 +906,9 @@ export function initCassettePlayer() {
             if (isMobile() && currentMode === 'cassette') {
                 console.log('💡 Tip: Click any button to enable fullscreen and landscape lock');
             }
+
+            // A track restored before this point was loaded without the cassette sound
+            document.dispatchEvent(new CustomEvent('player-mode-changed', { detail: { mode: currentMode } }));
         }
     }
 

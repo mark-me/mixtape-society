@@ -7,6 +7,7 @@ requirements during playback.
 """
 
 import hashlib
+import os
 import subprocess
 from pathlib import Path
 from typing import Literal
@@ -14,12 +15,27 @@ from typing import Literal
 from common.logging import Logger, NullLogger
 
 
-QualityLevel = Literal["high", "medium", "low", "original"]
+QualityLevel = Literal["high", "medium", "low", "cassette", "original"]
+
+# The sound of a TDK D90 cassette (1995-1997): tape hiss, wow and flutter, the narrower
+# frequency range of tape, and its tone. Taken from Audio Cassette Simulation by Aleksandr
+# Romanov (https://github.com/AARomanov1985/Audio-Cassette-Simulation), MIT licensed; see
+# cassette-simulation-LICENSE.txt.
+TDK_D90_FILTER = (
+    "aresample=44100,aformat=sample_fmts=fltp:channel_layouts=stereo[music];"
+    "aevalsrc=exprs='(random(0)-0.5)*0.006|(random(1)-0.5)*0.006':s=44100[static];"
+    "[music][static]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[mixed];"
+    "[mixed]vibrato=f=1.8:d=0.015,vibrato=f=15.0:d=0.003,highpass=f=40,lowpass=f=14500,"
+    "equalizer=f=3000:width_type=q:width=0.5:g=1.5,"
+    "equalizer=f=10000:width_type=q:width=0.7:g=-2[out]"
+)
 
 QUALITY_SETTINGS = {
     "high": {"bitrate": "256k", "format": "mp3"},
     "medium": {"bitrate": "192k", "format": "mp3"},
     "low": {"bitrate": "128k", "format": "mp3"},
+    # Played in the player's cassette mode. Made for every source format, as it changes the sound.
+    "cassette": {"bitrate": "192k", "format": "mp3", "filter": TDK_D90_FILTER},
 }
 
 
@@ -100,16 +116,20 @@ class AudioCache:
 
         return self.cache_dir / cache_filename
 
-    def should_transcode(self, file_path: Path) -> bool:
+    def should_transcode(self, file_path: Path, quality: QualityLevel = "medium") -> bool:
         """
         Determine if a file should be transcoded based on its format.
 
         Args:
             file_path: Path to the audio file.
+            quality: Quality level asked for; the cassette sound is made for every format.
 
         Returns:
             True if the file should be transcoded, False otherwise.
         """
+        if quality == "cassette":
+            return True
+
         # Transcode lossless formats that are bandwidth-heavy
         transcode_formats = {".flac", ".wav", ".aiff", ".ape", ".alac"}
         return file_path.suffix.lower() in transcode_formats
@@ -125,7 +145,7 @@ class AudioCache:
         Returns:
             True if a valid cached version exists, False otherwise.
         """
-        if quality == "original" or not self.should_transcode(original_path):
+        if quality == "original" or not self.should_transcode(original_path, quality):
             return True
 
         cache_path = self.get_cache_path(original_path, quality)
@@ -175,7 +195,7 @@ class AudioCache:
             subprocess.CalledProcessError: If ffmpeg transcoding fails.
             FileNotFoundError: If the original file doesn't exist.
         """
-        if quality == "original" or not self.should_transcode(original_path):
+        if quality == "original" or not self.should_transcode(original_path, quality):
             return original_path
 
         if not original_path.exists():
@@ -194,18 +214,26 @@ class AudioCache:
 
         self.logger.debug(f"Transcoding {original_path.name} to {quality} quality ({bitrate})")
 
+        # Written under a temporary name and moved into place when complete, so a file that is
+        # still being written is never served as cached.
+        partial_path = cache_path.with_name(f"{cache_path.name}.part")
+
         # Build ffmpeg command
-        cmd = [
-            "ffmpeg",
-            "-y",  # Overwrite output file
-            "-i", str(original_path),
-            "-vn",  # No video
-            "-ar", "44100",  # Sample rate
-            "-ac", "2",  # Stereo
+        cmd = ["ffmpeg", "-y", "-i", str(original_path)]  # Overwrite output file
+        if audio_filter := settings.get("filter"):
+            cmd += ["-filter_complex", audio_filter, "-map", "[out]"]
+        else:
+            cmd += [
+                "-vn",  # No video
+                "-ar", "44100",  # Sample rate
+                "-ac", "2",  # Stereo
+            ]
+        cmd += [
             "-b:a", bitrate,  # Target bitrate
             "-map_metadata", "0",  # Copy metadata
             "-id3v2_version", "3",  # ID3v2.3 for better compatibility
-            str(cache_path),
+            "-f", settings["format"],
+            str(partial_path),
         ]
 
         try:
@@ -215,14 +243,15 @@ class AudioCache:
                 check=True,
                 text=True,
             )
+            os.replace(partial_path, cache_path)
             self.logger.debug(f"Successfully cached: {cache_path}")
             return cache_path
 
         except subprocess.CalledProcessError as e:
             self.logger.error(f"Transcoding failed for {original_path}: {e.stderr}")
             # Clean up partial file if it exists
-            if cache_path.exists():
-                cache_path.unlink()
+            if partial_path.exists():
+                partial_path.unlink()
             raise
 
     def get_cached_or_original(
@@ -241,7 +270,7 @@ class AudioCache:
         Returns:
             Path to cached version if available, otherwise original path.
         """
-        if quality == "original" or not self.should_transcode(original_path):
+        if quality == "original" or not self.should_transcode(original_path, quality):
             return original_path
 
         cache_path = self.get_cache_path(original_path, quality)

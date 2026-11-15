@@ -52,7 +52,8 @@ class BaseConfig:
     AUDIO_CACHE_DEFAULT_QUALITY = "medium"
     AUDIO_CACHE_MAX_WORKERS = 4
     AUDIO_CACHE_PRECACHE_ON_UPLOAD = True
-    AUDIO_CACHE_PRECACHE_QUALITIES = ["medium"]  # Can add ["low", "medium", "high"]
+    # "cassette" is the tape sound of the player's cassette mode. Can add "low" and "high".
+    AUDIO_CACHE_PRECACHE_QUALITIES = ["medium", "cassette"]
 
 
     @classmethod
