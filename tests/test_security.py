@@ -2,7 +2,9 @@
 reaches a page or the audio cache without a login."""
 
 import re
+from html.parser import HTMLParser
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import pytest
 
@@ -132,13 +134,36 @@ def test_the_owner_can_clear_the_audio_cache(owner, cached_file):
 UNPINNABLE_HOSTS = {"fonts.googleapis.com", "www.gstatic.com"}
 
 
+class _ResourceFinder(HTMLParser):
+    """Collects the scripts and stylesheets a page loads from other hosts, with their attributes.
+
+    An HTML parser rather than a regular expression, so <SCRIPT SRC=...>, single quotes and
+    attributes in any order are found too.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.found = []
+
+    def handle_starttag(self, tag, attrs):
+        attributes = {name: value or "" for name, value in attrs}
+        if tag == "script":
+            url = attributes.get("src", "")
+        elif tag == "link" and "stylesheet" in attributes.get("rel", "").lower().split():
+            url = attributes.get("href", "")
+        else:
+            return
+        if url.startswith(("https://", "http://", "//")):
+            self.found.append((url, attributes))
+
+
 def _external_resources():
     templates = Path(__file__).parent.parent / "src" / "templates"
     for page in templates.glob("*.html"):
-        for tag in re.findall(r"<(?:script|link)\b[^>]*>", page.read_text(encoding="utf-8")):
-            url = re.search(r'(?:src|href)="(https://[^"]+)"', tag)
-            if url and ("<script" in tag or 'rel="stylesheet"' in tag):
-                yield page.name, tag, url.group(1)
+        finder = _ResourceFinder()
+        finder.feed(page.read_text(encoding="utf-8"))
+        for url, attributes in finder.found:
+            yield page.name, attributes, url
 
 
 def test_every_script_and_stylesheet_from_elsewhere_is_pinned_and_checked():
@@ -146,12 +171,11 @@ def test_every_script_and_stylesheet_from_elsewhere_is_pinned_and_checked():
     assert resources
 
     unchecked = []
-    for page, tag, url in resources:
-        host = url.split("/")[2]
-        if host in UNPINNABLE_HOSTS:
+    for page, attributes, url in resources:
+        if urlsplit(url).hostname in UNPINNABLE_HOSTS:
             continue
         pinned = re.search(r"@\d+\.\d+\.\d+|/ajax/libs/[^/]+/\d+\.\d+\.\d+/", url)
-        checked = 'integrity="sha384-' in tag and 'crossorigin="anonymous"' in tag
+        checked = attributes.get("integrity", "").startswith("sha384-") and attributes.get("crossorigin") == "anonymous"
         if not (pinned and checked):
             unchecked.append(f"{page}: {url}")
 
