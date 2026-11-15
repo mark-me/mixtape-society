@@ -105,6 +105,12 @@ jobs:
             echo "display_version=dev.${BRANCH}.${SHORT_SHA}" >> $GITHUB_OUTPUT
           fi
 
+      # Debian's security fixes are fetched again once a week rather than taken from the
+      # build cache, which would keep the ones from the week the layer was first built.
+      - name: Week for the Debian updates
+        id: week
+        run: echo "week=$(date -u +%G-W%V)" >> "$GITHUB_OUTPUT"
+
       - name: Determine build platforms
         id: platforms
         run: |
@@ -130,6 +136,7 @@ jobs:
           tags: mixtape-society:scan
           build-args: |
             APP_VERSION=${{ steps.version.outputs.version }}
+            DEBIAN_UPDATES=${{ steps.week.outputs.week }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -161,3 +168,4 @@ jobs:
           annotations: ${{ steps.meta.outputs.annotations }}
           build-args: |
             APP_VERSION=${{ steps.version.outputs.version }}
+            DEBIAN_UPDATES=${{ steps.week.outputs.week }}

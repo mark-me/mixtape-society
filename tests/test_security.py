@@ -126,3 +126,39 @@ def test_the_owner_can_clear_the_audio_cache(owner, cached_file):
 
     assert response.status_code == 200
     assert not cached_file.exists()
+
+
+# Google serves these itself and changes them, so they can't be pinned or hashed.
+UNPINNABLE_HOSTS = {"fonts.googleapis.com", "www.gstatic.com"}
+
+
+def _external_resources():
+    templates = Path(__file__).parent.parent / "src" / "templates"
+    for page in templates.glob("*.html"):
+        for tag in re.findall(r"<(?:script|link)\b[^>]*>", page.read_text(encoding="utf-8")):
+            url = re.search(r'(?:src|href)="(https://[^"]+)"', tag)
+            if url and ("<script" in tag or 'rel="stylesheet"' in tag):
+                yield page.name, tag, url.group(1)
+
+
+def test_every_script_and_stylesheet_from_elsewhere_is_pinned_and_checked():
+    resources = list(_external_resources())
+    assert resources
+
+    unchecked = []
+    for page, tag, url in resources:
+        host = url.split("/")[2]
+        if host in UNPINNABLE_HOSTS:
+            continue
+        pinned = re.search(r"@\d+\.\d+\.\d+|/ajax/libs/[^/]+/\d+\.\d+\.\d+/", url)
+        checked = 'integrity="sha384-' in tag and 'crossorigin="anonymous"' in tag
+        if not (pinned and checked):
+            unchecked.append(f"{page}: {url}")
+
+    assert unchecked == []
+
+
+def test_bootstrap_is_loaded_once():
+    loads = [url for _, _, url in _external_resources() if url.endswith("bootstrap.bundle.min.js")]
+
+    assert len(loads) == 1
