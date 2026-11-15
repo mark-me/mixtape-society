@@ -153,7 +153,11 @@ def test_mixtapes_saved_before_get_their_cassette_version(tmp_path, cache):
 @pytest.fixture
 def track(app):
     path = _make_audio(Path(os.environ["MUSIC_ROOT"]) / "cassette-route.flac", "sine=frequency=440:duration=2")
+    # In a saved mixtape, as a recipient without a login may only stream those tracks
+    mixtape = Path(app.config["MIXTAPE_DIR"]) / "cassette-route.json"
+    mixtape.write_text(json.dumps({"title": "Cassette route", "tracks": [{"path": "cassette-route.flac"}]}))
     yield path
+    mixtape.unlink()
     path.unlink()
     for made in Path(app.config["AUDIO_CACHE_DIR"]).iterdir():
         made.unlink()

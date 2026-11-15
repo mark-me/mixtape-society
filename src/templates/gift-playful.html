@@ -66,9 +66,9 @@
                 {% endif %}
 
                 {% if gift_note %}
-                <p class="gift-message-body">{{ gift_note | safe }}</p>
+                <p class="gift-message-body">{{ gift_note }}</p>
                 {% elif mixtape.liner_notes and mixtape.liner_notes.strip() %}
-                <p class="gift-message-body">{{ mixtape.liner_notes | safe }}</p>
+                <p class="gift-message-body">{{ mixtape.liner_notes }}</p>
                 {% else %}
                 <p>Hope these songs bring a smile – made this one just for you 🎶</p>
                 {% endif %}

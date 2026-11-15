@@ -100,6 +100,15 @@ uv run python -m pytest
 
 The tests start the app on empty temporary directories, so they never touch your own music or data.
 
+Pull requests are also checked for security:
+
+- **CodeQL** follows untrusted input through the Python and JavaScript code; findings appear under the repository's Security tab.
+- **Trivy** checks the Python packages the app runs on, and the Docker image before it is published.
+- **npm audit** checks the libraries the templates load from CDNs (`.github/scripts/audit_cdn_libraries.py`), which Dependabot and Trivy don't see.
+- **zizmor** checks the workflows themselves.
+
+A library loaded from a CDN must have a fixed version and an `integrity` hash; a test fails otherwise.
+
 ## 📚 Documentation
 
 If your PR adds a feature or changes behavior:

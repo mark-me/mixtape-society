@@ -27,7 +27,7 @@ from routes import (
     create_qr_blueprint,
     create_system_blueprint,
 )
-from security import register_security
+from security import register_security, trust_proxies
 from utils import get_version
 
 
@@ -42,6 +42,7 @@ def create_app() -> Flask:
     app.secret_key = derive_session_key(config_cls.DATA_ROOT, config_cls.PASSWORD)
     app.config.from_object(config_cls)
     register_security(app)
+    trust_proxies(app, config_cls.TRUSTED_PROXIES)
     CORS(
         app,
         resources={

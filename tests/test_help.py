@@ -46,6 +46,12 @@ def test_nothing_outside_the_site_is_served(site):
     assert _client(site).get("/help/%2e%2e/secret.txt").status_code == 404
 
 
+def test_a_folder_outside_the_site_is_not_given_away(site, tmp_path):
+    (tmp_path / "elsewhere").mkdir()
+
+    assert _client(site).get("/help/%2e%2e/elsewhere").status_code == 404
+
+
 def test_without_a_built_site_the_help_comes_from_github_pages(tmp_path):
     response = _client(tmp_path / "none").get("/help/user/index.html")
 

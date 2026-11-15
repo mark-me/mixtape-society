@@ -1,0 +1,6 @@
+# zizmor checks the workflows in the security workflow.
+rules:
+  # Suggests '$/...' instead of './...' for this repository's own workflows and actions. The
+  # './' form is the documented one and says the same; this is style, not a risk.
+  self-repository:
+    disable: true

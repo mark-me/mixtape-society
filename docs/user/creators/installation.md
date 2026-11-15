@@ -215,6 +215,7 @@ volumes:
 | `LOG_LEVEL` | No | `INFO` | Logging verbosity: `DEBUG`, `INFO`, `WARNING`, `ERROR` |
 | `TZ` | No | `UTC` | Timezone for timestamps (e.g., `America/New_York`) |
 | `SESSION_COOKIE_SECURE` | No | *(off)* | Set to `1` when the app is only reached over HTTPS |
+| `TRUSTED_PROXIES` | Behind a proxy | `0` | Number of reverse proxies in front of the app; see below |
 
 ### Port Configuration
 
@@ -233,6 +234,9 @@ ports:
 ```
 
 ## 🌐 Running Behind a Reverse Proxy
+
+!!! warning "Tell the app about the proxy"
+    Set `TRUSTED_PROXIES` to the number of proxies in front of the app, usually `1`. Without it, every visitor seems to come from the proxy, so they all share the limit of 5 login attempts a minute, and anyone can lock you out. Leave it at `0` when the app is reached directly: visitors could then make up their own address to get around the limit.
 
 For external access with HTTPS and a custom domain, use a reverse proxy.
 

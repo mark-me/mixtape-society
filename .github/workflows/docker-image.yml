@@ -5,6 +5,10 @@ on:
     branches: [ master, test ]
     tags: [ 'v*.*.*' ]
 
+# Each job asks for what it needs beyond reading the code.
+permissions:
+  contents: read
+
 jobs:
   tests:
     uses: ./.github/workflows/tests.yml
@@ -28,6 +32,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           fetch-depth: 0
 
       - name: Set up QEMU
@@ -105,6 +110,12 @@ jobs:
             echo "display_version=dev.${BRANCH}.${SHORT_SHA}" >> $GITHUB_OUTPUT
           fi
 
+      # Debian's security fixes are fetched again once a week rather than taken from the
+      # build cache, which would keep the ones from the week the layer was first built.
+      - name: Week for the Debian updates
+        id: week
+        run: echo "week=$(date -u +%G-W%V)" >> "$GITHUB_OUTPUT"
+
       - name: Determine build platforms
         id: platforms
         run: |
@@ -130,6 +141,7 @@ jobs:
           tags: mixtape-society:scan
           build-args: |
             APP_VERSION=${{ steps.version.outputs.version }}
+            DEBIAN_UPDATES=${{ steps.week.outputs.week }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -161,3 +173,4 @@ jobs:
           annotations: ${{ steps.meta.outputs.annotations }}
           build-args: |
             APP_VERSION=${{ steps.version.outputs.version }}
+            DEBIAN_UPDATES=${{ steps.week.outputs.week }}

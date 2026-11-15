@@ -63,7 +63,7 @@
                 {% endif %}
                 
                 {% if gift_note %}
-                <p class="message">{{ gift_note | safe }}</p>
+                <p class="message">{{ gift_note }}</p>
                 {% elif mixtape.liner_notes and mixtape.liner_notes.strip() %}
                 <p class="message">{{ mixtape.liner_notes }}</p>
                 {% else %}

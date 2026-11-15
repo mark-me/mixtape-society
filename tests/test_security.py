@@ -1,4 +1,10 @@
-"""Tests for the security headers and for refusing changes sent from other sites."""
+"""Tests for the security headers, for refusing changes sent from other sites, and for what
+reaches a page or the audio cache without a login."""
+
+import re
+from html.parser import HTMLParser
+from pathlib import Path
+from urllib.parse import urlsplit
 
 import pytest
 
@@ -62,3 +68,121 @@ def test_a_change_from_the_app_itself_passes(client, headers):
 
 def test_reading_from_another_site_is_not_refused(client):
     assert client.get("/robots.txt", headers={"Sec-Fetch-Site": "cross-site"}).status_code == 200
+
+
+ATTACK = '<script>alert(document.cookie)</script><img src=x onerror=alert(1)>'
+
+
+@pytest.mark.parametrize("template", ["gift-playful.html", "gift-elegant.html"])
+@pytest.mark.parametrize("field", ["gift_note", "liner_notes"])
+def test_markup_in_a_gift_note_is_shown_as_text(app, template, field):
+    from flask import render_template
+
+    mixtape = {"slug": "tape", "title": "Tape", "tracks": [], "cover": None, "liner_notes": ""}
+    note = ATTACK if field == "gift_note" else ""
+    if field == "liner_notes":
+        mixtape["liner_notes"] = ATTACK
+    with app.test_request_context("/play/gift-playful/tape"):
+        page = render_template(template, mixtape=mixtape, slug="tape", gift_note=note,
+                               receiver_name="", from_name="", is_gift=True)
+
+    assert "<script>alert" not in page
+    assert "<img src=x" not in page
+    assert "&lt;script&gt;alert(document.cookie)&lt;/script&gt;" in page
+
+
+def test_no_template_writes_markup_unescaped():
+    templates = Path(__file__).parent.parent / "src" / "templates"
+    unescaped = [
+        f"{page.name}:{number}"
+        for page in templates.glob("*.html")
+        for number, line in enumerate(page.read_text(encoding="utf-8").splitlines(), 1)
+        for use in re.findall(r"[^{]*\|\s*safe\b", line)
+        if "tojson" not in use
+    ]
+
+    assert unescaped == []
+
+
+@pytest.fixture
+def cached_file(app):
+    cached = Path(app.config["AUDIO_CACHE_DIR"]) / "0123456789abcdef_medium_192k.mp3"
+    cached.write_bytes(b"audio")
+    yield cached
+    cached.unlink(missing_ok=True)
+
+
+def test_the_audio_cache_cannot_be_cleared_without_logging_in(client, cached_file):
+    response = client.post("/play/admin/cache/clear")
+
+    assert response.status_code == 302
+    assert cached_file.exists()
+
+
+def test_the_audio_cache_figures_need_a_login(client):
+    assert client.get("/play/admin/cache/stats").status_code == 302
+
+
+def test_the_owner_can_clear_the_audio_cache(owner, cached_file):
+    response = owner.post("/play/admin/cache/clear")
+
+    assert response.status_code == 200
+    assert not cached_file.exists()
+
+
+# Google serves these itself and changes them, so they can't be pinned or hashed.
+UNPINNABLE_HOSTS = {"fonts.googleapis.com", "www.gstatic.com"}
+
+
+class _ResourceFinder(HTMLParser):
+    """Collects the scripts and stylesheets a page loads from other hosts, with their attributes.
+
+    An HTML parser rather than a regular expression, so <SCRIPT SRC=...>, single quotes and
+    attributes in any order are found too.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.found = []
+
+    def handle_starttag(self, tag, attrs):
+        attributes = {name: value or "" for name, value in attrs}
+        if tag == "script":
+            url = attributes.get("src", "")
+        elif tag == "link" and "stylesheet" in attributes.get("rel", "").lower().split():
+            url = attributes.get("href", "")
+        else:
+            return
+        if url.startswith(("https://", "http://", "//")):
+            self.found.append((url, attributes))
+
+
+def _external_resources():
+    templates = Path(__file__).parent.parent / "src" / "templates"
+    for page in templates.glob("*.html"):
+        finder = _ResourceFinder()
+        finder.feed(page.read_text(encoding="utf-8"))
+        for url, attributes in finder.found:
+            yield page.name, attributes, url
+
+
+def test_every_script_and_stylesheet_from_elsewhere_is_pinned_and_checked():
+    resources = list(_external_resources())
+    assert resources
+
+    unchecked = []
+    for page, attributes, url in resources:
+        if urlsplit(url).hostname in UNPINNABLE_HOSTS:
+            continue
+        pinned = re.search(r"@\d+\.\d+\.\d+|/ajax/libs/[^/]+/\d+\.\d+\.\d+/", url)
+        checked = attributes.get("integrity", "").startswith("sha384-") and attributes.get("crossorigin") == "anonymous"
+        if not (pinned and checked):
+            unchecked.append(f"{page}: {url}")
+
+    assert unchecked == []
+
+
+def test_bootstrap_is_loaded_once():
+    loads = [url for _, _, url in _external_resources() if url.endswith("bootstrap.bundle.min.js")]
+
+    assert len(loads) == 1

@@ -1,4 +1,5 @@
 import json
+import posixpath
 import re
 from base64 import b64decode
 from datetime import datetime
@@ -55,6 +56,9 @@ class MixtapeManager:
         """
         self._logger: Logger = logger or NullLogger()
         self.path_mixtapes: Path = path_mixtapes
+        # The shared track paths, and the state of the mixtape files they were read from
+        self._shared_tracks: frozenset[str] = frozenset()
+        self._shared_tracks_read_from: tuple | None = None
         self.path_cover: Path = path_mixtapes / "covers"
         self.path_mixtapes.mkdir(exist_ok=True)
         self.path_cover.mkdir(exist_ok=True)
@@ -402,6 +406,49 @@ class MixtapeManager:
 
         cover_path = self.path_cover / f"{slug}.jpg"
         cover_path.unlink(missing_ok=True)
+
+    def shared_track_paths(self) -> frozenset[str]:
+        """
+        Returns the paths of all tracks in saved mixtapes, relative to the music root.
+
+        These are the files someone without a login may stream. The list is read again only
+        when a mixtape file is added, changed or removed.
+
+        Returns:
+            frozenset[str]: The normalized track paths.
+        """
+        files = sorted(self.path_mixtapes.glob("*.json"))
+        state = tuple((file.name, *self._file_state(file)) for file in files)
+        if state != self._shared_tracks_read_from:
+            paths = set()
+            for file in files:
+                try:
+                    tracks = json.loads(file.read_text(encoding="utf-8")).get("tracks")
+                except (OSError, ValueError, AttributeError):
+                    continue
+                for track in tracks if isinstance(tracks, list) else []:
+                    if isinstance(track, dict) and isinstance(track.get("path"), str):
+                        paths.add(posixpath.normpath(track["path"]))
+            self._shared_tracks = frozenset(paths)
+            self._shared_tracks_read_from = state
+        return self._shared_tracks
+
+    @staticmethod
+    def _file_state(file: Path) -> tuple[int, int]:
+        """
+        Returns what tells whether a file changed: its modification time and size.
+
+        Args:
+            file: The file.
+
+        Returns:
+            tuple[int, int]: Modification time in nanoseconds and size, or (0, 0) if it is gone.
+        """
+        try:
+            stat = file.stat()
+        except OSError:
+            return (0, 0)
+        return (stat.st_mtime_ns, stat.st_size)
 
     def list_all(self) -> list[dict]:
         """

@@ -1,0 +1,52 @@
+name: CodeQL
+
+# Follows untrusted input through the Python and JavaScript code to where it could do harm,
+# such as a request parameter written into a page unescaped. Findings appear under the
+# repository's Security tab, and on the pull request that brings them in.
+on:
+  pull_request:
+  push:
+    branches: [ master ]
+  schedule:
+    - cron: "0 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # To report findings to code scanning.
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ python, javascript-typescript, actions ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Nothing is built: CodeQL reads the source as it is.
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+          # The vendored and generated files are not ours to fix.
+          config: |
+            paths-ignore:
+              - docs/javascripts/vendor
+              - site
+              - node_modules
+
+      - name: Analyze
+        uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+        with:
+          category: /language:${{ matrix.language }}

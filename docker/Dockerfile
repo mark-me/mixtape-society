@@ -54,6 +54,9 @@ FROM python:3.13-slim-trixie
 
 # ffmpeg transcodes the audio; CairoSVG needs the Cairo library.
 # Upgraded as well: the base image can lag behind Debian's security fixes.
+# A new value (the Docker workflow passes the week) rebuilds this layer instead of taking it
+# from the build cache, which would keep the fixes of the week it was first built.
+ARG DEBIAN_UPDATES=
 RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y --no-install-recommends ffmpeg libcairo2 && \
