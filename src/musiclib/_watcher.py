@@ -1,13 +1,62 @@
 import time
 from pathlib import Path
 from threading import Lock, Timer
-from typing import Dict, Tuple
+from typing import Callable, Dict, Tuple
 
 from watchdog.events import FileSystemEventHandler
 
 
 # Configuration constants
 DEBOUNCE_DELAY = 2.0  # Seconds to wait after file change before indexing
+
+# Called when the kernel's inotify queue overflowed, so file events were lost
+_overflow_listeners: list[Callable[[], None]] = []
+_overflow_lock = Lock()
+_overflow_hook_installed = False
+
+
+def add_overflow_listener(listener: Callable[[], None]) -> None:
+    """Calls a function whenever the inotify queue overflows and file events are lost.
+
+    watchdog 6 drops the kernel's overflow event without telling anyone, so the hook is put
+    where it reads the raw events. The listener runs on watchdog's reading thread, so it must
+    return at once: start a timer, never resync from it. On systems without inotify, such as
+    macOS, there is nothing to hook and the listener is never called.
+
+    Args:
+        listener: Function without arguments.
+    """
+    global _overflow_hook_installed
+    with _overflow_lock:
+        _overflow_listeners.append(listener)
+        if _overflow_hook_installed:
+            return
+        try:
+            from watchdog.observers.inotify_c import Inotify, InotifyConstants
+        except (ImportError, OSError):
+            return
+        read_events = Inotify._parse_event_buffer
+
+        def _parse_event_buffer(event_buffer):
+            for wd, mask, cookie, name in read_events(event_buffer):
+                if wd == -1 and mask & InotifyConstants.IN_Q_OVERFLOW:
+                    for notify in list(_overflow_listeners):
+                        notify()
+                yield wd, mask, cookie, name
+
+        Inotify._parse_event_buffer = staticmethod(_parse_event_buffer)
+        _overflow_hook_installed = True
+
+
+def remove_overflow_listener(listener: Callable[[], None]) -> None:
+    """Stops calling a function added with add_overflow_listener.
+
+    Args:
+        listener: The function that was added.
+    """
+    with _overflow_lock:
+        if listener in _overflow_listeners:
+            _overflow_listeners.remove(listener)
 
 
 class EnhancedWatcher(FileSystemEventHandler):
