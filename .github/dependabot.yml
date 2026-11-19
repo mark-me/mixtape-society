@@ -13,6 +13,10 @@ updates:
     groups:
       python:
         update-types: ["minor", "patch"]
+    ignore:
+      # 7.x keeps rebuilding its watches after an inotify queue overflow; see pyproject.toml.
+      - dependency-name: "watchdog"
+        versions: [">=7"]
 
   # The GitHub Actions, pinned to commits: Dependabot moves the commit and the version noted
   # beside it together.

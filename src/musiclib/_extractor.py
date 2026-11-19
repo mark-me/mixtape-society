@@ -4,7 +4,7 @@ from contextlib import contextmanager, suppress
 from dataclasses import dataclass
 from pathlib import Path
 from queue import Empty, Queue
-from threading import Event as ThreadEvent, Thread, Lock
+from threading import Event as ThreadEvent, Thread, Lock, Timer
 from typing import Iterable, Literal
 
 from tinytag import TinyTag
@@ -12,8 +12,9 @@ from watchdog.observers import Observer
 
 from common.logging import Logger, NullLogger
 
-from .indexing_status import clear_indexing_status, set_indexing_status
+from .indexing_status import clear_indexing_status, get_indexing_status, set_indexing_status
 from ._watcher import EnhancedWatcher as _Watcher
+from ._watcher import add_overflow_listener, remove_overflow_listener
 
 # =========================
 # Constants
@@ -23,6 +24,8 @@ SUPPORTED_EXTS = {".mp3", ".flac", ".ogg", ".oga", ".m4a", ".mp4", ".wav", ".wma
 BATCH_SIZE = 50
 BUSY_TIMEOUT_MS = 10000
 PROGRESS_UPDATE_INTERVAL = 100
+# After file events were lost, wait this long without further loss before resyncing
+OVERFLOW_RESYNC_DELAY = 30.0
 
 # Validate constants at module load time
 assert isinstance(BUSY_TIMEOUT_MS, int) and BUSY_TIMEOUT_MS > 0, (
@@ -272,6 +275,8 @@ class CollectionExtractor:
 
         # Threading
         self._write_queue: Queue[IndexEvent] = Queue()
+        self._overflow_timer: Timer | None = None
+        self._overflow_timer_lock = Lock()
         self._writer_stop = ThreadEvent()
         self._observer: Observer | None = None
         self._db_lock = Lock()
@@ -922,20 +927,27 @@ class CollectionExtractor:
             set_indexing_status(self.data_root, "resyncing", total=-1, current=0)
 
             with self._db_lock:
-                fs_paths = self._scan_filesystem_paths()
-                db_paths = self._get_database_paths()
+                fs_mtimes = self._scan_filesystem_paths()
+                db_mtimes = self._get_database_paths()
 
-            to_add_rel = fs_paths - db_paths
-            to_remove_rel = db_paths - fs_paths
-            to_add_abs = [self._to_abspath(p) for p in to_add_rel]
+            to_add_rel = fs_mtimes.keys() - db_mtimes.keys()
+            to_remove_rel = db_mtimes.keys() - fs_mtimes.keys()
+            # Changed on disk since it was indexed, such as new tags: read it again
+            changed_rel = {
+                path
+                for path in fs_mtimes.keys() & db_mtimes.keys()
+                if db_mtimes[path] is None or fs_mtimes[path] > db_mtimes[path]
+            }
+            to_add_abs = [self._to_abspath(p) for p in to_add_rel | changed_rel]
 
             self._logger.info(
-                f"Resync: {len(to_add_rel)} to add, {len(to_remove_rel)} to remove"
+                f"Resync: {len(to_add_rel)} to add, {len(changed_rel)} changed, "
+                f"{len(to_remove_rel)} to remove"
             )
             set_indexing_status(
                 self.data_root,
                 "resyncing",
-                total=len(to_add_rel) + len(to_remove_rel),
+                total=len(to_add_abs) + len(to_remove_rel),
                 current=0,
             )
 
@@ -945,24 +957,28 @@ class CollectionExtractor:
                 job_type="resyncing",
             )
 
-    def _scan_filesystem_paths(self) -> set[str]:
-        """Scans the music root on disk and returns the set of all supported file paths.
+    def _scan_filesystem_paths(self) -> dict[str, float]:
+        """Scans the music root on disk and returns all supported files with their modification time.
 
         This method walks the filesystem tree under the music root, collects
         POSIX-style relative paths for files with supported extensions, and
         periodically updates resync progress as files are discovered.
 
         Returns:
-            set[str]: A set of relative paths for all supported music files currently on disk.
+            dict[str, float]: Relative paths of all supported music files on disk, with their mtime.
         """
-        fs_paths = set()
+        fs_paths = {}
         found = 0
 
         for root, _, filenames in os.walk(str(self.music_root)):
             for fn in filenames:
                 if os.path.splitext(fn)[1].lower() in self.SUPPORTED_EXTS:
-                    rel_path = self._to_relpath(Path(root) / fn)
-                    fs_paths.add(rel_path)
+                    full_path = Path(root) / fn
+                    try:
+                        mtime = full_path.stat().st_mtime
+                    except OSError:
+                        continue  # Gone since the folder was listed
+                    fs_paths[self._to_relpath(full_path)] = mtime
                     found += 1
                     if found % PROGRESS_UPDATE_INTERVAL == 0:
                         set_indexing_status(
@@ -971,17 +987,17 @@ class CollectionExtractor:
 
         return fs_paths
 
-    def _get_database_paths(self) -> set[str]:
-        """Returns the set of all track paths currently stored in the database.
+    def _get_database_paths(self) -> dict[str, float | None]:
+        """Returns all track paths stored in the database, with the mtime they were indexed at.
 
         This method queries the tracks table for the path column and collects all
         stored relative paths into a set for efficient comparison with filesystem state.
 
         Returns:
-            set[str]: A set of relative track paths as stored in the database.
+            dict[str, float | None]: Relative track paths with their stored mtime.
         """
         with self.get_conn(readonly=True) as conn:
-            return {r["path"] for r in conn.execute("SELECT path FROM tracks")}
+            return {r["path"]: r["mtime"] for r in conn.execute("SELECT path, mtime FROM tracks")}
 
     def _queue_file_operations(
         self,
@@ -1103,12 +1119,44 @@ class CollectionExtractor:
     # === Monitoring ===
 
     def start_monitoring(self) -> None:
-        """Starts monitoring the music directory for file system changes."""
+        """Starts monitoring the music directory for file system changes.
+
+        When the kernel's inotify queue overflows, file events are lost; a full resync then
+        brings the collection up to date once the losses have stopped.
+        """
         if self._observer:
             return
+        add_overflow_listener(self._schedule_overflow_resync)
         self._observer = Observer()
         self._observer.schedule(_Watcher(self), str(self.music_root), recursive=True)
         self._observer.start()
+
+    def _schedule_overflow_resync(self) -> None:
+        """Plans a full resync after file events were lost to an inotify queue overflow.
+
+        Runs on watchdog's reading thread, so it only (re)starts a timer: overflows come in
+        bursts, and the resync waits until there has been none for OVERFLOW_RESYNC_DELAY.
+        """
+        with self._overflow_timer_lock:
+            if self._overflow_timer is not None:
+                self._overflow_timer.cancel()
+            self._overflow_timer = Timer(OVERFLOW_RESYNC_DELAY, self._resync_after_overflow)
+            self._overflow_timer.daemon = True
+            self._overflow_timer.start()
+
+    def _resync_after_overflow(self) -> None:
+        """Resyncs the collection after lost file events, or waits if indexing is running."""
+        with self._overflow_timer_lock:
+            self._overflow_timer = None
+        status = get_indexing_status(self.data_root)
+        if status and status.get("status") in ("rebuilding", "resyncing"):
+            self._schedule_overflow_resync()
+            return
+        self._logger.warning("File changes were lost to an inotify queue overflow; resyncing")
+        try:
+            self.resync()
+        except Exception:
+            self._logger.exception("Resync after an inotify queue overflow failed")
 
     def stop(self, timeout: float = 30.0) -> None:
         """Stops the database writer thread and file system observer.
@@ -1116,6 +1164,12 @@ class CollectionExtractor:
         Args:
             timeout: Maximum time to wait for shutdown (seconds).
         """
+        remove_overflow_listener(self._schedule_overflow_resync)
+        with self._overflow_timer_lock:
+            if self._overflow_timer is not None:
+                self._overflow_timer.cancel()
+                self._overflow_timer = None
+
         # Shutdown watcher first to flush pending events
         if self._observer:
             for handler_list in self._observer._handlers.values():
