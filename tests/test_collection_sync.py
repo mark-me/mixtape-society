@@ -1,9 +1,9 @@
 """Tests for keeping the collection in step with the music folder: resync, and lost file events."""
 
 import os
+import struct
 import subprocess
 import sys
-import threading
 import time
 from pathlib import Path
 
@@ -61,25 +61,39 @@ def test_resync_adds_new_files_and_drops_removed_ones(extractor):
     assert set(_titles(extractor)) == {"Artist/Album/01 Song.mp3", "Artist/Album/03 New.mp3"}
 
 
-@pytest.mark.skipif(not sys.platform.startswith("linux"), reason="inotify is Linux only")
-def test_an_inotify_queue_overflow_is_noticed(tmp_path):
-    from watchdog.events import FileSystemEventHandler
-    from watchdog.observers import Observer
+def _overflow_from_the_kernel() -> list:
+    """Reads an inotify queue overflow event the way watchdog reads the kernel's events.
 
-    noticed = threading.Event()
-    listener = noticed.set
+    A real overflow depends on how fast the machine reads compared with how fast files change,
+    which differs per machine; this is the event the kernel sends when it happens.
+    """
+    from watchdog.observers.inotify_c import Inotify, InotifyConstants
+
+    event = struct.pack("iIII", -1, InotifyConstants.IN_Q_OVERFLOW, 0, 0)
+    return list(Inotify._parse_event_buffer(event))
+
+
+@pytest.mark.skipif(not sys.platform.startswith("linux"), reason="inotify is Linux only")
+def test_an_inotify_queue_overflow_is_noticed():
+    noticed = []
+    listener = lambda: noticed.append(True)  # noqa: E731
     add_overflow_listener(listener)
-    observer = Observer()
-    observer.schedule(FileSystemEventHandler(), str(tmp_path), recursive=True)
-    observer.start()
     try:
-        # More events than the kernel queues by default (16384), faster than they are read
-        subprocess.run("seq 1 60000 | xargs touch", shell=True, cwd=tmp_path, check=True)
-        assert noticed.wait(timeout=30)
+        events = _overflow_from_the_kernel()
     finally:
         remove_overflow_listener(listener)
-        observer.stop()
-        observer.join(timeout=10)
+
+    assert noticed == [True]
+    assert [wd for wd, *_ in events] == [-1]
+
+
+def _wait_for(condition, timeout: float = 10.0) -> bool:
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        if condition():
+            return True
+        time.sleep(0.05)
+    return condition()
 
 
 @pytest.fixture
@@ -95,9 +109,9 @@ def test_a_burst_of_overflows_leads_to_one_resync_once_it_is_over(quick_resync):
 
     for _ in range(5):
         extractor._schedule_overflow_resync()
-        time.sleep(0.1)
-    time.sleep(1)
 
+    assert _wait_for(lambda: resyncs)
+    time.sleep(_extractor.OVERFLOW_RESYNC_DELAY * 3)
     assert len(resyncs) == 1
 
 
@@ -106,24 +120,18 @@ def test_the_resync_waits_while_indexing_runs(quick_resync):
     set_indexing_status(extractor.data_root, "rebuilding", total=10, current=1)
 
     extractor._schedule_overflow_resync()
-    time.sleep(1)
+    time.sleep(_extractor.OVERFLOW_RESYNC_DELAY * 3)
     assert resyncs == []
 
     clear_indexing_status(extractor.data_root)
-    time.sleep(1)
-    assert len(resyncs) == 1
+    assert _wait_for(lambda: resyncs)
 
 
 @pytest.mark.skipif(not sys.platform.startswith("linux"), reason="inotify is Linux only")
 def test_monitoring_resyncs_after_file_events_were_lost(quick_resync):
     extractor, resyncs = quick_resync
     extractor.start_monitoring()
-    burst = extractor.music_root / "burst"
-    burst.mkdir()
 
-    subprocess.run("seq 1 60000 | xargs touch", shell=True, cwd=burst, check=True)
-    deadline = time.monotonic() + 30
-    while not resyncs and time.monotonic() < deadline:
-        time.sleep(0.2)
+    _overflow_from_the_kernel()
 
-    assert resyncs
+    assert _wait_for(lambda: resyncs)

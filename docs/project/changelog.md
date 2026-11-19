@@ -6,6 +6,27 @@ All notable changes to Mixtape Society are documented here. We follow [Semantic 
 
 Each release rewinds and fast-forwards your mixtape experience—just like a real cassette! 🎧
 
+## 📦 v0.9.1
+
+<span class="md-tag">Release</span>
+
+**🗓️** 2026-11-19
+
+### 🐛 Fixed
+
+- The music folder watcher could keep overflowing and stop noticing changes, with the log full of "Inotify queue overflowed" warnings
+- Changes to the music folder that the watcher missed now lead to a resync, so they no longer go unnoticed until a manual one
+- A resync now also reads files again whose tags changed, not only new and removed files
+- No more rate limit warning at every start
+
+### 🔧 Changed
+
+- Updated dependencies, including gunicorn 27
+
+[Changes since last version](https://github.com/mark-me/mixtape-society/compare/v0.9.0...v0.9.1)
+
+---
+
 ## 📦 v0.9.0
 
 <span class="md-tag">Release</span>
