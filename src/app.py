@@ -1,6 +1,6 @@
 import logging
-import sys
 import os
+import sys
 import threading
 from datetime import datetime, timezone
 from pathlib import Path
@@ -71,8 +71,12 @@ def create_app() -> Flask:
         },
     )
 
+    # Counts are kept in memory: the image runs one gunicorn worker, so every request sees the
+    # same counts, and losing them on a restart doesn't matter for a per-minute login limit.
+    # Running several workers would give each its own counts; that needs a shared storage.
     limiter = Limiter(
         get_remote_address,
+        storage_uri="memory://",
     )
     limiter.init_app(app=app)
 
@@ -293,7 +297,8 @@ def create_app() -> Flask:
     )
     app.register_blueprint(
         create_og_cover_blueprint(
-            path_logo=Path(__file__).parent / "static" / "images" / "logo.svg", logger=logger
+            path_logo=Path(__file__).parent / "static" / "images" / "logo.svg",
+            logger=logger,
         ),
         url_prefix="/og",
     )
@@ -321,7 +326,9 @@ def create_app() -> Flask:
     return app
 
 
-def saved_track_paths(mixtape_manager: MixtapeManager, music_root: Path, logger) -> list[Path]:
+def saved_track_paths(
+    mixtape_manager: MixtapeManager, music_root: Path, logger
+) -> list[Path]:
     """
     Lists the music files of all saved mixtapes that exist on disk.
 

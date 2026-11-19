@@ -66,7 +66,7 @@ def test_nothing_outside_the_collection_can_be_streamed(client, library):
 
 def _address_app(proxies: int) -> Flask:
     app = Flask(__name__)
-    limiter = Limiter(get_remote_address, app=app)
+    limiter = Limiter(get_remote_address, app=app, storage_uri="memory://")
 
     @app.post("/login")
     @limiter.limit("5 per minute")
